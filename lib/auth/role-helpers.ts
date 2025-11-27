@@ -23,15 +23,18 @@ const ROLE_HIERARCHY: RoleType[] = [
 /**
  * Check if user has any of the specified roles
  */
-export function hasRole(user: CurrentUser | null, roles: RoleType[]): boolean {
-  if (!user || !user.roles) return false;
+export function hasRole(user: CurrentUser | null, roles: string[]): boolean {
+  if (!user || !user.roles || user.roles.length === 0) return false;
   return user.roles.some((userRole) => roles.includes(userRole));
 }
 
 /**
  * Check if user has a specific role
  */
-export function hasExactRole(user: CurrentUser | null, role: RoleType): boolean {
+export function hasExactRole(
+  user: CurrentUser | null,
+  role: RoleType
+): boolean {
   if (!user || !user.roles) return false;
   return user.roles.includes(role);
 }
@@ -40,7 +43,7 @@ export function hasExactRole(user: CurrentUser | null, role: RoleType): boolean 
  * Check if user is an admin (admin or dept_head)
  */
 export function isAdmin(user: CurrentUser | null): boolean {
-  return hasRole(user, ['admin', 'dept_head']);
+  return hasRole(user, ["admin", "dept_head"]);
 }
 
 /**
@@ -48,12 +51,12 @@ export function isAdmin(user: CurrentUser | null): boolean {
  */
 export function isStaff(user: CurrentUser | null): boolean {
   return hasRole(user, [
-    'admin',
-    'dept_head',
-    'dept_staff',
-    'ward_staff',
-    'field_staff',
-    'call_center',
+    "admin",
+    "dept_head",
+    "dept_staff",
+    "ward_staff",
+    "field_staff",
+    "call_center",
   ]);
 }
 
@@ -61,16 +64,27 @@ export function isStaff(user: CurrentUser | null): boolean {
  * Check if user is a citizen (citizen, business_owner, or tourist)
  */
 export function isCitizen(user: CurrentUser | null): boolean {
-  return hasRole(user, ['citizen', 'business_owner', 'tourist']);
+  return hasRole(user, ["citizen", "business_owner", "tourist"]);
 }
 
 /**
  * Get the highest precedence role for the user
- */
-export function getPrimaryRole(user: CurrentUser | null): RoleType | null {
+ */ export function getPrimaryRole(user: CurrentUser | null): string | null {
   if (!user || !user.roles || user.roles.length === 0) return null;
 
-  let highestRole: RoleType | null = null;
+  const ROLE_HIERARCHY = [
+    "tourist",
+    "business_owner",
+    "citizen",
+    "call_center",
+    "field_staff",
+    "ward_staff",
+    "dept_staff",
+    "dept_head",
+    "admin",
+  ];
+
+  let highestRole: string | null = null;
   let highestIndex = -1;
 
   for (const role of user.roles) {
@@ -87,46 +101,37 @@ export function getPrimaryRole(user: CurrentUser | null): RoleType | null {
 /**
  * Determine which dashboard to show based on role precedence
  * Admin > Staff > Citizen
- */
-export function getDashboardType(user: CurrentUser | null): DashboardType {
-  if (!user) return 'citizen';
+ */ export function getDashboardType(
+  user: CurrentUser | null
+): "admin" | "staff" | "citizen" {
+  if (!user) return "citizen";
 
-  // Check for admin roles first (highest precedence)
-  if (user.roles.includes('admin') || user.roles.includes('dept_head')) {
-    return 'admin';
+  const adminRoles = ["admin", "dept_head"];
+  const staffRoles = ["dept_staff", "ward_staff", "field_staff", "call_center"];
+
+  if (user.roles.some((r) => adminRoles.includes(r))) {
+    return "admin";
   }
 
-  // Check for staff roles
-  if (
-    user.roles.includes('dept_staff') ||
-    user.roles.includes('ward_staff') ||
-    user.roles.includes('field_staff') ||
-    user.roles.includes('call_center')
-  ) {
-    return 'staff';
+  if (user.roles.some((r) => staffRoles.includes(r))) {
+    return "staff";
   }
 
-  // Default to citizen dashboard
-  return 'citizen';
+  return "citizen";
 }
-
 /**
  * Get the default dashboard path for a user
- */
-export function getDefaultDashboardPath(user: CurrentUser | null): string {
+ */ export function getDefaultDashboardPath(user: CurrentUser | null): string {
   const dashboardType = getDashboardType(user);
 
-  switch (dashboardType) {
-    case 'admin':
-      return '/admin/dashboard';
-    case 'staff':
-      return '/staff/dashboard';
-    case 'citizen':
-    default:
-      return '/citizen/dashboard';
-  }
-}
+  const paths = {
+    admin: "/admin/dashboard",
+    staff: "/staff/dashboard",
+    citizen: "/citizen/dashboard",
+  };
 
+  return paths[dashboardType];
+}
 /**
  * Check if user can access a specific dashboard
  */
