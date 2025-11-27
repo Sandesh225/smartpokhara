@@ -1,3 +1,6 @@
+// app/page.tsx
+// ✅ FIXED: Sign In button properly links to /login
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
@@ -6,7 +9,7 @@ import { getDefaultDashboardPath } from "@/lib/auth/role-helpers";
 export default async function LandingPage() {
   const user = await getCurrentUserWithRoles();
 
-  // If user is already logged in, redirect to their appropriate dashboard
+  // If user is authenticated, redirect to their appropriate dashboard
   if (user) {
     const dashboardPath = getDefaultDashboardPath(user);
     redirect(dashboardPath);
@@ -16,70 +19,69 @@ export default async function LandingPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                SP
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Smart City Pokhara
-                </h1>
-                <p className="text-xs text-gray-500">पोखरा महानगरपालिका</p>
-              </div>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 text-xl font-bold text-white">
+              SP
             </div>
-            <div className="flex gap-3">
-              <Link
-                href="/login"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Register
-              </Link>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Smart City Pokhara
+              </h1>
+              <p className="text-xs text-gray-500">पोखरा महानगरपालिका</p>
             </div>
+          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/login"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/register"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+            >
+              Register
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      {/* Hero */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="mb-6 text-4xl font-bold text-gray-900 md:text-5xl">
             Welcome to Smart City Pokhara
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="mx-auto mb-8 max-w-3xl text-xl text-gray-600">
             Report issues, track complaints, and access municipal services all
             in one place. Making Pokhara a better place to live, one complaint
             at a time.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               href="/register"
-              className="px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+              className="rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-colors hover:bg-blue-700"
             >
               Get Started
             </Link>
             <Link
               href="/login"
-              className="px-8 py-4 bg-white text-blue-600 text-lg font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-lg border-2 border-blue-600"
+              className="rounded-lg border-2 border-blue-600 bg-white px-8 py-4 text-lg font-semibold text-blue-600 shadow-lg transition-colors hover:bg-gray-50"
             >
               Sign In
             </Link>
           </div>
         </div>
       </section>
-      {/* Features Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
+
+      {/* Features */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <h3 className="mb-12 text-center text-3xl font-bold text-gray-900">
           Our Services
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <FeatureCard
             icon="📝"
             title="Submit Complaints"
@@ -113,10 +115,10 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-blue-600 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      {/* Stats */}
+      <section className="bg-blue-600 py-16 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
             <StatCard number="33" label="Wards" />
             <StatCard number="1000+" label="Registered Users" />
             <StatCard number="500+" label="Resolved Complaints" />
@@ -125,28 +127,28 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <h3 className="text-3xl font-bold text-gray-900 mb-4">
+      {/* CTA */}
+      <section className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8">
+        <h3 className="mb-4 text-3xl font-bold text-gray-900">
           Ready to get started?
         </h3>
-        <p className="text-xl text-gray-600 mb-8">
+        <p className="mb-8 text-xl text-gray-600">
           Join thousands of citizens making Pokhara a better place
         </p>
         <Link
           href="/register"
-          className="inline-block px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+          className="inline-block rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-colors hover:bg-blue-700"
         >
           Create Free Account
         </Link>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <footer className="bg-gray-900 py-12 text-gray-300">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             <div>
-              <h4 className="text-white font-semibold mb-4">
+              <h4 className="mb-4 font-semibold text-white">
                 Smart City Pokhara
               </h4>
               <p className="text-sm">
@@ -158,7 +160,7 @@ export default async function LandingPage() {
               </p>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+              <h4 className="mb-4 font-semibold text-white">Quick Links</h4>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="/login" className="hover:text-white">
@@ -183,7 +185,7 @@ export default async function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-semibold mb-4">Contact Us</h4>
+              <h4 className="mb-4 font-semibold text-white">Contact Us</h4>
               <ul className="space-y-2 text-sm">
                 <li>📞 +977-61-XXXXXX</li>
                 <li>📧 info@pokharamun.gov.np</li>
@@ -191,7 +193,7 @@ export default async function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
+          <div className="mt-8 border-t border-gray-800 pt-8 text-center text-sm">
             <p>
               &copy; {new Date().getFullYear()} Pokhara Metropolitan City. All
               rights reserved.
@@ -213,9 +215,9 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-      <div className="text-4xl mb-4">{icon}</div>
-      <h4 className="text-xl font-semibold text-gray-900 mb-2">{title}</h4>
+    <div className="rounded-xl bg-white p-6 shadow-md transition-shadow hover:shadow-lg">
+      <div className="mb-4 text-4xl">{icon}</div>
+      <h4 className="mb-2 text-xl font-semibold text-gray-900">{title}</h4>
       <p className="text-gray-600">{description}</p>
     </div>
   );
@@ -224,7 +226,7 @@ function FeatureCard({
 function StatCard({ number, label }: { number: string; label: string }) {
   return (
     <div>
-      <div className="text-4xl font-bold mb-2">{number}</div>
+      <div className="mb-2 text-4xl font-bold">{number}</div>
       <div className="text-blue-100">{label}</div>
     </div>
   );
