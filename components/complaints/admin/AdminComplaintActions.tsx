@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { ComplaintStatusBadge } from '../ComplaintStatusBadge';
+import { ComplaintStatusBadge } from "../../citizen/complaints/ComplaintStatusBadge";
 
 interface AdminComplaintActionsProps {
   complaint: {

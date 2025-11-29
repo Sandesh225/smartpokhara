@@ -1,5 +1,3 @@
-// components/admin/user-table.tsx
-
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,7 +19,10 @@ interface UserProfile {
 }
 
 interface UserRoleRow {
+  id?: string;
+  role_id?: string;
   role?: RoleRow | null;
+  assigned_at?: string | null;
   [key: string]: unknown;
 }
 
@@ -65,7 +66,6 @@ function buildUsersUrl(
     ...overrides,
   };
 
-  // Always reset page when changing key filters if caller passes page: "1"
   const params = new URLSearchParams();
 
   if (merged.search) params.set("search", merged.search);
@@ -268,8 +268,6 @@ export function UserTable({
                 users.map((user) => {
                   const name =
                     user.user_profiles?.full_name?.trim() || "Unnamed user";
-                  const primaryRoleName =
-                    user.user_roles?.[0]?.role?.name ?? "—";
                   const createdAt = user.created_at
                     ? new Date(user.created_at)
                     : null;
@@ -403,7 +401,7 @@ export function UserTable({
               </Button>
             </Link>
             <Link
-              href={
+              href{
                 hasNext
                   ? buildUsersUrl(searchParams, {
                       page: String(safePage + 1),

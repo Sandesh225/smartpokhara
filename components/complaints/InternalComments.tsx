@@ -1,116 +1,102 @@
-// components/complaints/InternalComments.tsx
-'use client';
+// 4. components/complaints/InternalComments.tsx
+// =============================================================================
+"use client";
 
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { UserAvatar } from '@/components/shared/UserAvatar';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface InternalCommentsProps {
   complaintId: string;
   comments: any[];
 }
 
-export function InternalComments({ complaintId, comments }: InternalCommentsProps) {
-  const [newComment, setNewComment] = useState('');
+export function InternalComments({
+  complaintId,
+  comments,
+}: InternalCommentsProps) {
+  const router = useRouter();
+  const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const supabase = createClient();
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!newComment.trim()) return;
 
+    setSubmitting(true);
+    const supabase = createClient();
+
     try {
-      setSubmitting(true);
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       const { error } = await supabase
-        .from('complaint_internal_comments')
+        .from("complaint_internal_comments")
         .insert({
           complaint_id: complaintId,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          comment: newComment.trim(),
+          user_id: user?.id,
+          comment: newComment,
         });
 
       if (error) throw error;
 
-      setNewComment('');
-      // Refresh the page to show new comment
-      window.location.reload();
+      setNewComment("");
+      router.refresh();
     } catch (error) {
-      console.error('Error submitting comment:', error);
-      alert('Error submitting comment. Please try again.');
+      console.error("Error adding comment:", error);
+      alert("Failed to add comment");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Comment Form */}
-      <form onSubmit={handleSubmitComment} className="space-y-4">
-        <div>
-          <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
-            Add Internal Comment
-          </label>
-          <textarea
-            id="comment"
-            rows={3}
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Add a comment... Mark as work log if this represents work done."
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="work-log"
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="work-log" className="text-sm text-gray-700">
-              Mark as work log
-            </label>
-          </div>
-          <button
-            type="submit"
-            disabled={submitting || !newComment.trim()}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {submitting ? 'Posting...' : 'Post Comment'}
-          </button>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Add an internal note (visible only to staff)..."
+          rows={3}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
+        <button
+          type="submit"
+          disabled={submitting || !newComment.trim()}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {submitting ? "Adding..." : "Add Comment"}
+        </button>
       </form>
 
       {/* Comments List */}
       <div className="space-y-4">
-        {comments.map((comment) => (
-          <div key={comment.id} className="flex space-x-3">
-            <UserAvatar user={comment.user} size="sm" />
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-900">
-                  {comment.user?.user_profiles?.full_name || comment.user?.email}
-                </span>
-                {comment.is_work_log && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                    Work Log
-                  </span>
-                )}
-                <span className="text-sm text-gray-500">
-                  {new Date(comment.created_at).toLocaleDateString()} at{' '}
-                  {new Date(comment.created_at).toLocaleTimeString()}
-                </span>
+        {comments.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-4">
+            No internal comments yet
+          </p>
+        ) : (
+          comments.map((comment) => (
+            <div
+              key={comment.id}
+              className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-gray-900">{comment.comment}</p>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                    <span className="font-medium">
+                      {comment.user?.user_profiles?.full_name || "Staff"}
+                    </span>
+                    <span>•</span>
+                    <span>{new Date(comment.created_at).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
-                {comment.comment}
-              </p>
             </div>
-          </div>
-        ))}
-
-        {comments.length === 0 && (
-          <p className="text-center text-gray-500 py-8">No comments yet</p>
+          ))
         )}
       </div>
     </div>

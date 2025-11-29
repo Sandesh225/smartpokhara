@@ -1,11 +1,7 @@
-/**
- * Server-side Supabase instance factory
- * Use this in Server Components, Route Handlers, and Server Actions
- */
-
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import type { Database } from '@/lib/types/database.types';
+// lib/supabase/server.ts - SERVER CLIENT ONLY
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import type { Database } from "@/lib/types/database.types";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -22,18 +18,14 @@ export async function createClient() {
           try {
             cookieStore.set({ name, value, ...options });
           } catch (error) {
-            // The `set` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Ignore in Server Components
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options });
+            cookieStore.set({ name, value: "", ...options });
           } catch (error) {
-            // The `delete` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Ignore in Server Components
           }
         },
       },
@@ -41,13 +33,9 @@ export async function createClient() {
   );
 }
 
-/**
- * Get the current authenticated user on the server
- * Returns null if not authenticated
- */
 export async function getCurrentUser() {
   const supabase = await createClient();
-  
+
   const {
     data: { user },
     error,
@@ -59,14 +47,13 @@ export async function getCurrentUser() {
 
   return user;
 }
-
 /**
  * Get the current session on the server
  * Returns null if no active session
  */
 export async function getSession() {
   const supabase = await createClient();
-  
+
   const {
     data: { session },
     error,

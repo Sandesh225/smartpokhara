@@ -1,38 +1,25 @@
-/**
- * Admin Layout - Additional layout for admin pages
- * Adds admin-specific sidebar or additional features
- */
-//app/(admin)/(protected)/admin/layout.tsx
+import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
+import { getCurrentUserWithRoles } from "@/lib/auth/session";
+import { isAdmin } from "@/lib/auth/role-helpers";
+import { AdminShell } from "@/components/admin/shell/AdminShell";
 
-import { redirect } from 'next/navigation';
-import { getCurrentUserWithRoles } from '@/lib/auth/session';
-import { isAdmin } from '@/lib/auth/role-helpers';
-import { AdminSidebar } from '@/components/navigation/AdminSidebar';
+interface AdminLayoutProps {
+  children: ReactNode;
+}
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const dynamic = "force-dynamic";
+
+export default async function AdminLayout({ children }: AdminLayoutProps) {
   const user = await getCurrentUserWithRoles();
 
   if (!user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   if (!isAdmin(user)) {
-    redirect('/citizen/dashboard');
+    redirect("/citizen/dashboard");
   }
 
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Admin Sidebar */}
-      <AdminSidebar user={user} />
-      
-      {/* Main Content */}
-      <div className="flex-1 lg:pl-64">
-        {children}
-      </div>
-    </div>
-  );
+  return <AdminShell user={user}>{children}</AdminShell>;
 }

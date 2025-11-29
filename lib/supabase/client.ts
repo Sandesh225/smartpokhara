@@ -1,10 +1,6 @@
-/**
- * Client-side Supabase instance
- * Use this in Client Components and client-side logic
- */
-
-import { createBrowserClient } from '@supabase/ssr';
-import type { Database } from '@/lib/types/database';
+// lib/supabase/client.ts - CLIENT CLIENT ONLY
+import { createBrowserClient } from "@supabase/ssr";
+import type { Database } from "@/lib/types/database.types";
 
 export function createClient() {
   return createBrowserClient<Database>(
@@ -13,7 +9,7 @@ export function createClient() {
   );
 }
 
-// Export a singleton instance for convenience
+// Singleton instance for client components
 let client: ReturnType<typeof createClient> | null = null;
 
 export function getClient() {

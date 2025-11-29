@@ -1,5 +1,4 @@
 // lib/types/admin.ts
-
 export interface DashboardStats {
   total: number;
   pending: number;
@@ -7,6 +6,7 @@ export interface DashboardStats {
   resolved: number;
   closed: number;
   escalated: number;
+  overdue: number;
   avg_resolution_days: number;
 }
 
@@ -27,24 +27,25 @@ export interface StaffWorkload {
   active_complaints: number;
   overdue_complaints: number;
   resolved_this_month: number;
+  avg_resolution_days: number;
 }
 
-export interface ComplaintFilters {
-  search: string;
+export interface PriorityAlert {
+  id: string;
+  tracking_code: string;
+  title: string;
+  priority: "low" | "medium" | "high" | "critical";
   status: string;
-  priority: string;
-  category: string;
-  department: string;
-  ward: string;
-  assignedStaff: string;
-  isOverdue: boolean | null;
-  isEscalated: boolean | null;
-  dateFrom: string;
-  dateTo: string;
+  days_overdue: number;
+  assigned_staff_name: string | null;
+  department_name: string | null;
 }
 
-export interface BulkActionResult {
-  success: boolean;
-  message: string;
-  updated_count?: number;
+export interface WardSummary {
+  ward_number: number;
+  ward_name: string;
+  total_complaints: number;
+  open_complaints: number;
+  resolved_complaints: number;
+  overdue_complaints: number;
 }

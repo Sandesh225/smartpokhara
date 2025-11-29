@@ -8,8 +8,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Alert } from '@/components/ui/Alert';
 import { PasswordStrength } from '@/components/auth/PasswordStrength';
 

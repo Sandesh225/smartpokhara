@@ -3,9 +3,9 @@ import { redirect } from 'next/navigation';
 import { getCurrentUserWithRoles } from '@/lib/auth/session';
 import { isStaff } from '@/lib/auth/role-helpers';
 import { createClient } from '@/lib/supabase/server';
-import { ComplaintDetailsHeader } from '@/components/complaints/ComplaintDetailsHeader';
-import { ComplaintTimeline } from '@/components/complaints/ComplaintTimeline';
-import { ComplaintAttachments } from '@/components/complaints/ComplaintAttachments';
+import { ComplaintDetailsHeader } from "@/components/citizen/complaints/ComplaintDetailsHeader";
+import { ComplaintTimeline } from "@/components/citizen/complaints/ComplaintTimeline";
+import { ComplaintAttachments } from "@/components/citizen/complaints/ComplaintAttachments";
 import { StaffComplaintActions } from '@/components/complaints/StaffComplaintActions';
 import { InternalComments } from '@/components/complaints/InternalComments';
 

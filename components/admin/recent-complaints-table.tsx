@@ -1,9 +1,8 @@
-// components/admin/recent-complaints-table.tsx
 "use client";
 
 import Link from "next/link";
-import { ComplaintStatusBadge } from "@/components/complaints/complaint-status-badge";
-import { ComplaintPriorityBadge } from "@/components/complaints/complaint-priority-badge";
+import { ComplaintStatusBadge } from "@/components/admin/complaint-status-badge";
+import { ComplaintPriorityBadge } from "@/components/admin/complaint-priority-badge";
 import type { ComplaintListItem } from "@/lib/types/complaints";
 
 interface RecentComplaintsTableProps {

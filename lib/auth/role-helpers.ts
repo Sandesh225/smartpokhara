@@ -1,24 +1,5 @@
-/**
- * Role checking and management utilities
- */
-
-import type { CurrentUser, RoleType, DashboardType } from '@/lib/types/auth';
-
-/**
- * Role hierarchy for precedence
- * Higher index = higher precedence
- */
-const ROLE_HIERARCHY: RoleType[] = [
-  'tourist',
-  'business_owner',
-  'citizen',
-  'call_center',
-  'field_staff',
-  'ward_staff',
-  'dept_staff',
-  'dept_head',
-  'admin',
-];
+// lib/auth/role-helpers.ts - ENHANCED
+import type { CurrentUser, RoleType, DashboardType } from "@/lib/types/auth";
 
 /**
  * Check if user has any of the specified roles
@@ -68,8 +49,32 @@ export function isCitizen(user: CurrentUser | null): boolean {
 }
 
 /**
+ * Staff role specific checkers
+ */
+export function isWardStaff(user: CurrentUser | null): boolean {
+  return hasExactRole(user, "ward_staff");
+}
+
+export function isDeptStaff(user: CurrentUser | null): boolean {
+  return hasExactRole(user, "dept_staff");
+}
+
+export function isFieldStaff(user: CurrentUser | null): boolean {
+  return hasExactRole(user, "field_staff");
+}
+
+export function isSupervisor(user: CurrentUser | null): boolean {
+  return hasRole(user, ["dept_head", "admin"]);
+}
+
+export function isHelpdesk(user: CurrentUser | null): boolean {
+  return hasExactRole(user, "call_center");
+}
+
+/**
  * Get the highest precedence role for the user
- */ export function getPrimaryRole(user: CurrentUser | null): string | null {
+ */
+export function getPrimaryRole(user: CurrentUser | null): string | null {
   if (!user || !user.roles || user.roles.length === 0) return null;
 
   const ROLE_HIERARCHY = [
@@ -101,7 +106,8 @@ export function isCitizen(user: CurrentUser | null): boolean {
 /**
  * Determine which dashboard to show based on role precedence
  * Admin > Staff > Citizen
- */ export function getDashboardType(
+ */
+export function getDashboardType(
   user: CurrentUser | null
 ): "admin" | "staff" | "citizen" {
   if (!user) return "citizen";
@@ -119,9 +125,11 @@ export function isCitizen(user: CurrentUser | null): boolean {
 
   return "citizen";
 }
+
 /**
  * Get the default dashboard path for a user
- */ export function getDefaultDashboardPath(user: CurrentUser | null): string {
+ */
+export function getDefaultDashboardPath(user: CurrentUser | null): string {
   const dashboardType = getDashboardType(user);
 
   const paths = {
@@ -132,6 +140,7 @@ export function isCitizen(user: CurrentUser | null): boolean {
 
   return paths[dashboardType];
 }
+
 /**
  * Check if user can access a specific dashboard
  */
@@ -142,18 +151,18 @@ export function canAccessDashboard(
   if (!user) return false;
 
   switch (dashboard) {
-    case 'admin':
-      return user.roles.includes('admin') || user.roles.includes('dept_head');
-    case 'staff':
+    case "admin":
+      return user.roles.includes("admin") || user.roles.includes("dept_head");
+    case "staff":
       return (
-        user.roles.includes('admin') ||
-        user.roles.includes('dept_head') ||
-        user.roles.includes('dept_staff') ||
-        user.roles.includes('ward_staff') ||
-        user.roles.includes('field_staff') ||
-        user.roles.includes('call_center')
+        user.roles.includes("admin") ||
+        user.roles.includes("dept_head") ||
+        user.roles.includes("dept_staff") ||
+        user.roles.includes("ward_staff") ||
+        user.roles.includes("field_staff") ||
+        user.roles.includes("call_center")
       );
-    case 'citizen':
+    case "citizen":
       return true; // Everyone can access citizen dashboard
     default:
       return false;
@@ -164,45 +173,62 @@ export function canAccessDashboard(
  * Get user's full name or email fallback
  */
 export function getUserDisplayName(user: CurrentUser | null): string {
-  if (!user) return 'Guest';
+  if (!user) return "Guest";
   if (user.profile?.full_name) return user.profile.full_name;
-  return user.email.split('@')[0];
+  return user.email.split("@")[0];
 }
 
 /**
  * Get role display name
  */
 export function getRoleDisplayName(role: RoleType): string {
-  const displayNames: Record<RoleType, string> = {
-    admin: 'Administrator',
-    dept_head: 'Department Head',
-    dept_staff: 'Department Staff',
-    ward_staff: 'Ward Officer',
-    field_staff: 'Field Worker',
-    call_center: 'Call Center Agent',
-    citizen: 'Citizen',
-    business_owner: 'Business Owner',
-    tourist: 'Tourist',
+  const roleNames: Record<RoleType, string> = {
+    admin: "System Administrator",
+    dept_head: "Department Head",
+    dept_staff: "Department Staff",
+    ward_staff: "Ward Staff",
+    field_staff: "Field Technician",
+    call_center: "Helpdesk Staff",
+    citizen: "Citizen",
+    business_owner: "Business Owner",
+    tourist: "Tourist",
   };
 
-  return displayNames[role] || role;
+  return roleNames[role] || role;
+}
+
+// Get role badge color
+export function getRoleBadgeColor(role: RoleType): string {
+  const colors: Record<RoleType, string> = {
+    admin: "bg-purple-100 text-purple-800",
+    dept_head: "bg-blue-100 text-blue-800",
+    dept_staff: "bg-cyan-100 text-cyan-800",
+    ward_staff: "bg-green-100 text-green-800",
+    field_staff: "bg-orange-100 text-orange-800",
+    call_center: "bg-indigo-100 text-indigo-800",
+    citizen: "bg-gray-100 text-gray-800",
+    business_owner: "bg-amber-100 text-amber-800",
+    tourist: "bg-pink-100 text-pink-800",
+  };
+
+  return colors[role] || "bg-gray-100 text-gray-800";
 }
 
 /**
- * Get role badge color class
+ * Get accessible routes based on user role
  */
-export function getRoleBadgeColor(role: RoleType): string {
-  const colors: Record<RoleType, string> = {
-    admin: 'bg-purple-100 text-purple-800',
-    dept_head: 'bg-indigo-100 text-indigo-800',
-    dept_staff: 'bg-blue-100 text-blue-800',
-    ward_staff: 'bg-cyan-100 text-cyan-800',
-    field_staff: 'bg-teal-100 text-teal-800',
-    call_center: 'bg-green-100 text-green-800',
-    citizen: 'bg-gray-100 text-gray-800',
-    business_owner: 'bg-orange-100 text-orange-800',
-    tourist: 'bg-pink-100 text-pink-800',
-  };
+export function getAccessibleRoutes(user: CurrentUser | null): string[] {
+  if (!user) return ["/login", "/register"];
 
-  return colors[role] || 'bg-gray-100 text-gray-800';
+  const routes = ["/dashboard"];
+
+  if (isAdmin(user)) {
+    routes.push("/admin", "/staff", "/citizen");
+  } else if (isStaff(user)) {
+    routes.push("/staff", "/citizen");
+  } else {
+    routes.push("/citizen");
+  }
+
+  return routes;
 }

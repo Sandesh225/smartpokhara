@@ -1,4 +1,3 @@
-// components/admin/admin-dashboard-charts.tsx
 "use client";
 
 import {
@@ -40,9 +39,7 @@ export function AdminDashboardCharts({
   });
 
   const activityData = Array.from(activityMap.entries())
-    .sort(
-      (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime()
-    )
+    .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
     .map(([date, count]) => ({ date, count }));
 
   const activitySubtitle =

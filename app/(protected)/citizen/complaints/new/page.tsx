@@ -1,29 +1,43 @@
-import { createClient } from "@/lib/supabase/server"
-import { getCurrentUserWithRoles } from "@/lib/auth/session"
-import { redirect } from "next/navigation"
-import { ComplaintFormContainer } from "@/components/citizen/citizen-form-container"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserWithRoles } from "@/lib/auth/session";
+import { ComplaintFormWizard } from "@/components/citizen/ComplaintFormWizard";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function NewComplaintPage() {
-  const user = await getCurrentUserWithRoles()
-  if (!user) redirect("/login")
+  const user = await getCurrentUserWithRoles();
+  if (!user) redirect("/login");
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: categories } = await supabase
-    .from("complaint_categories")
-    .select("id, name, name_nepali, description, icon, complaint_subcategories(*)")
-    .eq("is_active", true)
+  const [{ data: categories = [] }, { data: wards = [] }] = await Promise.all([
+    supabase
+      .from("complaint_categories")
+      .select(
+        `
+        id,
+        name,
+        name_nepali,
+        description,
+        icon,
+        complaint_subcategories (
+          id,
+          name,
+          name_nepali,
+          description,
+          sla_days
+        )
+      `
+      )
+      .order("name", { ascending: true }),
+    supabase
+      .from("wards")
+      .select("id, ward_number, name, name_nepali")
+      .eq("is_active", true)
+      .order("ward_number", { ascending: true }),
+  ]);
 
-  const { data: wards } = await supabase.from("wards").select("id, ward_number, name, name_nepali").order("ward_number")
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Submit a Complaint</h1>
-        <p className="mt-2 text-slate-600">Help us improve the city by reporting issues and concerns</p>
-      </div>
-
-      <ComplaintFormContainer categories={categories || []} wards={wards || []} user={user} />
-    </div>
-  )
+  return <ComplaintFormWizard categories={categories} wards={wards} />;
 }

@@ -1,10 +1,14 @@
-// app/(protected)/admin/complaints/[id]/page.tsx
-
+// app/admin/complaints/[id]/page.tsx
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
 import { createClient } from "@/lib/supabase/server";
 import { AdminComplaintDetailClient } from "@/components/admin/admin-complaint-detail-client";
+import type {
+  ComplaintFull,
+  Department,
+  UserSummary,
+} from "@/lib/types/complaints";
 
 interface PageProps {
   params: { id: string };
@@ -39,7 +43,7 @@ export default async function AdminComplaintPage({ params }: PageProps) {
   const supabase = await createClient();
 
   // Fetch complaint with all related data
-  const { data: complaint, error } = await supabase
+  const { data: complaintRaw, error } = await supabase
     .from("complaints")
     .select(
       `
@@ -89,18 +93,22 @@ export default async function AdminComplaintPage({ params }: PageProps) {
     .eq("id", id)
     .single();
 
-  if (error || !complaint) {
+  if (error || !complaintRaw) {
     console.error("Error fetching complaint:", error);
     redirect("/admin/complaints");
   }
 
-  // Fetch departments
-  const { data: departments = [] } = await supabase
+  const complaint = complaintRaw as ComplaintFull;
+
+  // Fetch departments for assignment
+  const { data: departmentsRaw = [] } = await supabase
     .from("departments")
     .select("id, name, code, head_user_id")
     .eq("is_active", true);
 
-  // Fetch staff users (admin, dept_head, dept_staff, field_staff)
+  const departments = (departmentsRaw ?? []) as Department[];
+
+  // Fetch staff users for assignment
   const { data: roles = [] } = await supabase
     .from("roles")
     .select("id")
@@ -108,17 +116,25 @@ export default async function AdminComplaintPage({ params }: PageProps) {
 
   const roleIds = roles.map((r) => r.id);
 
-  const { data: userRoles = [] } = await supabase
-    .from("user_roles")
-    .select("user_id")
-    .in("role_id", roleIds);
+  let staffUsers: UserSummary[] = [];
 
-  const userIds = Array.from(new Set(userRoles.map((ur) => ur.user_id)));
+  if (roleIds.length > 0) {
+    const { data: userRoles = [] } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .in("role_id", roleIds);
 
-  const { data: staffUsers = [] } = await supabase
-    .from("users")
-    .select("id, email, user_profiles(full_name)")
-    .in("id", userIds);
+    const userIds = Array.from(new Set(userRoles.map((ur) => ur.user_id)));
+
+    if (userIds.length > 0) {
+      const { data: staffUsersRaw = [] } = await supabase
+        .from("users")
+        .select("id, email, user_profiles(full_name)")
+        .in("id", userIds);
+
+      staffUsers = (staffUsersRaw ?? []) as UserSummary[];
+    }
+  }
 
   return (
     <AdminComplaintDetailClient
