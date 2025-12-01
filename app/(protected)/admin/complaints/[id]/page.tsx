@@ -7,7 +7,7 @@ import { AdminComplaintDetailClient } from "@/components/admin/admin-complaint-d
 import type {
   ComplaintFull,
   Department,
-  UserSummary,
+  StaffUser,
 } from "@/lib/types/complaints";
 
 interface PageProps {
@@ -15,25 +15,32 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
   const supabase = await createClient();
 
-  const { data: complaint } = await supabase
-    .from("complaints")
-    .select("tracking_code, title")
-    .eq("id", id)
-    .single();
+  try {
+    const { data: complaint } = await supabase
+      .from("complaints")
+      .select("tracking_code, title")
+      .eq("id", id)
+      .single();
 
-  return {
-    title: complaint
-      ? `${complaint.tracking_code} - ${complaint.title}`
-      : "Complaint Details",
-    description: "View and manage complaint details",
-  };
+    return {
+      title: complaint
+        ? `${complaint.tracking_code} - ${complaint.title}`
+        : "Complaint Details",
+      description: "View and manage complaint details",
+    };
+  } catch (error) {
+    return {
+      title: "Complaint Details",
+      description: "View and manage complaint details",
+    };
+  }
 }
 
 export default async function AdminComplaintPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
   const user = await getCurrentUserWithRoles();
 
   if (!user || !isAdmin(user)) {
@@ -42,105 +49,90 @@ export default async function AdminComplaintPage({ params }: PageProps) {
 
   const supabase = await createClient();
 
-  // Fetch complaint with all related data
-  const { data: complaintRaw, error } = await supabase
-    .from("complaints")
-    .select(
+  try {
+    // Fetch complaint with all related data
+    const { data: complaintRaw, error } = await supabase
+      .from("complaints")
+      .select(
+        `
+        *,
+        category:complaint_categories(*),
+        subcategory:complaint_subcategories(*),
+        ward:wards(*),
+        department:departments(id, name, code),
+        citizen:users!complaints_citizen_id_fkey(
+          id,
+          email,
+          user_profiles(full_name, phone_number)
+        ),
+        assigned_staff:users!complaints_assigned_staff_id_fkey(
+          id,
+          email,
+          user_profiles(full_name)
+        ),
+        attachments:complaint_attachments(
+          id,
+          file_name,
+          file_url,
+          file_type,
+          uploaded_at
+        ),
+        status_history:complaint_status_history(
+          id,
+          old_status,
+          new_status,
+          note,
+          changed_at,
+          changed_by:users(id, email, user_profiles(full_name))
+        ),
+        escalations:complaint_escalations(
+          id,
+          reason,
+          sla_breached,
+          escalated_at,
+          resolved_at,
+          resolution_note,
+          escalated_by_user:users!complaint_escalations_escalated_by_user_id_fkey(id, email, user_profiles(full_name)),
+          escalated_to_user:users!complaint_escalations_escalated_to_user_id_fkey(id, email, user_profiles(full_name)),
+          escalated_to_department:departments(name)
+        )
       `
-      *,
-      category:complaint_categories(*),
-      subcategory:complaint_subcategories(*),
-      ward:wards(*),
-      department:departments(id, name, code),
-      citizen:users!complaints_citizen_id_fkey(
-        id,
-        email,
-        user_profiles(full_name, phone_number)
-      ),
-      assigned_staff:users!complaints_assigned_staff_id_fkey(
-        id,
-        email,
-        user_profiles(full_name)
-      ),
-      attachments:complaint_attachments(
-        id,
-        file_name,
-        file_url,
-        file_type,
-        uploaded_at
-      ),
-      status_history:complaint_status_history(
-        id,
-        old_status,
-        new_status,
-        note,
-        changed_at,
-        changed_by:users(id, email, user_profiles(full_name))
-      ),
-      escalations:complaint_escalations(
-        id,
-        reason,
-        sla_breached,
-        escalated_at,
-        resolved_at,
-        resolution_note,
-        escalated_by_user:users!complaint_escalations_escalated_by_user_id_fkey(id, email, user_profiles(full_name)),
-        escalated_to_user:users!complaint_escalations_escalated_to_user_id_fkey(id, email, user_profiles(full_name)),
-        escalated_to_department:departments(name)
       )
-    `
-    )
-    .eq("id", id)
-    .single();
+      .eq("id", id)
+      .single();
 
-  if (error || !complaintRaw) {
-    console.error("Error fetching complaint:", error);
+    if (error || !complaintRaw) {
+      console.error(
+        "Error fetching complaint:",
+        error?.message || "Complaint not found"
+      );
+      redirect("/admin/complaints");
+    }
+
+    const complaint = complaintRaw as ComplaintFull;
+
+    // Fetch departments and staff in parallel
+    const [departmentsResult, staffResult] = await Promise.all([
+      supabase
+        .from("departments")
+        .select("id, name, code, head_user_id")
+        .eq("is_active", true),
+
+      supabase.rpc("get_staff_users_with_roles"),
+    ]);
+
+    const departments = (departmentsResult.data ?? []) as Department[];
+    const staffUsers = (staffResult.data ?? []) as StaffUser[];
+
+    return (
+      <AdminComplaintDetailClient
+        complaint={complaint}
+        departments={departments}
+        staffUsers={staffUsers}
+      />
+    );
+  } catch (error) {
+    console.error("Error in admin complaint page:", error);
     redirect("/admin/complaints");
   }
-
-  const complaint = complaintRaw as ComplaintFull;
-
-  // Fetch departments for assignment
-  const { data: departmentsRaw = [] } = await supabase
-    .from("departments")
-    .select("id, name, code, head_user_id")
-    .eq("is_active", true);
-
-  const departments = (departmentsRaw ?? []) as Department[];
-
-  // Fetch staff users for assignment
-  const { data: roles = [] } = await supabase
-    .from("roles")
-    .select("id")
-    .in("role_type", ["admin", "dept_head", "dept_staff", "field_staff"]);
-
-  const roleIds = roles.map((r) => r.id);
-
-  let staffUsers: UserSummary[] = [];
-
-  if (roleIds.length > 0) {
-    const { data: userRoles = [] } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .in("role_id", roleIds);
-
-    const userIds = Array.from(new Set(userRoles.map((ur) => ur.user_id)));
-
-    if (userIds.length > 0) {
-      const { data: staffUsersRaw = [] } = await supabase
-        .from("users")
-        .select("id, email, user_profiles(full_name)")
-        .in("id", userIds);
-
-      staffUsers = (staffUsersRaw ?? []) as UserSummary[];
-    }
-  }
-
-  return (
-    <AdminComplaintDetailClient
-      complaint={complaint}
-      departments={departments}
-      staffUsers={staffUsers}
-    />
-  );
 }
