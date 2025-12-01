@@ -8,7 +8,7 @@ import type {
   Category,
   Department,
   Ward,
-  UserSummary,
+  StaffUser,
 } from "@/lib/types/complaints";
 
 export const metadata = {
@@ -22,72 +22,47 @@ export default async function AdminComplaintsPage() {
 
   const supabase = await createClient();
 
-  // Fetch filter options
-  const { data: categoriesRaw = [] } = await supabase
-    .from("complaint_categories")
-    .select("id, name")
-    .eq("is_active", true)
-    .order("display_order");
+  try {
+    // Fetch filter options
+    const [categoriesResult, departmentsResult, wardsResult, staffResult] =
+      await Promise.all([
+        supabase
+          .from("complaint_categories")
+          .select("id, name")
+          .eq("is_active", true)
+          .order("display_order"),
 
-  const categories = (categoriesRaw ?? []) as Category[];
+        supabase
+          .from("departments")
+          .select("id, name, code")
+          .eq("is_active", true)
+          .order("name"),
 
-  const { data: departmentsRaw = [] } = await supabase
-    .from("departments")
-    .select("id, name, code")
-    .eq("is_active", true)
-    .order("name");
+        supabase
+          .from("wards")
+          .select("id, ward_number, name")
+          .eq("is_active", true)
+          .order("ward_number"),
 
-  const departments = (departmentsRaw ?? []) as Department[];
+        supabase.rpc("get_staff_users_with_roles"),
+      ]);
 
-  const { data: wardsRaw = [] } = await supabase
-    .from("wards")
-    .select("id, ward_number, name")
-    .eq("is_active", true)
-    .order("ward_number");
+    const categories = (categoriesResult.data ?? []) as Category[];
+    const departments = (departmentsResult.data ?? []) as Department[];
+    const wards = (wardsResult.data ?? []) as Ward[];
+    const staffUsers = (staffResult.data ?? []) as StaffUser[];
 
-  const wards = (wardsRaw ?? []) as Ward[];
-
-  // Fetch staff users for assignment
-  const { data: roles = [] } = await supabase
-    .from("roles")
-    .select("id")
-    .in("role_type", [
-      "admin",
-      "dept_head",
-      "dept_staff",
-      "field_staff",
-      "ward_staff",
-    ]);
-
-  const roleIds = roles.map((r) => r.id);
-
-  let staffUsers: UserSummary[] = [];
-
-  if (roleIds.length > 0) {
-    const { data: userRoles = [] } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .in("role_id", roleIds);
-
-    const userIds = Array.from(new Set(userRoles.map((ur) => ur.user_id)));
-
-    if (userIds.length > 0) {
-      const { data: staffUsersRaw = [] } = await supabase
-        .from("users")
-        .select("id, email, user_profiles(full_name)")
-        .in("id", userIds)
-        .eq("is_active", true);
-
-      staffUsers = (staffUsersRaw ?? []) as UserSummary[];
-    }
+    return (
+      <AdminComplaintsClient
+        categories={categories}
+        departments={departments}
+        wards={wards}
+        staffUsers={staffUsers}
+        currentAdmin={user}
+      />
+    );
+  } catch (error) {
+    console.error("Error loading admin complaints page:", error);
+    redirect("/admin/dashboard");
   }
-
-  return (
-    <AdminComplaintsClient
-      categories={categories}
-      departments={departments}
-      wards={wards}
-      staffUsers={staffUsers}
-    />
-  );
 }
