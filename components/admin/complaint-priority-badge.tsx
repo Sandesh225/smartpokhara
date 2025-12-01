@@ -1,5 +1,7 @@
-// components/admin/complaint-priority-badge.tsx
+import type React from "react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { AlertTriangle, ArrowUp, Minus, ArrowDown } from "lucide-react";
 import type { ComplaintListItem } from "@/lib/types/complaints";
 
 type ComplaintPriority = ComplaintListItem["priority"];
@@ -12,40 +14,43 @@ interface ComplaintPriorityBadgeProps {
 
 const priorityConfig: Record<
   ComplaintPriority,
-  { 
-    label: string; 
-    variant: "default" | "secondary" | "destructive" | "outline";
-    color: string;
-    icon?: string;
+  {
+    label: string;
+    className: string;
+    icon: React.ReactNode;
   }
 > = {
-  low: { 
-    label: "Low", 
-    variant: "outline", 
-    color: "text-green-600 border-green-200 bg-green-50" 
+  low: {
+    label: "Low",
+    className:
+      "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+    icon: <ArrowDown className="h-3 w-3" />,
   },
-  medium: { 
-    label: "Medium", 
-    variant: "secondary", 
-    color: "text-yellow-600 border-yellow-200 bg-yellow-50" 
+  medium: {
+    label: "Medium",
+    className:
+      "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800",
+    icon: <Minus className="h-3 w-3" />,
   },
-  high: { 
-    label: "High", 
-    variant: "default", 
-    color: "text-orange-600 border-orange-200 bg-orange-50" 
+  high: {
+    label: "High",
+    className:
+      "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800",
+    icon: <ArrowUp className="h-3 w-3" />,
   },
-  critical: { 
-    label: "Critical", 
-    variant: "destructive", 
-    color: "text-red-600 border-red-200 bg-red-50" 
+  critical: {
+    label: "Critical",
+    className:
+      "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800",
+    icon: <AlertTriangle className="h-3 w-3" />,
   },
 };
 
 const sizeClasses = {
-  xs: "text-xs px-1.5 py-0.5",
-  sm: "text-xs px-2 py-0.5",
-  md: "text-sm px-2.5 py-1",
-  lg: "text-base px-3 py-1.5",
+  xs: "text-[9px] px-1.5 py-0.5 gap-0.5",
+  sm: "text-[10px] px-2 py-0.5 gap-1",
+  md: "text-xs px-2.5 py-1 gap-1",
+  lg: "text-sm px-3 py-1.5 gap-1.5",
 };
 
 export function ComplaintPriorityBadge({
@@ -53,18 +58,23 @@ export function ComplaintPriorityBadge({
   size = "md",
   showLabel = true,
 }: ComplaintPriorityBadgeProps) {
-  const config = priorityConfig[priority] || { 
-    label: priority, 
-    variant: "outline", 
-    color: "" 
+  const config = priorityConfig[priority] || {
+    label: priority,
+    className: "bg-slate-100 text-slate-700",
+    icon: null,
   };
 
   return (
-    <Badge 
-      variant={config.variant} 
-      className={`${sizeClasses[size]} ${config.color} font-medium`}
+    <Badge
+      variant="outline"
+      className={cn(
+        sizeClasses[size],
+        config.className,
+        "font-semibold border inline-flex items-center"
+      )}
     >
-      {showLabel ? config.label : priority.charAt(0).toUpperCase()}
+      {config.icon}
+      {showLabel && config.label}
     </Badge>
   );
 }
