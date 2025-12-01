@@ -1,4 +1,3 @@
-// app/(protected)/staff/tasks/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,18 +15,39 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
 export default function StaffTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     status: "",
     priority: "",
     search: "",
   });
 
-  useEffect(() => {
-    loadTasks();
-  }, [filters]);
+  const supabase = createClient();
 
-  async function loadTasks() {
-    const supabase = createClient();
+  // Load current user
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error getting current user:", error);
+        return;
+      }
+      setUserId(data.user?.id ?? null);
+    };
+
+    loadUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load tasks for that user
+  useEffect(() => {
+    if (!userId) return;
+    loadTasks(userId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, userId]);
+
+  async function loadTasks(currentUserId: string) {
+    setLoading(true);
 
     try {
       let query = supabase
@@ -41,9 +61,9 @@ export default function StaffTasksPage() {
           assigned_department:departments(name)
         `
         )
+        .eq("assigned_to_user_id", currentUserId) // 👈 only my tasks
         .order("created_at", { ascending: false });
 
-      // Apply filters
       if (filters.status) {
         query = query.eq("status", filters.status);
       }
@@ -57,9 +77,9 @@ export default function StaffTasksPage() {
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
-      setTasks(data || []);
+
+      setTasks((data || []) as Task[]);
     } catch (error) {
       console.error("Error loading tasks:", error);
     } finally {
@@ -67,11 +87,24 @@ export default function StaffTasksPage() {
     }
   }
 
+  if (!userId) {
+    return (
+      <div className="space-y-6">
+        <div className="border-b border-gray-200 pb-5">
+          <h1 className="text-2xl font-semibold text-gray-900">My Tasks</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Could not determine current user.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="border-b border-gray-200 pb-5">
-          <h1 className="text-2xl font-semibold text-gray-900">Tasks</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">My Tasks</h1>
           <p className="mt-2 text-sm text-gray-600">Loading tasks...</p>
         </div>
       </div>
@@ -84,9 +117,9 @@ export default function StaffTasksPage() {
       <div className="border-b border-gray-200 pb-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Tasks</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">My Tasks</h1>
             <p className="mt-2 text-sm text-gray-600">
-              Manage internal tasks and work orders.
+              View and manage tasks assigned to you by admin/supervisors.
             </p>
           </div>
         </div>
@@ -172,7 +205,7 @@ export default function StaffTasksPage() {
       </div>
 
       {/* Tasks Table */}
-      <TaskTable tasks={tasks} onTaskUpdate={loadTasks} />
+      <TaskTable tasks={tasks} onTaskUpdate={() => loadTasks(userId)} />
     </div>
   );
 }
