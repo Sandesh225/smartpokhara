@@ -3,244 +3,178 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { ClipboardList, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import type { CurrentUser } from "@/lib/types/auth";
-import type { Database } from "@/lib/types/database.types";
 
-type Complaint = Database['public']['Tables']['complaints']['Row'] & {
-  complaint_categories?: { name: string };
-  user_profiles?: { full_name: string };
-  wards?: { ward_number: number };
-};
-
-interface DeptStaffDashboardProps {
-  user: CurrentUser;
-}
-
-export function DeptStaffDashboard({ user }: DeptStaffDashboardProps) {
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [loading, setLoading] = useState(true);
+export function DeptStaffDashboard({ user }: { user: CurrentUser }) {
   const [stats, setStats] = useState({
-    total: 0,
     assigned: 0,
     inProgress: 0,
-    resolved: 0,
+    completed: 0,
+    overdue: 0,
   });
+  const [recentComplaints, setRecentComplaints] = useState<any[]>([]);
 
   useEffect(() => {
-    loadComplaints();
-    loadStats();
+    loadDashboardData();
   }, []);
 
-  const loadComplaints = async () => {
+  const loadDashboardData = async () => {
     const supabase = createClient();
-    
-    try {
-      // Get user's department
-      const { data: deptData } = await supabase
-        .from("department_staff")
-        .select("department_id")
-        .eq("user_id", user.id)
-        .single();
 
-      if (!deptData) return;
+    // Load stats
+    // TODO: Replace with actual RPC calls
+    const { data: complaints } = await supabase
+      .from("complaints")
+      .select("*")
+      .eq("assigned_to", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
 
-      // Get complaints assigned to department
-      const { data, error } = await supabase
-        .from("complaints")
-        .select(`
-          *,
-          complaint_categories(name),
-          user_profiles(full_name),
-          wards(ward_number)
-        `)
-        .eq("assigned_department_id", deptData.department_id)
-        .in("status", ["assigned", "in_progress"])
-        .order("submitted_at", { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      setComplaints(data || []);
-    } catch (error) {
-      console.error("Error loading complaints:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadStats = async () => {
-    const supabase = createClient();
-    
-    try {
-      const { data: deptData } = await supabase
-        .from("department_staff")
-        .select("department_id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!deptData) return;
-
-      const { data, error } = await supabase
-        .from("complaints")
-        .select("status")
-        .eq("assigned_department_id", deptData.department_id);
-
-      if (error) throw error;
-
-      const complaints = data || [];
+    if (complaints) {
+      setRecentComplaints(complaints);
       setStats({
-        total: complaints.length,
-        assigned: complaints.filter(c => c.status === "assigned").length,
-        inProgress: complaints.filter(c => c.status === "in_progress").length,
-        resolved: complaints.filter(c => c.status === "resolved").length,
+        assigned: complaints.length,
+        inProgress: complaints.filter((c) => c.status === "in_progress").length,
+        completed: complaints.filter((c) => c.status === "resolved").length,
+        overdue: complaints.filter((c) => c.is_overdue).length,
       });
-    } catch (error) {
-      console.error("Error loading stats:", error);
     }
   };
-
-  const updateComplaintStatus = async (complaintId: string, newStatus: string) => {
-    const supabase = createClient();
-    
-    try {
-      const { error } = await supabase
-        .from("complaints")
-        .update({ status: newStatus })
-        .eq("id", complaintId);
-
-      if (error) throw error;
-
-      // Reload complaints
-      loadComplaints();
-      loadStats();
-    } catch (error) {
-      console.error("Error updating complaint:", error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="border-b border-gray-200 pb-5">
-          <h1 className="text-2xl font-semibold text-gray-900">Department Staff Dashboard</h1>
-          <p className="mt-2 text-sm text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-5">
-        <h1 className="text-2xl font-semibold text-gray-900">Department Staff Dashboard</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Manage department complaints and track resolution progress.
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Department Staff Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Welcome back, {user.profile?.full_name || user.email}
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">Total Complaints</dt>
-            <dd className="mt-1 text-3xl font-semibold text-gray-900">{stats.total}</dd>
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ClipboardList className="h-6 w-6 text-gray-400" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Assigned to Me
+                  </dt>
+                  <dd className="text-2xl font-semibold text-gray-900">
+                    {stats.assigned}
+                  </dd>
+                </dl>
+              </div>
+            </div>
           </div>
         </div>
+
         <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">Assigned</dt>
-            <dd className="mt-1 text-3xl font-semibold text-yellow-600">{stats.assigned}</dd>
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Clock className="h-6 w-6 text-blue-400" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    In Progress
+                  </dt>
+                  <dd className="text-2xl font-semibold text-gray-900">
+                    {stats.inProgress}
+                  </dd>
+                </dl>
+              </div>
+            </div>
           </div>
         </div>
+
         <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">In Progress</dt>
-            <dd className="mt-1 text-3xl font-semibold text-blue-600">{stats.inProgress}</dd>
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <CheckCircle className="h-6 w-6 text-green-400" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Completed
+                  </dt>
+                  <dd className="text-2xl font-semibold text-gray-900">
+                    {stats.completed}
+                  </dd>
+                </dl>
+              </div>
+            </div>
           </div>
         </div>
+
         <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">Resolved</dt>
-            <dd className="mt-1 text-3xl font-semibold text-green-600">{stats.resolved}</dd>
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-6 w-6 text-red-400" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Overdue
+                  </dt>
+                  <dd className="text-2xl font-semibold text-gray-900">
+                    {stats.overdue}
+                  </dd>
+                </dl>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Recent Complaints */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Recent Complaints</h3>
-          <p className="mt-1 text-sm text-gray-500">Complaints assigned to your department</p>
-        </div>
-        
-        <ul className="divide-y divide-gray-200">
-          {complaints.map((complaint) => (
-            <li key={complaint.id}>
-              <div className="px-4 py-4 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        complaint.status === 'assigned' ? 'bg-yellow-100 text-yellow-800' :
-                        complaint.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {complaint.status}
-                      </span>
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {complaint.tracking_code}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {complaint.title}
-                      </div>
-                    </div>
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            My Recent Complaints
+          </h3>
+          <div className="space-y-3">
+            {recentComplaints.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                No complaints assigned yet
+              </p>
+            ) : (
+              recentComplaints.map((complaint) => (
+                <div
+                  key={complaint.id}
+                  className="flex items-center justify-between border-b border-gray-200 pb-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      #{complaint.tracking_code}
+                    </p>
+                    <p className="text-sm text-gray-500">{complaint.title}</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {complaint.status === "assigned" && (
-                      <button
-                        onClick={() => updateComplaintStatus(complaint.id, "in_progress")}
-                        className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        Start Work
-                      </button>
-                    )}
-                    {complaint.status === "in_progress" && (
-                      <button
-                        onClick={() => updateComplaintStatus(complaint.id, "resolved")}
-                        className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                      >
-                        Mark Resolved
-                      </button>
-                    )}
-                  </div>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      complaint.status === "resolved"
+                        ? "bg-green-100 text-green-800"
+                        : complaint.status === "in_progress"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {complaint.status}
+                  </span>
                 </div>
-                <div className="mt-2 sm:flex sm:justify-between">
-                  <div className="sm:flex">
-                    <p className="flex items-center text-sm text-gray-500">
-                      Category: {complaint.complaint_categories?.name}
-                    </p>
-                    <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                      Ward: {complaint.wards?.ward_number || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <p>
-                      Submitted {new Date(complaint.submitted_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        {complaints.length === 0 && (
-          <div className="px-4 py-12 text-center">
-            <div className="text-sm text-gray-500">No complaints assigned to your department</div>
+              ))
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

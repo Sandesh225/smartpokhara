@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   ChevronDown,
   X,
+  Shield,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +38,7 @@ import type {
   Category,
   Ward,
   Department,
-  UserSummary,
+  StaffUser,
   ComplaintListItem,
 } from "@/lib/types/complaints";
 import type { ComplaintFilters, FilterCounts } from "@/lib/types/admin";
@@ -47,16 +48,8 @@ interface AdminComplaintsClientProps {
   categories: Category[];
   departments: Department[];
   wards: Ward[];
-  staffUsers: UserSummary[];
-}
-
-interface FilterCountsData {
-  status: string;
-  count: number;
-  priority?: string;
-  category_name?: string;
-  department_name?: string;
-  ward_number?: number;
+  staffUsers: StaffUser[];
+  currentAdmin: any;
 }
 
 export function AdminComplaintsClient({
@@ -64,6 +57,7 @@ export function AdminComplaintsClient({
   departments,
   wards,
   staffUsers,
+  currentAdmin,
 }: AdminComplaintsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -99,16 +93,79 @@ export function AdminComplaintsClient({
   const [bulkAssignStaff, setBulkAssignStaff] = useState("");
   const [bulkStatus, setBulkStatus] = useState("");
 
+  // Group staff users by role for better organization
+  const staffByRole = useMemo(() => {
+    const grouped: Record<string, StaffUser[]> = {};
+
+    staffUsers.forEach((staff) => {
+      if (!grouped[staff.role_type]) {
+        grouped[staff.role_type] = [];
+      }
+      grouped[staff.role_type].push(staff);
+    });
+
+    const roleOrder = [
+      "admin",
+      "dept_head",
+      "dept_staff",
+      "ward_staff",
+      "field_staff",
+      "call_center",
+    ];
+    const sorted: Record<string, StaffUser[]> = {};
+
+    roleOrder.forEach((role) => {
+      if (grouped[role]) {
+        sorted[role] = grouped[role].sort((a, b) =>
+          a.full_name.localeCompare(b.full_name)
+        );
+      }
+    });
+
+    return sorted;
+  }, [staffUsers]);
+
+  const getRoleDisplayName = (roleType: string) => {
+    const roleNames: Record<string, string> = {
+      admin: "Administrator",
+      dept_head: "Department Head",
+      dept_staff: "Department Staff",
+      ward_staff: "Ward Staff",
+      field_staff: "Field Staff",
+      call_center: "Call Center",
+    };
+    return roleNames[roleType] || roleType.replace("_", " ").toUpperCase();
+  };
+
+  const getRoleBadgeColor = (roleType: string) => {
+    const colors: Record<string, string> = {
+      admin: "bg-red-100 text-red-800 border-red-200 rounded px-2 py-1",
+      dept_head:
+        "bg-purple-100 text-purple-800 border-purple-200 rounded px-2 py-1",
+      dept_staff: "bg-blue-100 text-blue-800 border-blue-200 rounded px-2 py-1",
+      ward_staff:
+        "bg-green-100 text-green-800 border-green-200 rounded px-2 py-1",
+      field_staff:
+        "bg-orange-100 text-orange-800 border-orange-200 rounded px-2 py-1",
+      call_center:
+        "bg-teal-100 text-teal-800 border-teal-200 rounded px-2 py-1",
+    };
+    return (
+      colors[roleType] ||
+      "bg-gray-100 text-gray-800 border-gray-200 rounded px-2 py-1"
+    );
+  };
+
   // Active filter chips
   const activeFilters = useMemo(() => {
-    const active: Array<{ key: string; label: string; value: string }> = [];
+    const active: Array<{
+      key: keyof ComplaintFilters;
+      label: string;
+      value: string;
+    }> = [];
 
     if (filters.status) {
-      active.push({
-        key: "status",
-        label: "Status",
-        value: filters.status,
-      });
+      active.push({ key: "status", label: "Status", value: filters.status });
     }
 
     if (filters.priority) {
@@ -158,7 +215,7 @@ export function AdminComplaintsClient({
         active.push({
           key: "assignedStaff",
           label: "Assigned To",
-          value: staff.user_profiles?.full_name || staff.email,
+          value: `${staff.full_name} (${getRoleDisplayName(staff.role_type)})`,
         });
       }
     }
@@ -198,6 +255,7 @@ export function AdminComplaintsClient({
     return active;
   }, [filters, categories, departments, wards, staffUsers]);
 
+  // Load complaints with current filters
   const loadComplaints = async (activeFilters: ComplaintFilters) => {
     setIsLoading(true);
     try {
@@ -213,16 +271,18 @@ export function AdminComplaintsClient({
         p_is_escalated: activeFilters.isEscalated,
         p_date_from: activeFilters.dateFrom || null,
         p_date_to: activeFilters.dateTo || null,
-        p_limit: 100,
-        p_offset: 0,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase RPC Error (get_filtered_complaints):", error);
+        throw new Error(`Database error: ${error.message}`);
+      }
 
-      setComplaints(data || []);
+      setComplaints((data as ComplaintListItem[]) || []);
     } catch (error) {
       console.error("Error loading complaints:", error);
       showErrorToast("Failed to load complaints");
+      setComplaints([]);
     } finally {
       setIsLoading(false);
     }
@@ -230,9 +290,17 @@ export function AdminComplaintsClient({
 
   const loadFilterCounts = async () => {
     try {
-      const { data, error } = await supabase.rpc("get_complaint_filter_counts");
+      const { data, error } = await supabase.rpc(
+        "get_complaint_filter_counts"
+      );
 
-      if (error) throw error;
+      if (error) {
+        console.error(
+          "Supabase RPC Error (get_complaint_filter_counts):",
+          error
+        );
+        throw new Error(`Filter counts error: ${error.message}`);
+      }
 
       const counts: FilterCounts = {
         status: [],
@@ -242,42 +310,43 @@ export function AdminComplaintsClient({
         wards: [],
       };
 
-      data?.forEach((row: FilterCountsData) => {
-        if (row.status) {
-          counts.status.push({ value: row.status, count: row.count });
-        }
-        if (row.priority) {
-          counts.priority.push({ value: row.priority, count: row.count });
-        }
-        if (row.category_name) {
-          const category = categories.find((c) => c.name === row.category_name);
-          if (category) {
+      (data as any[])?.forEach((row) => {
+        switch (row.filter_type) {
+          case "status":
+            counts.status.push({
+              value: row.filter_value,
+              label: row.filter_label,
+              count: Number(row.count),
+            });
+            break;
+          case "priority":
+            counts.priority.push({
+              value: row.filter_value,
+              label: row.filter_label,
+              count: Number(row.count),
+            });
+            break;
+          case "category":
             counts.categories.push({
-              value: category.id,
-              label: row.category_name,
-              count: row.count,
+              value: row.filter_value,
+              label: row.filter_label,
+              count: Number(row.count),
             });
-          }
-        }
-        if (row.department_name) {
-          const department = departments.find((d) => d.name === row.department_name);
-          if (department) {
+            break;
+          case "department":
             counts.departments.push({
-              value: department.id,
-              label: row.department_name,
-              count: row.count,
+              value: row.filter_value,
+              label: row.filter_label,
+              count: Number(row.count),
             });
-          }
-        }
-        if (row.ward_number) {
-          const ward = wards.find((w) => w.ward_number === row.ward_number);
-          if (ward) {
+            break;
+          case "ward":
             counts.wards.push({
-              value: ward.id,
-              label: `Ward ${row.ward_number}`,
-              count: row.count,
+              value: row.filter_value,
+              label: row.filter_label,
+              count: Number(row.count),
             });
-          }
+            break;
         }
       });
 
@@ -290,17 +359,29 @@ export function AdminComplaintsClient({
   useEffect(() => {
     void loadComplaints(filters);
     void loadFilterCounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFilterChange = (
     key: keyof ComplaintFilters,
     value: string | boolean | null
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value as any }));
   };
 
-  const removeFilter = (key: string) => {
-    setFilters((prev) => ({ ...prev, [key]: "" }));
+  const removeFilter = (key: keyof ComplaintFilters) => {
+    setFilters((prev) => {
+      const next: ComplaintFilters = { ...prev };
+      switch (key) {
+        case "isOverdue":
+        case "isEscalated":
+          (next as any)[key] = null;
+          break;
+        default:
+          (next as any)[key] = "";
+      }
+      return next;
+    });
   };
 
   const applyFilters = () => {
@@ -356,10 +437,15 @@ export function AdminComplaintsClient({
         p_note: "Bulk assignment via admin portal",
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("bulk_assign_complaints error:", error);
+        showErrorToast(error.message || "Failed to assign complaints");
+        return;
+      }
 
+      const resp = data as any;
       showSuccessToast(
-        data?.[0]?.message || "Complaints assigned successfully"
+        resp?.message || "Complaints assigned successfully"
       );
       setSelectedIds(new Set());
       setBulkAssignDept("");
@@ -384,11 +470,14 @@ export function AdminComplaintsClient({
         }
       );
 
-      if (error) throw error;
+      if (error) {
+        console.error("bulk_update_complaint_status error:", error);
+        showErrorToast(error.message || "Failed to update status");
+        return;
+      }
 
-      showSuccessToast(
-        data?.[0]?.message || "Status updated successfully"
-      );
+      const resp = data as any;
+      showSuccessToast(resp?.message || "Status updated successfully");
       setSelectedIds(new Set());
       setBulkStatus("");
       void loadComplaints(filters);
@@ -470,7 +559,7 @@ export function AdminComplaintsClient({
         </div>
       </div>
 
-      {/* Search + filters */}
+      {/* Search + Filters */}
       <Card className="border-slate-200">
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-4">
@@ -489,14 +578,18 @@ export function AdminComplaintsClient({
                 />
               </div>
             </div>
-            <Button 
-              onClick={() => setShowFilters((s) => !s)} 
+            <Button
+              onClick={() => setShowFilters((s) => !s)}
               variant="outline"
               className="flex items-center gap-2"
             >
               <Filter className="h-4 w-4" />
               {showFilters ? "Hide Filters" : "Show Filters"}
-              <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${
+                  showFilters ? "rotate-180" : ""
+                }`}
+              />
             </Button>
             <Button onClick={applyFilters} disabled={isLoading}>
               Apply Filters
@@ -506,12 +599,12 @@ export function AdminComplaintsClient({
             </Button>
           </div>
 
-          {/* Active filters */}
+          {/* Active filter chips */}
           {activeFilters.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {activeFilters.map((filter) => (
                 <Badge
-                  key={filter.key}
+                  key={`${filter.key}-${filter.value}`}
                   variant="secondary"
                   className="flex items-center gap-1 px-2 py-1"
                 >
@@ -544,7 +637,8 @@ export function AdminComplaintsClient({
                   <option value="">All Status</option>
                   {filterCounts.status.map((item) => (
                     <option key={item.value} value={item.value}>
-                      {item.value} ({item.count})
+                      {(item.label ?? item.value) || item.value} (
+                      {item.count})
                     </option>
                   ))}
                 </select>
@@ -565,7 +659,8 @@ export function AdminComplaintsClient({
                   <option value="">All Priority</option>
                   {filterCounts.priority.map((item) => (
                     <option key={item.value} value={item.value}>
-                      {item.value} ({item.count})
+                      {(item.label ?? item.value) || item.value} (
+                      {item.count})
                     </option>
                   ))}
                 </select>
@@ -645,10 +740,17 @@ export function AdminComplaintsClient({
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                 >
                   <option value="">All Staff</option>
-                  {staffUsers.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.user_profiles?.full_name || user.email}
-                    </option>
+                  {Object.entries(staffByRole).map(([roleType, staffList]) => (
+                    <optgroup
+                      key={roleType}
+                      label={getRoleDisplayName(roleType)}
+                    >
+                      {staffList.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.full_name} ({user.role_type})
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
@@ -732,7 +834,9 @@ export function AdminComplaintsClient({
               <div className="flex flex-wrap items-end gap-4">
                 {/* Assign section */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium">Assign Department</label>
+                  <label className="text-sm font-medium">
+                    Assign Department
+                  </label>
                   <select
                     value={bulkAssignDept}
                     onChange={(e) => setBulkAssignDept(e.target.value)}
@@ -755,11 +859,20 @@ export function AdminComplaintsClient({
                     className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
                   >
                     <option value="">Select Staff</option>
-                    {staffUsers.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.user_profiles?.full_name || user.email}
-                      </option>
-                    ))}
+                    {Object.entries(staffByRole).map(
+                      ([roleType, staffList]) => (
+                        <optgroup
+                          key={roleType}
+                          label={getRoleDisplayName(roleType)}
+                        >
+                          {staffList.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.full_name} ({user.role_type})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )
+                    )}
                   </select>
                 </div>
 
@@ -803,6 +916,58 @@ export function AdminComplaintsClient({
         </Card>
       )}
 
+      {/* Staff Information Panel */}
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Shield className="h-5 w-5" />
+            Available Staff ({staffUsers.length} staff members)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Object.entries(staffByRole).map(([roleType, staffList]) => (
+              <div
+                key={roleType}
+                className="rounded-lg border border-green-200 bg-white p-4"
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  <div className={getRoleBadgeColor(roleType)}>
+                    {getRoleDisplayName(roleType)}
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    ({staffList.length})
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {staffList.map((staff) => (
+                    <div
+                      key={staff.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <div>
+                        <div className="font-medium">{staff.full_name}</div>
+                        <div className="text-xs text-gray-500">
+                          {staff.email}
+                        </div>
+                      </div>
+                      {staff.assigned_by_name && (
+                        <div className="text-right text-xs">
+                          <div className="text-gray-500">Assigned by</div>
+                          <div className="font-medium">
+                            {staff.assigned_by_name}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Table */}
       <Card className="border-slate-200">
         <CardContent className="p-0">
@@ -813,7 +978,9 @@ export function AdminComplaintsClient({
           ) : complaints.length === 0 ? (
             <div className="py-12 text-center text-slate-500">
               <Filter className="mx-auto h-12 w-12 text-slate-300" />
-              <p className="mt-2 text-sm">No complaints found matching the current filters.</p>
+              <p className="mt-2 text-sm">
+                No complaints found matching the current filters.
+              </p>
               <Button onClick={clearFilters} variant="outline" className="mt-4">
                 Clear Filters
               </Button>
@@ -871,7 +1038,9 @@ export function AdminComplaintsClient({
                     <tr
                       key={complaint.id}
                       className={`transition-colors hover:bg-slate-50 ${
-                        complaint.is_overdue ? "border-l-4 border-l-red-500 bg-red-50/30" : ""
+                        complaint.is_overdue
+                          ? "border-l-4 border-l-red-500 bg-red-50/30"
+                          : ""
                       }`}
                     >
                       <td className="px-4 py-4">
@@ -906,7 +1075,7 @@ export function AdminComplaintsClient({
                       </td>
                       <td className="px-4 py-4">
                         <div>
-                          <p className="font-medium text-slate-900 line-clamp-2">
+                          <p className="line-clamp-2 font-medium text-slate-900">
                             {complaint.title}
                           </p>
                           <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
@@ -948,7 +1117,9 @@ export function AdminComplaintsClient({
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-1 text-xs text-slate-600">
                           <Calendar className="h-3 w-3" />
-                          {new Date(complaint.submitted_at).toLocaleDateString()}
+                          {new Date(
+                            complaint.submitted_at
+                          ).toLocaleDateString()}
                         </div>
                       </td>
                       <td className="px-4 py-4">
@@ -965,16 +1136,16 @@ export function AdminComplaintsClient({
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link href={`/admin/complaints/${complaint.id}?edit=true`}>
+                              <Link
+                                href={`/admin/complaints/${complaint.id}?edit=true`}
+                              >
                                 Edit
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               Assign to Staff
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              Change Status
-                            </DropdownMenuItem>
+                            <DropdownMenuItem>Change Status</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600">
                               Escalate
                             </DropdownMenuItem>
@@ -990,7 +1161,7 @@ export function AdminComplaintsClient({
         </CardContent>
       </Card>
 
-      {/* Pagination and summary */}
+      {/* Pagination placeholder */}
       {complaints.length > 0 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-slate-600">

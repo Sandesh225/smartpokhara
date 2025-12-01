@@ -100,11 +100,16 @@ export function AdminComplaintDetailClient({
     if (!internalNotes.trim()) return;
 
     try {
+      const { data, error: userError } = await supabase.auth.getUser();
+      if (userError || !data.user) {
+        throw userError || new Error("No authenticated user");
+      }
+
       const { error } = await supabase
         .from("complaint_internal_comments")
         .insert({
           complaint_id: complaint.id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: data.user.id,
           comment: internalNotes,
           is_work_log: false,
         });
@@ -187,7 +192,8 @@ export function AdminComplaintDetailClient({
                     {complaint.category?.name || "N/A"}
                     {complaint.subcategory && (
                       <span className="text-slate-500">
-                        {" "}→ {complaint.subcategory.name}
+                        {" "}
+                        → {complaint.subcategory.name}
                       </span>
                     )}
                   </p>
@@ -212,14 +218,17 @@ export function AdminComplaintDetailClient({
                   <p className="text-sm font-medium text-slate-600">
                     SLA Due Date
                   </p>
-                  <p className={`mt-1 flex items-center gap-1 ${
-                    isOverdue ? "text-red-600 font-semibold" : "text-slate-900"
-                  }`}>
+                  <p
+                    className={`mt-1 flex items-center gap-1 ${
+                      isOverdue
+                        ? "font-semibold text-red-600"
+                        : "text-slate-900"
+                    }`}
+                  >
                     <Clock className="h-4 w-4" />
-                    {complaint.sla_due_at 
+                    {complaint.sla_due_at
                       ? new Date(complaint.sla_due_at).toLocaleString()
-                      : "Not set"
-                    }
+                      : "Not set"}
                   </p>
                 </div>
               </div>
@@ -233,7 +242,10 @@ export function AdminComplaintDetailClient({
                   <p className="mt-1 text-slate-900">
                     {complaint.address_text}
                     {complaint.landmark && (
-                      <span className="text-slate-500"> ({complaint.landmark})</span>
+                      <span className="text-slate-500">
+                        {" "}
+                        ({complaint.landmark})
+                      </span>
                     )}
                   </p>
                 </div>
@@ -243,7 +255,7 @@ export function AdminComplaintDetailClient({
                 <p className="text-sm font-medium text-slate-600">
                   Description
                 </p>
-                <p className="mt-1 whitespace-pre-wrap text-slate-900 rounded-lg bg-slate-50 p-3">
+                <p className="mt-1 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-slate-900">
                   {complaint.description}
                 </p>
               </div>
@@ -271,7 +283,7 @@ export function AdminComplaintDetailClient({
                       <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 group-hover:bg-blue-200">
                         <Download className="h-6 w-6 text-blue-600" />
                       </div>
-                      <p className="text-center text-xs font-medium text-slate-900 line-clamp-2">
+                      <p className="line-clamp-2 text-center text-xs font-medium text-slate-900">
                         {attachment.file_name}
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
@@ -293,20 +305,29 @@ export function AdminComplaintDetailClient({
               <CardContent>
                 <div className="space-y-4">
                   {complaint.status_history
-                    .sort((a, b) => new Date(b.changed_at).getTime() - new Date(a.changed_at).getTime())
-                    .map((history, index) => (
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        new Date(b.changed_at).getTime() -
+                        new Date(a.changed_at).getTime()
+                    )
+                    .map((history, index, arr) => (
                       <div key={history.id} className="flex gap-4">
                         <div className="flex flex-col items-center">
-                          <div className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                            index === 0 ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-600"
-                          }`}>
+                          <div
+                            className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                              index === 0
+                                ? "bg-green-100 text-green-600"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
                             {index === 0 ? (
                               <CheckCircle className="h-4 w-4" />
                             ) : (
                               <div className="h-2 w-2 rounded-full bg-current" />
                             )}
                           </div>
-                          {index < complaint.status_history!.length - 1 && (
+                          {index < arr.length - 1 && (
                             <div className="mt-1 h-full w-0.5 bg-slate-200" />
                           )}
                         </div>
@@ -326,9 +347,11 @@ export function AdminComplaintDetailClient({
                             </p>
                           )}
                           <p className="mt-1 text-xs text-slate-500">
-                            By {history.changed_by?.user_profiles?.full_name ||
+                            By{" "}
+                            {history.changed_by?.user_profiles?.full_name ||
                               history.changed_by?.email ||
-                              "System"} • {new Date(history.changed_at).toLocaleString()}
+                              "System"}{" "}
+                            • {new Date(history.changed_at).toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -352,13 +375,18 @@ export function AdminComplaintDetailClient({
                   rows={3}
                   className="flex-1"
                 />
-                <Button onClick={handleAddInternalNote} disabled={!internalNotes.trim()}>
+                <Button
+                  onClick={handleAddInternalNote}
+                  disabled={!internalNotes.trim()}
+                >
                   Add Note
                 </Button>
               </div>
               <div className="rounded-lg border border-slate-200 p-4 text-center text-slate-500">
                 <p className="text-sm">No internal notes yet.</p>
-                <p className="text-xs">Add the first note to start the discussion.</p>
+                <p className="text-xs">
+                  Add the first note to start the discussion.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -513,7 +541,11 @@ export function AdminComplaintDetailClient({
               <CardTitle className="text-base">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button onClick={handleUpdate} disabled={isSubmitting} className="w-full">
+              <Button
+                onClick={handleUpdate}
+                disabled={isSubmitting}
+                className="w-full"
+              >
                 {isSubmitting ? "Updating..." : "Update Complaint"}
               </Button>
               <div className="grid grid-cols-2 gap-2">
@@ -551,10 +583,14 @@ export function AdminComplaintDetailClient({
                       <div className="mb-2 flex items-start justify-between">
                         <div>
                           <p className="text-sm font-medium text-slate-900">
-                            {new Date(escalation.escalated_at).toLocaleDateString()}
+                            {new Date(
+                              escalation.escalated_at
+                            ).toLocaleDateString()}
                           </p>
                           <p className="text-xs text-slate-600">
-                            By: {escalation.escalated_by_user?.user_profiles?.full_name ||
+                            By{" "}
+                            {escalation.escalated_by_user?.user_profiles
+                              ?.full_name ||
                               escalation.escalated_by_user?.email ||
                               "System"}
                           </p>
@@ -570,7 +606,10 @@ export function AdminComplaintDetailClient({
                       </p>
                       {escalation.resolved_at && (
                         <p className="mt-2 text-xs text-green-600">
-                          Resolved on {new Date(escalation.resolved_at).toLocaleDateString()}
+                          Resolved on{" "}
+                          {new Date(
+                            escalation.resolved_at
+                          ).toLocaleDateString()}
                         </p>
                       )}
                     </div>

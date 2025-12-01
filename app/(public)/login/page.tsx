@@ -14,7 +14,7 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-blue-50 to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <AuthForm mode="login" />
 
@@ -70,7 +70,8 @@ export default async function LoginPage() {
               <div className="ml-3">
                 <h4 className="font-medium text-gray-900">Staff Accounts</h4>
                 <p className="text-sm text-gray-600">
-                  Department heads, ward staff, field workers
+                  Access through invitation only. Contact your administrator for
+                  access.
                 </p>
               </div>
             </div>
@@ -79,16 +80,29 @@ export default async function LoginPage() {
           <div className="mt-6 space-y-3">
             <Link
               href="/register"
-              className="block w-full text-center rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+              className="block w-full text-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-3 px-4 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all"
             >
               Register as Citizen
             </Link>
-            <Link
-              href="/register/staff"
-              className="block w-full text-center rounded-lg bg-linear-to-r from-green-600 to-green-700 py-3 px-4 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all"
-            >
-              Register as Staff
-            </Link>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  Staff Access
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>Staff Members:</strong> You'll receive an email
+                invitation from your administrator with a link to create your
+                account.
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -1,51 +1,94 @@
-/**
- * UPDATED: Complaint timeline component
- * Uses canonical badge and proper types
- */
+"use client";
 
-"use client"
-
-import { ComplaintStatusBadge } from "./ComplaintStatusBadge"
-import type { ComplaintStatusHistoryItem } from "@/lib/types/complaints"
+import { ComplaintStatusBadge } from "./ComplaintStatusBadge";
+import type { ComplaintStatusHistoryItem } from "@/lib/types/complaints";
+import { User, Calendar } from "lucide-react";
 
 interface ComplaintTimelineProps {
-  timeline: ComplaintStatusHistoryItem[]
+  timeline: ComplaintStatusHistoryItem[];
 }
 
 export function ComplaintTimeline({ timeline }: ComplaintTimelineProps) {
   return (
     <div className="flow-root">
-      <ul className="-mb-8">
+      <ul className="space-y-6">
         {timeline.map((item, itemIdx) => (
-          <li key={item.id}>
-            <div className="relative pb-8">
-              {itemIdx !== timeline.length - 1 ? (
-                <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
-              ) : null}
-              <div className="relative flex space-x-3">
-                <div>
-                  <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
-                    <span className="text-white text-sm font-medium">{itemIdx + 1}</span>
+          <li
+            key={item.id}
+            className="relative animate-slide-up"
+            style={{ animationDelay: `${itemIdx * 100}ms` }}
+          >
+            <div className="relative flex gap-4">
+              {/* Timeline Line */}
+              {itemIdx !== timeline.length - 1 && (
+                <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-purple-400 opacity-30"></div>
+              )}
+
+              {/* Status Circle */}
+              <div className="relative flex-shrink-0">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg ring-4 ring-white group-hover:scale-110 transition-transform">
+                  <span className="text-white text-sm font-bold">
+                    {itemIdx + 1}
                   </span>
                 </div>
-                <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      Status changed from{" "}
-                      {item.old_status ? (
-                        <ComplaintStatusBadge status={item.old_status as any} size="sm" />
-                      ) : (
-                        <span className="text-gray-400">None</span>
-                      )}{" "}
-                      to <ComplaintStatusBadge status={item.new_status as any} size="sm" />
-                    </p>
-                    {item.note && <p className="mt-1 text-sm text-gray-700">{item.note}</p>}
-                    <p className="mt-1 text-xs text-gray-400">
-                      By {item.changed_by?.user_profiles?.full_name || item.changed_by?.email || "System"}
-                    </p>
+                {itemIdx === 0 && (
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 blur-xl opacity-40 animate-pulse"></div>
+                )}
+              </div>
+
+              {/* Content Card */}
+              <div className="flex-1 min-w-0 pb-6">
+                <div className="glass rounded-xl p-4 border border-slate-200 hover:shadow-lg transition-all duration-300 group">
+                  {/* Status Change */}
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="text-sm font-medium text-slate-600">
+                      Status changed from
+                    </span>
+                    {item.old_status ? (
+                      <ComplaintStatusBadge
+                        status={item.old_status as any}
+                        size="sm"
+                      />
+                    ) : (
+                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
+                        None
+                      </span>
+                    )}
+                    <span className="text-sm font-medium text-slate-600">
+                      to
+                    </span>
+                    <ComplaintStatusBadge
+                      status={item.new_status as any}
+                      size="sm"
+                    />
                   </div>
-                  <div className="whitespace-nowrap text-right text-sm text-gray-500">
-                    {new Date(item.changed_at).toLocaleDateString()} at {new Date(item.changed_at).toLocaleTimeString()}
+
+                  {/* Note */}
+                  {item.note && (
+                    <div className="mb-3 p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+                      <p className="text-sm text-slate-800 leading-relaxed">
+                        {item.note}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Meta Information */}
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                    <div className="flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5" />
+                      <span className="font-medium">
+                        {item.changed_by?.user_profiles?.full_name ||
+                          item.changed_by?.email ||
+                          "System"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>
+                        {new Date(item.changed_at).toLocaleDateString()} at{" "}
+                        {new Date(item.changed_at).toLocaleTimeString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -54,5 +97,5 @@ export function ComplaintTimeline({ timeline }: ComplaintTimelineProps) {
         ))}
       </ul>
     </div>
-  )
+  );
 }

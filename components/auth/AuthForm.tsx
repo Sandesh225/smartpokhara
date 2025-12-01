@@ -391,13 +391,15 @@ export function AuthForm({ mode }: AuthFormProps) {
         </button>
 
         {!isRegister && (
-          <div className="flex items-center justify-end">
-            <Link
-              href="/forgot-password"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
-            >
-              Forgot your password?
-            </Link>
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <Link
+                href="/forgot-password"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Forgot your password?
+              </Link>
+            </div>
           </div>
         )}
       </form>

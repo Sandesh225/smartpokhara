@@ -1,5 +1,5 @@
 // middleware.ts
-// ✅ COMPLETE FIXED VERSION - No redirect loops
+// ✅ COMPLETE FIXED VERSION - No redirect loops + Public Accept Invitation
 
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
@@ -44,9 +44,17 @@ export async function middleware(request: NextRequest) {
     "/reset-password",
   ].some((p) => pathname.startsWith(p));
 
+  // ✅ NEW: Allow public access to accept-invitation page
+  const isPublicInvitationPage = pathname.startsWith("/staff/accept-invitation");
+
   const isProtectedRoute = ["/citizen", "/staff", "/admin"].some((p) =>
     pathname.startsWith(p)
   );
+
+  // ✅ Allow unauthenticated access to accept-invitation page
+  if (isPublicInvitationPage && !user) {
+    return response;
+  }
 
   // 1. Unauthenticated users on protected routes → redirect to login
   if (!user && isProtectedRoute) {
@@ -81,6 +89,11 @@ export async function middleware(request: NextRequest) {
 
   // 3. Role-based access control for protected routes
   if (user && isProtectedRoute) {
+    // ✅ Skip role check for accept-invitation page (user is creating account)
+    if (isPublicInvitationPage) {
+      return response;
+    }
+
     try {
       const roles = await getUserRolesWithCache(supabase, user.id);
 
@@ -134,6 +147,10 @@ export async function middleware(request: NextRequest) {
 
       // On error, block admin/staff routes but allow citizen routes
       if (pathname.startsWith("/admin") || pathname.startsWith("/staff")) {
+        // ✅ Don't redirect accept-invitation page on error
+        if (isPublicInvitationPage) {
+          return response;
+        }
         return NextResponse.redirect(
           new URL("/citizen/dashboard", request.url)
         );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ComplaintStatusBadge } from "@/components/admin/complaint-status-badge";
 import { ComplaintPriorityBadge } from "@/components/admin/complaint-priority-badge";
+import { FileText, User, Calendar } from "lucide-react";
 import type { ComplaintListItem } from "@/lib/types/complaints";
 
 interface RecentComplaintsTableProps {
@@ -14,96 +15,103 @@ export function RecentComplaintsTable({
 }: RecentComplaintsTableProps) {
   if (!complaints.length) {
     return (
-      <div className="flex min-h-[120px] items-center justify-center bg-slate-50 px-6 py-10 text-sm text-slate-500">
-        No complaints available yet. New submissions will appear here in
-        chronological order.
+      <div className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4">
+          <FileText className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+        </div>
+        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+          No complaints yet
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+          New submissions will appear here
+        </p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="border-b border-slate-200 bg-slate-50/80 backdrop-blur-sm">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-slate-100 dark:border-slate-800">
+            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Tracking Code
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Title
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <th className="hidden sm:table-cell px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Category
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <th className="hidden lg:table-cell px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Priority
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <th className="hidden md:table-cell px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Submitted
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
-          {complaints.map((complaint, idx) => {
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          {complaints.map((complaint) => {
             const submittedDate = new Date(complaint.submitted_at);
-            const isStriped = idx % 2 === 1;
-
             return (
               <tr
                 key={complaint.id}
-                className={`transition-colors ${
-                  isStriped ? "bg-slate-50/40" : "bg-white"
-                } hover:bg-blue-50/40`}
+                className="group transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50"
               >
-                <td className="px-6 py-4 align-middle">
+                <td className="px-5 py-4">
                   <Link
                     href={`/admin/complaints/${complaint.id}`}
-                    className="font-mono text-xs font-semibold text-blue-700 underline-offset-2 hover:text-blue-900 hover:underline"
+                    className="inline-flex items-center gap-2 font-mono text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                   >
-                    {complaint.tracking_code}
+                    <span className="group-hover:underline underline-offset-2">
+                      {complaint.tracking_code}
+                    </span>
                   </Link>
                 </td>
-                <td className="max-w-xs px-6 py-4 align-middle">
-                  <div className="flex flex-col">
-                    <span className="truncate text-sm font-medium text-slate-900">
+                <td className="max-w-[200px] px-5 py-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="truncate text-sm font-medium text-slate-900 dark:text-white">
                       {complaint.title}
                     </span>
-                    <span className="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                    <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                      <User className="h-3 w-3" />
                       {complaint.citizen_name ||
                         complaint.citizen_email ||
                         "Citizen"}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 align-middle text-xs text-slate-600">
-                  {complaint.category_name || "-"}
+                <td className="hidden sm:table-cell px-5 py-4">
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
+                    {complaint.category_name || "-"}
+                  </span>
                 </td>
-                <td className="px-6 py-4 align-middle">
+                <td className="px-5 py-4">
                   <ComplaintStatusBadge status={complaint.status} size="sm" />
                 </td>
-                <td className="px-6 py-4 align-middle">
+                <td className="hidden lg:table-cell px-5 py-4">
                   <ComplaintPriorityBadge
                     priority={complaint.priority}
                     size="sm"
                   />
                 </td>
-                <td className="px-6 py-4 align-middle text-xs text-slate-600">
-                  <span className="block">
-                    {submittedDate.toLocaleDateString(undefined, {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span className="mt-0.5 block text-[0.65rem] text-slate-400">
-                    {submittedDate.toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
+                <td className="hidden md:table-cell px-5 py-4">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <div className="flex flex-col">
+                      <span>
+                        {submittedDate.toLocaleDateString("en-US", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
                 </td>
               </tr>
             );
