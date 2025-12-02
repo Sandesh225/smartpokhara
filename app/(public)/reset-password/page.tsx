@@ -1,18 +1,15 @@
-// app/(public)/reset-password/page.tsx - UPDATED VERSION
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PasswordStrength } from "@/components/auth/PasswordStrength";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [password, setPassword] = useState("");
@@ -20,80 +17,65 @@ export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isValidSession, setIsValidSession] = useState<null | boolean>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [isValidSession, setIsValidSession] = useState(false);
 
-  // Check if user already has a valid session
+  // Check if user has a valid recovery session
   useEffect(() => {
     const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      try {
+        console.log("🔍 Checking session for password reset...");
 
-      if (session) {
-        console.log("User already has a valid session");
-        setIsValidSession(true);
-        return;
-      }
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
-      // Check for token in URL (from email link)
-      const urlToken = searchParams.get("token");
-      const type = searchParams.get("type");
-      const verified = searchParams.get("verified");
+        if (error) {
+          console.error("❌ Session check error:", error);
+          setIsValidSession(false);
+          setCheckingSession(false);
+          return;
+        }
 
-      console.log("URL params:", { urlToken, type, verified });
-
-      if (verified === "true" && urlToken && type === "recovery") {
-        // Token was already verified by the server route
-        setToken(urlToken);
-        setIsValidSession(true);
-        return;
-      }
-
-      // If no session and no verified token, check for direct token
-      if (urlToken && type === "recovery") {
-        setToken(urlToken);
-        await verifyToken(urlToken);
-      } else {
-        // No valid session or token found
-        toast.error("Invalid or missing reset link.");
+        if (session) {
+          console.log("✅ Valid session found for password reset");
+          console.log("Session user:", session.user.email);
+          setIsValidSession(true);
+        } else {
+          console.log("❌ No active session - invalid or expired link");
+          setIsValidSession(false);
+        }
+      } catch (err) {
+        console.error("❌ Exception checking session:", err);
         setIsValidSession(false);
+      } finally {
+        setCheckingSession(false);
       }
     };
 
     checkSession();
-  }, [searchParams, supabase.auth]);
 
-  const verifyToken = async (token: string) => {
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: "recovery",
-      });
+    // Listen for auth state changes (when user clicks reset link)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔔 Auth state changed:", event);
 
-      if (error) {
-        if (
-          error.message.includes("expired") ||
-          error.message.includes("invalid")
-        ) {
-          toast.error(
-            "This password reset link has expired or is invalid. Please request a new one."
-          );
-        } else {
-          toast.error("Invalid reset link. Please try again.");
-        }
-        setIsValidSession(false);
-      } else {
-        // Success! Token is valid
+      if (event === "PASSWORD_RECOVERY") {
+        console.log("✅ Password recovery event detected");
         setIsValidSession(true);
-        console.log("Token verified successfully");
+        setCheckingSession(false);
+      } else if (event === "SIGNED_OUT") {
+        console.log("🚪 User signed out");
+        setIsValidSession(false);
       }
-    } catch (err) {
-      console.error("Token verification error:", err);
-      toast.error("Failed to validate reset link.");
-      setIsValidSession(false);
-    }
-  };
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
 
   const validatePassword = () => {
     if (password.length < 8) return "Password must be at least 8 characters";
@@ -101,21 +83,17 @@ export default function ResetPasswordPage() {
     if (!/(?=.*[A-Z])/.test(password))
       return "Must contain an uppercase letter";
     if (!/(?=.*\d)/.test(password)) return "Must contain a number";
-    if (!/(?=.*[@$!%*?&])/.test(password))
-      return "Must contain a special character (@$!%*?&)";
     return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if passwords match
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
 
-    // Validate password strength
     const validationError = validatePassword();
     if (validationError) {
       toast.error(validationError);
@@ -126,63 +104,62 @@ export default function ResetPasswordPage() {
     const toastId = toast.loading("Updating your password...");
 
     try {
-      // Update password in Supabase Auth
-      const { error: updateError } = await supabase.auth.updateUser({
+      console.log("🔐 Updating password...");
+
+      const { data, error } = await supabase.auth.updateUser({
         password: password.trim(),
       });
 
-      if (updateError) {
-        if (updateError.message.toLowerCase().includes("reauth")) {
+      if (error) {
+        console.error("❌ Password update error:", error);
+
+        if (error.message.toLowerCase().includes("session")) {
           throw new Error("Session expired. Please request a new reset link.");
         }
-        throw updateError;
+        throw error;
       }
 
-      // Optional: Log password reset event
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          // First, let's check if the function exists
-          const { error: rpcError } = await supabase.rpc("log_password_reset", {
-            p_user_id: user.id,
-          });
+      console.log("✅ Password updated successfully");
 
-          if (rpcError) {
-            console.warn(
-              "Failed to log password reset (function may not exist):",
-              rpcError
-            );
-          }
+      // Log the password reset in the database
+      try {
+        if (data.user) {
+          await supabase.rpc("log_password_reset", {
+            p_user_id: data.user.id,
+          });
+          console.log("✅ Password reset logged");
         }
       } catch (logError) {
-        console.warn("Failed to log password reset:", logError);
+        console.error("⚠️ Failed to log password reset:", logError);
+        // Don't fail the whole operation if logging fails
       }
 
       toast.success("Password changed successfully! Redirecting to login...", {
         id: toastId,
       });
 
-      // Success → redirect after short delay
+      // Sign out the user after password reset
+      await supabase.auth.signOut();
+      console.log("✅ User signed out");
+
+      // Redirect to login with success message
       setTimeout(() => {
-        router.push("/login");
+        router.push("/login?message=password_reset_success");
+        router.refresh();
       }, 2000);
     } catch (err: any) {
+      console.error("❌ Password reset error:", err);
       toast.error(
         err.message || "Failed to update password. Please try again.",
         { id: toastId }
       );
-      console.error("Reset error:", err);
     } finally {
       setLoading(false);
-      setPassword("");
-      setConfirmPassword("");
     }
   };
 
-  // Show loading while validating token
-  if (isValidSession === null) {
+  // Loading/checking state
+  if (checkingSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="text-center">
@@ -193,7 +170,7 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // Invalid session → show error screen
+  // Invalid session
   if (!isValidSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4">
@@ -228,11 +205,10 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // Valid session → show reset form
+  // Valid session - show reset form
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
             <Lock className="h-6 w-6 text-green-600" />
@@ -245,7 +221,6 @@ export default function ResetPasswordPage() {
           </p>
         </div>
 
-        {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-5">
             {/* New Password */}
@@ -268,6 +243,7 @@ export default function ResetPasswordPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  tabIndex={-1}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -276,7 +252,6 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              <PasswordStrength password={password} />
             </div>
 
             {/* Confirm Password */}
@@ -299,6 +274,7 @@ export default function ResetPasswordPage() {
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  tabIndex={-1}
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -338,19 +314,12 @@ export default function ResetPasswordPage() {
                 />
                 One number
               </li>
-              <li className="flex items-center gap-2">
-                <span
-                  className={`h-2 w-2 rounded-full ${/[@$!%*?&]/.test(password) ? "bg-green-500" : "bg-gray-300"}`}
-                />
-                One special character (@$!%*?&)
-              </li>
             </ul>
           </div>
 
           <Button
             type="submit"
             className="w-full"
-            loading={loading}
             disabled={loading || !password || password !== confirmPassword}
           >
             {loading ? "Updating Password..." : "Set New Password"}
