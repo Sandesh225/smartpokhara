@@ -5,7 +5,11 @@ import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { getDefaultDashboardPath } from "@/lib/auth/role-helpers";
 import Link from "next/link";
 
-export default async function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const user = await getCurrentUserWithRoles();
 
   if (user) {
@@ -13,9 +17,42 @@ export default async function LoginPage() {
     redirect(dashboardPath);
   }
 
+  // Get search params
+  const params = await searchParams;
+  const message = params.message;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
+        {/* Password Reset Success Message */}
+        {message === "password_reset_success" && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex gap-3">
+              <svg
+                className="h-5 w-5 text-green-600 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <h3 className="text-sm font-medium text-green-800">
+                  Password Reset Successful
+                </h3>
+                <p className="text-sm text-green-700 mt-1">
+                  You can now sign in with your new password.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <AuthForm mode="login" />
 
         <div className="mt-8 bg-white rounded-lg shadow-md p-6 border border-gray-100">
