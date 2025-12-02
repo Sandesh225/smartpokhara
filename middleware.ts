@@ -1,15 +1,12 @@
 // middleware.ts
-// ✅ COMPLETE FIXED VERSION - No redirect loops + Public Accept Invitation
-
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { createServerClient } from "@supabase/ssr";
 
 const ROLE_CACHE = new Map<string, { roles: string[]; timestamp: number }>();
-const CACHE_TTL = 60 * 1000; // 1 minute cache
+const CACHE_TTL = 60 * 1000;
 
 export async function middleware(request: NextRequest) {
-  // ✅ CRITICAL: Store the response from updateSession
   const response = await updateSession(request);
 
   const supabase = createServerClient(
@@ -36,34 +33,47 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Define routes
-  const isAuthPage = [
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-  ].some((p) => pathname.startsWith(p));
+  const isAuthPage = ["/login", "/register", "/forgot-password"].some((p) =>
+    pathname.startsWith(p)
+  );
 
-  // ✅ NEW: Allow public access to accept-invitation page
-  const isPublicInvitationPage = pathname.startsWith("/staff/accept-invitation");
-
+  const isResetPasswordPage = pathname.startsWith("/reset-password");
+  const isPublicInvitationPage = pathname.startsWith(
+    "/staff/accept-invitation"
+  );
   const isProtectedRoute = ["/citizen", "/staff", "/admin"].some((p) =>
     pathname.startsWith(p)
   );
 
-  // ✅ Allow unauthenticated access to accept-invitation page
+  // CRITICAL: Always allow access to reset-password page
+  // Let the page itself handle session validation
+  // middleware.ts (update the reset password section)
+  if (isResetPasswordPage) {
+    console.log("🔐 Allowing access to reset-password page");
+
+    // Check if user is in password reset flow
+    const passwordResetCookie = request.cookies.get("password-reset-flow");
+
+    if (!user && !passwordResetCookie) {
+      // User might be coming from email link - let them through
+      console.log("👤 User might be in password reset flow, allowing access");
+    }
+
+    return response;
+  }
+  // Allow unauthenticated access to invitation page
   if (isPublicInvitationPage && !user) {
     return response;
   }
 
-  // 1. Unauthenticated users on protected routes → redirect to login
+  // Redirect unauthenticated users from protected routes
   if (!user && isProtectedRoute) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 2. Authenticated users on auth pages → redirect to appropriate dashboard
+  // Redirect authenticated users from auth pages to their dashboard
   if (user && isAuthPage) {
     try {
       const roles = await getUserRolesWithCache(supabase, user.id);
@@ -79,31 +89,29 @@ export async function middleware(request: NextRequest) {
         dashboardPath = "/staff/dashboard";
       }
 
+      console.log(
+        "📍 Redirecting authenticated user from",
+        pathname,
+        "to",
+        dashboardPath
+      );
       return NextResponse.redirect(new URL(dashboardPath, request.url));
     } catch (error) {
-      console.error("Middleware: Error fetching roles on auth page:", error);
-      // On error, default to citizen dashboard
+      console.error("Middleware error:", error);
       return NextResponse.redirect(new URL("/citizen/dashboard", request.url));
     }
   }
 
-  // 3. Role-based access control for protected routes
-  if (user && isProtectedRoute) {
-    // ✅ Skip role check for accept-invitation page (user is creating account)
-    if (isPublicInvitationPage) {
-      return response;
-    }
-
+  // Role-based access control for protected routes
+  if (user && isProtectedRoute && !isPublicInvitationPage) {
     try {
       const roles = await getUserRolesWithCache(supabase, user.id);
 
-      // Admin routes - require admin or dept_head role
       if (pathname.startsWith("/admin")) {
         const hasAdminAccess =
           roles.includes("admin") || roles.includes("dept_head");
 
         if (!hasAdminAccess) {
-          // Redirect to appropriate dashboard based on user's role
           const fallback = roles.some((r) =>
             ["dept_staff", "ward_staff", "field_staff", "call_center"].includes(
               r
@@ -114,11 +122,8 @@ export async function middleware(request: NextRequest) {
 
           return NextResponse.redirect(new URL(fallback, request.url));
         }
-        // User has admin access, allow the request
-        return response;
       }
 
-      // Staff routes - require staff-level role
       if (pathname.startsWith("/staff")) {
         const hasStaffAccess = roles.some((r) =>
           [
@@ -136,36 +141,22 @@ export async function middleware(request: NextRequest) {
             new URL("/citizen/dashboard", request.url)
           );
         }
-        // User has staff access, allow the request
-        return response;
       }
-
-      // Citizen routes - all authenticated users can access
-      // Just return the response, no additional checks needed
     } catch (error) {
-      console.error("Middleware: Error checking roles:", error);
-
-      // On error, block admin/staff routes but allow citizen routes
+      console.error("Middleware role check error:", error);
       if (pathname.startsWith("/admin") || pathname.startsWith("/staff")) {
-        // ✅ Don't redirect accept-invitation page on error
-        if (isPublicInvitationPage) {
-          return response;
+        if (!isPublicInvitationPage) {
+          return NextResponse.redirect(
+            new URL("/citizen/dashboard", request.url)
+          );
         }
-        return NextResponse.redirect(
-          new URL("/citizen/dashboard", request.url)
-        );
       }
     }
   }
 
-  // ✅ CRITICAL: Return the original response from updateSession
-  // This ensures all session cookies are properly set
   return response;
 }
 
-/**
- * Fetch user roles with in-memory caching to reduce DB queries
- */
 async function getUserRolesWithCache(
   supabase: any,
   userId: string
@@ -173,23 +164,15 @@ async function getUserRolesWithCache(
   const now = Date.now();
   const cached = ROLE_CACHE.get(userId);
 
-  // Return cached roles if still valid
   if (cached && now - cached.timestamp < CACHE_TTL) {
     return cached.roles;
   }
 
-  // Fetch fresh roles from database
   const roles = await getUserRoles(supabase, userId);
-
-  // Cache for future requests
   ROLE_CACHE.set(userId, { roles, timestamp: now });
-
   return roles;
 }
 
-/**
- * Fetch user roles from database
- */
 async function getUserRoles(supabase: any, userId: string): Promise<string[]> {
   try {
     const { data, error } = await supabase
@@ -198,12 +181,7 @@ async function getUserRoles(supabase: any, userId: string): Promise<string[]> {
       .eq("user_id", userId)
       .eq("role.is_active", true);
 
-    if (error) {
-      console.error("Error fetching user roles:", error.message);
-      return [];
-    }
-
-    if (!data || data.length === 0) {
+    if (error || !data || data.length === 0) {
       return [];
     }
 
@@ -211,7 +189,7 @@ async function getUserRoles(supabase: any, userId: string): Promise<string[]> {
       .map((ur: any) => ur.role?.role_type)
       .filter((rt: any) => rt && typeof rt === "string");
   } catch (error) {
-    console.error("Exception fetching user roles:", error);
+    console.error("Error fetching roles:", error);
     return [];
   }
 }
