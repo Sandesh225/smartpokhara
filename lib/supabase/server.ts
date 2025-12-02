@@ -4,28 +4,28 @@ import { cookies } from "next/headers";
 import type { Database } from "@/lib/types/database.types";
 
 export async function createClient() {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies(); // ✅ MUST await this in Next.js 15
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
+        async get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options: CookieOptions) {
+        async set(name: string, value: string, options) {
           try {
             cookieStore.set({ name, value, ...options });
           } catch (error) {
-            // Ignore in Server Components
+            // Ignore - happens in middleware
           }
         },
-        remove(name: string, options: CookieOptions) {
+        async remove(name: string, options) {
           try {
             cookieStore.set({ name, value: "", ...options });
           } catch (error) {
-            // Ignore in Server Components
+            // Ignore - happens in middleware
           }
         },
       },
