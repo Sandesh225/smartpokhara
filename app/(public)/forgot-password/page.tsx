@@ -1,26 +1,35 @@
-// app/(public)/forgot-password/page.tsx - UPDATED
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail } from "lucide-react";
+import { Mail, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // Show error message if link expired
+  useState(() => {
+    if (error === "link_expired") {
+      toast.error(
+        "The password reset link has expired. Please request a new one."
+      );
+    }
+  });
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic email validation
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       toast.error("Please enter a valid email address");
       return;
@@ -30,17 +39,14 @@ export default function ForgotPasswordPage() {
     const toastId = toast.loading("Sending reset link...");
 
     try {
-      // Use the new reset route for better handling
-      const redirectUrl = `${window.location.origin}/auth/reset`;
+      // CRITICAL: Use reset-password page directly as redirect
+      // Supabase will automatically add the recovery token
+      const redirectUrl = `${window.location.origin}/reset-password`;
 
-      console.log(
-        "Sending reset email to:",
-        email,
-        "redirect to:",
-        redirectUrl
-      );
+      console.log("📧 Sending password reset email");
+      console.log("Redirect URL:", redirectUrl);
 
-      const { error, data } = await supabase.auth.resetPasswordForEmail(
+      const { error } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
         {
           redirectTo: redirectUrl,
@@ -56,19 +62,19 @@ export default function ForgotPasswordPage() {
         throw error;
       }
 
-      console.log("Reset email sent successfully:", data);
+      console.log("✅ Password reset email sent successfully");
 
       toast.success(
-        "If an account exists with this email, a password reset link has been sent. Please check your inbox and spam folder.",
+        "Password reset link sent! Check your email inbox and spam folder.",
         { id: toastId }
       );
 
       setIsSubmitted(true);
-      setEmail(""); // Clear email for security
+      setEmail("");
     } catch (err: any) {
       console.error("Password reset error:", err);
       toast.error(
-        err.message || "Failed to send reset email. Please try again later.",
+        err.message || "Failed to send reset email. Please try again.",
         { id: toastId }
       );
     } finally {
@@ -79,7 +85,6 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
             <Mail className="h-6 w-6 text-blue-600" />
@@ -92,6 +97,24 @@ export default function ForgotPasswordPage() {
             password.
           </p>
         </div>
+
+        {/* Show error alert if link expired */}
+        {error === "link_expired" && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Link Expired
+                </h3>
+                <p className="text-sm text-yellow-700 mt-1">
+                  The password reset link has expired. Please request a new one
+                  below.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {isSubmitted ? (
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
@@ -114,19 +137,13 @@ export default function ForgotPasswordPage() {
               Check your email
             </h3>
             <p className="text-gray-600 mb-4">
-              We've sent a password reset link to your email address. The link
-              will expire in 24 hours.
+              We've sent a password reset link to your email. The link will
+              expire in 1 hour.
             </p>
             <div className="space-y-3">
-              <Button
-                onClick={() => {
-                  setIsSubmitted(false);
-                  router.push("/login");
-                }}
-                className="w-full"
-              >
-                Back to Login
-              </Button>
+              <Link href="/login">
+                <Button className="w-full">Back to Login</Button>
+              </Link>
               <p className="text-sm text-gray-500">
                 Didn't receive the email?{" "}
                 <button
@@ -139,7 +156,6 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
         ) : (
-          /* Form */
           <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
             <div className="space-y-4">
               <Input
@@ -155,12 +171,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="space-y-4">
-              <Button
-                type="submit"
-                className="w-full"
-                loading={loading}
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Sending..." : "Send Reset Link"}
               </Button>
 
@@ -176,13 +187,11 @@ export default function ForgotPasswordPage() {
           </form>
         )}
 
-        {/* Additional Info */}
         <div className="mt-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> The reset link expires in 24 hours. If you
-              don't receive an email, check your spam/junk folder or try again
-              later.
+              <strong>Note:</strong> The reset link expires in 1 hour. Check
+              your spam/junk folder if you don't see the email.
             </p>
           </div>
         </div>
