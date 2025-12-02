@@ -2,11 +2,22 @@
 interface PasswordResetEmailProps {
   resetLink: string;
   userName?: string;
+  userRole?: string;
 }
 
-export function PasswordResetEmail({ resetLink, userName }: PasswordResetEmailProps) {
+export function PasswordResetEmail({
+  resetLink,
+  userName,
+  userRole,
+}: PasswordResetEmailProps) {
   const year = new Date().getFullYear();
-  
+
+  const roleDisplay = userRole
+    ? `<p style="margin: 0 0 8px 0; color: #374151; font-weight: 500;">
+      Account Type: ${userRole}
+    </p>`
+    : "";
+
   return `
     <!DOCTYPE html>
     <html>
@@ -36,7 +47,9 @@ export function PasswordResetEmail({ resetLink, userName }: PasswordResetEmailPr
             Reset Your Password
           </h2>
           
-          ${userName ? `<p style="margin: 0 0 16px 0; color: #374151;">Hello ${userName},</p>` : ''}
+          ${userName ? `<p style="margin: 0 0 8px 0; color: #374151;">Hello ${userName},</p>` : ""}
+          
+          ${roleDisplay}
           
           <p style="margin: 0 0 24px 0; color: #374151; line-height: 1.6;">
             We received a request to reset your password for your Smart City Pokhara account. 
@@ -64,8 +77,15 @@ export function PasswordResetEmail({ resetLink, userName }: PasswordResetEmailPr
           <!-- Security Notice -->
           <div style="background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 16px; margin-top: 32px;">
             <p style="margin: 0; color: #92400e; font-size: 14px;">
-              <strong>Important:</strong> This link will expire in 24 hours. 
+              <strong>Important:</strong> This link will expire in 1 hour. 
               If you didn't request this password reset, you can safely ignore this email.
+            </p>
+          </div>
+
+          <!-- Staff Specific Notice -->
+          <div style="background-color: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; margin-top: 16px;">
+            <p style="margin: 0; color: #1e40af; font-size: 14px;">
+              <strong>Note for Staff Members:</strong> After resetting your password, you will be redirected to the appropriate dashboard based on your role.
             </p>
           </div>
         </div>
