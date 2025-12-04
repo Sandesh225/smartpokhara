@@ -1,291 +1,632 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+// app/(protected)/citizen/dashboard/page.tsx
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { CitizenDashboardStats } from "@/components/citizen/citizen-dashboard-stats";
-import { CitizenRecentComplaints } from "@/components/citizen/citizen-recent-complaints";
+import {
+  getUserDisplayName,
+  getPrimaryRole,
+  getRoleDisplayName,
+} from "@/lib/auth/role-helpers";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   FileText,
-  PlusCircle,
-  Search,
-  MapPin,
-  CreditCard,
-  User,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Plus,
   TrendingUp,
   Bell,
-  Calendar,
+  MapPin,
+  Users,
+  BarChart3,
+  Shield,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function CitizenDashboardPage() {
+type RpcMyComplaint = {
+  id: string;
+  tracking_code: string;
+  title: string;
+  category_name: string | null;
+  subcategory_name: string | null;
+  status:
+    | "draft"
+    | "submitted"
+    | "received"
+    | "assigned"
+    | "accepted"
+    | "in_progress"
+    | "resolved"
+    | "closed"
+    | "rejected"
+    | "reopened";
+  priority: "low" | "medium" | "high" | "urgent" | "critical";
+  ward_number: number | null;
+  submitted_at: string;
+  last_updated_at: string;
+  sla_due_at: string | null;
+  is_overdue: boolean;
+  assigned_department_name: string | null;
+  thumbnail_url: string | null;
+  upvote_count: number;
+};
+
+export default async function CitizenDashboard() {
   const user = await getCurrentUserWithRoles();
   if (!user) {
-    redirect("/login");
+    return null;
   }
 
   const supabase = await createClient();
 
-  try {
-    const [complaintsResult, statsResult] = await Promise.all([
-      supabase
-        .from("complaints")
-        .select(
-          `
-          id,
-          tracking_code,
-          title,
-          status,
-          priority,
-          submitted_at,
-          category:complaint_categories(name)
-        `
-        )
-        .eq("citizen_id", user.id)
-        .order("submitted_at", { ascending: false })
-        .limit(10),
-      supabase.from("complaints").select("status").eq("citizen_id", user.id),
-    ]);
+  // Get user's complaints
+  const { data: complaints = [] } = await supabase.rpc(
+    "rpc_get_my_complaints",
+    {
+      p_status: null,
+      p_limit: 50,
+      p_offset: 0,
+    }
+  );
 
-    const complaints = complaintsResult.data || [];
-    const stats = statsResult.data || [];
+  const typedComplaints = complaints as RpcMyComplaint[];
 
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-        {/* Animated background blobs */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-          <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-        </div>
+  // Get dashboard stats
+  const { data: statsData } = await supabase.rpc("rpc_get_admin_dashboard");
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-          {/* Enhanced Header with gradient and animation */}
-          <div className="animate-slide-down">
-            <div className="glass rounded-2xl p-6 sm:p-8 shadow-xl border border-white/20 backdrop-blur-xl bg-white/40">
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg animate-pulse-scale">
-                      {(user.profile?.full_name || user.email)[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
-                        Welcome Back!
-                      </h1>
-                      <p className="text-slate-600 font-medium">
-                        {user.profile?.full_name || user.email.split("@")[0]}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-slate-600 max-w-2xl">
-                    Track your complaints, monitor city services, and stay
-                    connected with your community.
-                  </p>
-                </div>
-                <Link href="/citizen/complaints/new" className="group">
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                  >
-                    <PlusCircle className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-                    Submit Complaint
-                  </Button>
-                </Link>
-              </div>
+  // Get notifications count
+  const { count: unreadNotifications } = await supabase
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("is_read", false);
 
-              {/* Quick Actions Bar */}
-              <div className="mt-6 flex flex-wrap gap-2">
-                <QuickActionChip
-                  icon={<Bell className="w-4 h-4" />}
-                  label="3 Updates"
-                />
-                <QuickActionChip
-                  icon={<Calendar className="w-4 h-4" />}
-                  label="This Month"
-                />
-                <QuickActionChip
-                  icon={<TrendingUp className="w-4 h-4" />}
-                  label="View Analytics"
-                />
-              </div>
-            </div>
-          </div>
+  const stats = {
+    totalComplaints: typedComplaints.length,
+    pending: typedComplaints.filter((c) =>
+      ["submitted", "received", "assigned"].includes(c.status)
+    ).length,
+    inProgress: typedComplaints.filter((c) =>
+      ["accepted", "in_progress"].includes(c.status)
+    ).length,
+    resolved: typedComplaints.filter((c) =>
+      ["resolved", "closed"].includes(c.status)
+    ).length,
+    overdue: typedComplaints.filter((c) => c.is_overdue).length,
+    unreadNotifications: unreadNotifications || 0,
+  };
 
-          {/* Stats with staggered animation */}
-          <div className="animate-slide-up">
-            <CitizenDashboardStats complaints={stats} />
-          </div>
+  const recentComplaints = typedComplaints
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+    )
+    .slice(0, 5);
 
-          {/* Recent complaints with fade-in */}
-          <div className="animate-fade-in">
-            <CitizenRecentComplaints complaints={complaints} />
-          </div>
+  const displayName = getUserDisplayName(user);
+  const primaryRole = getPrimaryRole(user);
+  const roleName = primaryRole ? getRoleDisplayName(primaryRole) : "Citizen";
 
-          {/* Enhanced Quick Links Grid */}
-          <div className="animate-slide-up">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <div className="h-1 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
-              Quick Actions
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              <EnhancedQuickLink
-                href="/citizen/complaints"
-                icon={<FileText className="w-6 h-6" />}
-                title="My Complaints"
-                description="View all submissions"
-                gradient="from-blue-500 to-cyan-500"
-              />
-              <EnhancedQuickLink
-                href="/citizen/complaints/new"
-                icon={<PlusCircle className="w-6 h-6" />}
-                title="New Complaint"
-                description="Report an issue"
-                gradient="from-purple-500 to-pink-500"
-              />
-              <EnhancedQuickLink
-                href="/citizen/track"
-                icon={<Search className="w-6 h-6" />}
-                title="Track by Code"
-                description="Search complaints"
-                gradient="from-orange-500 to-red-500"
-              />
-              <EnhancedQuickLink
-                href="/citizen/ward"
-                icon={<MapPin className="w-6 h-6" />}
-                title="Ward Info"
-                description="Your area details"
-                gradient="from-green-500 to-emerald-500"
-              />
-              <EnhancedQuickLink
-                href="/citizen/payments"
-                icon={<CreditCard className="w-6 h-6" />}
-                title="Payments"
-                description="Bills & services"
-                gradient="from-indigo-500 to-blue-500"
-              />
-              <EnhancedQuickLink
-                href="/citizen/profile"
-                icon={<User className="w-6 h-6" />}
-                title="Profile"
-                description="Your information"
-                gradient="from-violet-500 to-purple-500"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  } catch (error) {
-    console.error("Error loading dashboard:", error);
+  // Get user profile for ward info
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("*, ward:wards(ward_number, name)")
+    .eq("user_id", user.id)
+    .single();
 
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-          <div className="glass rounded-2xl p-6 sm:p-8 shadow-xl">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-                <p className="mt-2 text-slate-600">
-                  Welcome, {user.profile?.full_name || user.email.split("@")[0]}
-                  .
-                </p>
-              </div>
+  const statusColor = (status: RpcMyComplaint["status"]) => {
+    if (["resolved", "closed"].includes(status)) {
+      return {
+        dot: "bg-green-500",
+        pill: "bg-green-100 text-green-700",
+      };
+    }
+    if (["in_progress", "accepted"].includes(status)) {
+      return {
+        dot: "bg-orange-500",
+        pill: "bg-orange-100 text-orange-700",
+      };
+    }
+    if (["submitted", "received", "assigned"].includes(status)) {
+      return {
+        dot: "bg-yellow-500",
+        pill: "bg-yellow-100 text-yellow-700",
+      };
+    }
+    if (status === "rejected") {
+      return {
+        dot: "bg-red-500",
+        pill: "bg-red-100 text-red-700",
+      };
+    }
+    return {
+      dot: "bg-gray-400",
+      pill: "bg-gray-100 text-gray-700",
+    };
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return "Today";
+    } else if (diffDays === 1) {
+      return "Yesterday";
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg p-8 text-white">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-black mb-2">
+              Welcome back, {displayName}!
+            </h1>
+            <p className="text-blue-100 text-lg mb-4">
+              You're logged in as{" "}
+              <span className="font-semibold">{roleName}</span>
+              {profile?.ward && (
+                <span className="ml-4">
+                  • Ward {profile.ward.ward_number} - {profile.ward.name}
+                </span>
+              )}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/citizen/complaints/new">
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button className="bg-white text-blue-600 hover:bg-blue-50 font-semibold shadow-lg px-6 py-3">
+                  <Plus className="w-4 h-4 mr-2" />
                   Submit New Complaint
+                </Button>
+              </Link>
+              <Link href="/citizen/complaints">
+                <Button
+                  variant="outline"
+                  className="bg-transparent border-white/70 text-white hover:bg-white/10 px-6 py-3"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  View My Complaints
                 </Button>
               </Link>
             </div>
           </div>
-
-          <div className="glass-dark rounded-2xl border border-red-300 bg-red-50/50 p-6 shadow-lg animate-fade-in">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                  <svg
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                </div>
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <div className="text-4xl font-bold">{stats.totalComplaints}</div>
+              <div className="text-sm text-blue-200">Total Complaints</div>
+            </div>
+            <div className="h-12 w-px bg-white/30 hidden md:block" />
+            <div className="text-center">
+              <div className="text-4xl font-bold text-green-300">
+                {stats.resolved}
               </div>
-              <div>
-                <h3 className="font-semibold text-red-900 text-lg">
-                  Unable to load dashboard data
-                </h3>
-                <p className="mt-2 text-sm text-red-700">
-                  There was an error loading your dashboard. Please try
-                  refreshing the page or contact support if the issue persists.
-                </p>
-              </div>
+              <div className="text-sm text-blue-200">Resolved</div>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
-}
 
-function QuickActionChip({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 backdrop-blur-sm border border-white/40 text-sm font-medium text-slate-700 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-105">
-      {icon}
-      {label}
-    </div>
-  );
-}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Total Complaints
+            </CardTitle>
+            <FileText className="w-5 h-5 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-gray-900">
+              {stats.totalComplaints}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">All time submissions</p>
+          </CardContent>
+        </Card>
 
-function EnhancedQuickLink(props: {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  gradient: string;
-}) {
-  return (
-    <Link href={props.href} className="group block">
-      <div className="relative h-full glass rounded-xl p-5 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-white/30">
-        {/* Gradient background on hover */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${props.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-        ></div>
+        <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-yellow-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Pending
+            </CardTitle>
+            <Clock className="w-5 h-5 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-yellow-600">
+              {stats.pending}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Awaiting assignment</p>
+          </CardContent>
+        </Card>
 
-        <div className="relative z-10">
-          <div
-            className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${props.gradient} text-white shadow-lg mb-3 group-hover:scale-110 transition-transform duration-300`}
-          >
-            {props.icon}
-          </div>
-          <h3 className="text-sm font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">
-            {props.title}
-          </h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            {props.description}
-          </p>
-        </div>
+        <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-orange-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              In Progress
+            </CardTitle>
+            <AlertCircle className="w-5 h-5 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-600">
+              {stats.inProgress}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Being worked on</p>
+          </CardContent>
+        </Card>
 
-        {/* Shine effect */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 group-hover:translate-x-full transition-transform duration-1000"></div>
+        <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Resolved
+            </CardTitle>
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">
+              {stats.resolved}
+            </div>
+            <p className="text-xs text-gray-foreground mt-1">
+              Successfully fixed
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Complaints */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Recent Complaints
+              <Link href="/citizen/complaints">
+                <Button variant="ghost" size="sm">
+                  View All
+                </Button>
+              </Link>
+            </CardTitle>
+            <CardDescription>Your recently submitted issues</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentComplaints.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold">No complaints yet</h3>
+                <p className="text-muted-foreground mb-6">
+                  You haven't submitted any complaints yet.
+                </p>
+                <Link href="/citizen/complaints/new">
+                  <Button>
+                    <Plus className="mr-2 w-4 h-4" />
+                    Submit Your First Complaint
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentComplaints.map((complaint) => {
+                  const colors = statusColor(complaint.status);
+                  return (
+                    <div
+                      key={complaint.id}
+                      className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div
+                        className={cn("w-2 h-2 rounded-full mt-2", colors.dot)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="min-w-0">
+                            <h4 className="font-semibold text-gray-900 truncate">
+                              {complaint.title}
+                            </h4>
+                            <p className="text-sm text-gray-500 truncate">
+                              ID: {complaint.tracking_code}
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              "text-xs px-2 py-1 rounded-full font-medium capitalize whitespace-nowrap ml-2",
+                              colors.pill
+                            )}
+                          >
+                            {complaint.status.replace("_", " ")}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {complaint.ward_number
+                              ? `Ward ${complaint.ward_number}`
+                              : "Ward not set"}
+                          </span>
+                          <span>{formatDate(complaint.submitted_at)}</span>
+                          {complaint.is_overdue && (
+                            <span className="text-red-600 font-medium">
+                              • Overdue
+                            </span>
+                          )}
+                        </div>
+                        {complaint.assigned_department_name && (
+                          <div className="mt-2 text-xs text-gray-600">
+                            Assigned to: {complaint.assigned_department_name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions & Stats */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common tasks</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link href="/citizen/complaints/new" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Submit New Complaint
+                </Button>
+              </Link>
+              <Link href="/citizen/complaints" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <FileText className="w-4 h-4 mr-2" />
+                  View All Complaints
+                </Button>
+              </Link>
+              <Link href="/citizen/notifications" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <div className="relative">
+                    <Bell className="w-4 h-4 mr-2" />
+                    {stats.unreadNotifications > 0 && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    )}
+                  </div>
+                  Notifications
+                  {stats.unreadNotifications > 0 && (
+                    <span className="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                      {stats.unreadNotifications} new
+                    </span>
+                  )}
+                </Button>
+              </Link>
+              <Link href="/track" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Track Complaint
+                </Button>
+              </Link>
+              <Link href="/citizen/profile" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <Users className="w-4 h-4 mr-2" />
+                  My Profile
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Performance Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Performance Stats
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Response Time</span>
+                  <span className="text-sm font-semibold text-green-600">
+                    {statsData?.avg_resolution_hours
+                      ? `${Math.round(statsData.avg_resolution_hours)} hrs`
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">SLA Compliance</span>
+                  <span className="text-sm font-semibold text-green-600">
+                    {statsData?.sla_compliance_rate
+                      ? `${statsData.sla_compliance_rate}%`
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Overdue</span>
+                  <span className="text-sm font-semibold text-red-600">
+                    {stats.overdue}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Satisfaction</span>
+                  <span className="text-sm font-semibold text-yellow-600">
+                    {statsData?.citizen_satisfaction
+                      ? `${statsData.citizen_satisfaction}/5`
+                      : "N/A"}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </Link>
+
+      {/* Tips & Quick Links */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Tips Section */}
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-blue-900">
+              💡 Tips for Better Complaints
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-blue-800">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                <span>
+                  Include clear photos of the issue from multiple angles
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                <span>
+                  Provide exact location using map pin or GPS coordinates
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                <span>Add relevant landmarks for faster identification</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                <span>Check existing complaints to avoid duplicates</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                <span>
+                  Be specific about the issue and include any safety concerns
+                </span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Important Links */}
+        <Card className="bg-gray-50 border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-gray-900">🔗 Important Links</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <a
+                href="https://pokharamun.gov.np"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Pokhara Municipality</p>
+                  <p className="text-xs text-gray-600">Official website</p>
+                </div>
+              </a>
+              <Link
+                href="/citizen/help"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Help Center</p>
+                  <p className="text-xs text-gray-600">FAQs and guides</p>
+                </div>
+              </Link>
+              <Link
+                href="/citizen/feedback"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Feedback</p>
+                  <p className="text-xs text-gray-600">Share your experience</p>
+                </div>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Real-time Updates */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="w-5 h-5" />
+            Real-time Updates
+          </CardTitle>
+          <CardDescription>Stay informed about your complaints</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-blue-900">
+                    Instant Notifications
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    Get notified when status changes
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-green-900">Live Tracking</p>
+                  <p className="text-sm text-green-700">
+                    Track resolution progress in real-time
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-purple-900">
+                    Performance Analytics
+                  </p>
+                  <p className="text-sm text-purple-700">
+                    View stats and resolution times
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
