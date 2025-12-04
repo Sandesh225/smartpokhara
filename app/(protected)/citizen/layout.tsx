@@ -1,37 +1,24 @@
-// ============================================================================
-// app/(protected)/citizen/layout.tsx
-// ============================================================================
-
+// app/(protected)/citizen/layout.tsx - Fixed layout
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { CitizenNavbar } from "@/components/citizen/navbar";
 
 type CitizenLayoutProps = {
   children: ReactNode;
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function CitizenLayout({ children }: CitizenLayoutProps) {
   const user = await getCurrentUserWithRoles();
 
-  // If unauthenticated, redirect to login
   if (!user) {
     redirect("/login");
   }
 
-  // Optional: Add role check if needed
-  // if (!user.roles.includes("citizen")) {
-  //   redirect("/unauthorized");
-  // }
+  // Allow all authenticated users to access citizen portal
+  // All users have at least citizen-level access
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <CitizenNavbar
-        userName={user.profile?.full_name}
-        userEmail={user.email}
-        unreadNotifications={0} // TODO: Fetch real notification count
-      />
-      <main>{children}</main>
-    </div>
-  );
+  return <div className="container mx-auto px-4 py-8">{children}</div>;
 }
