@@ -1,37 +1,28 @@
-// ============================================================================
-// app/(protected)/admin/layout.tsx - Admin Layout Wrapper
-// ============================================================================
-
+// app/(protected)/admin/layout.tsx - Fixed admin layout
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
-import { AdminShell } from "@/components/admin/shell/AdminShell";
 
-type AdminLayoutProps = {
+interface AdminLayoutProps {
   children: ReactNode;
-};
+}
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
   const user = await getCurrentUserWithRoles();
 
-  // Guard: must be logged in AND admin
-  if (!user || !isAdmin(user)) {
+  if (!user) {
     redirect("/login");
   }
 
-  const primaryRoleType = (user.roles && user.roles[0]?.role_type) || "admin";
+  if (!isAdmin(user)) {
+    // Redirect to their appropriate dashboard, not back to /dashboard
+    redirect("/citizen/dashboard");
+  }
 
-  return (
-    <AdminShell
-      user={{
-        full_name: user.full_name,
-        email: user.email,
-        avatar_url: (user as any).avatar_url,
-        roleType: primaryRoleType,
-      }}
-    >
-      {children}
-    </AdminShell>
-  );
+  // Navbar comes from (protected)/layout.tsx, just wrap content
+  return <div className="container mx-auto px-4 py-8">{children}</div>;
 }
