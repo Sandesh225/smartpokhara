@@ -1,30 +1,28 @@
-// app/(protected)/staff/layout.tsx
+// app/(protected)/staff/layout.tsx - Fixed staff layout
+import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isStaff } from "@/lib/auth/role-helpers";
-import { StaffSidebar } from "@/components/navigation/staff-sidebar";
-import { StaffTopBar } from "@/components/navigation/StaffTopBar";
 
-export default async function StaffLayout({ children }) {
+interface StaffLayoutProps {
+  children: ReactNode;
+}
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function StaffLayout({ children }: StaffLayoutProps) {
   const user = await getCurrentUserWithRoles();
 
-  // Check if user is logged in
   if (!user) {
     redirect("/login");
   }
 
-  // Check if user has staff role
   if (!isStaff(user)) {
+    // Redirect to citizen dashboard, not back to /dashboard
     redirect("/citizen/dashboard");
   }
 
-  return (
-    <div className="flex min-h-screen">
-      <StaffSidebar user={user} />
-      <div className="flex-1">
-        <StaffTopBar user={user} />
-        <main>{children}</main>
-      </div>
-    </div>
-  );
+  // Navbar comes from (protected)/layout.tsx, just wrap content
+  return <div className="container mx-auto px-4 py-8">{children}</div>;
 }
