@@ -18,11 +18,11 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
   const user = await getCurrentUserWithRoles();
 
   if (!user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   if (!isStaff(user)) {
-    redirect('/citizen/dashboard');
+    redirect("/citizen/dashboard");
   }
 
   const supabase = await createClient();
@@ -30,8 +30,9 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
   try {
     // Fetch complaint details
     const { data: complaint, error } = await supabase
-      .from('complaints')
-      .select(`
+      .from("complaints")
+      .select(
+        `
         *,
         category:complaint_categories(*),
         subcategory:complaint_subcategories(*),
@@ -39,18 +40,22 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
         department:departments(*),
         assigned_staff:users(id, email, user_profiles(full_name)),
         citizen:users(id, email, user_profiles(full_name))
-      `)
-      .eq('id', id)
+      `
+      )
+      .eq("id", id)
       .single();
 
     if (error || !complaint) {
-      console.error('Complaint not found:', error);
+      console.error("Complaint not found:", error);
       return (
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h1 className="text-3xl font-bold text-gray-900">Complaint Not Found</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Complaint Not Found
+            </h1>
             <p className="mt-2 text-gray-600">
-              The complaint you are looking for does not exist or you don't have permission to view it.
+              The complaint you are looking for does not exist or you don't have
+              permission to view it.
             </p>
           </div>
         </div>
@@ -60,49 +65,59 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
     // Check if the staff member has access to this complaint
     let hasAccess = complaint.assigned_staff_id === user.id;
 
-    if (!hasAccess && (user.roles.includes('dept_head') || user.roles.includes('dept_staff'))) {
+    if (
+      !hasAccess &&
+      (user.roles.includes("dept_head") || user.roles.includes("dept_staff"))
+    ) {
       // Check if the complaint is assigned to the user's department
       const { data: userDepartment } = await supabase
-        .from('departments')
-        .select('id')
-        .eq('head_user_id', user.id)
+        .from("departments")
+        .select("id")
+        .eq("head_user_id", user.id)
         .maybeSingle();
 
-      if (userDepartment && complaint.assigned_department_id === userDepartment.id) {
+      if (
+        userDepartment &&
+        complaint.assigned_department_id === userDepartment.id
+      ) {
         hasAccess = true;
       }
     }
 
     if (!hasAccess) {
-      redirect('/staff/complaints');
+      redirect("/staff/complaints");
     }
 
     // Fetch status history
     const { data: statusHistory } = await supabase
-      .from('complaint_status_history')
-      .select(`
+      .from("complaint_status_history")
+      .select(
+        `
         *,
         changed_by_user:users(id, email, user_profiles(full_name))
-      `)
-      .eq('complaint_id', id)
-      .order('changed_at', { ascending: true });
+      `
+      )
+      .eq("complaint_id", id)
+      .order("changed_at", { ascending: true });
 
     // Fetch attachments
     const { data: attachments } = await supabase
-      .from('complaint_attachments')
-      .select('*')
-      .eq('complaint_id', id)
-      .order('uploaded_at', { ascending: false });
+      .from("complaint_attachments")
+      .select("*")
+      .eq("complaint_id", id)
+      .order("uploaded_at", { ascending: false });
 
     // Fetch internal comments
     const { data: internalComments } = await supabase
-      .from('complaint_internal_comments')
-      .select(`
+      .from("complaint_internal_comments")
+      .select(
+        `
         *,
         user:users(id, email, user_profiles(full_name))
-      `)
-      .eq('complaint_id', id)
-      .order('created_at', { ascending: false });
+      `
+      )
+      .eq("complaint_id", id)
+      .order("created_at", { ascending: false });
 
     return (
       <div className="space-y-6">
@@ -115,16 +130,24 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
               <h2 className="text-xl font-semibold mb-4">Complaint Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Description</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Description
+                  </label>
                   <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
                     {complaint.description}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Address</label>
-                  <p className="mt-1 text-sm text-gray-900">{complaint.address_text}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Address
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {complaint.address_text}
+                  </p>
                   {complaint.landmark && (
-                    <p className="mt-1 text-sm text-gray-900">Landmark: {complaint.landmark}</p>
+                    <p className="mt-1 text-sm text-gray-900">
+                      Landmark: {complaint.landmark}
+                    </p>
                   )}
                 </div>
               </div>
@@ -139,7 +162,9 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
               {statusHistory && statusHistory.length > 0 ? (
                 <ComplaintTimeline timeline={statusHistory} />
               ) : (
-                <p className="text-gray-500 text-center py-4">No status history available.</p>
+                <p className="text-gray-500 text-center py-4">
+                  No status history available.
+                </p>
               )}
             </div>
 
@@ -166,21 +191,31 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
           <div className="space-y-6">
             {/* Complaint Info */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Complaint Information</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                Complaint Information
+              </h2>
               <dl className="space-y-3">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Tracking Code</dt>
-                  <dd className="text-sm text-gray-900">{complaint.tracking_code}</dd>
+                  <dt className="text-sm font-medium text-gray-500">
+                    Tracking Code
+                  </dt>
+                  <dd className="text-sm text-gray-900">
+                    {complaint.tracking_code}
+                  </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Submitted</dt>
+                  <dt className="text-sm font-medium text-gray-500">
+                    Submitted
+                  </dt>
                   <dd className="text-sm text-gray-900">
-                    {new Date(complaint.submitted_at).toLocaleDateString()} at{' '}
+                    {new Date(complaint.submitted_at).toLocaleDateString()} at{" "}
                     {new Date(complaint.submitted_at).toLocaleTimeString()}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">SLA Due Date</dt>
+                  <dt className="text-sm font-medium text-gray-500">
+                    SLA Due Date
+                  </dt>
                   <dd className="text-sm text-gray-900">
                     {new Date(complaint.sla_due_at).toLocaleDateString()}
                   </dd>
@@ -188,27 +223,35 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Source</dt>
                   <dd className="text-sm text-gray-900 capitalize">
-                    {complaint.source.replace('_', ' ')}
+                    {complaint.source.replace("_", " ")}
                   </dd>
                 </div>
                 {complaint.department && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Assigned Department</dt>
-                    <dd className="text-sm text-gray-900">{complaint.department.name}</dd>
+                    <dt className="text-sm font-medium text-gray-500">
+                      Assigned Department
+                    </dt>
+                    <dd className="text-sm text-gray-900">
+                      {complaint.department.name}
+                    </dd>
                   </div>
                 )}
                 {complaint.assigned_staff && (
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Assigned Staff</dt>
+                    <dt className="text-sm font-medium text-gray-500">
+                      Assigned Staff
+                    </dt>
                     <dd className="text-sm text-gray-900">
-                      {complaint.assigned_staff.user_profiles?.full_name || complaint.assigned_staff.email}
+                      {complaint.assigned_staff.user_profiles?.full_name ||
+                        complaint.assigned_staff.email}
                     </dd>
                   </div>
                 )}
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Citizen</dt>
                   <dd className="text-sm text-gray-900">
-                    {complaint.citizen?.user_profiles?.full_name || complaint.citizen?.email}
+                    {complaint.citizen?.user_profiles?.full_name ||
+                      complaint.citizen?.email}
                   </dd>
                 </div>
               </dl>
@@ -218,11 +261,13 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
       </div>
     );
   } catch (error) {
-    console.error('Error loading complaint:', error);
+    console.error("Error loading complaint:", error);
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h1 className="text-3xl font-bold text-gray-900">Error Loading Complaint</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Error Loading Complaint
+          </h1>
           <p className="mt-2 text-gray-600">
             There was an error loading the complaint. Please try again.
           </p>
@@ -230,4 +275,76 @@ export default async function StaffComplaintDetailPage({ params }: PageProps) {
       </div>
     );
   }
+}
+("use client");
+
+import { use } from "react";
+import { useRouter } from "next/navigation";
+import { ComplaintDetailView } from "@/components/staff/complaint-detail-view";
+import {
+  useComplaintDetail,
+  useComplaintRealtimeUpdates,
+  useCurrentUser,
+  useAcceptComplaint,
+  useRejectComplaint,
+  useUpdateProgress,
+  useResolveComplaint,
+} from "@/lib/hooks/use-complaints";
+
+export default function ComplaintDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const router = useRouter();
+
+  const { user, loading: userLoading } = useCurrentUser();
+  const { complaint, loading, error, refetch } = useComplaintDetail(id);
+  const { lastUpdate } = useComplaintRealtimeUpdates(id);
+
+  const { acceptComplaint, loading: acceptLoading } = useAcceptComplaint();
+  const { rejectComplaint, loading: rejectLoading } = useRejectComplaint();
+  const { updateProgress, loading: progressLoading } = useUpdateProgress();
+  const { resolveComplaint, loading: resolveLoading } = useResolveComplaint();
+
+  const actionLoading =
+    acceptLoading || rejectLoading || progressLoading || resolveLoading;
+
+  const handleAccept = async (notes?: string) => {
+    if (!user) return;
+    await acceptComplaint(id, user.user_id, notes);
+    refetch();
+  };
+
+  const handleReject = async (reason: string) => {
+    if (!user) return;
+    await rejectComplaint(id, user.user_id, reason);
+    refetch();
+  };
+
+  const handleUpdateProgress = async (note: string) => {
+    if (!user) return;
+    await updateProgress(id, user.user_id, note);
+    refetch();
+  };
+
+  const handleResolve = async (resolutionNotes: string) => {
+    await resolveComplaint(id, resolutionNotes);
+    refetch();
+  };
+
+  return (
+    <ComplaintDetailView
+      complaint={complaint}
+      loading={loading || userLoading}
+      error={error}
+      onAccept={handleAccept}
+      onReject={handleReject}
+      onUpdateProgress={handleUpdateProgress}
+      onResolve={handleResolve}
+      actionLoading={actionLoading}
+      backUrl="/staff-app/queue/my-tasks"
+    />
+  );
 }
