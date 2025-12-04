@@ -1,37 +1,24 @@
-// ============================================================================
-// FILE: app/(protected)/admin/staff/register/page.tsx
-// Complete Staff Registration Page
-// ============================================================================
-
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
-import { RegisterStaffForm } from "@/components/admin/staff/RegisterStaffForm";
+import RegisterStaffForm from "@/components/admin/staff/RegisterStaffForm";
 
-export const metadata = {
-  title: "Register Staff | Admin Portal",
-  description: "Register new staff members and assign roles",
-};
-
-export default async function RegisterStaffPage() {
+export default async function AdminStaffRegisterPage() {
   const user = await getCurrentUserWithRoles();
 
   if (!user || !isAdmin(user)) {
-    redirect("/login");
+    redirect("/unauthorized");
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-8">
+      <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Register Staff Member
-          </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <h1 className="text-3xl font-bold mb-2">Register Staff Member</h1>
+          <p className="text-gray-600">
             Create accounts and assign roles for new staff members
           </p>
         </div>
-
         <RegisterStaffForm />
       </div>
     </div>
