@@ -1,8 +1,9 @@
-// app/(protected)/admin/layout.tsx - Fixed admin layout
+// app/(protected)/admin/layout.tsx - UPDATED
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
+import AdminNavigation from "@/components/admin/AdminNavigation";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -19,10 +20,15 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   if (!isAdmin(user)) {
-    // Redirect to their appropriate dashboard, not back to /dashboard
     redirect("/citizen/dashboard");
   }
 
-  // Navbar comes from (protected)/layout.tsx, just wrap content
-  return <div className="container mx-auto px-4 py-8">{children}</div>;
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AdminNavigation />
+      <main className="pl-64 pt-16">
+        <div className="p-6">{children}</div>
+      </main>
+    </div>
+  );
 }
