@@ -86,7 +86,8 @@ Bob Wilson,bob@example.com,,field_staff,,`;
                 email: row.email || "N/A",
                 full_name: row.full_name || "N/A",
                 status: "error",
-                message: "Missing required fields (email, full_name, or role_type)",
+                message:
+                  "Missing required fields (email, full_name, or role_type)",
               });
               continue;
             }
@@ -105,7 +106,14 @@ Bob Wilson,bob@example.com,,field_staff,,`;
             }
 
             // Validate role type
-            const validRoles = ["admin", "dept_head", "dept_staff", "ward_staff", "field_staff", "call_center"];
+            const validRoles = [
+              "admin",
+              "dept_head",
+              "dept_staff",
+              "ward_staff",
+              "field_staff",
+              "call_center",
+            ];
             if (!validRoles.includes(row.role_type)) {
               invitationResults.push({
                 row: rowNumber,
@@ -118,13 +126,15 @@ Bob Wilson,bob@example.com,,field_staff,,`;
             }
 
             // Send invitation
+            // Add this to your handleSubmit function in InviteStaffDialog.tsx
             const { data, error } = await supabase.rpc("invite_staff_member", {
-              p_email: row.email.trim(),
-              p_full_name: row.full_name.trim(),
-              p_phone: row.phone?.trim() || null,
-              p_role_type: row.role_type.trim() as any,
-              p_department_id: row.department_id?.trim() || null,
-              p_ward_id: row.ward_id?.trim() || null,
+              p_email: formData.email,
+              p_full_name: formData.full_name,
+              p_phone: formData.phone || null,
+              p_role_type: formData.role_type,
+              p_department_id: selectedDepartmentId, // Add this to your form
+              p_ward_id: selectedWardId, // Add this to your form
+              p_is_supervisor: formData.is_supervisor || false,
             });
 
             if (error) {
