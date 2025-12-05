@@ -1,3 +1,4 @@
+//app/(protected)/admin/staff/register/page.tsx
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
