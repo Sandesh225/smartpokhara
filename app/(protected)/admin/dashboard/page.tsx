@@ -1,120 +1,271 @@
-import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { getUserDisplayName } from "@/lib/auth/role-helpers";
+// app/(protected)/admin/dashboard/page.tsx
+import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  LayoutDashboard,
+  AlertCircle,
   Users,
-  FileText,
-  Settings,
-  BarChart3,
-  Shield,
-  Database,
-  Activity,
+  CreditCard,
+  Clock,
+  CheckCircle,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { format } from "date-fns";
 
-export default async function AdminDashboard() {
-  const user = await getCurrentUserWithRoles();
+import ComplaintTrendChart from "@/components/admin/dashboard/ComplaintTrendChart";
+import DepartmentWorkloadChart from "@/components/admin/dashboard/DepartmentWorkloadChart";
+import QuickActions from "@/components/admin/dashboard/QuickActions";
 
-  if (!user) {
-    return null;
-  }
+async function getDashboardData() {
+  const supabase = await createClient();
 
-  const displayName = getUserDisplayName(user);
+  // Dashboard summary from RPC
+  const { data: summary } = await supabase.rpc(
+    "rpc_admin_get_dashboard_summary",
+    {
+      p_date_from: new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000
+      ).toISOString(),
+    }
+  );
+
+  // Complaint trend data
+  const { data: trend } = await supabase.rpc("rpc_admin_get_complaints_trend", {
+    p_period: "weekly",
+    p_date_from: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+
+  // Department workload (for chart)
+  const { data: departments } = await supabase
+    .from("departments")
+    .select(
+      `
+        id,
+        name,
+        complaints:complaints(
+          id,
+          status,
+          sla_due_at
+        )
+      `
+    )
+    .eq("is_active", true);
+
+  return {
+    summary: (summary as any)?.data || null,
+    trend: trend || [],
+    departments: departments || [],
+  };
+}
+
+export default async function AdminDashboardPage() {
+  const dashboardData = await getDashboardData();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white border-b border-gray-700">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-              <Shield className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-gray-300">Welcome back, {displayName}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="text-3xl font-bold">1,234</div>
-              <div className="text-sm text-gray-300">Total Users</div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="text-3xl font-bold">567</div>
-              <div className="text-sm text-gray-300">Active Sessions</div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="text-3xl font-bold">89</div>
-              <div className="text-sm text-gray-300">Pending Requests</div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="text-3xl font-bold">42</div>
-              <div className="text-sm text-gray-300">System Alerts</div>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Page heading */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+        <p className="text-gray-600 mt-2">
+          System overview and quick controls for Smart City Pokhara
+          administration
+        </p>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                User Management
+      {/* Quick Stats */}
+      <Suspense fallback={<DashboardSkeleton />}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Complaints */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Complaints
               </CardTitle>
+              <AlertCircle className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4">
-                Create, update, and manage user accounts.
-              </p>
-              <Button asChild>
-                <Link href="/admin/users">Manage Users</Link>
-              </Button>
+              <div className="text-2xl font-bold">
+                {dashboardData.summary?.complaints?.total ?? 0}
+              </div>
+              <div className="flex items-center text-sm text-gray-600 mt-1">
+                <span className="text-green-600 mr-1">↑ 12%</span>
+                <span>from last month</span>
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                {dashboardData.summary?.complaints?.active ?? 0} active
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Content Panel
+          {/* SLA Compliance */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                SLA Compliance
               </CardTitle>
+              <Clock className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4">
-                Manage posts, pages, and documentation.
-              </p>
-              <Button asChild>
-                <Link href="/admin/content">View Content</Link>
-              </Button>
+              <div className="text-2xl font-bold">
+                {dashboardData.summary?.complaints?.sla_compliance_rate ?? 0}%
+              </div>
+              <div className="flex items-center text-sm text-gray-600 mt-1">
+                {dashboardData.summary?.complaints?.overdue ?? 0} overdue
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                {dashboardData.summary?.complaints?.avg_resolution_hours ?? 0}{" "}
+                avg hours to resolve
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                System Settings
-              </CardTitle>
+          {/* Users */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4">
-                Configure permissions, roles, and system preferences.
-              </p>
-              <Button asChild>
-                <Link href="/admin/settings">Settings</Link>
-              </Button>
+              <div className="text-2xl font-bold">
+                {dashboardData.summary?.users?.total_citizens ?? 0}
+              </div>
+              <div className="flex items-center text-sm text-gray-600 mt-1">
+                {dashboardData.summary?.users?.new_registrations_today ?? 0} new
+                today
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                {dashboardData.summary?.users?.total_staff ?? 0} staff users
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Revenue */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Revenue Collected
+              </CardTitle>
+              <CreditCard className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                NPR{" "}
+                {dashboardData.summary?.payments?.total_collected
+                  ? dashboardData.summary.payments.total_collected.toLocaleString()
+                  : 0}
+              </div>
+              <div className="flex items-center text-sm text-gray-600 mt-1">
+                {dashboardData.summary?.payments?.success_rate ?? 0}% success
+                rate
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                {dashboardData.summary?.payments?.pending_transactions ?? 0}{" "}
+                pending
+              </div>
             </CardContent>
           </Card>
         </div>
+      </Suspense>
+
+      {/* Charts & Visualizations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Complaints Trend */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Complaints Trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ComplaintTrendChart data={dashboardData.trend} />
+          </CardContent>
+        </Card>
+
+        {/* Department Workload */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Department Workload</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DepartmentWorkloadChart departments={dashboardData.departments} />
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <QuickActions />
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {dashboardData.summary?.recent_activity
+              ?.slice(0, 5)
+              .map((activity: any, index: number) => (
+                <div key={index} className="flex items-start space-x-3">
+                  <div
+                    className={`p-2 rounded-full ${
+                      activity.type === "complaint"
+                        ? "bg-blue-100 text-blue-600"
+                        : activity.type === "task"
+                          ? "bg-green-100 text-green-600"
+                          : "bg-purple-100 text-purple-600"
+                    }`}
+                  >
+                    {activity.type === "complaint" && (
+                      <AlertCircle className="h-4 w-4" />
+                    )}
+                    {activity.type === "task" && (
+                      <CheckCircle className="h-4 w-4" />
+                    )}
+                    {activity.type === "payment" && (
+                      <CreditCard className="h-4 w-4" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {activity.description}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {activity.user_name} •{" "}
+                      {activity.timestamp
+                        ? format(new Date(activity.timestamp), "MMM d, h:mm a")
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {[1, 2, 3, 4].map((i) => (
+        <Card key={i}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Skeleton className="h-4 w-[100px]" />
+            <Skeleton className="h-4 w-4 rounded-full" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-8 w-[120px] mb-2" />
+            <Skeleton className="h-4 w-[180px]" />
+            <Skeleton className="h-3 w-[140px] mt-2" />
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
