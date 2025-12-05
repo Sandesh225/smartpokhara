@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
 import { AdminDashboardStats } from "@/components/admin/admin-dashboard-stats";
 import { AdminDashboardCharts } from "@/components/admin/admin-dashboard-charts";
 import { RecentComplaintsTable } from "@/components/admin/recent-complaints-table";
@@ -37,6 +39,8 @@ import {
   ArrowRight,
   Activity,
   Sparkles,
+  Bell,
+  AlertTriangle,
 } from "lucide-react";
 import { showErrorToast, showSuccessToast } from "@/lib/shared/toast-service";
 
@@ -86,6 +90,7 @@ export function EnhancedAdminDashboard() {
 
   const loadStaffStats = async () => {
     try {
+      // All staff-type roles
       const staffRoles = await supabase
         .from("roles")
         .select("id")
@@ -100,17 +105,20 @@ export function EnhancedAdminDashboard() {
 
       const roleIds = staffRoles.data?.map((r) => r.id) || [];
 
+      // Total staff (any user with one of these roles)
       const { count: totalCount } = await supabase
         .from("user_roles")
         .select("*", { count: "exact", head: true })
         .in("role_id", roleIds);
 
+      // Pending invitations that are still valid
       const { count: pendingCount } = await supabase
         .from("staff_invitations")
         .select("*", { count: "exact", head: true })
         .eq("is_used", false)
         .gt("expires_at", new Date().toISOString());
 
+      // Active staff (is_active = true)
       const { data: activeStaff } = await supabase
         .from("user_roles")
         .select(
@@ -122,6 +130,7 @@ export function EnhancedAdminDashboard() {
         .in("role_id", roleIds)
         .eq("users.is_active", true);
 
+      // New this month (by assigned_at)
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
@@ -186,12 +195,15 @@ export function EnhancedAdminDashboard() {
       if (deptRes.status === "fulfilled" && deptRes.value.data) {
         setDeptWorkload(deptRes.value.data);
       }
+
       if (staffRes.status === "fulfilled" && staffRes.value.data) {
         setStaffWorkload(staffRes.value.data);
       }
+
       if (alertsRes.status === "fulfilled" && alertsRes.value.data) {
         setPriorityAlerts(alertsRes.value.data);
       }
+
       if (wardsRes.status === "fulfilled" && wardsRes.value.data) {
         setWardSummary(wardsRes.value.data);
       }
@@ -225,6 +237,21 @@ export function EnhancedAdminDashboard() {
     escalated: 0,
     overdue: 0,
     avg_resolution_days: 0,
+  };
+
+  // ---- Workload-specific derived data (from first snippet) ----
+  const topWorkloadStaff: StaffWorkload[] = [...staffWorkload]
+    .sort((a, b) => (b.total_assigned || 0) - (a.total_assigned || 0))
+    .slice(0, 5);
+
+  const workloadAlerts = {
+    highWorkload: staffWorkload.filter((w) => (w.total_assigned || 0) > 10)
+      .length,
+    pendingAcceptance: staffWorkload.reduce(
+      (acc, w) => acc + (w.pending_acceptance || 0),
+      0
+    ),
+    totalOverdue: staffWorkload.reduce((acc, w) => acc + (w.overdue || 0), 0),
   };
 
   if (loading) {
@@ -278,11 +305,66 @@ export function EnhancedAdminDashboard() {
         </div>
       </div>
 
-      {/* Priority Alerts */}
+      {/* Priority Alerts (from DB) */}
       {priorityAlerts.length > 0 && (
         <div className="animate-slide-up">
           <PriorityAlertsPanel alerts={priorityAlerts} />
         </div>
+      )}
+
+      {/* Workload Risk Banner (derived from staff workload) */}
+      {(workloadAlerts.totalOverdue > 0 ||
+        workloadAlerts.pendingAcceptance > 5 ||
+        workloadAlerts.highWorkload > 0) && (
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40 animate-slide-up">
+          <CardContent className="py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50">
+                  <Bell className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+                </div>
+                <div className="space-y-1 text-sm">
+                  <p className="font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-2">
+                    Workload Attention Required
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+                  </p>
+                  <ul className="list-disc space-y-1 pl-5 text-amber-800 dark:text-amber-200">
+                    {workloadAlerts.totalOverdue > 0 && (
+                      <li>
+                        <strong>{workloadAlerts.totalOverdue}</strong> overdue
+                        complaints across the team
+                      </li>
+                    )}
+                    {workloadAlerts.pendingAcceptance > 5 && (
+                      <li>
+                        <strong>{workloadAlerts.pendingAcceptance}</strong>{" "}
+                        complaints awaiting staff acceptance
+                      </li>
+                    )}
+                    {workloadAlerts.highWorkload > 0 && (
+                      <li>
+                        <strong>{workloadAlerts.highWorkload}</strong> staff
+                        members have a high workload (10+ complaints)
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-end sm:self-center">
+                <Link href="/admin/workload">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Activity className="h-4 w-4" />
+                    View Workload
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* KPI Row */}
@@ -398,6 +480,95 @@ export function EnhancedAdminDashboard() {
               </Button>
             </Link>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Staff Workload Snapshot (merged from first version, enhanced UI) */}
+      <Card className="border-slate-200/80 dark:border-slate-800/80 shadow-sm animate-slide-up">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="h-5 w-5 text-slate-700 dark:text-slate-200" />
+              Top Staff by Workload
+            </CardTitle>
+            <Link href="/admin/workload">
+              <Button variant="outline" size="sm">
+                View Full Workload
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {topWorkloadStaff.length === 0 ? (
+            <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              No staff workload data available yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {topWorkloadStaff.map((staff) => (
+                <div
+                  key={staff.staff_id}
+                  className="flex items-center justify-between gap-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/60 p-3 hover:bg-slate-100/80 dark:hover:bg-slate-900 transition-colors"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-100 text-xs font-semibold">
+                      {staff.staff_name
+                        ?.split(" ")
+                        .map((p) => p[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase() || "ST"}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                        {staff.staff_name || "Unknown Staff"}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {staff.role_type?.replace(/_/g, " ") || "staff"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="text-center">
+                      <div
+                        className={`font-bold ${
+                          (staff.total_assigned || 0) > 10
+                            ? "text-red-600 dark:text-red-400"
+                            : (staff.total_assigned || 0) > 5
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-emerald-600 dark:text-emerald-400"
+                        }`}
+                      >
+                        {staff.total_assigned || 0}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        Assigned
+                      </div>
+                    </div>
+
+                    {(staff.pending_acceptance || 0) > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs whitespace-nowrap"
+                      >
+                        {staff.pending_acceptance || 0} pending
+                      </Badge>
+                    )}
+
+                    {(staff.overdue || 0) > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="text-xs whitespace-nowrap"
+                      >
+                        {staff.overdue || 0} overdue
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
