@@ -1,5 +1,8 @@
-// lib/auth/role-helpers.ts - ENHANCED
 import type { CurrentUser, RoleType, DashboardType } from "@/lib/types/auth";
+
+/* -------------------------------------------------------------
+ * BASIC ROLE CHECKERS
+ * ------------------------------------------------------------- */
 
 /**
  * Check if user has any of the specified roles
@@ -21,14 +24,25 @@ export function hasExactRole(
 }
 
 /**
- * Check if user is an admin (admin or dept_head)
+ * Check if user is a SYSTEM admin (IT/System configuration)
+ * NOTE: dept_head is intentionally NOT included here
  */
 export function isAdmin(user: CurrentUser | null): boolean {
-  return hasRole(user, ["admin", "dept_head"]);
+  return hasExactRole(user, "admin");
+}
+
+/**
+ * Check if user is a Supervisor (Department Head)
+ * Primary “owner” of supervisor dashboard
+ */
+export function isSupervisor(user: CurrentUser | null): boolean {
+  return hasExactRole(user, "dept_head");
 }
 
 /**
  * Check if user is staff (any staff-level role)
+ * Includes admin & dept_head so they can access staff views,
+ * but they are still **routed** separately at dashboard level.
  */
 export function isStaff(user: CurrentUser | null): boolean {
   return hasRole(user, [
@@ -42,15 +56,16 @@ export function isStaff(user: CurrentUser | null): boolean {
 }
 
 /**
- * Check if user is a citizen (citizen, business_owner, or tourist)
+ * Check if user is a citizen
  */
 export function isCitizen(user: CurrentUser | null): boolean {
   return hasRole(user, ["citizen", "business_owner", "tourist"]);
 }
 
-/**
- * Staff role specific checkers
- */
+/* -------------------------------------------------------------
+ * SPECIFIC STAFF ROLE CHECKERS
+ * ------------------------------------------------------------- */
+
 export function isWardStaff(user: CurrentUser | null): boolean {
   return hasExactRole(user, "ward_staff");
 }
@@ -63,21 +78,18 @@ export function isFieldStaff(user: CurrentUser | null): boolean {
   return hasExactRole(user, "field_staff");
 }
 
-export function isSupervisor(user: CurrentUser | null): boolean {
-  return hasRole(user, ["dept_head", "admin"]);
-}
-
 export function isHelpdesk(user: CurrentUser | null): boolean {
   return hasExactRole(user, "call_center");
 }
 
-/**
- * Get the highest precedence role for the user
- */
-export function getPrimaryRole(user: CurrentUser | null): string | null {
+/* -------------------------------------------------------------
+ * ROLE HIERARCHY / PRIMARY ROLE
+ * ------------------------------------------------------------- */
+
+export function getPrimaryRole(user: CurrentUser | null): RoleType | null {
   if (!user || !user.roles || user.roles.length === 0) return null;
 
-  const ROLE_HIERARCHY = [
+  const ROLE_HIERARCHY: RoleType[] = [
     "tourist",
     "business_owner",
     "citizen",
@@ -89,7 +101,7 @@ export function getPrimaryRole(user: CurrentUser | null): string | null {
     "admin",
   ];
 
-  let highestRole: string | null = null;
+  let highestRole: RoleType | null = null;
   let highestIndex = -1;
 
   for (const role of user.roles) {
@@ -103,46 +115,63 @@ export function getPrimaryRole(user: CurrentUser | null): string | null {
   return highestRole;
 }
 
+/* -------------------------------------------------------------
+ * DASHBOARD TYPE & ROUTING
+ * ------------------------------------------------------------- */
+
 /**
  * Determine which dashboard to show based on role precedence
- * Admin > Staff > Citizen
+ * Priority: admin > supervisor (dept_head) > staff > citizen
  */
-export function getDashboardType(
-  user: CurrentUser | null
-): "admin" | "staff" | "citizen" {
-  if (!user) return "citizen";
+export function getDashboardType(user: CurrentUser | null): DashboardType {
+  if (!user || !user.roles || user.roles.length === 0) return "citizen";
 
-  const adminRoles = ["admin", "dept_head"];
-  const staffRoles = ["dept_staff", "ward_staff", "field_staff", "call_center"];
-
-  if (user.roles.some((r) => adminRoles.includes(r))) {
+  // 1. System Admin (Top Priority)
+  if (user.roles.includes("admin")) {
     return "admin";
   }
 
+  // 2. Department Head (Supervisor Dashboard)
+  if (user.roles.includes("dept_head")) {
+    return "supervisor";
+  }
+
+  // 3. General Staff
+  const staffRoles: RoleType[] = [
+    "dept_staff",
+    "ward_staff",
+    "field_staff",
+    "call_center",
+  ];
   if (user.roles.some((r) => staffRoles.includes(r))) {
     return "staff";
   }
 
+  // 4. Default to Citizen
   return "citizen";
 }
 
 /**
  * Get the default dashboard path for a user
+ * dept_head → /supervisor/dashboard
+ * admin     → /admin/dashboard
  */
 export function getDefaultDashboardPath(user: CurrentUser | null): string {
   const dashboardType = getDashboardType(user);
 
-  const paths = {
+  const paths: Record<DashboardType, string> = {
     admin: "/admin/dashboard",
+    supervisor: "/supervisor/dashboard",
     staff: "/staff/dashboard",
     citizen: "/citizen/dashboard",
   };
 
-  return paths[dashboardType];
+  return paths[dashboardType] ?? "/citizen/dashboard";
 }
 
 /**
  * Check if user can access a specific dashboard
+ * (Authorization, not default routing)
  */
 export function canAccessDashboard(
   user: CurrentUser | null,
@@ -152,35 +181,33 @@ export function canAccessDashboard(
 
   switch (dashboard) {
     case "admin":
-      return user.roles.includes("admin") || user.roles.includes("dept_head");
+      // Only System Admin
+      return isAdmin(user);
+    case "supervisor":
+      // Department Head primary; admin can also access supervisor tools
+      return isSupervisor(user) || isAdmin(user);
     case "staff":
-      return (
-        user.roles.includes("admin") ||
-        user.roles.includes("dept_head") ||
-        user.roles.includes("dept_staff") ||
-        user.roles.includes("ward_staff") ||
-        user.roles.includes("field_staff") ||
-        user.roles.includes("call_center")
-      );
+      // Any staff-level role, including admin & dept_head
+      return isStaff(user);
     case "citizen":
-      return true; // Everyone can access citizen dashboard
+      // Everyone (including guests) can view citizen-facing UI
+      return true;
     default:
       return false;
   }
 }
 
-/**
- * Get user's full name or email fallback
- */
+/* -------------------------------------------------------------
+ * DISPLAY HELPERS
+ * ------------------------------------------------------------- */
+
 export function getUserDisplayName(user: CurrentUser | null): string {
   if (!user) return "Guest";
   if (user.profile?.full_name) return user.profile.full_name;
-  return user.email.split("@")[0];
+  if (user.email) return user.email.split("@")[0];
+  return "User";
 }
 
-/**
- * Get role display name
- */
 export function getRoleDisplayName(role: RoleType): string {
   const roleNames: Record<RoleType, string> = {
     admin: "System Administrator",
@@ -194,10 +221,9 @@ export function getRoleDisplayName(role: RoleType): string {
     tourist: "Tourist",
   };
 
-  return roleNames[role] || role;
+  return roleNames[role] ?? role;
 }
 
-// Get role badge color
 export function getRoleBadgeColor(role: RoleType): string {
   const colors: Record<RoleType, string> = {
     admin: "bg-purple-100 text-purple-800",
@@ -211,11 +237,16 @@ export function getRoleBadgeColor(role: RoleType): string {
     tourist: "bg-pink-100 text-pink-800",
   };
 
-  return colors[role] || "bg-gray-100 text-gray-800";
+  return colors[role] ?? "bg-gray-100 text-gray-800";
 }
 
+/* -------------------------------------------------------------
+ * ACCESSIBLE ROUTES
+ * ------------------------------------------------------------- */
+
 /**
- * Get accessible routes based on user role
+ * Get accessible top-level routes based on user role
+ * NOTE: This is more like “menu visibility”, not exact RLS.
  */
 export function getAccessibleRoutes(user: CurrentUser | null): string[] {
   if (!user) return ["/login", "/register"];
@@ -223,7 +254,9 @@ export function getAccessibleRoutes(user: CurrentUser | null): string[] {
   const routes = ["/dashboard"];
 
   if (isAdmin(user)) {
-    routes.push("/admin", "/staff", "/citizen");
+    routes.push("/admin", "/supervisor", "/staff", "/citizen");
+  } else if (isSupervisor(user)) {
+    routes.push("/supervisor", "/staff", "/citizen");
   } else if (isStaff(user)) {
     routes.push("/staff", "/citizen");
   } else {

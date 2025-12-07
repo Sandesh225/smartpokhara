@@ -1,12 +1,14 @@
-import { QueuePageLayout } from "@/components/staff/queue-page-layout"
+import { QueuePageLayout } from "@/components/staff/QueuePageLayout";
 
-export default function TeamQueuePage() {
+export const dynamic = "force-dynamic";
+
+export default function StaffTeamQueuePage() {
   return (
     <QueuePageLayout
       queueType="team_queue"
-      title="Team Queue"
-      description="All complaints in your department's queue."
-      showAssignment
+      title="Team Complaints"
+      description="Complaints assigned to your department or team."
+      showAssignment={true}
     />
-  )
+  );
 }

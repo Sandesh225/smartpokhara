@@ -82,7 +82,7 @@ export interface CurrentUser extends AuthUser {
 /**
  * Dashboard types based on role precedence
  */
-export type DashboardType = "admin" | "staff" | "citizen";
+export type DashboardType = "admin" | "staff" | "citizen" | "supervisor";
 
 /**
  * Auth form modes

@@ -1,260 +1,177 @@
-"use client"
+"use client";
 
-import { useState, useMemo, useCallback } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ComplaintTable } from "@/components/staff/complaint-table"
-import { QueueFilters } from "@/components/staff/queue-filters"
-import { NewComplaintsBanner } from "@/components/shared/new-complaints-banner"
-import { AcceptModal, RejectModal, UpdateProgressModal, ResolveModal } from "@/components/staff/action-modals"
-import { TablePagination } from "@/components/shared/loading-skeleton"
+import { useStaffQueue } from "@/lib/hooks/use-complaints";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  useStaffWorkflowManager,
-  useQueueRealtimeUpdates,
-  useComplaintFilters,
-  useComplaintSorting,
-  useComplaintPagination,
-} from "@/lib/hooks/use-complaints"
-import type { QueueType, Complaint, ComplaintFilters as FiltersType } from "@/lib/types/complaints"
-import { RefreshCw } from "lucide-react"
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowRight, Loader2, Calendar, MapPin, Inbox } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import ComplaintActions from "@/components/supervisor/ComplaintActions"; // Reuse assignment modal if needed
 
-interface QueuePageLayoutProps {
-  queueType: QueueType
-  title: string
-  description: string
-  showAssignment?: boolean
+interface Props {
+  queueType: "my_tasks" | "team_queue";
+  title: string;
+  description: string;
+  showAssignment?: boolean;
 }
 
-export function QueuePageLayout({ queueType, title, description, showAssignment = false }: QueuePageLayoutProps) {
-  // State for modals
-  const [acceptModalOpen, setAcceptModalOpen] = useState(false)
-  const [rejectModalOpen, setRejectModalOpen] = useState(false)
-  const [progressModalOpen, setProgressModalOpen] = useState(false)
-  const [resolveModalOpen, setResolveModalOpen] = useState(false)
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null)
+export function QueuePageLayout({
+  queueType,
+  title,
+  description,
+  showAssignment,
+}: Props) {
+  const { complaints, loading } = useStaffQueue(queueType);
 
-  // State for filters and sorting
-  const [filters, setFilters] = useState<FiltersType>({})
-  const [sortBy, setSortBy] = useState("submitted_at")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-
-  // Hooks
-  const { complaints, loading, handleAccept, handleReject, handleUpdateProgress, handleResolve, refetchQueue, user } =
-    useStaffWorkflowManager(queueType)
-
-  const { hasNewComplaints, clearNewComplaintsFlag } = useQueueRealtimeUpdates(queueType, user?.user_id || null)
-
-  // Apply filters and sorting
-  const { filteredComplaints } = useComplaintFilters(complaints, filters)
-  const { sortedComplaints } = useComplaintSorting(
-    filteredComplaints,
-    sortBy as "submitted_at" | "updated_at" | "sla_due_at" | "priority" | "status",
-    sortOrder,
-  )
-  const {
-    paginatedComplaints,
-    currentPage,
-    totalPages,
-    goToPage,
-    nextPage,
-    previousPage,
-    hasNextPage,
-    hasPreviousPage,
-  } = useComplaintPagination(sortedComplaints, 10)
-
-  // Stats
-  const stats = useMemo(() => {
-    const total = complaints.length
-    const overdue = complaints.filter((c) => c.is_overdue).length
-    const pending = complaints.filter((c) => c.status === "assigned").length
-    return { total, overdue, pending }
-  }, [complaints])
-
-  // Handlers
-  const handleSortChange = useCallback((field: string, order: "asc" | "desc") => {
-    setSortBy(field)
-    setSortOrder(order)
-  }, [])
-
-  const handleRefresh = useCallback(() => {
-    refetchQueue()
-    clearNewComplaintsFlag()
-  }, [refetchQueue, clearNewComplaintsFlag])
-
-  const openAcceptModal = useCallback(
-    (id: string) => {
-      const complaint = complaints.find((c) => c.id === id)
-      setSelectedComplaint(complaint || null)
-      setAcceptModalOpen(true)
-    },
-    [complaints],
-  )
-
-  const openRejectModal = useCallback(
-    (id: string) => {
-      const complaint = complaints.find((c) => c.id === id)
-      setSelectedComplaint(complaint || null)
-      setRejectModalOpen(true)
-    },
-    [complaints],
-  )
-
-  const openProgressModal = useCallback(
-    (id: string) => {
-      const complaint = complaints.find((c) => c.id === id)
-      setSelectedComplaint(complaint || null)
-      setProgressModalOpen(true)
-    },
-    [complaints],
-  )
-
-  const openResolveModal = useCallback(
-    (id: string) => {
-      const complaint = complaints.find((c) => c.id === id)
-      setSelectedComplaint(complaint || null)
-      setResolveModalOpen(true)
-    },
-    [complaints],
-  )
-
-  const handleAcceptConfirm = async (notes?: string) => {
-    if (!selectedComplaint) return
-    await handleAccept(selectedComplaint.id, notes)
-    setAcceptModalOpen(false)
-    setSelectedComplaint(null)
-  }
-
-  const handleRejectConfirm = async (reason: string) => {
-    if (!selectedComplaint) return
-    await handleReject(selectedComplaint.id, reason)
-    setRejectModalOpen(false)
-    setSelectedComplaint(null)
-  }
-
-  const handleProgressConfirm = async (note: string) => {
-    if (!selectedComplaint) return
-    await handleUpdateProgress(selectedComplaint.id, note)
-    setProgressModalOpen(false)
-    setSelectedComplaint(null)
-  }
-
-  const handleResolveConfirm = async (resolutionNotes: string) => {
-    if (!selectedComplaint) return
-    await handleResolve(selectedComplaint.id, resolutionNotes)
-    setResolveModalOpen(false)
-    setSelectedComplaint(null)
-  }
+  const getPriorityColor = (p: string) => {
+    switch (p) {
+      case "critical":
+        return "destructive";
+      case "urgent":
+        return "destructive";
+      case "high":
+        return "secondary"; // orange-ish usually
+      default:
+        return "outline";
+    }
+  };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            {title}
+          </h1>
           <p className="text-muted-foreground mt-1">{description}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex gap-2">
-            {stats.pending > 0 && (
-              <Badge variant="outline" className="text-yellow-600 border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20">
-                {stats.pending} pending
-              </Badge>
-            )}
-            {stats.overdue > 0 && <Badge variant="destructive">{stats.overdue} overdue</Badge>}
-          </div>
-          <Button variant="outline" size="sm" onClick={handleRefresh} className="gap-2 bg-transparent">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="px-3 py-1 text-sm">
+            {complaints.length} Items
+          </Badge>
         </div>
       </div>
 
-      {/* New Complaints Banner */}
-      {hasNewComplaints && <NewComplaintsBanner onRefresh={handleRefresh} onDismiss={clearNewComplaintsFlag} />}
-
-      {/* Main Content */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <CardTitle>Complaints</CardTitle>
-              <CardDescription>
-                {stats.total} total complaint{stats.total !== 1 ? "s" : ""} in queue
-              </CardDescription>
+      <Card className="border-gray-200 shadow-sm">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-20 flex flex-col items-center justify-center text-gray-500">
+              <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-600" />
+              <p>Loading queue...</p>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <QueueFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSortChange={handleSortChange}
-          />
-
-          {/* Table */}
-          <ComplaintTable
-            complaints={paginatedComplaints}
-            loading={loading}
-            onAccept={openAcceptModal}
-            onReject={openRejectModal}
-            onUpdateProgress={openProgressModal}
-            onResolve={openResolveModal}
-            currentUserId={user?.user_id}
-            showAssignment={showAssignment}
-            baseUrl="/staff-app/complaints"
-          />
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <TablePagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={goToPage}
-              hasNextPage={hasNextPage}
-              hasPreviousPage={hasPreviousPage}
-              onNextPage={nextPage}
-              onPreviousPage={previousPage}
-            />
+          ) : complaints.length === 0 ? (
+            <div className="p-20 flex flex-col items-center justify-center text-gray-500 bg-gray-50/50">
+              <Inbox className="h-12 w-12 mb-4 text-gray-300" />
+              <h3 className="font-semibold text-lg text-gray-900">
+                Queue Empty
+              </h3>
+              <p>No complaints found in this list.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead className="w-[120px]">Tracking</TableHead>
+                    <TableHead className="min-w-[300px]">Details</TableHead>
+                    <TableHead className="w-[100px]">Status</TableHead>
+                    <TableHead className="w-[150px]">SLA Due</TableHead>
+                    <TableHead className="w-[150px] text-right">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {complaints.map((c) => (
+                    <TableRow
+                      key={c.id}
+                      className="group hover:bg-blue-50/30 transition-colors"
+                    >
+                      <TableCell className="font-mono text-xs font-medium text-gray-600">
+                        {c.tracking_code}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <span className="font-semibold text-gray-900 block group-hover:text-blue-700 transition-colors">
+                            {c.title}
+                          </span>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Ward {c.ward_number}
+                            </span>
+                            <Badge
+                              variant={getPriorityColor(c.priority) as any}
+                              className="h-5 text-[10px] px-1.5 uppercase"
+                            >
+                              {c.priority}
+                            </Badge>
+                            <span>{c.category_name}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="capitalize bg-white whitespace-nowrap"
+                        >
+                          {c.status.replace("_", " ")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {c.sla_due_at ? (
+                            <span
+                              className={
+                                c.is_overdue ? "text-red-600 font-medium" : ""
+                              }
+                            >
+                              {formatDistanceToNow(new Date(c.sla_due_at), {
+                                addSuffix: true,
+                              })}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {showAssignment && (
+                            <ComplaintActions
+                              complaintId={c.id}
+                              trackingCode={c.tracking_code}
+                            />
+                          )}
+                          <Link href={`/staff/complaints/${c.id}`}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                            >
+                              <ArrowRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Modals */}
-      <AcceptModal
-        open={acceptModalOpen}
-        onOpenChange={setAcceptModalOpen}
-        onConfirm={handleAcceptConfirm}
-        loading={loading}
-        trackingCode={selectedComplaint?.tracking_code}
-      />
-
-      <RejectModal
-        open={rejectModalOpen}
-        onOpenChange={setRejectModalOpen}
-        onConfirm={handleRejectConfirm}
-        loading={loading}
-        trackingCode={selectedComplaint?.tracking_code}
-      />
-
-      <UpdateProgressModal
-        open={progressModalOpen}
-        onOpenChange={setProgressModalOpen}
-        onConfirm={handleProgressConfirm}
-        loading={loading}
-        trackingCode={selectedComplaint?.tracking_code}
-      />
-
-      <ResolveModal
-        open={resolveModalOpen}
-        onOpenChange={setResolveModalOpen}
-        onConfirm={handleResolveConfirm}
-        loading={loading}
-        trackingCode={selectedComplaint?.tracking_code}
-      />
     </div>
-  )
+  );
 }

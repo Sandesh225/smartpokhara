@@ -33,7 +33,7 @@ export default async function CitizenDashboardPage() {
     }
   );
 
-  const typedComplaints = complaints as RpcMyComplaint[];
+  const typedComplaints = (complaints as RpcMyComplaint[]) || [];
 
   // Get dashboard performance stats (response time, SLA, satisfaction)
   const { data: statsData } = await supabase.rpc("rpc_get_admin_dashboard");
@@ -45,19 +45,21 @@ export default async function CitizenDashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  // Basic stats derived from complaints
+  // Basic stats derived from complaints - safe for empty arrays
   const stats: CitizenDashboardStats = {
-    totalComplaints: typedComplaints.length,
-    pending: typedComplaints.filter((c) =>
-      ["submitted", "received", "assigned"].includes(c.status)
-    ).length,
-    inProgress: typedComplaints.filter((c) =>
-      ["accepted", "in_progress"].includes(c.status)
-    ).length,
-    resolved: typedComplaints.filter((c) =>
-      ["resolved", "closed"].includes(c.status)
-    ).length,
-    overdue: typedComplaints.filter((c) => c.is_overdue).length,
+    totalComplaints: typedComplaints?.length || 0,
+    pending:
+      typedComplaints?.filter((c) =>
+        ["submitted", "received", "assigned"].includes(c.status)
+      ).length || 0,
+    inProgress:
+      typedComplaints?.filter((c) =>
+        ["accepted", "in_progress"].includes(c.status)
+      ).length || 0,
+    resolved:
+      typedComplaints?.filter((c) => ["resolved", "closed"].includes(c.status))
+        .length || 0,
+    overdue: typedComplaints?.filter((c) => c.is_overdue).length || 0,
   };
 
   const displayName = getUserDisplayName(user);

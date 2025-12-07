@@ -3,410 +3,190 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  showErrorToast,
-  showSuccessToast,
-} from "@/lib/shared/toast-service";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, ShieldCheck, Plus } from "lucide-react";
 
-interface RoleRow {
+interface Role {
   id: string;
   name: string;
-  role_type: string;
+  role_type: string; // e.g. "admin", "staff", "citizen"
 }
 
-interface DepartmentRow {
-  id: string;
-  name: string;
-}
-
-interface WardRow {
-  id: string;
-  ward_number: number;
-  name: string;
-}
-
-interface UserRoleRow {
+interface UserRole {
   id: string;
   role_id: string;
   assigned_at: string;
-  role?: RoleRow | null;
+  role: Role;
 }
 
-interface AdminUser {
+interface UserWithRoles {
   id: string;
-  user_roles?: UserRoleRow[] | null;
+  email: string;
+  user_roles: UserRole[];
 }
 
-interface UserRolesCardProps {
-  user: AdminUser;
-  availableRoles: RoleRow[];
-  departments: DepartmentRow[];
-  wards: WardRow[];
+interface Props {
+  user: UserWithRoles;
+  availableRoles: Role[];
 }
 
-export function UserRolesCard({
-  user,
-  availableRoles,
-  departments,
-  wards,
-}: UserRolesCardProps) {
+export function UserRolesCard({ user, availableRoles }: Props) {
+  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const [showAddRole, setShowAddRole] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedWard, setSelectedWard] = useState("");
-  const [assigning, setAssigning] = useState(false);
+  const supabase = createClient();
 
-  const currentRoles = user.user_roles ?? [];
+  const handleAddRole = async () => {
+    if (!selectedRoleId) return;
 
-  const selectedRoleData = availableRoles.find((r) => r.id === selectedRole);
-  const selectedRoleType = selectedRoleData?.role_type;
-
-  const needsDepartment = ["dept_staff", "dept_head"].includes(
-    selectedRoleType || ""
-  );
-  const needsWard = selectedRoleType === "ward_staff";
-
-  const handleAssignRole = async () => {
-    if (!selectedRole) return;
-
-    setAssigning(true);
-    const supabase = createClient();
-
+    setLoading(true);
     try {
-      // Check if role already assigned
-      const hasRole = currentRoles.some(
-        (ur) => ur.role_id === selectedRole
-      );
+      const { data: authData } = await supabase.auth.getUser();
+      const assignedBy = authData.user?.id ?? null;
 
-      if (hasRole) {
-        showErrorToast("User already has this role.");
-        return;
-      }
-
-      // Get current admin user (who assigns the role)
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-
-      // Assign role
-      const { error: roleError } = await supabase.from("user_roles").insert({
+      const { error } = await supabase.from("user_roles").insert({
         user_id: user.id,
-        role_id: selectedRole,
-        assigned_by: currentUser?.id,
+        role_id: selectedRoleId,
+        is_primary: false,
+        assigned_by: assignedBy,
       });
 
-      if (roleError) throw roleError;
+      if (error) throw error;
 
-      // If it's a department staff role, assign to department
-      if (needsDepartment && selectedDepartment) {
-        const { error: deptError } = await supabase
-          .from("department_staff")
-          .insert({
-            user_id: user.id,
-            department_id: selectedDepartment,
-          });
-
-        // Ignore unique violation (user already in that department)
-        if (deptError && deptError.code !== "23505") {
-          throw deptError;
-        }
-      }
-
-      // If it's ward staff, update profile with ward
-      if (needsWard && selectedWard) {
-        const { error: profileError } = await supabase
-          .from("user_profiles")
-          .update({ ward_id: selectedWard })
-          .eq("user_id", user.id);
-
-        if (profileError) throw profileError;
-      }
-
-      showSuccessToast("Role assigned successfully.");
-      setShowAddRole(false);
-      setSelectedRole("");
-      setSelectedDepartment("");
-      setSelectedWard("");
+      setSelectedRoleId("");
       router.refresh();
     } catch (error) {
-      console.error("Error assigning role:", error);
-      showErrorToast("Failed to assign role. Please try again.");
+      console.error("Failed to assign role:", error);
+      alert("Failed to assign role. Please try again.");
     } finally {
-      setAssigning(false);
+      setLoading(false);
     }
   };
 
-  const handleRemoveRole = async (userRoleId: string) => {
-    if (!window.confirm("Are you sure you want to remove this role?")) return;
-
-    const supabase = createClient();
+  const handleRemoveRole = async (roleId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to remove this role?"
+    );
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
         .from("user_roles")
         .delete()
-        .eq("id", userRoleId);
+        .eq("user_id", user.id)
+        .eq("role_id", roleId);
 
       if (error) throw error;
 
-      showSuccessToast("Role removed successfully.");
       router.refresh();
     } catch (error) {
-      console.error("Error removing role:", error);
-      showErrorToast("Failed to remove role. Please try again.");
+      console.error("Failed to remove role:", error);
+      alert("Failed to remove role. Please try again.");
     }
   };
+
+  const assignedRoleIds = new Set(user.user_roles?.map((ur) => ur.role_id));
+  const unassignedRoles = availableRoles.filter(
+    (role) => !assignedRoleIds.has(role.id)
+  );
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Roles &amp; Permissions</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <ShieldCheck className="h-5 w-5 text-gray-500" />
+          System Roles
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Current Roles */}
-        <div>
-          <h4 className="mb-2 text-sm font-medium text-gray-700">
-            Current Roles
-          </h4>
-          <div className="space-y-2">
-            {currentRoles.length === 0 ? (
-              <p className="text-sm text-gray-500">No roles assigned</p>
-            ) : (
-              currentRoles.map((userRole) => (
-                <div
-                  key={userRole.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
-                >
-                  <div>
-                    <Badge variant="outline" className="mb-1">
-                      {userRole.role?.name ?? "Role"}
-                    </Badge>
-                    <p className="text-xs text-gray-500">
-                      Assigned{" "}
-                      {new Date(userRole.assigned_at).toLocaleDateString()}
-                    </p>
+
+      <CardContent className="space-y-6">
+        {/* Active Roles */}
+        <div className="space-y-3">
+          {user.user_roles && user.user_roles.length > 0 ? (
+            user.user_roles.map((ur) => (
+              <div
+                key={ur.id}
+                className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+              >
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900">
+                      {ur.role?.name ?? "Unknown role"}
+                    </span>
+
+                    {ur.role?.role_type === "admin" && (
+                      <Badge variant="outline" className="text-xs">
+                        Admin
+                      </Badge>
+                    )}
+                    {ur.role?.role_type === "staff" && (
+                      <Badge variant="secondary" className="text-xs">
+                        Staff
+                      </Badge>
+                    )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveRole(userRole.id)}
-                  >
-                    Remove
-                  </Button>
+                  <p className="text-xs text-gray-500">
+                    Assigned:{" "}
+                    {ur.assigned_at
+                      ? new Date(ur.assigned_at).toLocaleString()
+                      : "N/A"}
+                  </p>
                 </div>
-              ))
-            )}
-          </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => handleRemoveRole(ur.role_id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No roles assigned yet.</p>
+          )}
         </div>
 
-        {/* Add Role Section */}
-        {showAddRole ? (
-          <div className="space-y-3 border-t pt-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Select Role
-              </label>
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              >
-                <option value="">Choose a role...</option>
-                {availableRoles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name} ({role.role_type})
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* Add Role */}
+        <div className="flex gap-2">
+          <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select role to assign" />
+            </SelectTrigger>
+            <SelectContent>
+              {unassignedRoles.map((role) => (
+                <SelectItem key={role.id} value={role.id}>
+                  {role.name}
+                </SelectItem>
+              ))}
+              {unassignedRoles.length === 0 && (
+                <SelectItem value="__none" disabled>
+                  All available roles already assigned
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
 
-            {needsDepartment && (
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Assign to Department
-                </label>
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                >
-                  <option value="">Choose department...</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {needsWard && (
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Assign to Ward
-                </label>
-                <select
-                  value={selectedWard}
-                  onChange={(e) => setSelectedWard(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                >
-                  <option value="">Choose ward...</option>
-                  {wards.map((ward) => (
-                    <option key={ward.id} value={ward.id}>
-                      Ward {ward.ward_number} - {ward.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleAssignRole}
-                disabled={
-                  assigning ||
-                  !selectedRole ||
-                  (needsDepartment && !selectedDepartment) ||
-                  (needsWard && !selectedWard)
-                }
-              >
-                {assigning ? "Assigning..." : "Assign Role"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowAddRole(false);
-                  setSelectedRole("");
-                  setSelectedDepartment("");
-                  setSelectedWard("");
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAddRole(true)}
-            className="w-full"
+            onClick={handleAddRole}
+            disabled={!selectedRoleId || selectedRoleId === "__none" || loading}
           >
-            + Add Role
+            <Plus className="h-4 w-4 mr-2" />
+            {loading ? "Adding..." : "Add"}
           </Button>
-        )}
-
-        {/* Quick Actions */}
-        <div className="border-t pt-4">
-          <h4 className="mb-2 text-sm font-medium text-gray-700">
-            Quick Promotions
-          </h4>
-          <div className="space-y-2">
-            <QuickPromoteButton
-              userId={user.id}
-              roleType="dept_staff"
-              label="Promote to Department Staff"
-              availableRoles={availableRoles}
-              currentRoles={currentRoles}
-            />
-            <QuickPromoteButton
-              userId={user.id}
-              roleType="ward_staff"
-              label="Promote to Ward Staff"
-              availableRoles={availableRoles}
-              currentRoles={currentRoles}
-            />
-            <QuickPromoteButton
-              userId={user.id}
-              roleType="field_staff"
-              label="Promote to Field Staff"
-              availableRoles={availableRoles}
-              currentRoles={currentRoles}
-            />
-            <QuickPromoteButton
-              userId={user.id}
-              roleType="call_center"
-              label="Promote to Helpdesk"
-              availableRoles={availableRoles}
-              currentRoles={currentRoles}
-            />
-          </div>
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-interface QuickPromoteButtonProps {
-  userId: string;
-  roleType: string;
-  label: string;
-  availableRoles: RoleRow[];
-  currentRoles: UserRoleRow[];
-}
-
-function QuickPromoteButton({
-  userId,
-  roleType,
-  label,
-  availableRoles,
-  currentRoles,
-}: QuickPromoteButtonProps) {
-  const router = useRouter();
-  const [promoting, setPromoting] = useState(false);
-
-  const hasRole = currentRoles.some(
-    (ur) => ur.role?.role_type === roleType
-  );
-
-  const handlePromote = async () => {
-    setPromoting(true);
-    const supabase = createClient();
-
-    try {
-      const role = availableRoles.find((r) => r.role_type === roleType);
-      if (!role) {
-        showErrorToast("Configured role not found.");
-        return;
-      }
-
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-
-      const { error } = await supabase.from("user_roles").insert({
-        user_id: userId,
-        role_id: role.id,
-        assigned_by: currentUser?.id,
-      });
-
-      if (error) throw error;
-
-      showSuccessToast("User promoted successfully.");
-      router.refresh();
-    } catch (error) {
-      console.error("Error promoting user:", error);
-      showErrorToast("Failed to promote user. Please try again.");
-    } finally {
-      setPromoting(false);
-    }
-  };
-
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handlePromote}
-      disabled={promoting || hasRole}
-      className="w-full justify-start"
-    >
-      {promoting ? "Promoting..." : hasRole ? `✓ ${label}` : label}
-    </Button>
   );
 }

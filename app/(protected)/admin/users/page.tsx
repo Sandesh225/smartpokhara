@@ -1,11 +1,9 @@
-// app/(protected)/admin/users/page.tsx
-
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { createClient } from "@/lib/supabase/server";
-import { UserTable } from "@/components/admin/user-table"; // ensure this file exists and exports UserTable
+import { UserTable } from "@/components/admin/user-table";
 
 interface UsersPageSearchParams {
   page?: string;
@@ -16,7 +14,7 @@ interface UsersPageSearchParams {
 }
 
 interface UsersPageProps {
-  searchParams: UsersPageSearchParams;
+  searchParams: Promise<UsersPageSearchParams>;
 }
 
 export default async function UsersPage({ searchParams }: UsersPageProps) {
@@ -30,20 +28,24 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     redirect("/citizen/dashboard");
   }
 
-  const supabase = await createClient();
+  const params = await searchParams;
+  const page = Number(params.page || "1");
+  const search = params.search || "";
+  const status = params.status || "";
+  const verified = params.verified || "";
 
-  const page = Number(searchParams.page || "1");
+  const supabase = await createClient();
   const itemsPerPage = 20;
   const offset = (page - 1) * itemsPerPage;
 
-  // Base query
+  // FIXED: Added !user_roles_user_id_fkey to disambiguate the relationship
   let query = supabase
     .from("users")
     .select(
       `
       *,
       user_profiles(*),
-      user_roles(
+      user_roles!user_roles_user_id_fkey(
         *,
         role:roles(*)
       )
@@ -54,30 +56,29 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     .range(offset, offset + itemsPerPage - 1);
 
   // Filters
-  if (searchParams.search) {
-    const search = searchParams.search;
-    query = query.or(
-      `email.ilike.%${search}%,user_profiles.full_name.ilike.%${search}%`
-    );
+  if (search) {
+    query = query.ilike("email", `%${search}%`);
   }
 
-  if (searchParams.status === "active") {
+  if (status === "active") {
     query = query.eq("is_active", true);
-  } else if (searchParams.status === "inactive") {
+  } else if (status === "inactive") {
     query = query.eq("is_active", false);
   }
 
-  if (searchParams.verified === "true") {
+  if (verified === "true") {
     query = query.eq("is_verified", true);
-  } else if (searchParams.verified === "false") {
+  } else if (verified === "false") {
     query = query.eq("is_verified", false);
   }
 
-  const { data: users = [], count = 0, error } = await query;
+  const { data, count, error } = await query;
 
   if (error) {
     console.error("Error fetching users:", error);
   }
+
+  const users = data || [];
 
   const { data: roles = [] } = await supabase
     .from("roles")
@@ -101,11 +102,11 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
 
       <UserTable
         users={users}
-        totalCount={count}
+        totalCount={count || 0}
         currentPage={page}
         itemsPerPage={itemsPerPage}
-        searchParams={searchParams}
-        roles={roles}
+        searchParams={params}
+        roles={roles || []}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-// components/staff/StaffShell.tsx
 "use client";
 
 import type { CurrentUser } from "@/lib/types/auth";
@@ -13,14 +12,16 @@ interface StaffShellProps {
 export function StaffShell({ user, children }: StaffShellProps) {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
+      {/* Sidebar - Fixed/Static */}
       <StaffSidebar user={user} />
-      
-      {/* Main content */}
-      <div className="flex flex-1 flex-col lg:pl-64">
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col lg:min-w-0">
         <StaffTopBar user={user} />
+
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          {/* Responsive Container */}
+          <div className="container mx-auto px-4 py-8 max-w-7xl">
             {children}
           </div>
         </main>

@@ -1,4 +1,4 @@
-// app/(protected)/supervisor/layout.tsx - Fixed supervisor layout
+// app/(protected)/supervisor/layout.tsx
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
@@ -20,14 +20,14 @@ export default async function SupervisorLayout({
     redirect("/login");
   }
 
-  // Allow both dept_head and admin to access supervisor portal
+  // Allow both dept_head (via isSupervisor) and admin to access supervisor portal
   const hasAccess = isSupervisor(user) || isAdmin(user);
 
   if (!hasAccess) {
-    // Redirect to citizen dashboard, not back to /dashboard
+    // Send unauthorized users to citizen dashboard instead of /dashboard
     redirect("/citizen/dashboard");
   }
 
-  // Navbar comes from (protected)/layout.tsx, just wrap content
+  // Navbar is handled by parent (protected)/layout.tsx
   return <div className="container mx-auto px-4 py-8">{children}</div>;
 }

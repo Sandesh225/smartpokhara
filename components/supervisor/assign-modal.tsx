@@ -1,29 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Loader2, User } from "lucide-react"
-import type { StaffWorkload } from "@/lib/types/complaints"
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 
 interface AssignModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: (staffId: string, note?: string) => Promise<void>
-  loading: boolean
-  trackingCode?: string
-  availableStaff: StaffWorkload[]
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (staffId: string, note?: string) => Promise<void>;
+  loading: boolean;
+  trackingCode?: string;
+  availableStaff: any[]; // Staff list from hook
 }
 
 export function AssignModal({
@@ -32,89 +38,98 @@ export function AssignModal({
   onConfirm,
   loading,
   trackingCode,
-  availableStaff,
+  availableStaff = [],
 }: AssignModalProps) {
-  const [selectedStaff, setSelectedStaff] = useState("")
-  const [note, setNote] = useState("")
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("");
+  const [note, setNote] = useState("");
 
-  const handleConfirm = async () => {
-    if (!selectedStaff) return
-    await onConfirm(selectedStaff, note || undefined)
-    setSelectedStaff("")
-    setNote("")
-    onOpenChange(false)
-  }
+  useEffect(() => {
+    if (open) {
+      setSelectedStaffId("");
+      setNote("");
+    }
+  }, [open]);
 
-  const handleClose = () => {
-    setSelectedStaff("")
-    setNote("")
-    onOpenChange(false)
-  }
+  const handleSubmit = async () => {
+    if (!selectedStaffId) return;
+    await onConfirm(selectedStaffId, note);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Assign Complaint</DialogTitle>
           <DialogDescription>
-            Assign complaint <span className="font-mono font-medium">{trackingCode}</span> to a staff member.
+            Assign <span className="font-mono font-medium">{trackingCode}</span>{" "}
+            to a team member.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="staff">
-              Select Staff Member <span className="text-red-500">*</span>
-            </Label>
-            <Select value={selectedStaff} onValueChange={setSelectedStaff}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose staff member..." />
+
+        <div className="grid gap-6 py-4">
+          <div className="grid gap-2">
+            <Label>Select Staff Member</Label>
+            <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+              <SelectTrigger className="h-auto py-3">
+                <SelectValue placeholder="Choose a staff member..." />
               </SelectTrigger>
               <SelectContent>
-                {availableStaff.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">No available staff members</div>
-                ) : (
-                  availableStaff.map((staff) => (
-                    <SelectItem key={staff.staff_id} value={staff.staff_id}>
+                {availableStaff.map((staff) => (
+                  <SelectItem
+                    key={staff.user_id}
+                    value={staff.user_id}
+                    disabled={!staff.is_available}
+                  >
+                    <div className="flex items-center justify-between w-full gap-4">
                       <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span>{staff.staff_name}</span>
-                        <Badge variant="outline" className="ml-2 text-xs">
-                          {staff.total_assigned} assigned
-                        </Badge>
-                        {staff.overdue > 0 && (
-                          <Badge variant="destructive" className="text-xs">
-                            {staff.overdue} overdue
-                          </Badge>
-                        )}
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={staff.avatar_url} />
+                          <AvatarFallback>
+                            {staff.full_name?.substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{staff.full_name}</span>
                       </div>
-                    </SelectItem>
-                  ))
-                )}
+                      <Badge
+                        variant={
+                          staff.active_complaints_count > 5
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {staff.active_complaints_count} active
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="note">Assignment Note (optional)</Label>
+          <div className="grid gap-2">
+            <Label>Instructions (Optional)</Label>
             <Textarea
-              id="note"
-              placeholder="Add any notes about this assignment..."
+              placeholder="Add specific context..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              rows={3}
             />
           </div>
         </div>
+
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={loading || !selectedStaff}>
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Assign
+          <Button onClick={handleSubmit} disabled={!selectedStaffId || loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Confirm Assignment
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

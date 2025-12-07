@@ -1,20 +1,7 @@
-// lib/supabase/client.ts - CLIENT CLIENT ONLY
 import { createBrowserClient } from "@supabase/ssr";
-import type { Database } from "@/lib/types/database.types";
 
-export function createClient() {
-  return createBrowserClient<Database>(
+export const createClient = () =>
+  createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-}
-
-// Singleton instance for client components
-let client: ReturnType<typeof createClient> | null = null;
-
-export function getClient() {
-  if (!client) {
-    client = createClient();
-  }
-  return client;
-}

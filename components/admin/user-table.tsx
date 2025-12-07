@@ -255,7 +255,7 @@ export function UserTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {users.length === 0 ? (
+              {users?.length === 0 ? (
                 <tr>
                   <td
                     colSpan={7}
@@ -401,7 +401,8 @@ export function UserTable({
               </Button>
             </Link>
             <Link
-              href{
+              href={
+                // <--- Added '='
                 hasNext
                   ? buildUsersUrl(searchParams, {
                       page: String(safePage + 1),

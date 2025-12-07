@@ -31,7 +31,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import ComplaintMap from "./ComplaintMap";
 import { FeedbackSection } from "./feedback-section";
-import { ComplaintAttachmentsSection } from "@/components/citizen/ComplaintAttachmentsSection";
+import { ComplaintAttachmentsSection } from "@/components/citizen/complaints/ComplaintAttachmentsSection";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

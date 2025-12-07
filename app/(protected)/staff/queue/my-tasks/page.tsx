@@ -1,11 +1,14 @@
-import { QueuePageLayout } from "@/components/staff/queue-page-layout"
+import { QueuePageLayout } from "@/components/staff/QueuePageLayout";
 
-export default function MyTasksPage() {
+export const dynamic = "force-dynamic";
+
+export default function StaffMyTasksPage() {
   return (
     <QueuePageLayout
       queueType="my_tasks"
       title="My Tasks"
-      description="Complaints assigned to you that need your attention."
+      description="Complaints currently assigned to you."
+      showAssignment={false}
     />
-  )
+  );
 }
