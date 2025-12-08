@@ -1,8 +1,4 @@
-// lib/types/database.types.ts
-
-/**
- * Base JSON type used in Supabase generated types
- */
+// lib/supabase/types.ts
 export type Json =
   | string
   | number
@@ -11,397 +7,222 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-/**
- * Database type for Supabase (hand-written to match the auth & roles schema)
- *
- * If you later generate official types with:
- *   npx supabase gen types typescript --project-id YOUR_PROJECT_ID > lib/types/database.types.ts
- * you can either replace this file or merge the auth-related parts.
- */
 export interface Database {
   public: {
     Tables: {
-      users: {
+      complaints: {
         Row: {
           id: string;
-          email: string;
-          phone: string | null;
-          external_auth_provider: string | null;
-          is_active: boolean;
-          is_verified: boolean;
-          email_verified_at: string | null;
-          phone_verified_at: string | null;
-          last_login_at: string | null;
-          login_attempts: number;
-          locked_until: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id: string;
-          email: string;
-          phone?: string | null;
-          external_auth_provider?: string | null;
-          is_active?: boolean;
-          is_verified?: boolean;
-          email_verified_at?: string | null;
-          phone_verified_at?: string | null;
-          last_login_at?: string | null;
-          login_attempts?: number;
-          locked_until?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          email?: string;
-          phone?: string | null;
-          external_auth_provider?: string | null;
-          is_active?: boolean;
-          is_verified?: boolean;
-          email_verified_at?: string | null;
-          phone_verified_at?: string | null;
-          last_login_at?: string | null;
-          login_attempts?: number;
-          locked_until?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'users_id_fkey';
-            columns: ['id'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          }
-        ];
-      };
-
-      user_profiles: {
-        Row: {
-          id: string;
-          user_id: string;
-          full_name: string;
-          full_name_nepali: string | null;
-          date_of_birth: string | null;
-          gender: string | null;
-          citizenship_number: string | null;
-          ward_id: string | null;
-          address_line1: string | null;
-          address_line2: string | null;
+          tracking_code: string;
+          citizen_id: string;
+          citizen_full_name: string;
+          citizen_phone: string | null;
+          citizen_email: string | null;
+          title: string;
+          description: string;
+          category_id: string;
+          subcategory_id: string | null;
+          ward_id: string;
+          location_point: any;
+          address_text: string | null;
           landmark: string | null;
-          profile_photo_url: string | null;
-          language_preference: string;
-          notification_preferences: {
-            sms: boolean;
-            email: boolean;
-            in_app: boolean;
-          };
+          latitude: number | null;
+          longitude: number | null;
+          status:
+            | "received"
+            | "under_review"
+            | "assigned"
+            | "in_progress"
+            | "resolved"
+            | "closed"
+            | "rejected"
+            | "reopened";
+          priority: "critical" | "urgent" | "high" | "medium" | "low";
+          is_anonymous: boolean;
+          source: "web" | "mobile" | "call_center" | "field_office" | "email";
+          assigned_department_id: string | null;
+          assigned_staff_id: string | null;
+          assigned_at: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          resolution_notes: string | null;
+          sla_due_at: string | null;
+          sla_breached_at: string | null;
+          actual_resolution_days: number | null;
+          upvote_count: number;
+          comment_count: number;
+          attachment_count: number;
+          submitted_at: string;
+          acknowledged_at: string | null;
           created_at: string;
           updated_at: string;
+          closed_at: string | null;
         };
         Insert: {
           id?: string;
-          user_id: string;
-          full_name: string;
-          full_name_nepali?: string | null;
-          date_of_birth?: string | null;
-          gender?: string | null;
-          citizenship_number?: string | null;
-          ward_id?: string | null;
-          address_line1?: string | null;
-          address_line2?: string | null;
+          tracking_code: string;
+          citizen_id: string;
+          citizen_full_name?: string;
+          citizen_phone?: string | null;
+          citizen_email?: string | null;
+          title: string;
+          description: string;
+          category_id: string;
+          subcategory_id?: string | null;
+          ward_id: string;
+          location_point?: any;
+          address_text?: string | null;
           landmark?: string | null;
-          profile_photo_url?: string | null;
-          language_preference?: string;
-          notification_preferences?: {
-            sms: boolean;
-            email: boolean;
-            in_app: boolean;
-          };
+          latitude?: number | null;
+          longitude?: number | null;
+          status?:
+            | "received"
+            | "under_review"
+            | "assigned"
+            | "in_progress"
+            | "resolved"
+            | "closed"
+            | "rejected"
+            | "reopened";
+          priority?: "critical" | "urgent" | "high" | "medium" | "low";
+          is_anonymous?: boolean;
+          source?: "web" | "mobile" | "call_center" | "field_office" | "email";
+          assigned_department_id?: string | null;
+          assigned_staff_id?: string | null;
+          assigned_at?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolution_notes?: string | null;
+          sla_due_at?: string | null;
+          sla_breached_at?: string | null;
+          actual_resolution_days?: number | null;
+          upvote_count?: number;
+          comment_count?: number;
+          attachment_count?: number;
+          submitted_at?: string;
+          acknowledged_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          closed_at?: string | null;
         };
         Update: {
           id?: string;
-          user_id?: string;
-          full_name?: string;
-          full_name_nepali?: string | null;
-          date_of_birth?: string | null;
-          gender?: string | null;
-          citizenship_number?: string | null;
-          ward_id?: string | null;
-          address_line1?: string | null;
-          address_line2?: string | null;
+          tracking_code?: string;
+          citizen_id?: string;
+          citizen_full_name?: string;
+          citizen_phone?: string | null;
+          citizen_email?: string | null;
+          title?: string;
+          description?: string;
+          category_id?: string;
+          subcategory_id?: string | null;
+          ward_id?: string;
+          location_point?: any;
+          address_text?: string | null;
           landmark?: string | null;
-          profile_photo_url?: string | null;
-          language_preference?: string;
-          notification_preferences?: {
-            sms: boolean;
-            email: boolean;
-            in_app: boolean;
-          };
+          latitude?: number | null;
+          longitude?: number | null;
+          status?:
+            | "received"
+            | "under_review"
+            | "assigned"
+            | "in_progress"
+            | "resolved"
+            | "closed"
+            | "rejected"
+            | "reopened";
+          priority?: "critical" | "urgent" | "high" | "medium" | "low";
+          is_anonymous?: boolean;
+          source?: "web" | "mobile" | "call_center" | "field_office" | "email";
+          assigned_department_id?: string | null;
+          assigned_staff_id?: string | null;
+          assigned_at?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolution_notes?: string | null;
+          sla_due_at?: string | null;
+          sla_breached_at?: string | null;
+          actual_resolution_days?: number | null;
+          upvote_count?: number;
+          comment_count?: number;
+          attachment_count?: number;
+          submitted_at?: string;
+          acknowledged_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          closed_at?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'user_profiles_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          }
-        ];
       };
-
-      roles: {
-        Row: {
-          id: string;
-          name: string;
-          role_type: Database['public']['Enums']['user_role'];
-          description: string | null;
-          permissions: Json;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          role_type: Database['public']['Enums']['user_role'];
-          description?: string | null;
-          permissions?: Json;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          role_type?: Database['public']['Enums']['user_role'];
-          description?: string | null;
-          permissions?: Json;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-
-      user_roles: {
-        Row: {
-          id: string;
-          user_id: string;
-          role_id: string;
-          assigned_by: string | null;
-          assigned_at: string;
-          expires_at: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          role_id: string;
-          assigned_by?: string | null;
-          assigned_at?: string;
-          expires_at?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          role_id?: string;
-          assigned_by?: string | null;
-          assigned_at?: string;
-          expires_at?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'user_roles_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'user_roles_role_id_fkey';
-            columns: ['role_id'];
-            referencedRelation: 'roles';
-            referencedColumns: ['id'];
-          }
-        ];
-      };
-
-      audit_logs: {
-        Row: {
-          id: string;
-          actor_user_id: string | null;
-          action: string;
-          entity_type: string;
-          entity_id: string | null;
-          old_data: Json | null;
-          new_data: Json | null;
-          ip_address: string | null;
-          user_agent: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          actor_user_id?: string | null;
-          action: string;
-          entity_type: string;
-          entity_id?: string | null;
-          old_data?: Json | null;
-          new_data?: Json | null;
-          ip_address?: string | null;
-          user_agent?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          actor_user_id?: string | null;
-          action?: string;
-          entity_type?: string;
-          entity_id?: string | null;
-          old_data?: Json | null;
-          new_data?: Json | null;
-          ip_address?: string | null;
-          user_agent?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'audit_logs_actor_user_id_fkey';
-            columns: ['actor_user_id'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          }
-        ];
-      };
-
-      session_logs: {
-        Row: {
-          id: string;
-          user_id: string;
-          action: string;
-          ip_address: string | null;
-          user_agent: string | null;
-          success: boolean;
-          failure_reason: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          action: string;
-          ip_address?: string | null;
-          user_agent?: string | null;
-          success?: boolean;
-          failure_reason?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          action?: string;
-          ip_address?: string | null;
-          user_agent?: string | null;
-          success?: boolean;
-          failure_reason?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'session_logs_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          }
-        ];
-      };
+      // Add other table definitions as needed
     };
-
-    Views: {
-      [_ in never]: never;
-    };
-
+    Views: {};
     Functions: {
-      /**
-       * RPC: get_current_user_with_roles()
-       *
-       * Returns the hydrated user + profile + roles as defined in SQL.
-       */
-      get_current_user_with_roles: {
-        Args: Record<string, never>;
-        Returns: {
-          user_id: string;
-          email: string;
-          phone: string | null;
-          is_active: boolean;
-          is_verified: boolean;
-          full_name: string | null;
-          profile_photo_url: string | null;
-          language_preference: string | null;
-          roles: Json | null; // array of { role_type, role_name, permissions }
-          primary_role: Database['public']['Enums']['user_role'] | null;
-        }[];
+      rpc_submit_complaint: {
+        Args: {
+          p_title: string;
+          p_description: string;
+          p_category_id: string;
+          p_subcategory_id?: string;
+          p_ward_id: string;
+          p_location_point?: Json;
+          p_address_text?: string;
+          p_landmark?: string;
+          p_priority?: "critical" | "urgent" | "high" | "medium" | "low";
+          p_is_anonymous?: boolean;
+          p_phone?: string;
+          p_source?:
+            | "web"
+            | "mobile"
+            | "call_center"
+            | "field_office"
+            | "email";
+        };
+        Returns: Json;
       };
-
-      fn_is_admin: {
-        Args: Record<string, never>;
-        Returns: boolean;
+      rpc_search_complaints: {
+        Args: {
+          p_search_term?: string;
+          p_status?: string[];
+          p_priority?: string[];
+          p_category_id?: string;
+          p_ward_id?: string;
+          p_date_from?: string;
+          p_date_to?: string;
+          p_is_overdue?: boolean;
+          p_sort_by?: string;
+          p_sort_order?: string;
+          p_limit?: number;
+          p_offset?: number;
+        };
+        Returns: Json;
       };
-
-      fn_is_staff: {
-        Args: Record<string, never>;
-        Returns: boolean;
-      };
-
-      fn_get_user_roles: {
-        Args: { p_user_id: string };
-        Returns: {
-          role_type: Database['public']['Enums']['user_role'];
-          role_name: string;
-        }[];
-      };
-
-      can_access_complaint: {
-        Args: { p_complaint_id: string };
-        Returns: boolean;
-      };
+      // Add other function definitions
     };
-
     Enums: {
-      user_role:
-        | 'admin'
-        | 'dept_head'
-        | 'dept_staff'
-        | 'ward_staff'
-        | 'field_staff'
-        | 'call_center'
-        | 'citizen'
-        | 'business_owner'
-        | 'tourist';
+      complaint_status:
+        | "received"
+        | "under_review"
+        | "assigned"
+        | "in_progress"
+        | "resolved"
+        | "closed"
+        | "rejected"
+        | "reopened";
+      complaint_priority: "critical" | "urgent" | "high" | "medium" | "low";
+      complaint_source:
+        | "web"
+        | "mobile"
+        | "call_center"
+        | "field_office"
+        | "email";
+      notification_type:
+        | "complaint_status"
+        | "complaint_assigned"
+        | "comment_added"
+        | "new_notice"
+        | "bill_generated"
+        | "payment_success"
+        | "system_announcement";
     };
   };
 }
-
-/**
- * Helper generics mirroring the generated Supabase helpers
- */
-export type PublicSchema = Database['public'];
-
-export type Tables<
-  T extends keyof PublicSchema['Tables']
-> = PublicSchema['Tables'][T]['Row'];
-
-export type TablesInsert<
-  T extends keyof PublicSchema['Tables']
-> = PublicSchema['Tables'][T]['Insert'];
-
-export type TablesUpdate<
-  T extends keyof PublicSchema['Tables']
-> = PublicSchema['Tables'][T]['Update'];
-
-export type Enums<T extends keyof PublicSchema['Enums']> =
-  PublicSchema['Enums'][T];
