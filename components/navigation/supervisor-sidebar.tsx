@@ -7,7 +7,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getPrimaryRole, getRoleDisplayName, getRoleBadgeColor } from "@/lib/utils/role-helpers"
 import { useDepartments } from "@/lib/hooks/use-complaints"
 import type { UserWithRoles } from "@/lib/types/complaints"
