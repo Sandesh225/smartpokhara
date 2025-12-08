@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { CurrentUser } from '@/lib/types/auth';
-import { Alert } from '@/components/ui/Alert';
+import { Alert } from '@/components/ui/alert';
 
 interface EmailVerificationBannerProps {
   user: CurrentUser;
