@@ -1,4 +1,3 @@
-// components/ui/select.tsx
 "use client";
 
 import * as React from "react";
@@ -50,8 +49,7 @@ const SelectScrollUpButton = React.forwardRef<
   </SelectPrimitive.ScrollUpButton>
 ));
 
-SelectScrollUpButton.displayName =
-  SelectPrimitive.ScrollUpButton.displayName;
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
 
 const SelectScrollDownButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
@@ -116,35 +114,62 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("px-2 py-1.5 text-xs font-semibold text-muted-foreground", className)}
+    className={cn(
+      "px-2 py-1.5 text-xs font-semibold text-muted-foreground",
+      className
+    )}
     {...props}
   />
 ));
 
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
+/**
+ * IMPORTANT:
+ * - `value` is required and must be a non-empty string.
+ * - If an empty value is passed, this component logs an error in dev
+ *   and renders nothing, to avoid the Radix runtime crash:
+ *
+ *   "A <Select.Item /> must have a value prop that is not an empty string."
+ */
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
-      "focus:bg-accent focus:text-accent-foreground",
-      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    {...props}
-  >
-    <span className="mr-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-));
+  Omit<React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>, "value"> & {
+    value: string;
+  }
+>(({ className, children, value, ...props }, ref) => {
+  if (!value || value === "") {
+    if (process.env.NODE_ENV !== "production") {
+      console.error(
+        'SelectItem: "value" prop is required and must be a non-empty string.\n' +
+          'Use <SelectValue placeholder="..." /> for placeholders instead of a SelectItem with an empty value.'
+      );
+    }
+    // Prevent Radix from receiving an invalid <Select.Item>.
+    return null;
+  }
+
+  return (
+    <SelectPrimitive.Item
+      ref={ref}
+      value={value}
+      className={cn(
+        "relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
+        "focus:bg-accent focus:text-accent-foreground",
+        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        className
+      )}
+      {...props}
+    >
+      <span className="mr-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <Check className="h-4 w-4" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
+  );
+});
 
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
