@@ -1,690 +1,803 @@
-// app/(protected)/citizen/complaints/[id]/page.tsx
-import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getCurrentUserWithRoles } from "@/lib/auth/session";
+// app/citizen/complaints/[id]/page.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/ui/card";
+import { Button } from "@/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
+import { Separator } from "@/ui//separator";
+import { Badge } from "@/ui/badge";
+import { Skeleton } from "@/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/ui/alert";
 import {
-  MapPin,
-  Calendar,
-  Clock,
-  Building,
-  User,
-  FileText,
-  CheckCircle,
-  AlertCircle,
   ArrowLeft,
+  RefreshCw,
+  Printer,
+  Share2,
   Download,
-  Star,
-  MessageSquare,
+  AlertCircle,
+  Clock,
+  MapPin,
+  Tag,
 } from "lucide-react";
-import Link from "next/link";
-import { format } from "date-fns";
-import ComplaintMap from "./ComplaintMap";
-import { FeedbackSection } from "./feedback-section";
-import { ComplaintAttachmentsSection } from "@/components/citizen/complaints/ComplaintAttachmentsSection";
+import { toast } from "sonner";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Import components
+import { ComplaintHeader } from "@/components/citizen/complaints/ComplaintHeader";
+import { ComplaintDetails } from "@/components/citizen/complaints/ComplaintDetails";
+import { StatusTimeline } from "@/components/citizen/complaints/StatusTimeline";
+import { AssignmentInfo } from "@/components/citizen/complaints/AssignmentInfo";
+import { AttachmentsGallery } from "@/components/citizen/complaints/AttachmentsGallery";
+import { StaffUpdates } from "@/components/citizen/complaints/StaffUpdates";
+import { CommentThread } from "@/components/citizen/complaints/CommentThread";
+import { FeedbackForm } from "@/components/citizen/complaints/FeedbackForm";
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+// Import services
+import { complaintsService } from "@/lib/supabase/queries/complaints";
+import type {
+  Complaint,
+  ComplaintComment,
+  ComplaintStatusHistory,
+} from "@/lib/supabase/queries/complaints";
 
-// Keep this in sync with Attachment types used in AttachmentGallery / wrapper
-interface Attachment {
-  id: string;
-  file_name: string;
-  original_file_name: string;
-  file_type: "photo" | "video" | "document" | "audio";
-  mime_type: string;
-  file_size_bytes: number;
-  signedUrl: string;
-  uploaded_at: string;
-  uploaded_by_user_id: string;
-}
+export default function ComplaintDetailPage() {
+  const params = useParams();
+  const router = useRouter();
 
-export default async function ComplaintDetailPage({ params }: PageProps) {
-  // Wait for params to resolve
-  const { id } = await params;
+  const [complaint, setComplaint] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Guard early: if route param missing, show 404
-  if (!id) {
-    notFound();
-  }
+  // Real-time data
+  const [comments, setComments] = useState<ComplaintComment[]>([]);
+  const [statusHistory, setStatusHistory] = useState<ComplaintStatusHistory[]>(
+    []
+  );
+  const [attachments, setAttachments] = useState<any[]>([]);
 
-  const user = await getCurrentUserWithRoles();
-  if (!user) redirect("/login");
+  // Subscriptions
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
 
-  const supabase = await createClient();
+  const complaintId = params.id as string;
 
-  // Fetch complaint details
-  const { data: complaint, error: complaintError } = await supabase
-    .from("complaints")
-    .select(
-      `
-      *,
-      category:complaint_categories(name),
-      subcategory:complaint_subcategories(name),
-      ward:wards!fk_complaints_ward(ward_number, name),
-      department:departments(name, code),
-      assigned_staff:users!assigned_staff_id(user_profiles(full_name))
-    `
-    )
-    .eq("id", id)
-    .single();
+  // Fetch initial data
+  useEffect(() => {
+    if (complaintId) {
+      fetchComplaintData();
+      setupSubscriptions();
+    }
 
-  if (complaintError || !complaint) {
-    console.error("Error loading complaint:", complaintError);
-    notFound();
-  }
+    return () => {
+      // Clean up subscriptions
+      subscriptions.forEach((sub) => sub.unsubscribe());
+    };
+  }, [complaintId]);
 
-  // Check if user owns this complaint
-  if (complaint.citizen_id !== user.id) {
-    redirect("/citizen/complaints");
-  }
+  const fetchComplaintData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-  // Fetch attachments from database
-  const { data: rawAttachments = [], error: attachmentsError } = await supabase
-    .from("complaint_attachments")
-    .select("*")
-    .eq("complaint_id", id)
-    .order("uploaded_at", { ascending: true });
-
-  if (attachmentsError) {
-    console.error("Error loading complaint attachments:", attachmentsError);
-  }
-
-  // Generate signed URLs for private attachments
-  const attachmentsWithSignedUrls = await Promise.all(
-    (rawAttachments || []).map(async (attachment: any) => {
-      // If attachment is public, use the existing URL
-      if (attachment.is_public && attachment.file_url) {
-        return {
-          ...attachment,
-          signedUrl: attachment.file_url,
-        };
+    try {
+      // Verify user can view this complaint
+      const canView = await complaintsService.canViewComplaint(complaintId);
+      if (!canView) {
+        toast.error("Access Denied", {
+          description: "You do not have permission to view this complaint",
+        });
+        router.push("/citizen/complaints");
+        return;
       }
 
-      // For private attachments, generate a signed URL (valid for 1 hour)
-      try {
-        const { data: signedUrlData, error: signedUrlError } =
-          await supabase.storage
-            .from(attachment.storage_bucket || "complaint-attachments")
-            .createSignedUrl(attachment.storage_path, 3600); // 1 hour
+      // Fetch complaint with all relations
+      const complaintData =
+        await complaintsService.getComplaintById(complaintId);
+      if (!complaintData) {
+        throw new Error("Complaint not found");
+      }
 
-        if (signedUrlError) {
-          console.error("Error generating signed URL:", signedUrlError);
-          return {
-            ...attachment,
-            signedUrl: null,
-            error: signedUrlError.message,
-          };
+      setComplaint(complaintData);
+      setComments(complaintData.comments || []);
+      setStatusHistory(complaintData.status_history || []);
+      setAttachments(complaintData.attachments || []);
+    } catch (err: any) {
+      console.error("Error fetching complaint:", err);
+      setError(err.message || "Failed to load complaint details");
+      toast.error("Error loading complaint", {
+        description: err.message || "Please try again later",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const setupSubscriptions = () => {
+    // Subscribe to complaint updates
+    const complaintSub = complaintsService.subscribeToComplaint(
+      complaintId,
+      (payload) => {
+        console.log("Complaint updated:", payload);
+
+        if (payload.eventType === "UPDATE") {
+          // Update complaint data
+          setComplaint((prev: any) => ({
+            ...prev,
+            ...payload.new,
+            updated_at: new Date().toISOString(),
+          }));
+
+          // Show notification for status changes
+          if (payload.new.status !== payload.old?.status) {
+            toast.info("Status Updated", {
+              description: `Complaint status changed to ${payload.new.status}`,
+            });
+          }
         }
-
-        return {
-          ...attachment,
-          signedUrl: signedUrlData.signedUrl,
-        };
-      } catch (error) {
-        console.error("Error processing attachment:", error);
-        return {
-          ...attachment,
-          signedUrl: null,
-          error: "Failed to load attachment",
-        };
       }
-    })
-  );
+    );
 
-  // Filter out any attachments that failed to load
-  const attachments: Attachment[] = attachmentsWithSignedUrls.filter(
-    (a): a is Attachment => Boolean(a.signedUrl)
-  );
+    // Subscribe to comments
+    const commentSub = complaintsService.subscribeToComments(
+      complaintId,
+      (payload) => {
+        console.log("New comment:", payload);
 
-  // Fetch status history
-  const { data: statusHistory = [], error: statusHistoryError } = await supabase
-    .from("complaint_status_history")
-    .select("*")
-    .eq("complaint_id", id)
-    .order("changed_at", { ascending: true });
+        if (payload.eventType === "INSERT") {
+          setComments((prev) => [...prev, payload.new]);
 
-  if (statusHistoryError) {
-    console.error(
-      "Error loading complaint status history:",
-      statusHistoryError
+          // Show notification for staff comments
+          if (payload.new.author_role === "staff") {
+            toast.info("New Staff Comment", {
+              description: "Staff has posted an update on your complaint",
+            });
+          }
+        }
+      }
+    );
+
+    // Subscribe to status history
+    const statusSub = complaintsService.subscribeToStatus(
+      complaintId,
+      (payload) => {
+        console.log("Status history update:", payload);
+
+        if (payload.eventType === "INSERT") {
+          setStatusHistory((prev) => [...prev, payload.new]);
+        }
+      }
+    );
+
+    setSubscriptions([complaintSub, commentSub, statusSub]);
+    setIsSubscribed(true);
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open(
+      `/citizen/complaints/${complaintId}/print`,
+      "_blank"
+    );
+    if (printWindow) {
+      printWindow.focus();
+    }
+  };
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/citizen/complaints/${complaintId}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Complaint: ${complaint?.title}`,
+          text: `Check out this complaint: ${complaint?.title}`,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
+  const handleDownloadDetails = () => {
+    if (!complaint) return;
+
+    const content = `
+Complaint Details
+=================
+Tracking Code: ${complaint.tracking_code}
+Title: ${complaint.title}
+Status: ${complaint.status}
+Category: ${complaint.category?.name || "N/A"}
+Subcategory: ${complaint.subcategory?.name || "N/A"}
+Ward: Ward ${complaint.ward?.ward_number || "N/A"} - ${
+      complaint.ward?.name || "N/A"
+    }
+Address: ${complaint.address_text || "N/A"}
+Submitted: ${new Date(complaint.submitted_at).toLocaleDateString()}
+Last Updated: ${new Date(complaint.updated_at).toLocaleDateString()}
+
+Description:
+${complaint.description}
+
+${
+  statusHistory.length > 0
+    ? "Status History:\n" +
+      statusHistory
+        .map(
+          (h) =>
+            `  ${new Date(h.created_at).toLocaleDateString()}: ${
+              h.old_status || "Created"
+            } → ${h.new_status}`
+        )
+        .join("\n")
+    : ""
+}
+
+${
+  comments.length > 0
+    ? "Comments:\n" +
+      comments
+        .map(
+          (c) =>
+            `  ${new Date(c.created_at).toLocaleDateString()} ${
+              c.author_role === "staff" ? "[Staff]" : "[You]"
+            }: ${c.content}`
+        )
+        .join("\n")
+    : ""
+}
+    `;
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = `complaint_${complaint.tracking_code}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("Details downloaded");
+  };
+
+  const handleRefresh = () => {
+    fetchComplaintData();
+    toast.success("Complaint details refreshed");
+  };
+
+  const handleNewComment = (comment: ComplaintComment) => {
+    setComments((prev) => [...prev, comment]);
+  };
+
+  const handleFeedbackSubmit = () => {
+    // Refresh complaint data after feedback submission
+    fetchComplaintData();
+    toast.success("Thank you for your feedback!");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-24" />
+          </div>
+          <Skeleton className="h-8 w-3/4 mb-2" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </div>
     );
   }
 
-  // Fetch feedback if exists
-  const { data: feedback, error: feedbackError } = await supabase
-    .from("complaint_citizen_feedback")
-    .select("*")
-    .eq("complaint_id", id)
-    .maybeSingle();
+  if (error || !complaint) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => router.push("/citizen/complaints")}
+            className="mb-6 gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Complaints
+          </Button>
 
-  if (feedbackError) {
-    console.error("Error loading complaint feedback:", feedbackError);
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error Loading Complaint</AlertTitle>
+            <AlertDescription>
+              {error || "Complaint not found"}
+            </AlertDescription>
+            <div className="flex gap-3 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/citizen/complaints")}
+              >
+                View All Complaints
+              </Button>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+            </div>
+          </Alert>
+        </div>
+      </div>
+    );
   }
 
-  // Check if user can give feedback
-  const canGiveFeedback =
-    ["resolved", "closed"].includes(complaint.status) && !feedback;
-
-  const statusBadgeConfig: Record<
-    string,
-    {
-      variant:
-        | "outline"
-        | "secondary"
-        | "default"
-        | "success"
-        | "destructive"
-        | "warning";
-      label: string;
-      color: string;
-    }
-  > = {
-    draft: { variant: "outline", label: "Draft", color: "text-gray-600" },
-    submitted: {
-      variant: "secondary",
-      label: "Submitted",
-      color: "text-blue-600",
-    },
-    received: {
-      variant: "secondary",
-      label: "Received",
-      color: "text-blue-600",
-    },
-    assigned: {
-      variant: "default",
-      label: "Assigned",
-      color: "text-indigo-600",
-    },
-    accepted: {
-      variant: "default",
-      label: "Accepted",
-      color: "text-indigo-600",
-    },
-    in_progress: {
-      variant: "default",
-      label: "In Progress",
-      color: "text-orange-600",
-    },
-    resolved: {
-      variant: "success",
-      label: "Resolved",
-      color: "text-green-600",
-    },
-    closed: { variant: "success", label: "Closed", color: "text-green-600" },
-    rejected: {
-      variant: "destructive",
-      label: "Rejected",
-      color: "text-red-600",
-    },
-    reopened: {
-      variant: "warning",
-      label: "Reopened",
-      color: "text-yellow-600",
-    },
-  };
-
-  const priorityColors: Record<string, string> = {
-    low: "bg-green-100 text-green-800 border-green-200",
-    medium: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    high: "bg-orange-100 text-orange-800 border-orange-200",
-    urgent: "bg-red-100 text-red-800 border-red-200",
-    critical: "bg-purple-100 text-purple-800 border-purple-200",
-  };
-
-  const timelineEvents = [
-    { event: "Submitted", date: complaint.submitted_at, icon: Calendar },
-    { event: "Received", date: complaint.received_at, icon: CheckCircle },
-    { event: "Assigned", date: complaint.assigned_at, icon: User },
-    { event: "In Progress", date: complaint.in_progress_at, icon: AlertCircle },
-    { event: "Resolved", date: complaint.resolved_at, icon: CheckCircle },
-    { event: "Closed", date: complaint.closed_at, icon: CheckCircle },
-  ].filter((event) => event.date);
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/citizen/complaints">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 w-4 h-4" />
-              Back to Complaints
+    <div className="container mx-auto px-4 py-8">
+      {/* Header with Actions */}
+      <div className="mb-8">
+        <ComplaintHeader
+          complaint={complaint}
+          onBack={() => router.push("/citizen/complaints")}
+        />
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-6">
+          <div className="flex items-center gap-2">
+            {isSubscribed && (
+              <Badge variant="outline" className="animate-pulse">
+                <div className="h-2 w-2 rounded-full bg-green-500 mr-2" />
+                Live Updates
+              </Badge>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
             </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              {complaint.title}
-              <Badge
-                variant={statusBadgeConfig[complaint.status]?.variant as any}
-                className="ml-2"
-              >
-                {statusBadgeConfig[complaint.status]?.label}
-              </Badge>
-              {complaint.is_escalated && (
-                <Badge variant="destructive">Escalated</Badge>
-              )}
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-muted-foreground">
-                Tracking Code: {complaint.tracking_code}
-              </span>
-              <Badge className={priorityColors[complaint.priority]}>
-                {complaint.priority} Priority
-              </Badge>
-              {complaint.sla_breached && (
-                <Badge variant="destructive">SLA Breached</Badge>
-              )}
-            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 w-4 h-4" />
-            Export
-          </Button>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              className="gap-2"
+            >
+              <Printer className="h-4 w-4" />
+              Print
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="gap-2"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadDetails}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download
+            </Button>
+          </div>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="updates">Staff Updates</TabsTrigger>
+          <TabsTrigger value="comments">Comments</TabsTrigger>
           <TabsTrigger value="attachments">
-            Attachments ({attachments?.length || 0})
+            Attachments ({attachments.length})
           </TabsTrigger>
-          {feedback || canGiveFeedback ? (
+          {(complaint.status === "resolved" ||
+            complaint.status === "closed") && (
             <TabsTrigger value="feedback">Feedback</TabsTrigger>
-          ) : null}
+          )}
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Description Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Complaint Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold mb-2">Description</h4>
-                    <p className="text-muted-foreground whitespace-pre-line">
-                      {complaint.description}
-                    </p>
-                  </div>
+              <ComplaintDetails
+                complaint={complaint}
+                showPriority={true}
+                showContactInfo={true}
+              />
 
-                  {complaint.resolution_notes && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Resolution Notes</h4>
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <p className="text-green-800 whitespace-pre-line">
-                          {complaint.resolution_notes}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <Separator />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Category</h4>
-                      <div className="flex items-center gap-2">
-                        <span>{complaint.category?.name}</span>
-                        {complaint.subcategory?.name && (
-                          <>
-                            <span className="text-muted-foreground">/</span>
-                            <span>{complaint.subcategory?.name}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold mb-2">
-                        Assigned Department
-                      </h4>
-                      <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4 text-muted-foreground" />
-                        <span>
-                          {complaint.department?.name || "Not assigned"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold mb-2">Ward</h4>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <span>
-                          Ward {complaint.ward?.ward_number} -{" "}
-                          {complaint.ward?.name}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold mb-2">Assigned Staff</h4>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        <span>
-                          {complaint.assigned_staff?.[0]?.user_profiles
-                            ?.full_name || "Not assigned"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {complaint.address_text && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Location</h4>
-                      <p className="text-muted-foreground">
-                        {complaint.address_text}
-                        {complaint.landmark && (
-                          <>
-                            <br />
-                            <span className="text-sm">
-                              Landmark: {complaint.landmark}
-                            </span>
-                          </>
-                        )}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Map */}
-              {complaint.location_point && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5" />
-                      Location Map
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 rounded-lg overflow-hidden">
-                      <ComplaintMap
-                        center={[
-                          complaint.location_point.coordinates[1],
-                          complaint.location_point.coordinates[0],
-                        ]}
-                        zoom={15}
-                        markerPosition={[
-                          complaint.location_point.coordinates[1],
-                          complaint.location_point.coordinates[0],
-                        ]}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <StaffUpdates
+                updates={comments}
+                isSubscribed={isSubscribed}
+                isLoading={false}
+              />
             </div>
 
-            {/* Right Column - Stats & Info */}
+            {/* Right Column */}
             <div className="space-y-6">
-              {/* Status Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Status & Timeline
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {timelineEvents.map((event, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <event.icon className="w-4 h-4 text-primary" />
-                          </div>
-                          {index < timelineEvents.length - 1 && (
-                            <div className="w-0.5 h-4 bg-border mt-1" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{event.event}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(event.date), "PPp")}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <StatusTimeline
+                complaint={complaint}
+                updates={statusHistory}
+                isSubscribed={isSubscribed}
+              />
 
-              {/* SLA Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5" />
-                    Service Level Agreement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Submitted
-                      </span>
-                      <span className="font-medium">
-                        {format(new Date(complaint.submitted_at), "PP")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        SLA Due
-                      </span>
-                      <span
-                        className={`font-medium ${
-                          complaint.sla_breached ? "text-red-600" : ""
-                        }`}
-                      >
-                        {complaint.sla_due_at
-                          ? format(new Date(complaint.sla_due_at), "PP")
-                          : "Not set"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Time to Resolve
-                      </span>
-                      <span className="font-medium">
-                        {complaint.time_to_resolve_hours
-                          ? `${Math.round(complaint.time_to_resolve_hours)} hours`
-                          : "Pending"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {complaint.sla_breached && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-600" />
-                        <span className="text-sm font-medium text-red-800">
-                          SLA Breached by{" "}
-                          {Math.round(complaint.sla_breach_hours)} hours
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Stats Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Complaint Stats</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Views</span>
-                    <span className="font-medium">{complaint.view_count}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Upvotes
-                    </span>
-                    <span className="font-medium">
-                      {complaint.upvote_count}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Attachments
-                    </span>
-                    <span className="font-medium">
-                      {attachments?.length || 0}
-                    </span>
-                  </div>
-                  {complaint.citizen_satisfaction_rating && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Your Rating
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="font-medium">
-                          {complaint.citizen_satisfaction_rating}/5
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <AssignmentInfo
+                complaint={complaint}
+                onContact={() => {
+                  // Contact functionality
+                  toast.info("Contact functionality would open here");
+                }}
+              />
             </div>
           </div>
         </TabsContent>
 
         {/* Timeline Tab */}
         <TabsContent value="timeline">
-          <Card>
-            <CardHeader>
-              <CardTitle>Status History</CardTitle>
-              <CardDescription>
-                Complete timeline of status changes
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {statusHistory && statusHistory.length > 0 ? (
-                <div className="space-y-4">
-                  {statusHistory.map((history: any, index: number) => (
-                    <div key={history.id} className="flex items-start gap-4">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={`w-3 h-3 rounded-full ${
-                            history.new_status === "resolved" ||
-                            history.new_status === "closed"
-                              ? "bg-green-500"
-                              : history.new_status === "rejected"
-                                ? "bg-red-500"
-                                : "bg-blue-500"
-                          }`}
-                        />
-                        {index < statusHistory.length - 1 && (
-                          <div className="w-0.5 h-4 bg-border mt-1" />
-                        )}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <StatusTimeline
+                complaint={complaint}
+                updates={statusHistory}
+                isSubscribed={isSubscribed}
+              />
+            </div>
+
+            <div className="space-y-6">
+              <AssignmentInfo
+                complaint={complaint}
+                onContact={() => {
+                  toast.info("Contact functionality would open here");
+                }}
+              />
+
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-lg">Key Dates</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <Clock className="h-4 w-4" />
+                      <span>Submitted</span>
+                    </div>
+                    <div className="font-medium">
+                      {new Date(complaint.submitted_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <Clock className="h-4 w-4" />
+                      <span>Last Updated</span>
+                    </div>
+                    <div className="font-medium">
+                      {new Date(complaint.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  {complaint.assigned_at && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Clock className="h-4 w-4" />
+                        <span>Assigned</span>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant={
-                                statusBadgeConfig[history.new_status]
-                                  ?.variant as any
-                              }
-                            >
-                              {statusBadgeConfig[history.new_status]?.label}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              {history.changed_by_role}
-                            </span>
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {format(new Date(history.changed_at), "PPp")}
-                          </span>
-                        </div>
-                        {history.note && (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            {history.note}
-                          </p>
-                        )}
+                      <div className="font-medium">
+                        {new Date(complaint.assigned_at).toLocaleDateString()}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
-                    No status history available
+                  )}
+
+                  {complaint.resolved_at && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Clock className="h-4 w-4" />
+                        <span>Resolved</span>
+                      </div>
+                      <div className="font-medium">
+                        {new Date(complaint.resolved_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Staff Updates Tab */}
+        <TabsContent value="updates">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <StaffUpdates
+                updates={comments}
+                isSubscribed={isSubscribed}
+                isLoading={false}
+              />
+            </div>
+
+            <div className="space-y-6">
+              <StatusTimeline
+                complaint={complaint}
+                updates={statusHistory}
+                isSubscribed={isSubscribed}
+              />
+
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-lg">Response Guidelines</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <ul className="space-y-2 text-sm text-slate-600">
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-slate-500 mt-0.5" />
+                      <span>Staff typically respond within 24-48 hours</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-slate-500 mt-0.5" />
+                      <span>
+                        Updates are posted during business hours (9 AM - 5 PM)
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-slate-500 mt-0.5" />
+                      <span>
+                        You'll be notified when staff post new updates
+                      </span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Comments Tab */}
+        <TabsContent value="comments">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <CommentThread
+                complaintId={complaintId}
+                comments={comments}
+                isSubscribed={isSubscribed}
+                onNewComment={handleNewComment}
+              />
+            </div>
+
+            <div className="space-y-6">
+              <StaffUpdates
+                updates={comments}
+                isSubscribed={isSubscribed}
+                isLoading={false}
+              />
+
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-lg">Comment Guidelines</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-slate-600">Use comments to:</p>
+                  <ul className="space-y-2 text-sm text-slate-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold">•</span>
+                      <span>Ask questions about the progress</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold">•</span>
+                      <span>Provide additional information</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold">•</span>
+                      <span>Request clarification from staff</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold">•</span>
+                      <span>Share updates or changes to the issue</span>
+                    </li>
+                  </ul>
+                  <Separator className="my-3" />
+                  <p className="text-xs text-slate-500">
+                    Note: All comments are public and visible to the assigned
+                    staff.
                   </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Attachments Tab */}
         <TabsContent value="attachments">
-          <Card>
-            <CardHeader>
-              <CardTitle>Attachments</CardTitle>
-              <CardDescription>Photos, videos, and documents</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ComplaintAttachmentsSection
-                attachments={attachments}
-                canDelete={complaint.citizen_id === user.id}
-              />
-            </CardContent>
-          </Card>
+          <AttachmentsGallery attachments={attachments} isLoading={false} />
+
+          <Separator className="my-6" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle className="text-lg">Upload Guidelines</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-slate-600">
+                    You can upload additional files to help staff understand
+                    your complaint better:
+                  </p>
+                  <ul className="space-y-2 text-sm text-slate-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 font-bold">✓</span>
+                      <span>Photos of the issue (JPG, PNG, GIF)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 font-bold">✓</span>
+                      <span>Documents (PDF, DOC, DOCX)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 font-bold">✓</span>
+                      <span>Videos (MP4, MOV)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500 font-bold">✗</span>
+                      <span>Large files (max 10MB each)</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  toast.info("File upload functionality would open here");
+                }}
+              >
+                Upload Additional Files
+              </Button>
+            </div>
+          </div>
         </TabsContent>
 
-        {/* Feedback Tab */}
-        <TabsContent value="feedback">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                Feedback
-              </CardTitle>
-              <CardDescription>
-                Share your experience and rate the service
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FeedbackSection
-                complaintId={id}
-                existingFeedback={feedback}
-                canGiveFeedback={canGiveFeedback}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Feedback Tab (only for resolved/closed complaints) */}
+        {(complaint.status === "resolved" || complaint.status === "closed") && (
+          <TabsContent value="feedback">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <FeedbackForm
+                  complaintId={complaintId}
+                  complaintStatus={complaint.status}
+                  onSubmitSuccess={handleFeedbackSubmit}
+                />
+              </div>
+
+              <div className="space-y-6">
+                <Card className="border-slate-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Why Feedback Matters
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <ul className="space-y-3 text-sm text-slate-600">
+                      <li className="flex items-start gap-2">
+                        <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-blue-600 font-bold">1</span>
+                        </div>
+                        <span>Helps us improve our services</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-blue-600 font-bold">2</span>
+                        </div>
+                        <span>Recognizes staff who did great work</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-blue-600 font-bold">3</span>
+                        </div>
+                        <span>
+                          Guides resource allocation for future issues
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <span className="text-blue-600 font-bold">4</span>
+                        </div>
+                        <span>Makes our municipality more responsive</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-slate-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Your Complaint Journey
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">
+                          Days to resolution
+                        </span>
+                        <span className="font-medium">
+                          {complaint.actual_resolution_days ||
+                            Math.ceil(
+                              (new Date(
+                                complaint.resolved_at || complaint.updated_at
+                              ).getTime() -
+                                new Date(complaint.submitted_at).getTime()) /
+                                (1000 * 60 * 60 * 24)
+                            )}{" "}
+                          days
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">
+                          Status updates
+                        </span>
+                        <span className="font-medium">
+                          {statusHistory.length}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">
+                          Comments exchanged
+                        </span>
+                        <span className="font-medium">{comments.length}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">
+                          Attachments
+                        </span>
+                        <span className="font-medium">
+                          {attachments.length}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
