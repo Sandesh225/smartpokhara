@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
+import { Button } from "@/ui/button";
+import { Input } from "@/ui/input";
 import { Download, Filter, MapPin, Table } from "lucide-react";
 import AdminComplaintsTable from "@/components/admin/complaints/AdminComplaintsTable";
 import AdminComplaintsFilters from "@/components/admin/complaints/AdminComplaintsFilters";
@@ -60,8 +60,9 @@ export default function ComplaintsPage() {
         .select("*", { count: "exact", head: true });
 
       setPagination((prev) => ({ ...prev, total: count || 0 }));
-    } catch (error) {
-      console.error("Error fetching complaints:", error);
+   } catch (error) {
+      // CHANGE: Use JSON.stringify to see the real error details
+      console.error("Error fetching complaints:", JSON.stringify(error, null, 2));
     } finally {
       setLoading(false);
     }
