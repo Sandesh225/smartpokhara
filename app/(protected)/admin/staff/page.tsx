@@ -3,7 +3,7 @@ import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth/role-helpers";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import StaffList from "@/components/admin/staff/StaffList";
