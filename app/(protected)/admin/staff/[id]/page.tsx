@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/auth/role-helpers";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import StaffProfileForm from "@/components/admin/staff/StaffProfileForm";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/ui/card";
 
 export default async function StaffDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
