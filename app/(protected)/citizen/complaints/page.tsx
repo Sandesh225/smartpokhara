@@ -1,771 +1,676 @@
-// app/(protected)/citizen/complaints/page.tsx - COMPLETE VERSION
+// app/citizen/complaints/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/ui/card";
+import { Button } from "@/ui/button";
+
+import { Input } from "@/ui/input";
+
+import { Separator } from "@/ui//separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
+
+import { Badge } from "@/ui/badge";
+
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui";
-import {
-  FileText,
+  Download,
+  Filter,
+  Plus,
+  RefreshCw,
+  Search,
+  BarChart3,
+  Bell,
   AlertCircle,
   CheckCircle,
   Clock,
-  Plus,
-  Search,
-  Filter,
-  MapPin,
-  Calendar,
-  Building,
-  Download,
-  Eye,
-  MessageSquare,
-  Loader2,
 } from "lucide-react";
-import Link from "next/link";
-import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
-import { Complaint, ComplaintWithRelations } from "@/lib/types/complaints";
-
-interface FilterState {
-  status: string;
-  category: string;
-  ward: string;
-  dateFrom: string;
-  dateTo: string;
-  search: string;
-}
+import { ComplaintsTable } from "@/components/citizen/complaints/ComplaintsTable";
+import {
+  ComplaintFilters,
+  type FilterState,
+} from "@/components/citizen/complaints/ComplaintFilters";
+import { complaintsService } from "@/lib/supabase/queries/complaints";
+import type {
+  Complaint,
+  ComplaintStatus,
+  ComplaintPriority,
+} from "@/lib/supabase/queries/complaints";
 
 export default function ComplaintsPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const searchParams = useSearchParams();
 
-  const [complaints, setComplaints] = useState<ComplaintWithRelations[]>([]);
-  const [filteredComplaints, setFilteredComplaints] = useState<
-    ComplaintWithRelations[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [exporting, setExporting] = useState(false);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-    []
-  );
-  const [wards, setWards] = useState<
-    { id: string; ward_number: number; name: string }[]
-  >([]);
-
-  const [filters, setFilters] = useState<FilterState>({
-    status: "all",
-    category: "all",
-    ward: "all",
-    dateFrom: "",
-    dateTo: "",
-    search: "",
+  // State
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [totalComplaints, setTotalComplaints] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    open: 0,
+    in_progress: 0,
+    resolved: 0,
   });
+
+  // Pagination & filters
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
+    status: [],
+    priority: [],
+    category_id: null,
+    ward_id: null,
+    date_from: null,
+    date_to: null,
+  });
+  const [sortBy, setSortBy] = useState<
+    "submitted_at" | "priority" | "sla_due_at"
+  >("submitted_at");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
+  const [activeTab, setActiveTab] = useState("all");
 
   // Fetch initial data
   useEffect(() => {
-    fetchData();
-    setupRealtimeSubscription();
+    fetchCategoriesAndWards();
+    fetchStats();
   }, []);
 
-  // Apply filters
+  // Fetch complaints when filters/pagination/sort changes
   useEffect(() => {
-    applyFilters();
-  }, [complaints, filters]);
+    fetchComplaints();
+  }, [currentPage, filters, sortBy, sortOrder, activeTab]);
 
-  async function fetchData() {
+  // Parse URL params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    const newFilters: FilterState = {
+      search: params.get("search") || "",
+      status:
+        (params
+          .get("status")
+          ?.split(",")
+          .filter(Boolean) as ComplaintStatus[]) || [],
+      priority:
+        (params
+          .get("priority")
+          ?.split(",")
+          .filter(Boolean) as ComplaintPriority[]) || [],
+      category_id: params.get("category") || null,
+      ward_id: params.get("ward") || null,
+      date_from: params.get("date_from")
+        ? new Date(params.get("date_from")!)
+        : null,
+      date_to: params.get("date_to") ? new Date(params.get("date_to")!) : null,
+    };
+
+    setFilters(newFilters);
+    setSearchTerm(newFilters.search);
+
+    if (params.get("page")) {
+      setCurrentPage(parseInt(params.get("page")!) || 1);
+    }
+
+    if (params.get("sort_by")) {
+      setSortBy(params.get("sort_by") as any);
+    }
+
+    if (params.get("sort_order")) {
+      setSortOrder(params.get("sort_order") as "ASC" | "DESC");
+    }
+
+    if (params.get("tab")) {
+      setActiveTab(params.get("tab")!);
+    }
+  }, [searchParams]);
+
+  const fetchCategoriesAndWards = async () => {
     try {
-      setLoading(true);
+      const [cats, wds] = await Promise.all([
+        complaintsService.getCategories(),
+        complaintsService.getWards(),
+      ]);
+      setCategories(cats);
+      setWards(wds);
+    } catch (error) {
+      console.error("Error fetching categories and wards:", error);
+      toast.error("Failed to load filter options");
+    }
+  };
 
-      // Fetch user complaints
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        router.push("/login");
-        return;
+  const fetchStats = async () => {
+    try {
+      const stats = await complaintsService.getDashboardStats();
+      setStats(stats.complaints);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchComplaints = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Prepare query params based on active tab
+      let statusFilter: ComplaintStatus[] = [];
+      if (activeTab === "open") {
+        statusFilter = [
+          "received",
+          "under_review",
+          "assigned",
+          "in_progress",
+          "reopened",
+        ];
+      } else if (activeTab === "in_progress") {
+        statusFilter = ["in_progress", "assigned"];
+      } else if (activeTab === "resolved") {
+        statusFilter = ["resolved", "closed"];
+      } else if (activeTab === "pending") {
+        statusFilter = ["received", "under_review", "assigned"];
       }
 
-      const { data: complaintsData, error } = await supabase
-        .from("complaints")
-        .select(
-          `
-          *,
-          category:complaint_categories(name),
-          subcategory:complaint_subcategories(name),
-          ward:wards(ward_number, name),
-          department:departments(name),
-          assigned_staff:users!complaints_assigned_staff_id_fkey(
-            id,
-            user_profiles(full_name)
-          )
-        `
-        )
-        .eq("citizen_id", userData.user.id)
-        .order("submitted_at", { ascending: false });
+      // Combine tab filters with manual filters
+      const combinedStatus =
+        filters.status.length > 0 ? filters.status : statusFilter;
 
-      if (error) throw error;
-
-      setComplaints(complaintsData || []);
-
-      // Fetch categories
-      const { data: categoriesData } = await supabase
-        .from("complaint_categories")
-        .select("id, name")
-        .eq("is_active", true)
-        .order("name");
-
-      setCategories(categoriesData || []);
-
-      // Fetch wards
-      const { data: wardsData } = await supabase
-        .from("wards")
-        .select("id, ward_number, name")
-        .eq("is_active", true)
-        .order("ward_number");
-
-      setWards(wardsData || []);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to load complaints");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function setupRealtimeSubscription() {
-    const channel = supabase
-      .channel("complaints-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "complaints",
-        },
-        (payload) => {
-          if (
-            payload.eventType === "INSERT" ||
-            payload.eventType === "UPDATE"
-          ) {
-            // Refresh complaints list
-            fetchData();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }
-
-  function applyFilters() {
-    let filtered = [...complaints];
-
-    // Status filter
-    if (filters.status !== "all") {
-      const statusMap: Record<string, string[]> = {
-        active: [
-          "submitted",
-          "received",
-          "assigned",
-          "accepted",
-          "in_progress",
-        ],
-        pending: ["submitted", "received"],
-        in_progress: ["assigned", "accepted", "in_progress"],
-        resolved: ["resolved", "closed"],
-        rejected: ["rejected"],
+      const params = {
+        status: combinedStatus,
+        priority: filters.priority,
+        category_id: filters.category_id || undefined,
+        ward_id: filters.ward_id || undefined,
+        date_from: filters.date_from?.toISOString(),
+        date_to: filters.date_to?.toISOString(),
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        limit: pageSize,
+        offset: (currentPage - 1) * pageSize,
       };
-      filtered = filtered.filter((c) =>
-        statusMap[filters.status]?.includes(c.status)
-      );
+
+      const result = await complaintsService.getUserComplaints(params);
+
+      setComplaints(result.complaints);
+      setTotalComplaints(result.total);
+    } catch (error: any) {
+      console.error("Error fetching complaints:", error);
+      toast.error("Failed to load complaints", {
+        description: error.message || "Please try again later",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, filters, sortBy, sortOrder, activeTab, pageSize]);
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+
+    // Update URL params
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set("search", value);
+    } else {
+      params.delete("search");
     }
 
-    // Category filter
-    if (filters.category !== "all") {
-      filtered = filtered.filter((c) => c.category_id === filters.category);
-    }
+    router.replace(`?${params.toString()}`);
 
-    // Ward filter
-    if (filters.ward !== "all") {
-      filtered = filtered.filter((c) => c.ward_id === filters.ward);
-    }
+    // Update filters with debounce
+    const timeoutId = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: value }));
+      setCurrentPage(1);
+    }, 300);
 
-    // Date range filter
-    if (filters.dateFrom) {
-      const fromDate = new Date(filters.dateFrom);
-      filtered = filtered.filter((c) => new Date(c.submitted_at) >= fromDate);
-    }
-    if (filters.dateTo) {
-      const toDate = new Date(filters.dateTo);
-      toDate.setHours(23, 59, 59);
-      filtered = filtered.filter((c) => new Date(c.submitted_at) <= toDate);
-    }
+    return () => clearTimeout(timeoutId);
+  };
 
-    // Search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        (c) =>
-          c.tracking_code.toLowerCase().includes(searchLower) ||
-          c.title.toLowerCase().includes(searchLower)
-      );
-    }
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
 
-    setFilteredComplaints(filtered);
-  }
+    // Update URL params
+    const params = new URLSearchParams();
 
-  async function handleExportCSV() {
+    if (newFilters.search) params.set("search", newFilters.search);
+    if (newFilters.status.length > 0)
+      params.set("status", newFilters.status.join(","));
+    if (newFilters.priority.length > 0)
+      params.set("priority", newFilters.priority.join(","));
+    if (newFilters.category_id) params.set("category", newFilters.category_id);
+    if (newFilters.ward_id) params.set("ward", newFilters.ward_id);
+    if (newFilters.date_from)
+      params.set("date_from", newFilters.date_from.toISOString());
+    if (newFilters.date_to)
+      params.set("date_to", newFilters.date_to.toISOString());
+
+    router.replace(`?${params.toString()}`);
+  };
+
+  const handleSortChange = (
+    newSortBy: string,
+    newSortOrder: "ASC" | "DESC"
+  ) => {
+    setSortBy(newSortBy as any);
+    setSortOrder(newSortOrder);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sort_by", newSortBy);
+    params.set("sort_order", newSortOrder);
+    router.replace(`?${params.toString()}`);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.replace(`?${params.toString()}`);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      status: [],
+      priority: [],
+      category_id: null,
+      ward_id: null,
+      date_from: null,
+      date_to: null,
+    });
+    setSearchTerm("");
+    setActiveTab("all");
+    setCurrentPage(1);
+    router.replace("/citizen/complaints");
+  };
+
+  const handleExportCSV = async () => {
     try {
-      setExporting(true);
+      setIsLoading(true);
+      toast.info("Preparing CSV export...");
 
+      // Fetch all complaints without pagination for export
+      const allComplaints = await complaintsService.searchComplaints({
+        status: filters.status.length > 0 ? filters.status : undefined,
+        priority: filters.priority.length > 0 ? filters.priority : undefined,
+        category_id: filters.category_id || undefined,
+        ward_id: filters.ward_id || undefined,
+        date_from: filters.date_from?.toISOString(),
+        date_to: filters.date_to?.toISOString(),
+        limit: 1000,
+        offset: 0,
+      });
+
+      // Convert to CSV
       const headers = [
         "Tracking Code",
         "Title",
         "Category",
+        "Subcategory",
         "Ward",
         "Status",
         "Priority",
         "Submitted Date",
         "Last Updated",
-        "SLA Due",
-        "Resolution Date",
+        "SLA Due Date",
+        "Description",
       ];
 
-      const rows = filteredComplaints.map((c) => [
-        c.tracking_code,
-        c.title,
-        c.category?.name || "",
-        `Ward ${c.ward?.ward_number}`,
-        getStatusLabel(c.status),
-        c.priority,
-        format(new Date(c.submitted_at), "yyyy-MM-dd HH:mm"),
-        format(new Date(c.updated_at), "yyyy-MM-dd HH:mm"),
-        c.sla_due_at ? format(new Date(c.sla_due_at), "yyyy-MM-dd") : "",
-        c.resolved_at ? format(new Date(c.resolved_at), "yyyy-MM-dd") : "",
+      const rows = allComplaints.complaints.map((complaint) => [
+        complaint.tracking_code,
+        complaint.title,
+        complaint.category_name,
+        complaint.subcategory_name || "",
+        `Ward ${complaint.ward_number}`,
+        complaint.status,
+        complaint.priority,
+        new Date(complaint.submitted_at).toLocaleDateString(),
+        new Date(complaint.updated_at).toLocaleDateString(),
+        complaint.sla_due_at
+          ? new Date(complaint.sla_due_at).toLocaleDateString()
+          : "",
+        complaint.description.replace(/"/g, '""').replace(/\n/g, " "),
       ]);
 
       const csvContent = [
-        headers.join(","),
+        headers.map((h) => `"${h}"`).join(","),
         ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
       ].join("\n");
 
-      const blob = new Blob([csvContent], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `complaints_${format(new Date(), "yyyy-MM-dd")}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      // Create download link
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `complaints_${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-      toast.success("Complaints exported successfully");
-    } catch (error) {
-      console.error("Export error:", error);
-      toast.error("Failed to export complaints");
+      toast.success("CSV exported successfully");
+    } catch (error: any) {
+      console.error("Error exporting CSV:", error);
+      toast.error("Failed to export CSV", {
+        description: error.message || "Please try again",
+      });
     } finally {
-      setExporting(false);
+      setIsLoading(false);
     }
-  }
-
-  function getStatusLabel(status: string) {
-    const labels: Record<string, string> = {
-      draft: "Draft",
-      submitted: "Submitted",
-      received: "Received",
-      assigned: "Assigned",
-      accepted: "Accepted",
-      in_progress: "In Progress",
-      resolved: "Resolved",
-      closed: "Closed",
-      rejected: "Rejected",
-      reopened: "Reopened",
-    };
-    return labels[status] || status;
-  }
-
-  function getStatusColor(status: string) {
-    const colors: Record<string, string> = {
-      draft: "bg-gray-100 text-gray-800",
-      submitted: "bg-blue-100 text-blue-800",
-      received: "bg-blue-100 text-blue-800",
-      assigned: "bg-indigo-100 text-indigo-800",
-      accepted: "bg-indigo-100 text-indigo-800",
-      in_progress: "bg-amber-100 text-amber-800",
-      resolved: "bg-green-100 text-green-800",
-      closed: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-      reopened: "bg-yellow-100 text-yellow-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  }
-
-  function getPriorityColor(priority: string) {
-    const colors: Record<string, string> = {
-      low: "bg-green-100 text-green-800",
-      medium: "bg-yellow-100 text-yellow-800",
-      high: "bg-orange-100 text-orange-800",
-      urgent: "bg-red-100 text-red-800",
-      critical: "bg-purple-100 text-purple-800",
-    };
-    return colors[priority] || "bg-gray-100 text-gray-800";
-  }
-
-  const stats = {
-    total: complaints.length,
-    pending: complaints.filter((c) =>
-      ["submitted", "received"].includes(c.status)
-    ).length,
-    inProgress: complaints.filter((c) =>
-      ["assigned", "accepted", "in_progress"].includes(c.status)
-    ).length,
-    resolved: complaints.filter((c) =>
-      ["resolved", "closed"].includes(c.status)
-    ).length,
-    overdue: complaints.filter(
-      (c) =>
-        c.sla_due_at &&
-        new Date(c.sla_due_at) < new Date() &&
-        !["resolved", "closed", "rejected"].includes(c.status)
-    ).length,
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  const handleRefresh = () => {
+    fetchComplaints();
+    fetchStats();
+    toast.success("Complaints list refreshed");
+  };
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = complaintsService.subscribeToComplaint("*", (payload) => {
+      console.log("Real-time update:", payload);
+      // Refresh data when complaint changes
+      fetchComplaints();
+      fetchStats();
+    });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [fetchComplaints]);
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Complaints</h1>
-          <p className="text-muted-foreground">
-            Track and manage all your submitted complaints
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleExportCSV}
-            disabled={exporting || filteredComplaints.length === 0}
-          >
-            {exporting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            Export CSV
-          </Button>
-          <Link href="/citizen/complaints/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">My Complaints</h1>
+            <p className="text-slate-600 mt-2">
+              Track and manage all your submitted complaints
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="gap-2"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
+
+            <Button
+              onClick={() => router.push("/citizen/complaints/new")}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
               New Complaint
             </Button>
-          </Link>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="border-slate-200 hover:border-blue-300 transition-colors">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    Total Complaints
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {stats.total}
+                  </p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <BarChart3 className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 hover:border-amber-300 transition-colors">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Open</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {stats.open}
+                  </p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
+                  <AlertCircle className="h-6 w-6 text-amber-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 hover:border-purple-300 transition-colors">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">
+                    In Progress
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {stats.in_progress}
+                  </p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 hover:border-green-300 transition-colors">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600">Resolved</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {stats.resolved}
+                  </p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total
-                </p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-              <FileText className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Pending
-                </p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.pending}
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  In Progress
-                </p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {stats.inProgress}
-                </p>
-              </div>
-              <AlertCircle className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Resolved
-                </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.resolved}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Overdue
-                </p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.overdue}
-                </p>
-              </div>
-              <AlertCircle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-          <CardDescription>
-            Filter your complaints by various criteria
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <Select
-                value={filters.status}
-                onValueChange={(value) =>
-                  setFilters({ ...filters, status: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Category</label>
-              <Select
-                value={filters.category}
-                onValueChange={(value) =>
-                  setFilters({ ...filters, category: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ward</label>
-              <Select
-                value={filters.ward}
-                onValueChange={(value) =>
-                  setFilters({ ...filters, ward: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Wards" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Wards</SelectItem>
-                  {wards.map((ward) => (
-                    <SelectItem key={ward.id} value={ward.id}>
-                      Ward {ward.ward_number}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">From Date</label>
-              <Input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) =>
-                  setFilters({ ...filters, dateFrom: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">To Date</label>
-              <Input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) =>
-                  setFilters({ ...filters, dateTo: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
-              <Input
-                placeholder="Search by ID or title"
-                value={filters.search}
-                onChange={(e) =>
-                  setFilters({ ...filters, search: e.target.value })
-                }
-                className="h-10"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Complaints Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>
-                All Complaints ({filteredComplaints.length})
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Filters Sidebar */}
+        <div className="lg:col-span-1">
+          <Card className="border-slate-200 sticky top-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filters
               </CardTitle>
-              <CardDescription>
-                Showing {filteredComplaints.length} of {complaints.length}{" "}
-                complaints
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filteredComplaints.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold">No complaints found</h3>
-              <p className="text-muted-foreground mb-6">
-                {filters.status !== "all" ||
-                filters.category !== "all" ||
-                filters.ward !== "all" ||
-                filters.search
-                  ? "No complaints match your filters."
-                  : "You haven't submitted any complaints yet."}
-              </p>
-              {filters.status !== "all" ||
-              filters.category !== "all" ||
-              filters.ward !== "all" ||
-              filters.search ? (
+              <CardDescription>Filter your complaints</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ComplaintFilters
+                statuses={[
+                  "received",
+                  "under_review",
+                  "assigned",
+                  "in_progress",
+                  "resolved",
+                  "closed",
+                  "rejected",
+                  "reopened",
+                ]}
+                priorities={["critical", "urgent", "high", "medium", "low"]}
+                categories={categories}
+                wards={wards}
+                onFilterChange={handleFilterChange}
+              />
+
+              <Separator className="my-4" />
+
+              <div className="space-y-3">
+                <h4 className="font-medium text-slate-900">Quick Actions</h4>
                 <Button
                   variant="outline"
-                  onClick={() =>
-                    setFilters({
-                      status: "all",
-                      category: "all",
-                      ward: "all",
-                      dateFrom: "",
-                      dateTo: "",
-                      search: "",
-                    })
+                  className="w-full justify-start"
+                  onClick={handleExportCSV}
+                  disabled={isLoading || complaints.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export to CSV
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={handleClearFilters}
+                  disabled={
+                    !searchTerm &&
+                    !filters.status.length &&
+                    !filters.priority.length &&
+                    !filters.category_id &&
+                    !filters.ward_id
                   }
                 >
-                  Clear Filters
+                  <Filter className="h-4 w-4 mr-2" />
+                  Clear All Filters
                 </Button>
-              ) : (
-                <Link href="/citizen/complaints/new">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Submit Your First Complaint
-                  </Button>
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tracking Code</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Ward</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>SLA Due</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredComplaints.map((complaint) => {
-                    const isOverdue =
-                      complaint.sla_due_at &&
-                      new Date(complaint.sla_due_at) < new Date() &&
-                      !["resolved", "closed", "rejected"].includes(
-                        complaint.status
-                      );
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-                    return (
-                      <TableRow key={complaint.id}>
-                        <TableCell className="font-mono text-sm font-medium">
-                          {complaint.tracking_code}
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-xs truncate">
-                            {complaint.title}
-                          </div>
-                        </TableCell>
-                        <TableCell>{complaint.category?.name}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Badge className={getStatusColor(complaint.status)}>
-                              {getStatusLabel(complaint.status)}
-                            </Badge>
-                            {isOverdue && (
-                              <Badge variant="destructive">Overdue</Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={getPriorityColor(complaint.priority)}
-                          >
-                            {complaint.priority}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            Ward {complaint.ward?.ward_number}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDistanceToNow(
-                              new Date(complaint.submitted_at),
-                              {
-                                addSuffix: true,
-                              }
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {complaint.sla_due_at ? (
-                              <span
-                                className={
-                                  isOverdue ? "text-red-600 font-medium" : ""
-                                }
-                              >
-                                {formatDistanceToNow(
-                                  new Date(complaint.sla_due_at),
-                                  {
-                                    addSuffix: true,
-                                  }
-                                )}
-                              </span>
-                            ) : (
-                              "Not set"
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Link href={`/citizen/complaints/${complaint.id}`}>
-                              <Button variant="ghost" size="sm">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            {["resolved", "closed"].includes(
-                              complaint.status
-                            ) &&
-                              !complaint.citizen_satisfaction_rating && (
-                                <Link
-                                  href={`/citizen/complaints/${complaint.id}/feedback`}
-                                >
-                                  <Button variant="outline" size="sm">
-                                    <MessageSquare className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+        {/* Complaints List */}
+        <div className="lg:col-span-3">
+          <Card className="border-slate-200">
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <Input
+                      placeholder="Search by tracking code or title..."
+                      className="pl-10"
+                      value={searchTerm}
+                      onChange={(e) => handleSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">
+                    {totalComplaints} complaint
+                    {totalComplaints !== 1 ? "s" : ""}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="mt-4"
+              >
+                <TabsList className="grid grid-cols-5 lg:w-auto">
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="open">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Open
+                  </TabsTrigger>
+                  <TabsTrigger value="in_progress">
+                    <Clock className="h-4 w-4 mr-2" />
+                    In Progress
+                  </TabsTrigger>
+                  <TabsTrigger value="resolved">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Resolved
+                  </TabsTrigger>
+                  <TabsTrigger value="pending">
+                    <Bell className="h-4 w-4 mr-2" />
+                    Pending
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardHeader>
+
+            <CardContent>
+              <ComplaintsTable
+                complaints={complaints}
+                total={totalComplaints}
+                isLoading={isLoading}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onSortChange={handleSortChange}
+                onRowClick={(complaint) =>
+                  router.push(`/citizen/complaints/${complaint.id}`)
+                }
+              />
+            </CardContent>
+          </Card>
+
+          {/* Empty State Guidance */}
+          {complaints.length === 0 && !isLoading && (
+            <Card className="border-slate-200 mt-6">
+              <CardContent className="py-12">
+                <div className="text-center">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                    <Search className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                    No complaints found
+                  </h3>
+                  <p className="text-slate-600 max-w-md mx-auto mb-6">
+                    {filters.search ||
+                    filters.status.length > 0 ||
+                    filters.category_id ||
+                    filters.ward_id
+                      ? "Try adjusting your filters or search term"
+                      : "You haven't submitted any complaints yet"}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={handleClearFilters}
+                      className="gap-2"
+                    >
+                      <Filter className="h-4 w-4" />
+                      Clear Filters
+                    </Button>
+                    <Button
+                      onClick={() => router.push("/citizen/complaints/new")}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Submit New Complaint
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
