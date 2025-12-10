@@ -2,9 +2,15 @@
 
 import { useMemo } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/ui/card";
+import { Button } from "@/ui/button";
+import { Badge } from "@/ui/badge";
 import { useStaffNotifications } from "@/lib/hooks/use-complaints"
 import { formatRelativeTime } from "@/lib/utils/format"
 import { Bell, CheckCircle, RefreshCw, Inbox } from "lucide-react"
