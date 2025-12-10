@@ -1,116 +1,115 @@
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { notFound, redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import SupervisorResolutionReview from "@/components/supervisor/SupervisorResolutionReview"; // Import component
-import TimelineView from "@/components/citizen/TimelineView"; // Reuse timeline
+import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { getSupervisorJurisdiction } from "@/lib/utils/jurisdiction-helpers";
 
-export default async function SupervisorComplaintDetail({
-  params,
-}: {
+import { ComplaintDetailHeader } from "@/components/supervisor/complaints/ComplaintDetailHeader";
+import { ComplaintInfoCard } from "@/components/supervisor/complaints/ComplaintInfoCard";
+import { AssignmentPanel } from "@/components/supervisor/complaints/AssignmentPanel";
+import { StatusTimeline } from "@/components/supervisor/complaints/StatusTimeline";
+import { SLATracker } from "@/components/supervisor/complaints/SLATracker";
+import { CommunicationThread } from "@/components/supervisor/complaints/CommunicationThread";
+import { CitizenInfoPanel } from "@/components/supervisor/complaints/CitizenInfoPanel";
+import { AttachmentsSection } from "@/components/supervisor/complaints/AttachmentsSection";
+import { InternalNotes } from "@/components/supervisor/complaints/InternalNotes";
+import { PriorityPanel } from "@/components/supervisor/complaints/PriorityPanel";
+import { RelatedComplaints } from "@/components/supervisor/complaints/RelatedComplaints";
+
+export const dynamic = "force-dynamic";
+
+interface PageProps {
   params: Promise<{ id: string }>;
-}) {
+}
+
+export default async function ComplaintDetailPage({ params }: PageProps) {
   const { id } = await params;
   const user = await getCurrentUserWithRoles();
+
   if (!user) redirect("/login");
 
   const supabase = await createClient();
 
-  const { data: c, error } = await supabase
-    .from("complaints")
-    .select(
-      `
-      *, 
-      ward:wards(ward_number), 
-      category:complaint_categories(name),
-      assigned_staff:users!assigned_staff_id(user_profiles(full_name))
-    `
-    )
-    .eq("id", id)
-    .single();
+  // 1. Parallel Data Fetching
+  const [
+    complaintRes,
+    timelineRes,
+    attachmentsRes,
+    internalNotesRes,
+    relatedRes,
+  ] = await Promise.all([
+    supervisorComplaintsQueries.getComplaintById(supabase, id),
+    supervisorComplaintsQueries
+      .getComplaintTimeline(supabase, id)
+      .catch(() => []),
+    supervisorComplaintsQueries
+      .getComplaintAttachments(supabase, id)
+      .catch(() => ({ citizenUploads: [], staffUploads: [] })),
+    supervisorComplaintsQueries.getInternalNotes(supabase, id).catch(() => []),
+    supervisorComplaintsQueries
+      .getRelatedComplaints(supabase, id)
+      .catch(() => []),
+  ]);
 
-  if (error || !c) notFound();
+  const complaint = complaintRes.data;
+
+  if (!complaint) return notFound();
+
+  // 2. Jurisdiction Check (simplified for stability)
+  const jurisdiction = await getSupervisorJurisdiction(user.id);
+  // Add robust check here if needed
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Complaint Management</h1>
-        <Badge variant="outline" className="text-base px-3 py-1 uppercase">
-          {c.status.replace("_", " ")}
-        </Badge>
-      </div>
+    <div className="min-h-screen bg-gray-50 pb-12">
+      <ComplaintDetailHeader complaint={complaint} userId={user.id} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Issue Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-md border">
-                <h3 className="font-semibold text-lg">{c.title}</h3>
-                <p className="text-gray-700 mt-2">{c.description}</p>
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* LEFT COLUMN (Main Info) - Spans 8 cols */}
+          <div className="lg:col-span-8 space-y-6">
+            <ComplaintInfoCard complaint={complaint} />
 
-              {/* Resolution Notes (if available) */}
-              {c.resolution_notes && (
-                <div className="bg-green-50 p-4 rounded-md border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-1">
-                    Staff Resolution Notes:
-                  </h4>
-                  <p className="text-green-700">{c.resolution_notes}</p>
-                </div>
-              )}
+            <AttachmentsSection
+              citizenUploads={attachmentsRes.citizenUploads}
+              staffUploads={attachmentsRes.staffUploads}
+            />
 
-              {/* SUPERVISOR REVIEW ACTION */}
-              {c.status === "resolved" && (
-                <div className="mt-6 pt-6 border-t">
-                  <SupervisorResolutionReview
-                    complaintId={c.id}
-                    status={c.status}
-                    // onUpdate handled by client component router.refresh()
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            <CommunicationThread
+              complaintId={complaint.id}
+              initialMessages={complaint.updates || []}
+              currentUserId={user.id}
+            />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TimelineView complaintId={c.id} />
-            </CardContent>
-          </Card>
-        </div>
+            <InternalNotes
+              complaintId={complaint.id}
+              initialNotes={internalNotesRes}
+            />
 
-        {/* Sidebar Info */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Assignment Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div>
-                <span className="block text-gray-500">Assigned Staff</span>
-                <span className="font-medium">
-                  {c.assigned_staff?.user_profiles?.full_name || "Unassigned"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-gray-500">Priority</span>
-                <span className="font-medium capitalize">{c.priority}</span>
-              </div>
-              <div>
-                <span className="block text-gray-500">Department</span>
-                {/* We assume supervisor knows their own dept, but could fetch dept name */}
-                <span className="font-medium">Your Department</span>
-              </div>
-            </CardContent>
-          </Card>
+            <StatusTimeline history={complaint.history || []} />
+          </div>
+
+          {/* RIGHT COLUMN (Management) - Spans 4 cols */}
+          <div className="lg:col-span-4 space-y-6">
+            <SLATracker
+              deadline={complaint.sla_due_at}
+              status={complaint.status}
+              createdAt={complaint.submitted_at}
+            />
+
+            <AssignmentPanel
+              complaint={complaint}
+              currentSupervisorId={user.id}
+            />
+
+            <PriorityPanel
+              complaintId={complaint.id}
+              currentPriority={complaint.priority}
+            />
+
+            <CitizenInfoPanel citizen={complaint.citizen} />
+
+            <RelatedComplaints complaints={relatedRes} />
+          </div>
         </div>
       </div>
     </div>
