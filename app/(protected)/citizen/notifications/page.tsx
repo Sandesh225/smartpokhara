@@ -16,20 +16,20 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+} from "@/ui/card";
+import { Button } from "@/ui/button";/ui/
+import { Badge } from "@/ui/badge";/ui/
+import { Separator } from "@/ui//separator";
+import { Switch } from "@/ui//switch";
+import { Label } from "@/ui/label";/ui/
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/ui/select";/ui/
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";/ui/
 import {
   Bell,
   Check,
@@ -41,8 +41,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/ui/skeleton/ui/
+import { Input } from "@/ui/input";/ui/
 
 type Notification = {
   id: string;
