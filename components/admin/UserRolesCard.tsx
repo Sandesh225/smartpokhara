@@ -4,16 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Button } from "@/ui/button";/ui/
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+} from "@/ui/select";/ui/
+import { Badge } from "@/ui/badge";/ui/
 import { Trash2, ShieldCheck, Plus } from "lucide-react";
 
 interface Role {
