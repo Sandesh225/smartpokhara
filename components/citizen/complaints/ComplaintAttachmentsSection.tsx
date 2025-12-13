@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FileIcon, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/button";
 
 interface Attachment {
   id: string;
