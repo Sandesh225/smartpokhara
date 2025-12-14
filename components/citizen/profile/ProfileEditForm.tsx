@@ -1,16 +1,32 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Camera, Loader2, Save, X } from "lucide-react";
+import {
+  Camera,
+  Loader2,
+  Save,
+  X,
+  UploadCloud,
+  User,
+  MapPin,
+} from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
 import {
   Select,
@@ -19,20 +35,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/select";
+import { Textarea } from "@/ui/textarea";
 
-import { profileService, type UserProfile } from "@/lib/supabase/queries/profile";
+import {
+  profileService,
+  type UserProfile,
+} from "@/lib/supabase/queries/profile";
 
-// --- Schema ---
 const profileSchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters"),
   full_name_nepali: z.string().optional(),
   phone: z
     .string()
-    .min(10, "Phone number must be valid")
+    .min(10, "Phone number must be at least 10 digits")
     .optional()
     .or(z.literal("")),
-  ward_id: z.string().min(1, "Please select a ward"),
-  address_line1: z.string().min(3, "Address is required"),
+  ward_id: z.string().min(1, "Please select your ward"),
+  address_line1: z.string().min(3, "Primary address is required"),
   address_line2: z.string().optional(),
   landmark: z.string().optional(),
 });
@@ -44,21 +63,6 @@ interface ProfileEditFormProps {
   wards: { id: string; name: string; ward_number: number }[];
   onCancel: () => void;
   onSave: () => void;
-}
-
-function FieldError({
-  id,
-  message,
-}: {
-  id: string;
-  message?: string;
-}) {
-  if (!message) return null;
-  return (
-    <p id={id} className="text-xs font-medium text-destructive">
-      {message}
-    </p>
-  );
 }
 
 export default function ProfileEditForm({
@@ -73,11 +77,6 @@ export default function ProfileEditForm({
     profile.profile_photo_url
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const fullNameErrorId = useId();
-  const phoneErrorId = useId();
-  const wardErrorId = useId();
-  const addressErrorId = useId();
 
   const {
     register,
@@ -97,46 +96,41 @@ export default function ProfileEditForm({
     },
   });
 
-  // Revoke object URL on unmount if created
   useEffect(() => {
     return () => {
-      // If previewImage is an object URL, it starts with blob:
       if (previewImage?.startsWith("blob:")) {
         URL.revokeObjectURL(previewImage);
       }
     };
   }, [previewImage]);
 
-  // Handle Photo Selection
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image size must be less than 5MB");
       return;
     }
 
-    // Local preview
     const objectUrl = URL.createObjectURL(file);
     setPreviewImage(objectUrl);
 
-    // Immediate Upload (Better UX than waiting for save)
     setIsUploading(true);
-    const result = await profileService.uploadProfilePhoto(profile.user_id, file);
+    const result = await profileService.uploadProfilePhoto(
+      profile.user_id,
+      file
+    );
     setIsUploading(false);
 
     if (result.success && result.url) {
-      toast.success("Profile photo updated");
-      // keep preview image (already set)
+      toast.success("Photo updated successfully");
     } else {
       toast.error("Failed to upload photo");
-      setPreviewImage(profile.profile_photo_url); // Revert
+      setPreviewImage(profile.profile_photo_url);
     }
   };
 
-  // Handle Form Submit
   const onSubmit = async (data: ProfileFormData) => {
     setIsSaving(true);
     const result = await profileService.updateProfile(profile.user_id, data);
@@ -144,117 +138,118 @@ export default function ProfileEditForm({
 
     if (result.success) {
       toast.success("Profile updated successfully");
-      onSave(); // Trigger parent refresh
+      onSave();
     } else {
-      toast.error("Failed to update profile", { description: result.error });
+      toast.error("Failed to update profile");
     }
   };
 
-  const savingOrUploading = isSaving || isUploading;
-
   return (
-    <Card className="border border-gray-200/80 shadow-sm">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-lg">Edit Profile</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Keep your details accurate for faster complaint resolution and service delivery.
-        </p>
+    <Card className="border shadow-sm bg-white">
+      <CardHeader className="pb-6 border-b bg-slate-50/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl">Edit Profile</CardTitle>
+            <CardDescription>
+              Update your personal details and contact information.
+            </CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onCancel}
+            className="h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-8">
-          {/* Photo Section */}
-          <section aria-label="Profile photo" className="rounded-2xl border bg-muted/10 p-5">
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Avatar className="h-24 w-24 ring-2 ring-white shadow-md">
-                    <AvatarImage src={previewImage || ""} className="object-cover" />
-                    <AvatarFallback className="text-2xl font-bold">
-                      {profile.full_name?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="absolute -bottom-2 -right-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-gray-200 transition hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 disabled:opacity-60"
-                    aria-label="Change profile photo"
-                  >
-                    {isUploading ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-gray-700" />
-                    ) : (
-                      <Camera className="h-5 w-5 text-gray-700" />
-                    )}
-                  </button>
-
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handlePhotoSelect}
-                    disabled={isUploading}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-gray-900">Profile photo</p>
-                  <p className="text-xs text-muted-foreground">
-                    JPG/PNG recommended • Max size 5MB
-                  </p>
-                </div>
+        <CardContent className="p-6 md:p-8 space-y-8">
+          {/* Photo Upload Section */}
+          <div className="flex flex-col sm:flex-row gap-8 items-center sm:items-start">
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Avatar className="h-28 w-28 border-2 border-slate-200 shadow-sm transition-all group-hover:border-blue-400">
+                <AvatarImage
+                  src={previewImage || ""}
+                  className="object-cover"
+                />
+                <AvatarFallback className="text-2xl">
+                  {profile.full_name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="h-8 w-8 text-white" />
               </div>
+              {isUploading && (
+                <div className="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                </div>
+              )}
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                disabled={isUploading}
+              />
+            </div>
 
+            <div className="flex-1 space-y-2 text-center sm:text-left">
+              <h3 className="font-medium text-slate-900">Profile Picture</h3>
+              <p className="text-sm text-slate-500 max-w-sm">
+                Upload a clear photo of yourself. This helps officials verify
+                your identity. JPG, GIF or PNG. Max size 5MB.
+              </p>
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
+                className="mt-2"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="w-full sm:w-auto"
               >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading…
-                  </>
-                ) : (
-                  <>
-                    <Camera className="mr-2 h-4 w-4" />
-                    Change photo
-                  </>
-                )}
+                <UploadCloud className="mr-2 h-4 w-4" />
+                Upload New Photo
               </Button>
             </div>
-          </section>
+          </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Personal Details */}
-            <section className="space-y-4" aria-label="Personal information">
-              <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-gray-900">
-                  Personal Information
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Your name and contact details help us reach you quickly.
-                </p>
-              </div>
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b">
+              <User className="h-4 w-4 text-blue-600" />
+              <h3 className="font-semibold text-slate-900">
+                Personal Information
+              </h3>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name (English)</Label>
+                <Label htmlFor="full_name">
+                  Full Name (English) <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="full_name"
                   {...register("full_name")}
-                  aria-invalid={!!errors.full_name}
-                  aria-describedby={errors.full_name ? fullNameErrorId : undefined}
-                  className={errors.full_name ? "border-destructive/60 focus-visible:ring-destructive/20" : ""}
+                  className={cn(
+                    errors.full_name &&
+                      "border-red-500 focus-visible:ring-red-500"
+                  )}
                 />
-                <FieldError id={fullNameErrorId} message={errors.full_name?.message} />
+                {errors.full_name && (
+                  <p className="text-xs text-red-500">
+                    {errors.full_name.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="full_name_nepali">Full Name (Nepali) (Optional)</Label>
+                <Label htmlFor="full_name_nepali">Full Name (Nepali)</Label>
                 <Input
                   id="full_name_nepali"
                   {...register("full_name_nepali")}
@@ -267,91 +262,114 @@ export default function ProfileEditForm({
                 <Input
                   id="phone"
                   {...register("phone")}
-                  aria-invalid={!!errors.phone}
-                  aria-describedby={errors.phone ? phoneErrorId : undefined}
-                  className={errors.phone ? "border-destructive/60 focus-visible:ring-destructive/20" : ""}
+                  className={cn(
+                    errors.phone && "border-red-500 focus-visible:ring-red-500"
+                  )}
                 />
-                <FieldError id={phoneErrorId} message={errors.phone?.message} />
+                {errors.phone && (
+                  <p className="text-xs text-red-500">{errors.phone.message}</p>
+                )}
               </div>
-            </section>
+            </div>
+          </div>
 
-            {/* Address Details */}
-            <section className="space-y-4" aria-label="Address information">
-              <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-gray-900">
-                  Address Information
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Used to route complaints and notices to the right ward.
-                </p>
-              </div>
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 pb-2 border-b">
+              <MapPin className="h-4 w-4 text-emerald-600" />
+              <h3 className="font-semibold text-slate-900">Address Details</h3>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="ward_id">Ward Number</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="ward_id">
+                  Ward Number <span className="text-red-500">*</span>
+                </Label>
                 <Select
                   onValueChange={(val) => setValue("ward_id", val)}
                   defaultValue={profile.ward_id || ""}
                 >
                   <SelectTrigger
-                    id="ward_id"
-                    aria-invalid={!!errors.ward_id}
-                    aria-describedby={errors.ward_id ? wardErrorId : undefined}
-                    className={errors.ward_id ? "border-destructive/60 focus:ring-destructive/20" : ""}
+                    className={cn(
+                      "w-full md:w-[50%]",
+                      errors.ward_id && "border-red-500 focus:ring-red-500"
+                    )}
                   >
-                    <SelectValue placeholder="Select Ward" />
+                    <SelectValue placeholder="Select your Ward" />
                   </SelectTrigger>
                   <SelectContent>
                     {wards.map((ward) => (
                       <SelectItem key={ward.id} value={ward.id}>
-                        Ward {ward.ward_number} - {ward.name}
+                        Ward No. {ward.ward_number} - {ward.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldError id={wardErrorId} message={errors.ward_id?.message} />
+                {errors.ward_id && (
+                  <p className="text-xs text-red-500">
+                    {errors.ward_id.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address_line1">Street Address</Label>
+                <Label htmlFor="address_line1">
+                  Street Address <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="address_line1"
                   {...register("address_line1")}
-                  aria-invalid={!!errors.address_line1}
-                  aria-describedby={errors.address_line1 ? addressErrorId : undefined}
-                  className={errors.address_line1 ? "border-destructive/60 focus-visible:ring-destructive/20" : ""}
+                  placeholder="Tole/Street Name"
+                  className={cn(
+                    errors.address_line1 &&
+                      "border-red-500 focus-visible:ring-red-500"
+                  )}
                 />
-                <FieldError id={addressErrorId} message={errors.address_line1?.message} />
+                {errors.address_line1 && (
+                  <p className="text-xs text-red-500">
+                    {errors.address_line1.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="landmark">Landmark (Optional)</Label>
-                <Input id="landmark" {...register("landmark")} />
+                <Label htmlFor="address_line2">Address Line 2 (Optional)</Label>
+                <Input
+                  id="address_line2"
+                  {...register("address_line2")}
+                  placeholder="Apartment, House No, etc."
+                />
               </div>
-            </section>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="landmark">Nearby Landmark</Label>
+                <Input
+                  id="landmark"
+                  {...register("landmark")}
+                  placeholder="E.g., Near Temple, Behind School"
+                />
+              </div>
+            </div>
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col-reverse gap-3 border-t bg-muted/5 p-6 sm:flex-row sm:justify-end">
+        <CardFooter className="flex justify-end gap-3 bg-slate-50/50 border-t p-6">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             onClick={onCancel}
             disabled={isSaving}
-            className="w-full sm:w-auto"
           >
-            <X className="mr-2 h-4 w-4" />
             Cancel
           </Button>
-
           <Button
             type="submit"
-            disabled={savingOrUploading}
-            className="w-full sm:w-auto"
+            disabled={isSaving || isUploading}
+            className="min-w-[120px]"
           >
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving…
+                Saving...
               </>
             ) : (
               <>

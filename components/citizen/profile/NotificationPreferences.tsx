@@ -1,148 +1,235 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Loader2, Bell, Save } from "lucide-react";
+import { useState } from "react";
+import { Loader2, BellRing, Mail, MessageSquare, Save } from "lucide-react";
 import { toast } from "sonner";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/ui/card";
-import { Switch } from "@/ui//switch";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/ui/card";
+import { Switch } from "@/ui/switch";
 import { Label } from "@/ui/label";
 import { Button } from "@/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select";
+import { Separator } from "@/ui/separator";
 
-import { profileService, type UserPreferences } from "@/lib/supabase/queries/profile";
+import {
+  profileService,
+  type UserPreferences,
+} from "@/lib/supabase/queries/profile";
 
 interface NotificationPreferencesProps {
   userId: string;
   initialPreferences: UserPreferences | null;
 }
 
-export default function NotificationPreferences({ userId, initialPreferences }: NotificationPreferencesProps) {
-  const [preferences, setPreferences] = useState<UserPreferences | null>(initialPreferences);
+export default function NotificationPreferences({
+  userId,
+  initialPreferences,
+}: NotificationPreferencesProps) {
+  const [preferences, setPreferences] = useState<UserPreferences | null>(
+    initialPreferences
+  );
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fallback default state if initial is null
-  const safePrefs = preferences || {
-    email_notifications: true,
-    sms_notifications: true,
-    in_app_notifications: true,
-    push_notifications: false,
-    complaint_updates: true,
-    new_bills: true,
-    payment_reminders: true,
-    new_notices: true,
-    digest_frequency: "immediate"
-  } as UserPreferences;
+  const safePrefs =
+    preferences ||
+    ({
+      email_notifications: true,
+      sms_notifications: true,
+      in_app_notifications: true,
+      push_notifications: false,
+      complaint_updates: true,
+      new_bills: true,
+      payment_reminders: true,
+      new_notices: true,
+      digest_frequency: "immediate",
+    } as UserPreferences);
 
   const handleToggle = (key: keyof UserPreferences) => {
-    setPreferences(prev => prev ? ({ ...prev, [key]: !prev[key] }) : null);
+    setPreferences((prev) => (prev ? { ...prev, [key]: !prev[key] } : null));
   };
 
   const handleSelect = (val: string) => {
-    setPreferences(prev => prev ? ({ ...prev, digest_frequency: val as any }) : null);
+    setPreferences((prev) =>
+      prev ? { ...prev, digest_frequency: val as any } : null
+    );
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, user_id, ...updates } = safePrefs; // strip IDs
-    
+    const { id, user_id, ...updates } = safePrefs;
+
     const result = await profileService.updatePreferences(userId, updates);
     setIsSaving(false);
 
     if (result.success) {
-      toast.success("Preferences saved");
+      toast.success("Preferences updated successfully");
     } else {
       toast.error("Failed to save preferences");
     }
   };
 
   return (
-    <Card className="border-border shadow-sm h-full">
+    <Card className="border-none shadow-md bg-white">
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Bell className="h-5 w-5 text-primary" />
-          Notification Preferences
-        </CardTitle>
-        <CardDescription>Manage how and when you receive alerts.</CardDescription>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+            <BellRing className="h-5 w-5" />
+          </div>
+          <div>
+            <CardTitle>Communication Preferences</CardTitle>
+            <CardDescription>
+              Control how you receive updates from the municipality.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        
-        {/* Channels */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Channels</h3>
-          
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Email Notifications</Label>
-              <p className="text-xs text-muted-foreground">Receive updates via email</p>
-            </div>
-            <Switch 
-              checked={safePrefs.email_notifications} 
-              onCheckedChange={() => handleToggle("email_notifications")} 
-            />
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>SMS Notifications</Label>
-              <p className="text-xs text-muted-foreground">Critical alerts via SMS</p>
+      <CardContent className="space-y-8">
+        {/* Communication Channels */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <Mail className="h-4 w-4 text-slate-500" /> Channels
+          </h3>
+          <div className="grid gap-4 pl-1">
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="space-y-0.5">
+                <Label htmlFor="email_notifs" className="text-base font-medium">
+                  Email Notifications
+                </Label>
+                <p className="text-sm text-slate-500">
+                  Receive detailed updates and digests via email.
+                </p>
+              </div>
+              <Switch
+                id="email_notifs"
+                checked={safePrefs.email_notifications}
+                onCheckedChange={() => handleToggle("email_notifications")}
+              />
             </div>
-            <Switch 
-              checked={safePrefs.sms_notifications} 
-              onCheckedChange={() => handleToggle("sms_notifications")} 
-            />
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="space-y-0.5">
+                <Label htmlFor="sms_notifs" className="text-base font-medium">
+                  SMS Alerts
+                </Label>
+                <p className="text-sm text-slate-500">
+                  Receive critical alerts and OTPs on your phone.
+                </p>
+              </div>
+              <Switch
+                id="sms_notifs"
+                checked={safePrefs.sms_notifications}
+                onCheckedChange={() => handleToggle("sms_notifications")}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="h-px bg-border" />
+        <Separator />
 
-        {/* Categories */}
+        {/* Specific Updates */}
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Alert Types</h3>
-          
+          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-slate-500" /> Topics
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center justify-between border p-3 rounded-lg">
-              <Label className="cursor-pointer" htmlFor="complaint">Complaint Updates</Label>
-              <Switch id="complaint" checked={safePrefs.complaint_updates} onCheckedChange={() => handleToggle("complaint_updates")} />
-            </div>
-            <div className="flex items-center justify-between border p-3 rounded-lg">
-              <Label className="cursor-pointer" htmlFor="bills">New Bills</Label>
-              <Switch id="bills" checked={safePrefs.new_bills} onCheckedChange={() => handleToggle("new_bills")} />
-            </div>
-            <div className="flex items-center justify-between border p-3 rounded-lg">
-              <Label className="cursor-pointer" htmlFor="reminders">Payment Reminders</Label>
-              <Switch id="reminders" checked={safePrefs.payment_reminders} onCheckedChange={() => handleToggle("payment_reminders")} />
-            </div>
-            <div className="flex items-center justify-between border p-3 rounded-lg">
-              <Label className="cursor-pointer" htmlFor="notices">Public Notices</Label>
-              <Switch id="notices" checked={safePrefs.new_notices} onCheckedChange={() => handleToggle("new_notices")} />
-            </div>
+            {[
+              {
+                id: "complaint_updates",
+                label: "Complaint Status",
+                desc: "When your reports are updated",
+              },
+              {
+                id: "new_bills",
+                label: "Tax & Bills",
+                desc: "New tax assessments or bills",
+              },
+              {
+                id: "payment_reminders",
+                label: "Due Date Reminders",
+                desc: "Before payments become overdue",
+              },
+              {
+                id: "new_notices",
+                label: "Public Notices",
+                desc: "General announcements from ward",
+              },
+            ].map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm"
+              >
+                <div className="space-y-0.5">
+                  <Label htmlFor={item.id} className="text-base">
+                    {item.label}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
+                <Switch
+                  id={item.id}
+                  checked={
+                    safePrefs[item.id as keyof UserPreferences] as boolean
+                  }
+                  onCheckedChange={() =>
+                    handleToggle(item.id as keyof UserPreferences)
+                  }
+                />
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="h-px bg-border" />
+        <Separator />
 
         {/* Frequency */}
-        <div className="space-y-3">
-          <Label>Email Digest Frequency</Label>
-          <Select value={safePrefs.digest_frequency} onValueChange={handleSelect}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="immediate">Immediate</SelectItem>
-              <SelectItem value="daily">Daily Digest</SelectItem>
-              <SelectItem value="weekly">Weekly Summary</SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">Controls how often you receive non-critical email summaries.</p>
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <Label className="text-base font-medium">Digest Frequency</Label>
+              <p className="text-sm text-slate-500">
+                How often do you want to receive non-critical summaries?
+              </p>
+            </div>
+            <Select
+              value={safePrefs.digest_frequency}
+              onValueChange={handleSelect}
+            >
+              <SelectTrigger className="w-full md:w-[220px]">
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="immediate">Real-time (Immediate)</SelectItem>
+                <SelectItem value="daily">Daily Digest (8:00 AM)</SelectItem>
+                <SelectItem value="weekly">Weekly Summary (Fridays)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-
       </CardContent>
-      <CardFooter className="bg-muted/10 border-t py-4">
-        <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+      <CardFooter className="bg-slate-50 border-t p-6 flex justify-end">
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="w-full sm:w-auto"
+        >
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
           Save Preferences
         </Button>
       </CardFooter>
