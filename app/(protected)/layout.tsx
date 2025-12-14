@@ -1,8 +1,7 @@
-// app/(protected)/layout.tsx - Fixed protected layout
+// app/(protected)/layout.tsx
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -20,10 +19,7 @@ export default async function ProtectedLayout({
     redirect("/login");
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardNavbar user={user} />
-      <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-    </div>
-  );
+  // RETURN ONLY CHILDREN.
+  // Do not add a Navbar here, or it will duplicate inside the Citizen Dashboard.
+  return <>{children}</>;
 }
