@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 import {
   ColumnDef,
   flexRender,
@@ -10,7 +10,8 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -18,24 +19,38 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/ui/table';
-import { Button } from '@/ui/button';
-import { Badge } from '@/ui/badge';
-import { Skeleton } from '@/ui/skeleton';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/card';
+} from "@/ui/table";
+import { Button } from "@/ui/button";
+import { Badge } from "@/ui/badge";
+import { Skeleton } from "@/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/ui/dropdown-menu';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/ui/pagination';
+} from "@/ui/dropdown-menu";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/ui/pagination";
+
 import {
   ArrowUpDown,
   Calendar,
   Eye,
-  Filter,
   MapPin,
   MoreVertical,
   Search,
@@ -48,9 +63,14 @@ import {
   Copy,
   Printer,
   FileText,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import type { Complaint, ComplaintStatus } from '@/lib/supabase/queries/complaints';
+  Shield,
+  ChevronRight,
+} from "lucide-react";
+
+import { toast } from "sonner";
+import type { Complaint, ComplaintStatus } from "@/lib/supabase/queries/complaints";
+
+type SortOrder = "ASC" | "DESC";
 
 interface ComplaintsTableProps {
   complaints: Complaint[];
@@ -59,78 +79,84 @@ interface ComplaintsTableProps {
   currentPage: number;
   pageSize: number;
   onPageChange: (page: number) => void;
-  onSortChange?: (sortBy: string, sortOrder: 'ASC' | 'DESC') => void;
+
+  onSortChange?: (sortBy: string, sortOrder: SortOrder) => void;
   sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
+  sortOrder?: SortOrder;
+
   onRowClick?: (complaint: Complaint) => void;
+
+  /**
+   * ✅ IMPORTANT: where the detail page actually lives
+   * Default matches your app: /citizen/complaints/[id]
+   */
+  basePath?: string;
 }
 
-const statusConfig: Record<ComplaintStatus, { label: string; variant: 'default' | 'destructive' | 'outline' | 'secondary'; icon: React.ReactNode; bgClass: string; textClass: string }> = {
+const statusConfig: Record<
+  ComplaintStatus,
+  {
+    label: string;
+    icon: ReactNode;
+    pill: string;
+  }
+> = {
   received: {
-    label: 'Received',
-    variant: 'secondary',
-    icon: <Clock className="h-3 w-3" />,
-    bgClass: 'bg-blue-100 hover:bg-blue-200',
-    textClass: 'text-blue-700',
+    label: "Received",
+    icon: <Clock className="h-3.5 w-3.5" />,
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
   },
   under_review: {
-    label: 'Under Review',
-    variant: 'secondary',
-    icon: <AlertCircle className="h-3 w-3" />,
-    bgClass: 'bg-purple-100 hover:bg-purple-200',
-    textClass: 'text-purple-700',
+    label: "Under Review",
+    icon: <AlertCircle className="h-3.5 w-3.5" />,
+    pill: "bg-purple-50 text-purple-700 border-purple-200",
   },
   assigned: {
-    label: 'Assigned',
-    variant: 'secondary',
-    icon: <FileText className="h-3 w-3" />,
-    bgClass: 'bg-indigo-100 hover:bg-indigo-200',
-    textClass: 'text-indigo-700',
+    label: "Assigned",
+    icon: <Shield className="h-3.5 w-3.5" />,
+    pill: "bg-indigo-50 text-indigo-700 border-indigo-200",
   },
   in_progress: {
-    label: 'In Progress',
-    variant: 'secondary',
-    icon: <RefreshCw className="h-3 w-3" />,
-    bgClass: 'bg-amber-100 hover:bg-amber-200',
-    textClass: 'text-amber-700',
+    label: "In Progress",
+    icon: <RefreshCw className="h-3.5 w-3.5" />,
+    pill: "bg-amber-50 text-amber-700 border-amber-200",
   },
   resolved: {
-    label: 'Resolved',
-    variant: 'default',
-    icon: <CheckCircle className="h-3 w-3" />,
-    bgClass: 'bg-emerald-100 hover:bg-emerald-200',
-    textClass: 'text-emerald-700',
+    label: "Resolved",
+    icon: <CheckCircle className="h-3.5 w-3.5" />,
+    pill: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
   closed: {
-    label: 'Closed',
-    variant: 'default',
-    icon: <CheckCircle className="h-3 w-3" />,
-    bgClass: 'bg-slate-100 hover:bg-slate-200',
-    textClass: 'text-slate-700',
+    label: "Closed",
+    icon: <CheckCircle className="h-3.5 w-3.5" />,
+    pill: "bg-slate-50 text-slate-700 border-slate-200",
   },
   rejected: {
-    label: 'Rejected',
-    variant: 'destructive',
-    icon: <XCircle className="h-3 w-3" />,
-    bgClass: 'bg-red-100 hover:bg-red-200',
-    textClass: 'text-red-700',
+    label: "Rejected",
+    icon: <XCircle className="h-3.5 w-3.5" />,
+    pill: "bg-red-50 text-red-700 border-red-200",
   },
   reopened: {
-    label: 'Reopened',
-    variant: 'outline',
-    icon: <RefreshCw className="h-3 w-3" />,
-    bgClass: 'bg-orange-100 hover:bg-orange-200',
-    textClass: 'text-orange-700',
+    label: "Reopened",
+    icon: <RefreshCw className="h-3.5 w-3.5" />,
+    pill: "bg-orange-50 text-orange-700 border-orange-200",
   },
 };
 
 const priorityConfig = {
-  critical: { label: 'Critical', bgClass: 'bg-red-600', textClass: 'text-white' },
-  urgent: { label: 'Urgent', bgClass: 'bg-red-500', textClass: 'text-white' },
-  high: { label: 'High', bgClass: 'bg-orange-500', textClass: 'text-white' },
-  medium: { label: 'Medium', bgClass: 'bg-amber-500', textClass: 'text-white' },
-  low: { label: 'Low', bgClass: 'bg-slate-400', textClass: 'text-white' },
+  critical: { label: "Critical", pill: "bg-red-600 text-white" },
+  urgent: { label: "Urgent", pill: "bg-red-500 text-white" },
+  high: { label: "High", pill: "bg-orange-500 text-white" },
+  medium: { label: "Medium", pill: "bg-amber-500 text-white" },
+  low: { label: "Low", pill: "bg-slate-500 text-white" },
 };
+
+function isOverdue(slaDueAt?: string | null) {
+  if (!slaDueAt) return false;
+  const d = new Date(slaDueAt);
+  if (Number.isNaN(d.getTime())) return false;
+  return d.getTime() < Date.now();
+}
 
 export function ComplaintsTable({
   complaints,
@@ -140,220 +166,242 @@ export function ComplaintsTable({
   pageSize,
   onPageChange,
   onSortChange,
-  sortBy = 'submitted_at',
-  sortOrder = 'DESC',
+  sortBy = "submitted_at",
+  sortOrder = "DESC",
   onRowClick,
+  basePath = "/citizen/complaints",
 }: ComplaintsTableProps) {
   const router = useRouter();
+
   const [sorting, setSorting] = useState<SortingState>([
-    { id: sortBy, desc: sortOrder === 'DESC' }
+    { id: sortBy, desc: sortOrder === "DESC" },
   ]);
 
-  const totalPages = Math.ceil(total / pageSize);
+  // ✅ keep table sorting UI in sync with parent URL state
+  useEffect(() => {
+    setSorting([{ id: sortBy, desc: sortOrder === "DESC" }]);
+  }, [sortBy, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
+
+  const goDetails = (complaint: Complaint) => {
+    if (onRowClick) return onRowClick(complaint);
+    router.push(`${basePath}/${complaint.id}`);
+  };
 
   const handleCopyTracking = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast.success('Tracking code copied to clipboard', {
-      description: code,
-      duration: 2000,
-    });
+    toast.success("Tracking code copied", { description: code, duration: 2000 });
   };
 
-  const columns: ColumnDef<Complaint>[] = [
-    {
-      accessorKey: 'tracking_code',
-      header: ({ column }) => {
-        const isActive = sortBy === 'tracking_code';
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              const newOrder = isActive && sortOrder === 'ASC' ? 'DESC' : 'ASC';
-              setSorting([{ id: 'tracking_code', desc: newOrder === 'DESC' }]);
-              onSortChange?.('tracking_code', newOrder);
-            }}
-            className="px-0 font-semibold hover:bg-transparent hover:text-blue-600 transition-colors"
-          >
-            Tracking ID
-            <ArrowUpDown className={`ml-2 h-4 w-4 transition-transform ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-          </Button>
-        );
+  const columns: ColumnDef<Complaint>[] = useMemo(
+    () => [
+      {
+        accessorKey: "tracking_code",
+        header: () => <span className="font-semibold text-slate-900">Tracking</span>,
+        cell: ({ row }) => {
+          const code = row.getValue("tracking_code") as string;
+          return (
+            <div className="flex items-center gap-2 group">
+              <code className="font-mono text-xs sm:text-sm font-semibold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">
+                {code}
+              </code>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyTracking(code);
+                }}
+                aria-label="Copy tracking code"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          );
+        },
       },
-      cell: ({ row }) => {
-        const code = row.getValue('tracking_code') as string;
-        return (
-          <div className="flex items-center gap-2 group">
-            <code className="font-mono text-sm font-semibold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">
-              {code}
-            </code>
+      {
+        accessorKey: "title",
+        header: () => <span className="font-semibold text-slate-900">Complaint</span>,
+        cell: ({ row }) => {
+          const c = row.original;
+          return (
+            <div className="min-w-0">
+              <div
+                className="font-semibold text-slate-900 truncate max-w-[280px]"
+                title={c.title}
+              >
+                {c.title}
+              </div>
+              <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
+                <Tag className="h-3.5 w-3.5" />
+                <span className="truncate max-w-[240px]">
+                  {c.category?.name || "N/A"}
+                  {c.subcategory?.name ? ` → ${c.subcategory.name}` : ""}
+                </span>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "ward",
+        header: () => <span className="font-semibold text-slate-900">Ward</span>,
+        cell: ({ row }) => {
+          const ward = row.original.ward;
+          return (
+            <div className="flex items-center gap-2 text-sm text-slate-700">
+              <span className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center">
+                <MapPin className="h-4 w-4 text-slate-600" />
+              </span>
+              <div className="leading-tight">
+                <div className="font-medium">
+                  {ward ? `Ward ${ward.ward_number}` : "N/A"}
+                </div>
+                <div className="text-xs text-slate-500 truncate max-w-[140px]">
+                  {ward?.name || "—"}
+                </div>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "status",
+        header: () => <span className="font-semibold text-slate-900">Status</span>,
+        cell: ({ row }) => {
+          const status = row.getValue("status") as ComplaintStatus;
+          const conf = statusConfig[status];
+          if (!conf) return null;
+          return (
+            <Badge className={`gap-1.5 border font-medium ${conf.pill}`}>
+              {conf.icon}
+              {conf.label}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "priority",
+        header: () => <span className="font-semibold text-slate-900">Priority</span>,
+        cell: ({ row }) => {
+          const p = row.getValue("priority") as keyof typeof priorityConfig;
+          const conf = priorityConfig[p];
+          if (!conf) return null;
+          return (
+            <Badge className={`${conf.pill} border-0 font-semibold text-xs px-2.5 py-1`}>
+              {conf.label}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "submitted_at",
+        header: () => {
+          const isActive = sortBy === "submitted_at";
+          return (
             <Button
               variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCopyTracking(code);
+              onClick={() => {
+                const next: SortOrder = isActive && sortOrder === "ASC" ? "DESC" : "ASC";
+                onSortChange?.("submitted_at", next);
               }}
-              aria-label="Copy tracking code"
+              className="px-0 font-semibold hover:bg-transparent hover:text-blue-700"
             >
-              <Copy className="h-3 w-3" />
+              <Calendar className="h-4 w-4 mr-2" />
+              Submitted
+              <ArrowUpDown className={`ml-2 h-4 w-4 ${isActive ? "text-blue-700" : "text-slate-400"}`} />
             </Button>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'title',
-      header: () => <span className="font-semibold text-slate-900">Title</span>,
-      cell: ({ row }) => {
-        const title = row.getValue('title') as string;
-        return (
-          <div className="max-w-[250px] truncate font-medium text-slate-900" title={title}>
-            {title}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'category',
-      header: () => <span className="font-semibold text-slate-900">Category</span>,
-      cell: ({ row }) => {
-        const category = row.original.category;
-        return (
-          <div className="flex items-center gap-2">
-            {category?.icon && (
-              <span className="text-lg">{category.icon}</span>
-            )}
-            <span className="text-sm font-medium text-slate-700">{category?.name || 'N/A'}</span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'ward',
-      header: () => <span className="font-semibold text-slate-900">Ward</span>,
-      cell: ({ row }) => {
-        const ward = row.original.ward;
-        return (
-          <div className="flex items-center gap-1.5">
-            <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center">
-              <MapPin className="h-3.5 w-3.5 text-slate-600" />
+          );
+        },
+        cell: ({ row }) => {
+          const date = new Date(row.getValue("submitted_at"));
+          return (
+            <div className="text-sm font-medium text-slate-700">
+              {Number.isNaN(date.getTime()) ? "—" : format(date, "MMM dd, yyyy")}
             </div>
-            <span className="text-sm font-medium text-slate-700">
-              {ward ? `Ward ${ward.ward_number}` : 'N/A'}
-            </span>
-          </div>
-        );
+          );
+        },
       },
-    },
-    {
-      accessorKey: 'status',
-      header: () => <span className="font-semibold text-slate-900">Status</span>,
-      cell: ({ row }) => {
-        const status = row.getValue('status') as ComplaintStatus;
-        const config = statusConfig[status];
-        
-        if (!config) return null;
-        
-        return (
-          <Badge className={`gap-1.5 ${config.bgClass} ${config.textClass} border-0 font-medium transition-colors`}>
-            {config.icon}
-            {config.label}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: 'priority',
-      header: () => <span className="font-semibold text-slate-900">Priority</span>,
-      cell: ({ row }) => {
-        const priority = row.getValue('priority') as keyof typeof priorityConfig;
-        const config = priorityConfig[priority];
-        
-        if (!config) return null;
-        
-        return (
-          <Badge className={`${config.bgClass} ${config.textClass} border-0 font-semibold text-xs px-2.5 py-0.5`}>
-            {config.label}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: 'submitted_at',
-      header: ({ column }) => {
-        const isActive = sortBy === 'submitted_at';
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              const newOrder = isActive && sortOrder === 'ASC' ? 'DESC' : 'ASC';
-              setSorting([{ id: 'submitted_at', desc: newOrder === 'DESC' }]);
-              onSortChange?.('submitted_at', newOrder);
-            }}
-            className="px-0 font-semibold hover:bg-transparent hover:text-blue-600 transition-colors"
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            Date
-            <ArrowUpDown className={`ml-2 h-4 w-4 transition-transform ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const date = new Date(row.getValue('submitted_at'));
-        return (
-          <div className="text-sm font-medium text-slate-600">
-            {format(date, 'MMM dd, yyyy')}
-          </div>
-        );
-      },
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        const complaint = row.original;
-        
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="h-8 w-8 p-0 hover:bg-slate-100 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-                aria-label="Open actions menu"
+      {
+        id: "sla",
+        header: () => <span className="font-semibold text-slate-900">SLA</span>,
+        cell: ({ row }) => {
+          const due = (row.original as any).sla_due_at as string | null | undefined;
+          if (!due) return <span className="text-sm text-slate-400">—</span>;
+          const overdue = isOverdue(due);
+          return (
+            <div className="flex items-center gap-2">
+              <Badge
+                className={
+                  overdue
+                    ? "bg-red-50 text-red-700 border border-red-200"
+                    : "bg-slate-50 text-slate-700 border border-slate-200"
+                }
               >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={() => router.push(`/complaints/${complaint.id}`)}
-                className="cursor-pointer gap-2"
-              >
-                <Eye className="h-4 w-4 text-blue-600" />
-                <span>View Details</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleCopyTracking(complaint.tracking_code)}
-                className="cursor-pointer gap-2"
-              >
-                <Copy className="h-4 w-4 text-slate-600" />
-                <span>Copy Tracking Code</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => window.open(`/complaints/${complaint.id}/print`, '_blank')}
-                className="cursor-pointer gap-2"
-              >
-                <Printer className="h-4 w-4 text-slate-600" />
-                <span>Print Details</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
+                {overdue ? "Overdue" : "Due"}
+              </Badge>
+              <span className={`text-sm ${overdue ? "text-red-700 font-semibold" : "text-slate-700"}`}>
+                {format(new Date(due), "MMM dd")}
+              </span>
+            </div>
+          );
+        },
       },
-    },
-  ];
+      {
+        id: "actions",
+        header: () => <span className="sr-only">Actions</span>,
+        cell: ({ row }) => {
+          const c = row.original;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-9 w-9 p-0 hover:bg-slate-100"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Open actions"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem
+                  onClick={() => router.push(`${basePath}/${c.id}`)}
+                  className="cursor-pointer gap-2"
+                >
+                  <Eye className="h-4 w-4 text-blue-600" />
+                  View details
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleCopyTracking(c.tracking_code)}
+                  className="cursor-pointer gap-2"
+                >
+                  <Copy className="h-4 w-4 text-slate-600" />
+                  Copy tracking code
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={() => window.open(`${basePath}/${c.id}`, "_blank")}
+                  className="cursor-pointer gap-2"
+                >
+                  <Printer className="h-4 w-4 text-slate-600" />
+                  Open for printing
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    [basePath, onSortChange, router, sortBy, sortOrder]
+  );
 
   const table = useReactTable({
     data: complaints,
@@ -361,94 +409,108 @@ export function ComplaintsTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
-    state: {
-      sorting,
-    },
+    state: { sorting },
   });
 
   const ComplaintCard = ({ complaint }: { complaint: Complaint }) => {
     const statusConf = statusConfig[complaint.status];
-    
+    const due = (complaint as any).sla_due_at as string | null | undefined;
+    const overdue = isOverdue(due);
+
     return (
       <Card
-        className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-slate-200 overflow-hidden"
-        onClick={() => onRowClick?.(complaint) || router.push(`/complaints/${complaint.id}`)}
+        className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-slate-200 overflow-hidden relative"
+        onClick={() => goDetails(complaint)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") goDetails(complaint);
+        }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50/0 via-blue-50/50 to-indigo-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-        
+
         <CardHeader className="pb-3 relative">
-          <div className="flex justify-between items-start gap-3">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-base font-semibold text-slate-900 mb-2 truncate">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle className="text-base font-semibold text-slate-900 truncate">
                 {complaint.title}
               </CardTitle>
-              <CardDescription className="flex items-center gap-2 flex-wrap">
+
+              <CardDescription className="flex items-center gap-2 flex-wrap mt-2">
                 <code className="font-mono text-xs font-semibold bg-slate-100 text-slate-900 px-2 py-0.5 rounded">
                   {complaint.tracking_code}
                 </code>
-                <span className="text-slate-400">•</span>
+
+                <span className="text-slate-300">•</span>
+
                 <span className="flex items-center gap-1 text-slate-600">
-                  <MapPin className="h-3 w-3" />
-                  Ward {complaint.ward?.ward_number || 'N/A'}
+                  <MapPin className="h-3.5 w-3.5" />
+                  Ward {complaint.ward?.ward_number || "N/A"}
                 </span>
+
+                {due && (
+                  <>
+                    <span className="text-slate-300">•</span>
+                    <span className={`text-xs font-medium ${overdue ? "text-red-700" : "text-slate-600"}`}>
+                      {overdue ? "SLA Overdue" : `SLA: ${format(new Date(due), "MMM dd")}`}
+                    </span>
+                  </>
+                )}
               </CardDescription>
             </div>
-            <Badge className={`gap-1.5 ${statusConf.bgClass} ${statusConf.textClass} border-0 font-medium shrink-0`}>
+
+            <Badge className={`gap-1.5 border font-medium shrink-0 ${statusConf.pill}`}>
               {statusConf.icon}
               {statusConf.label}
             </Badge>
           </div>
         </CardHeader>
-        
-        <CardContent className="pb-3 pt-0 relative">
-          <div className="flex flex-wrap gap-3 mb-3">
-            <div className="flex items-center gap-1.5 text-sm text-slate-600">
-              <Tag className="h-3.5 w-3.5 text-slate-500" />
-              <span className="font-medium">{complaint.category?.name || 'N/A'}</span>
+
+        <CardContent className="pt-0 pb-4 relative">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 text-sm text-slate-700">
+              <Tag className="h-4 w-4 text-slate-500" />
+              <span className="font-medium">{complaint.category?.name || "N/A"}</span>
+              {complaint.subcategory?.name ? (
+                <span className="text-slate-500">→ {complaint.subcategory.name}</span>
+              ) : null}
             </div>
-            {complaint.subcategory && (
-              <>
-                <span className="text-slate-400">→</span>
-                <span className="text-sm text-slate-600 font-medium">{complaint.subcategory.name}</span>
-              </>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 text-slate-500" />
-            <span className="text-sm text-slate-600">
-              {format(new Date(complaint.submitted_at), 'MMM dd, yyyy')}
-            </span>
+
+            <div className="flex items-center gap-1.5 text-sm text-slate-600">
+              <Calendar className="h-4 w-4 text-slate-500" />
+              {format(new Date(complaint.submitted_at), "MMM dd, yyyy")}
+            </div>
           </div>
         </CardContent>
-        
-        <CardFooter className="pt-3 border-t border-slate-100 bg-slate-50/50 relative">
+
+        <CardFooter className="pt-3 border-t border-slate-100 bg-slate-50/60 relative">
           <Button
             variant="ghost"
             size="sm"
-            className="w-full gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors font-medium"
+            className="w-full justify-between text-blue-700 hover:text-blue-800 hover:bg-blue-50 font-medium"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/complaints/${complaint.id}`);
+              goDetails(complaint);
             }}
           >
-            <Eye className="h-4 w-4" />
-            View Details
+            View details
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </CardFooter>
       </Card>
     );
   };
 
+  // -------------------- Loading --------------------
   if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="hidden md:block">
-          <div className="rounded-lg border border-slate-200 overflow-hidden">
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gradient-to-r from-slate-50 to-blue-50/50 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50/50">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <TableRow className="bg-gradient-to-r from-slate-50 to-blue-50/40">
+                  {Array.from({ length: 8 }).map((_, i) => (
                     <TableHead key={i} className="h-12">
                       <Skeleton className="h-5 w-24 bg-slate-200" />
                     </TableHead>
@@ -456,10 +518,10 @@ export function ComplaintsTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[1, 2, 3, 4, 5].map((row) => (
-                  <TableRow key={row} className="hover:bg-slate-50/50">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((cell) => (
-                      <TableCell key={cell} className="py-4">
+                {Array.from({ length: 6 }).map((_, r) => (
+                  <TableRow key={r}>
+                    {Array.from({ length: 8 }).map((__, c) => (
+                      <TableCell key={c} className="py-4">
                         <Skeleton className="h-5 w-full bg-slate-100" />
                       </TableCell>
                     ))}
@@ -469,9 +531,9 @@ export function ComplaintsTable({
             </Table>
           </div>
         </div>
-        
+
         <div className="md:hidden space-y-4">
-          {[1, 2, 3].map((i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i} className="border-slate-200">
               <CardHeader>
                 <Skeleton className="h-6 w-3/4 bg-slate-200" />
@@ -488,20 +550,19 @@ export function ComplaintsTable({
     );
   }
 
-  if (complaints.length === 0) {
+  // -------------------- Empty --------------------
+  if (!complaints?.length) {
     return (
       <div className="text-center py-16 px-4">
         <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-blue-100 flex items-center justify-center mb-5 shadow-sm">
           <Search className="h-10 w-10 text-slate-400" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-2">
-          No complaints found
-        </h3>
+        <h3 className="text-xl font-bold text-slate-900 mb-2">No complaints found</h3>
         <p className="text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
-          You haven't submitted any complaints yet, or no complaints match your current filters.
+          You haven’t submitted any complaints yet, or none match your current search/tab.
         </p>
-        <Button 
-          onClick={() => router.push('/complaints/new')}
+        <Button
+          onClick={() => router.push(`${basePath}/new`)}
           className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
         >
           <FileText className="h-4 w-4" />
@@ -511,45 +572,43 @@ export function ComplaintsTable({
     );
   }
 
+  // -------------------- Normal --------------------
   return (
     <div className="space-y-6">
+      {/* Desktop Table */}
       <div className="hidden md:block">
-        <div className="rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+        <div className="rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-white">
           <Table>
             <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow 
-                  key={headerGroup.id}
-                  className="bg-gradient-to-r from-slate-50 to-blue-50/50 border-b border-slate-200 hover:from-slate-100 hover:to-blue-100/50 transition-colors"
+              {table.getHeaderGroups().map((hg) => (
+                <TableRow
+                  key={hg.id}
+                  className="bg-gradient-to-r from-slate-50 to-blue-50/40 border-b border-slate-200"
                 >
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id} className="h-12 text-slate-900">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
+                  {hg.headers.map((h) => (
+                    <TableHead key={h.id} className="h-12 text-slate-900">
+                      {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
+
             <TableBody>
               {table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="cursor-pointer hover:bg-slate-50/80 transition-colors border-b border-slate-100"
-                  onClick={() => onRowClick?.(row.original) || router.push(`/complaints/${row.original.id}`)}
+                  className="cursor-pointer hover:bg-slate-50/70 transition-colors"
+                  onClick={() => goDetails(row.original)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") goDetails(row.original);
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -559,14 +618,14 @@ export function ComplaintsTable({
         </div>
       </div>
 
-      <div className="md:hidden">
-        <div className="space-y-4">
-          {complaints.map((complaint) => (
-            <ComplaintCard key={complaint.id} complaint={complaint} />
-          ))}
-        </div>
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {complaints.map((c) => (
+          <ComplaintCard key={c.id} complaint={c} />
+        ))}
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-8 space-y-4">
           <Pagination>
@@ -575,25 +634,18 @@ export function ComplaintsTable({
                 <PaginationPrevious
                   onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
                   className={`${
-                    currentPage === 1 
-                      ? 'pointer-events-none opacity-40' 
-                      : 'cursor-pointer hover:bg-blue-50 hover:text-blue-700'
+                    currentPage === 1 ? "pointer-events-none opacity-40" : "cursor-pointer hover:bg-blue-50 hover:text-blue-700"
                   } transition-colors`}
                   aria-disabled={currentPage === 1}
                 />
               </PaginationItem>
-              
+
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
+                let pageNum: number;
+                if (totalPages <= 5) pageNum = i + 1;
+                else if (currentPage <= 3) pageNum = i + 1;
+                else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                else pageNum = currentPage - 2 + i;
 
                 return (
                   <PaginationItem key={pageNum}>
@@ -602,8 +654,8 @@ export function ComplaintsTable({
                       isActive={pageNum === currentPage}
                       className={`cursor-pointer transition-all ${
                         pageNum === currentPage
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-md'
-                          : 'hover:bg-blue-50 hover:text-blue-700'
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-md"
+                          : "hover:bg-blue-50 hover:text-blue-700"
                       }`}
                     >
                       {pageNum}
@@ -611,26 +663,30 @@ export function ComplaintsTable({
                   </PaginationItem>
                 );
               })}
-              
+
               <PaginationItem>
                 <PaginationNext
                   onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
                   className={`${
-                    currentPage === totalPages 
-                      ? 'pointer-events-none opacity-40' 
-                      : 'cursor-pointer hover:bg-blue-50 hover:text-blue-700'
+                    currentPage === totalPages ? "pointer-events-none opacity-40" : "cursor-pointer hover:bg-blue-50 hover:text-blue-700"
                   } transition-colors`}
                   aria-disabled={currentPage === totalPages}
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-          
+
           <div className="text-center">
             <p className="text-sm text-slate-600 bg-slate-50 inline-block px-4 py-2 rounded-full">
-              Showing <span className="font-semibold text-slate-900">{(currentPage - 1) * pageSize + 1}</span> to{' '}
-              <span className="font-semibold text-slate-900">{Math.min(currentPage * pageSize, total)}</span> of{' '}
-              <span className="font-semibold text-slate-900">{total}</span> complaints
+              Showing{" "}
+              <span className="font-semibold text-slate-900">
+                {(currentPage - 1) * pageSize + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-semibold text-slate-900">
+                {Math.min(currentPage * pageSize, total)}
+              </span>{" "}
+              of <span className="font-semibold text-slate-900">{total}</span>
             </p>
           </div>
         </div>

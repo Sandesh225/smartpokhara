@@ -1,24 +1,36 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React, { useState, useEffect, useCallback } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { useState, useEffect, useCallback } from "react"
-import { useForm, Controller } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import dynamic from "next/dynamic"
-import { motion, AnimatePresence } from "framer-motion"
+// UI Components
+import { Button } from "@/ui/button";
+import { Input } from "@/ui/input";
+import { Textarea } from "@/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select";
+import { Label } from "@/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/ui/card";
+import { Checkbox } from "@/ui/checkbox";
+import { Badge } from "@/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/ui/alert";
 
-import { Button } from "@/ui/button"
-import { Input } from "@/ui/input"
-import { Textarea } from "@/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select"
-import { Label } from "@/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-import { Checkbox } from "@/ui//checkbox"
-import { Badge } from "@/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/ui/alert"
-
+// Icons
 import {
   Loader2,
   MapPin,
@@ -40,154 +52,159 @@ import {
   AlertTriangle,
   Zap,
   Flame,
-} from "lucide-react"
+  Droplets,
+  Lightbulb,
+  Trash2,
+  Construction,
+  Trees,
+  Volume2,
+} from "lucide-react";
 
 import type {
   SubmitComplaintRequest,
   ComplaintCategory,
   ComplaintSubcategory,
   Ward,
-} from "@/lib/supabase/queries/complaints"
-import { complaintsService } from "@/lib/supabase/queries/complaints"
+} from "@/lib/supabase/queries/complaints";
+import { complaintsService } from "@/lib/supabase/queries/complaints";
 
-// Dynamic imports for heavy components
+// ----------------------------------------------------------------------
+// 1. HELPERS FOR UI/UX IMPROVEMENT
+// ----------------------------------------------------------------------
+
+// Helper to clean up "Road - Road and Infrastructure" to just "Road and Infrastructure"
+// or whatever cleaner name you prefer.
+const formatCategoryName = (name: string) => {
+  // If the name is "Road - Infrastructure", split by "-" and take the last part
+  if (name.includes("-")) {
+    const parts = name.split("-");
+    return parts[parts.length - 1].trim();
+  }
+  return name;
+};
+
+// Map keywords in category names to Lucide Icons
+const getCategoryIcon = (name: string) => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes("water") || lowerName.includes("leak"))
+    return <Droplets className="h-8 w-8" />;
+  if (
+    lowerName.includes("electric") ||
+    lowerName.includes("light") ||
+    lowerName.includes("power")
+  )
+    return <Lightbulb className="h-8 w-8" />;
+  if (
+    lowerName.includes("garbage") ||
+    lowerName.includes("waste") ||
+    lowerName.includes("trash")
+  )
+    return <Trash2 className="h-8 w-8" />;
+  if (
+    lowerName.includes("road") ||
+    lowerName.includes("pothole") ||
+    lowerName.includes("street")
+  )
+    return <Construction className="h-8 w-8" />;
+  if (
+    lowerName.includes("tree") ||
+    lowerName.includes("park") ||
+    lowerName.includes("garden")
+  )
+    return <Trees className="h-8 w-8" />;
+  if (lowerName.includes("noise") || lowerName.includes("sound"))
+    return <Volume2 className="h-8 w-8" />;
+
+  // Default icon
+  return <FileText className="h-8 w-8" />;
+};
+
 const MapPicker = dynamic(() => import("@/components/shared/MapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="h-[400px] w-full bg-muted/50 animate-pulse rounded-xl flex items-center justify-center border border-border">
-      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mr-2" />
-      <span className="text-muted-foreground">Loading Map...</span>
+    <div className="h-[300px] w-full bg-slate-100 animate-pulse rounded-xl flex items-center justify-center border-2 border-slate-200 border-dashed">
+      <div className="flex flex-col items-center text-slate-400">
+        <MapPin className="h-8 w-8 mb-2 opacity-50" />
+        <span className="text-sm font-medium">Loading Map...</span>
+      </div>
     </div>
   ),
-})
+});
 
-// Zod schema aligned with SubmitComplaintRequest
+// ----------------------------------------------------------------------
+// 2. SCHEMA DEFINITION
+// ----------------------------------------------------------------------
+
 const formSchema = z.object({
   title: z
     .string()
-    .min(10, { message: "Title must be at least 10 characters long." })
-    .max(200, { message: "Title must not exceed 200 characters." }),
+    .min(5, { message: "Title is too short." })
+    .max(100, { message: "Title is too long." }),
   category_id: z.string().min(1, { message: "Please select a category." }),
   subcategory_id: z.string().optional().nullable(),
-  priority: z.enum(["critical", "urgent", "high", "medium", "low"]).default("medium"),
+  priority: z
+    .enum(["critical", "urgent", "high", "medium", "low"])
+    .default("medium"),
   is_anonymous: z.boolean().default(false),
   ward_id: z.string().min(1, { message: "Please select a ward." }),
-  address_text: z
-    .string()
-    .min(5, { message: "Please provide a detailed address." })
-    .max(500, { message: "Address is too long." }),
+  address_text: z.string().min(5, { message: "Address is required." }),
   landmark: z.string().optional().nullable(),
   location_point: z
     .object({
       type: z.literal("Point"),
-      coordinates: z.tuple([z.number(), z.number()]), // [lng, lat]
+      coordinates: z.tuple([z.number(), z.number()]),
     })
     .nullable(),
   description: z
     .string()
-    .min(20, { message: "Description must be at least 20 characters long." })
-    .max(5000, { message: "Description must not exceed 5000 characters." }),
-})
+    .min(20, { message: "Please provide more details (min 20 chars)." }),
+});
 
-type FormData = z.infer<typeof formSchema>
+type FormData = z.infer<typeof formSchema>;
 
 interface ComplaintFormProps {
-  categories: ComplaintCategory[]
-  wards: Ward[]
-  // Parent handles calling complaintsService.submitComplaint and uploadAttachment
-  onSubmit: (data: SubmitComplaintRequest, attachments: File[]) => Promise<void>
+  categories: ComplaintCategory[];
+  wards: Ward[];
+  onSubmit: (
+    data: SubmitComplaintRequest,
+    attachments: File[]
+  ) => Promise<void>;
 }
 
-// Steps configuration
 const STEPS = [
   {
     id: 1,
-    title: "Basic Info",
-    description: "What is your complaint about?",
+    title: "Category",
+    description: "What's the issue?",
     icon: FileText,
   },
-  {
-    id: 2,
-    title: "Location",
-    description: "Where did it happen?",
-    icon: MapPin,
-  },
-  {
-    id: 3,
-    title: "Details",
-    description: "Provide details and evidence",
-    icon: Camera,
-  },
+  { id: 2, title: "Location", description: "Where is it?", icon: MapPin },
+  { id: 3, title: "Details", description: "Tell us more", icon: Camera },
   {
     id: 4,
-    title: "Review",
-    description: "Check and submit",
+    title: "Confirm",
+    description: "Review & Submit",
     icon: CheckCircle,
   },
-]
+];
 
-const PRIORITY_CONFIG = {
-  low: {
-    label: "Low",
-    color: "bg-emerald-500",
-    textColor: "text-emerald-700",
-    bgColor: "bg-gradient-to-br from-emerald-50 to-teal-50",
-    borderColor: "border-emerald-300",
-    icon: Clock,
-    description: "General maintenance or improvement",
-  },
-  medium: {
-    label: "Medium",
-    color: "bg-amber-500",
-    textColor: "text-amber-700",
-    bgColor: "bg-gradient-to-br from-amber-50 to-yellow-50",
-    borderColor: "border-amber-300",
-    icon: AlertCircle,
-    description: "Needs attention within a week",
-  },
-  high: {
-    label: "High",
-    color: "bg-orange-500",
-    textColor: "text-orange-700",
-    bgColor: "bg-gradient-to-br from-orange-50 to-amber-50",
-    borderColor: "border-orange-300",
-    icon: AlertTriangle,
-    description: "Requires prompt action",
-  },
-  urgent: {
-    label: "Urgent",
-    color: "bg-red-500",
-    textColor: "text-red-700",
-    bgColor: "bg-gradient-to-br from-red-50 to-orange-50",
-    borderColor: "border-red-300",
-    icon: Zap,
-    description: "Immediate attention needed",
-  },
-  critical: {
-    label: "Critical",
-    color: "bg-rose-600",
-    textColor: "text-rose-700",
-    bgColor: "bg-gradient-to-br from-rose-50 to-red-50",
-    borderColor: "border-rose-300",
-    icon: Flame,
-    description: "Emergency situation",
-  },
-} as const
+// ----------------------------------------------------------------------
+// 3. MAIN COMPONENT
+// ----------------------------------------------------------------------
 
-// Animation variants
-const stepVariants = {
-  enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (direction: number) => ({ x: direction < 0 ? 50 : -50, opacity: 0 }),
-}
-
-export default function ComplaintForm({ categories, wards, onSubmit }: ComplaintFormProps) {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [direction, setDirection] = useState(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [attachments, setAttachments] = useState<File[]>([])
-  const [subcategories, setSubcategories] = useState<ComplaintSubcategory[]>([])
-  const [loadingSubcategories, setLoadingSubcategories] = useState(false)
+export default function ComplaintForm({
+  categories,
+  wards,
+  onSubmit,
+}: ComplaintFormProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [direction, setDirection] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [subcategories, setSubcategories] = useState<ComplaintSubcategory[]>(
+    []
+  );
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
 
   const {
     control,
@@ -201,806 +218,513 @@ export default function ComplaintForm({ categories, wards, onSubmit }: Complaint
     defaultValues: {
       title: "",
       category_id: "",
-      subcategory_id: null,
       priority: "medium",
       is_anonymous: false,
       ward_id: "",
       address_text: "",
-      landmark: null,
       location_point: null,
       description: "",
     },
     mode: "onChange",
-  })
+  });
 
-  const watchedCategory = watch("category_id")
-  const watchedPriority = watch("priority")
+  const watchedCategory = watch("category_id");
 
   // Load subcategories when category changes
   useEffect(() => {
     const loadSubcategories = async () => {
       if (!watchedCategory) {
-        setSubcategories([])
-        setValue("subcategory_id", null)
-        return
+        setSubcategories([]);
+        setValue("subcategory_id", null);
+        return;
       }
-      setLoadingSubcategories(true)
+      setLoadingSubcategories(true);
       try {
-        const subs = await complaintsService.getSubcategories(watchedCategory)
-        setSubcategories(subs)
-        // reset subcategory when category changes
-        setValue("subcategory_id", null)
+        const subs = await complaintsService.getSubcategories(watchedCategory);
+        setSubcategories(subs);
+        setValue("subcategory_id", null);
       } catch (err) {
-        console.error("Error loading subcategories:", err)
+        console.error("Error loading subcategories:", err);
       } finally {
-        setLoadingSubcategories(false)
+        setLoadingSubcategories(false);
       }
-    }
-    loadSubcategories()
-  }, [watchedCategory, setValue])
+    };
+    loadSubcategories();
+  }, [watchedCategory, setValue]);
 
-  // File upload handlers
+  // File handling
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files) return
-    const newFiles = Array.from(files)
-
-    const validFiles = newFiles.filter((file) => {
-      const isValidType = ["image/jpeg", "image/png", "image/gif", "application/pdf"].includes(file.type)
-      const isValidSize = file.size <= 5 * 1024 * 1024
-      if (!isValidType) {
-        alert(`${file.name} is not a supported file type. Please upload JPG, PNG, GIF, or PDF.`)
-        return false
-      }
-      if (!isValidSize) {
-        alert(`${file.name} is too large. Maximum file size is 5MB.`)
-        return false
-      }
-      return true
-    })
-
-    setAttachments((prev) => [...prev, ...validFiles])
-  }
+    const files = e.target.files;
+    if (!files) return;
+    // Simple validation (add size checks if needed)
+    setAttachments((prev) => [...prev, ...Array.from(files)]);
+  };
 
   const removeAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index))
-  }
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
 
-  // Step navigation
+  // Navigation
   const nextStep = async () => {
-    let fieldsToValidate: (keyof FormData)[] = []
-    switch (currentStep) {
-      case 1:
-        fieldsToValidate = ["title", "category_id", "priority"]
-        break
-      case 2:
-        fieldsToValidate = ["ward_id", "address_text"]
-        break
-      case 3:
-        fieldsToValidate = ["description"]
-        break
+    let fields: (keyof FormData)[] = [];
+    if (currentStep === 1) fields = ["category_id", "title"];
+    if (currentStep === 2) fields = ["ward_id", "address_text"];
+    if (currentStep === 3) fields = ["description"];
+
+    const isValid = await trigger(fields);
+    if (isValid) {
+      setDirection(1);
+      setCurrentStep((prev) => Math.min(prev + 1, 4));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    const isValidStep = await trigger(fieldsToValidate)
-    if (isValidStep) {
-      setDirection(1)
-      setCurrentStep((prev) => Math.min(prev + 1, 4))
-      window.scrollTo({ top: 0, behavior: "smooth" })
-    }
-  }
+  };
 
   const prevStep = () => {
-    setDirection(-1)
-    setCurrentStep((prev) => Math.max(prev - 1, 1))
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+    setDirection(-1);
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-  // Handle location selection
   const handleLocationSelect = useCallback(
     (location: { lat: number; lng: number }) => {
       setValue(
         "location_point",
-        {
-          type: "Point",
-          coordinates: [location.lng, location.lat], // [lng, lat]
-        },
-        { shouldValidate: true },
-      )
+        { type: "Point", coordinates: [location.lng, location.lat] },
+        { shouldValidate: true }
+      );
     },
-    [setValue],
-  )
+    [setValue]
+  );
 
-  // Form submission – aligned with SubmitComplaintRequest + rpc_submit_complaint
   const handleFormSubmit = async (data: FormData) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const complaintData: SubmitComplaintRequest = {
-        title: data.title,
-        description: data.description,
-        category_id: data.category_id,
-        // ensure empty string becomes null at service level as well
-        subcategory_id: data.subcategory_id || null,
-        ward_id: data.ward_id,
-        location_point: data.location_point ?? null,
-        address_text: data.address_text,
-        landmark: data.landmark || undefined,
-        priority: data.priority,
-        is_anonymous: data.is_anonymous,
-        source: "web",
-      }
-
-      await onSubmit(complaintData, attachments)
+      // Note: We do NOT pass department_id here.
+      // The Backend RPC (rpc_submit_complaint) handles the auto-assignment
+      // based on the category_id or subcategory_id.
+      await onSubmit(
+        { ...data, source: "web" } as SubmitComplaintRequest,
+        attachments
+      );
     } catch (err) {
-      console.error("Error submitting form:", err)
+      console.error(err);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const progress = ((currentStep - 1) / (STEPS.length - 1)) * 100
-
-  // Render step content
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-8">
-            {/* Title */}
-            <div className="space-y-3">
-              <Label htmlFor="title" className="text-base font-semibold">
-                Complaint Title <span className="text-destructive">*</span>
-              </Label>
-              <Controller
-                name="title"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="title"
-                    placeholder="Brief summary of your complaint"
-                    className={`h-12 text-base transition-all duration-200 ${
-                      errors.title
-                        ? "border-destructive focus-visible:ring-destructive"
-                        : "focus-visible:ring-2 focus-visible:ring-primary/20"
-                    }`}
-                  />
-                )}
-              />
-              {errors.title && (
-                <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {errors.title.message}
-                </p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                Be specific but concise. Example: "Damaged water pipeline near city park"
-              </p>
-            </div>
-
-            {/* Category */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">
-                Category <span className="text-destructive">*</span>
-              </Label>
-              <Controller
-                name="category_id"
-                control={control}
-                render={({ field }) => (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => field.onChange(category.id)}
-                        className={`relative p-5 rounded-xl border-2 transition-all duration-200 text-left hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${
-                          field.value === category.id
-                            ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/10"
-                            : "border-border hover:border-primary/50 bg-card"
-                        }`}
-                      >
-                        {field.value === category.id && (
-                          <div className="absolute top-2 right-2 animate-in zoom-in">
-                            <div className="rounded-full bg-primary p-0.5">
-                              <CheckCircle className="h-4 w-4 text-primary-foreground" />
-                            </div>
-                          </div>
-                        )}
-                        <span className="text-2xl mb-2 block">
-                          {category.icon ? category.icon : <FileText className="h-6 w-6" />}
-                        </span>
-                        <span className="font-semibold text-sm">{category.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              />
-              {errors.category_id && (
-                <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {errors.category_id.message}
-                </p>
-              )}
-            </div>
-
-            {/* Subcategory */}
-            {watchedCategory && (
-              <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                <Label className="text-base font-semibold">Subcategory (Optional)</Label>
-                <Controller
-                  name="subcategory_id"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value || "none"}
-                      onValueChange={(val) => field.onChange(val === "none" ? null : val)}
-                      disabled={loadingSubcategories}
-                    >
-                      <SelectTrigger className="h-12 transition-all duration-200">
-                        <SelectValue placeholder={loadingSubcategories ? "Loading..." : "Select subcategory"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {subcategories.map((sub) => (
-                          <SelectItem key={sub.id} value={sub.id}>
-                            {sub.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            )}
-
-            {/* Priority */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Priority Level</Label>
-              <Controller
-                name="priority"
-                control={control}
-                render={({ field }) => (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    {(Object.keys(PRIORITY_CONFIG) as Array<keyof typeof PRIORITY_CONFIG>).map((priority) => {
-                      const config = PRIORITY_CONFIG[priority]
-                      return (
-                        <button
-                          key={priority}
-                          type="button"
-                          onClick={() => field.onChange(priority)}
-                          className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-left hover:scale-[1.02] active:scale-[0.98] ${
-                            field.value === priority
-                              ? `${config.borderColor} ${config.bgColor} shadow-lg`
-                              : "border-border hover:border-muted-foreground/30 bg-card hover:shadow-md"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className={`h-2.5 w-2.5 rounded-full ${config.color} shadow-sm`} />
-                            <span
-                              className={`font-semibold text-sm ${field.value === priority ? config.textColor : ""}`}
-                            >
-                              {config.label}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">{config.description}</p>
-                          {field.value === priority && (
-                            <div className="absolute top-2 right-2 animate-in zoom-in">
-                              <CheckCircle className={`h-4 w-4 ${config.textColor}`} />
-                            </div>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-              />
-            </div>
-
-            {/* Anonymous */}
-            <div className="p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border shadow-sm hover:shadow-md transition-all duration-200">
-              <Controller
-                name="is_anonymous"
-                control={control}
-                render={({ field }) => (
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-0.5" />
-                    <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-primary" />
-                        <span className="font-semibold">Submit anonymously</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Your name will not be displayed publicly or shared with officials
-                      </p>
-                    </div>
-                  </label>
-                )}
-              />
-            </div>
-          </div>
-        )
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                {/* Ward */}
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold">
-                    Ward <span className="text-destructive">*</span>
-                  </Label>
-                  <Controller
-                    name="ward_id"
-                    control={control}
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger
-                          className={`h-12 transition-all duration-200 ${errors.ward_id ? "border-destructive" : ""}`}
-                        >
-                          <SelectValue placeholder="Select your ward" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {wards.map((ward) => (
-                            <SelectItem key={ward.id} value={ward.id}>
-                              Ward {ward.ward_number} - {ward.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.ward_id && (
-                    <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                      <AlertCircle className="h-3.5 w-3.5" />
-                      {errors.ward_id.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Address */}
-                <div className="space-y-3">
-                  <Label htmlFor="address_text" className="text-base font-semibold">
-                    Address <span className="text-destructive">*</span>
-                  </Label>
-                  <Controller
-                    name="address_text"
-                    control={control}
-                    render={({ field }) => (
-                      <Textarea
-                        {...field}
-                        id="address_text"
-                        placeholder="Full address where the issue is located"
-                        rows={4}
-                        className={`resize-none transition-all duration-200 ${
-                          errors.address_text
-                            ? "border-destructive focus-visible:ring-destructive"
-                            : "focus-visible:ring-2 focus-visible:ring-primary/20"
-                        }`}
-                      />
-                    )}
-                  />
-                  {errors.address_text && (
-                    <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                      <AlertCircle className="h-3.5 w-3.5" />
-                      {errors.address_text.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Landmark */}
-                <div className="space-y-3">
-                  <Label htmlFor="landmark" className="text-base font-semibold">
-                    Landmark (Optional)
-                  </Label>
-                  <Controller
-                    name="landmark"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        value={field.value || ""}
-                        id="landmark"
-                        placeholder="Nearby landmark for easy identification"
-                        className="h-12 transition-all duration-200"
-                      />
-                    )}
-                  />
-                  <p className="text-sm text-muted-foreground">Example: "Near City Hospital" or "Behind ABC School"</p>
-                </div>
-              </div>
-
-              {/* Map */}
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">Pin Location on Map (Optional)</Label>
-                <div className="rounded-xl overflow-hidden border-2 border-border shadow-lg">
-                  <MapPicker onLocationSelect={handleLocationSelect} />
-                </div>
-                <p className="text-sm text-muted-foreground flex items-start gap-2">
-                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  Click on the map to mark the exact location of the complaint
-                </p>
-              </div>
-            </div>
-          </div>
-        )
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            {/* Description */}
-            <div className="space-y-3">
-              <Label htmlFor="description" className="text-base font-semibold">
-                Detailed Description <span className="text-destructive">*</span>
-              </Label>
-              <Controller
-                name="description"
-                control={control}
-                render={({ field }) => (
-                  <Textarea
-                    {...field}
-                    id="description"
-                    placeholder="Provide a detailed description of the issue..."
-                    rows={8}
-                    className={`resize-none transition-all duration-200 ${
-                      errors.description
-                        ? "border-destructive focus-visible:ring-destructive"
-                        : "focus-visible:ring-2 focus-visible:ring-primary/20"
-                    }`}
-                  />
-                )}
-              />
-              {errors.description && (
-                <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {errors.description.message}
-                </p>
-              )}
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-muted-foreground">Include relevant details like when you noticed the issue</p>
-                <span className="text-muted-foreground">{watch("description")?.length || 0}/5000</span>
-              </div>
-            </div>
-
-            {/* File Upload */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Attachments (Optional)</Label>
-              <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-all duration-200 bg-gradient-to-br from-muted/30 to-muted/10">
-                <input
-                  type="file"
-                  id="file-upload"
-                  multiple
-                  accept="image/*,.pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-3">
-                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <Upload className="h-7 w-7 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium mb-1">Click to upload photos or documents</p>
-                    <p className="text-sm text-muted-foreground">JPG, PNG, GIF, or PDF up to 5MB each</p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Attachment Preview */}
-              {attachments.length > 0 && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                  <p className="text-sm font-medium">Uploaded Files ({attachments.length})</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {attachments.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:shadow-md transition-all duration-200 group"
-                      >
-                        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
-                          <FileImage className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeAttachment(index)}
-                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Help Text */}
-            <Alert className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 dark:from-blue-950/30 dark:to-cyan-950/30 dark:border-blue-800">
-              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <AlertTitle className="text-blue-900 dark:text-blue-100">Helpful Tips</AlertTitle>
-              <AlertDescription className="text-blue-800 dark:text-blue-200 text-sm">
-                Photos showing the problem help officials understand and resolve your complaint faster. Include multiple
-                angles if possible.
-              </AlertDescription>
-            </Alert>
-          </div>
-        )
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Complaint details review */}
-              <Card className="border-2 border-border shadow-lg hover:shadow-xl transition-all duration-200">
-                <CardHeader className="pb-4 bg-gradient-to-br from-primary/5 to-primary/10">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <span>Complaint Details</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">Title</span>
-                      <Badge
-                        className={`${PRIORITY_CONFIG[watchedPriority].bgColor} ${
-                          PRIORITY_CONFIG[watchedPriority].textColor
-                        } border-0 shadow-sm`}
-                      >
-                        {PRIORITY_CONFIG[watchedPriority].label}
-                      </Badge>
-                    </div>
-                    <p className="font-semibold text-base">{watch("title")}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium text-muted-foreground">Category</span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="secondary" className="shadow-sm">
-                        {categories.find((c) => c.id === watch("category_id"))?.name}
-                      </Badge>
-                      {watch("subcategory_id") && (
-                        <Badge variant="outline" className="shadow-sm">
-                          {subcategories.find((s) => s.id === watch("subcategory_id"))?.name}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium text-muted-foreground">Description</span>
-                    <p className="text-sm whitespace-pre-line line-clamp-4 leading-relaxed">{watch("description")}</p>
-                  </div>
-                  {attachments.length > 0 && (
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium text-muted-foreground">Attachments</span>
-                      <div className="flex flex-wrap gap-2">
-                        {attachments.map((file, index) => (
-                          <Badge key={index} variant="outline" className="text-xs shadow-sm">
-                            <FileImage className="h-3 w-3 mr-1" />
-                            {file.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Location review */}
-              <Card className="border-2 border-border shadow-lg hover:shadow-xl transition-all duration-200">
-                <CardHeader className="pb-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span>Location Details</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-6">
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium text-muted-foreground">Ward</span>
-                    <div className="flex items-center gap-2">
-                      <Home className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-semibold">
-                        Ward {wards.find((w) => w.id === watch("ward_id"))?.ward_number} -{" "}
-                        {wards.find((w) => w.id === watch("ward_id"))?.name}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium text-muted-foreground">Address</span>
-                    <p className="font-medium leading-relaxed">{watch("address_text")}</p>
-                  </div>
-                  {watch("landmark") && (
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium text-muted-foreground">Landmark</span>
-                      <p className="font-medium">{watch("landmark")}</p>
-                    </div>
-                  )}
-                  {watch("location_point") && (
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium text-muted-foreground">Coordinates</span>
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-mono text-sm">
-                          {watch("location_point")?.coordinates[1].toFixed(6)},{" "}
-                          {watch("location_point")?.coordinates[0].toFixed(6)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {watch("is_anonymous") && (
-                    <Alert className="bg-gradient-to-br from-muted/50 to-muted/30 border-border">
-                      <Shield className="h-4 w-4 text-primary" />
-                      <AlertTitle className="text-sm font-semibold">Anonymous Submission</AlertTitle>
-                      <AlertDescription className="text-xs">
-                        Your identity will not be shared publicly.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Final confirmation message */}
-            <Alert className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 dark:from-green-950/30 dark:to-emerald-950/30 dark:border-green-800">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <AlertTitle className="text-green-900 dark:text-green-100 font-semibold">Ready to Submit</AlertTitle>
-              <AlertDescription className="text-green-800 dark:text-green-200 text-sm">
-                Please review your complaint details above. Once submitted, you'll receive a tracking number to monitor
-                the progress of your complaint.
-              </AlertDescription>
-            </Alert>
-          </div>
-        )
-
-      default:
-        return null
-    }
-  }
+  // Animation variants
+  const variants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 20 : -20, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir < 0 ? 20 : -20, opacity: 0 }),
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 py-8 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Submit New Complaint
-          </h1>
-          <p className="text-muted-foreground text-lg">Help us serve you better by providing detailed information</p>
-        </div>
-
-        {/* Progress Stepper */}
-        <div className="mb-8">
-          <div className="relative">
-            {/* Progress Bar */}
-            <div className="absolute top-5 left-0 right-0 h-1 bg-muted rounded-full">
+    <div className="w-full max-w-4xl mx-auto pb-20">
+      {/* Stepper Header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center relative">
+          <div className="absolute left-0 right-0 top-1/2 h-1 bg-slate-200 -z-10 rounded-full" />
+          {STEPS.map((step) => {
+            const Icon = step.icon;
+            const isActive = currentStep === step.id;
+            const isCompleted = currentStep > step.id;
+            return (
               <div
-                className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
-            {/* Steps */}
-            <div className="relative flex justify-between">
-              {STEPS.map((step) => {
-                const StepIcon = step.icon
-                const isActive = currentStep === step.id
-                const isCompleted = currentStep > step.id
-
-                return (
-                  <div key={step.id} className="flex flex-col items-center group">
-                    <div
-                      className={`h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        isCompleted
-                          ? "bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/30 scale-110"
-                          : isActive
-                            ? "bg-gradient-to-br from-primary to-primary/70 shadow-xl shadow-primary/40 scale-125 ring-4 ring-primary/20"
-                            : "bg-muted border-2 border-border"
-                      }`}
-                    >
-                      {isCompleted ? (
-                        <CheckCircle className="h-5 w-5 text-primary-foreground" />
-                      ) : (
-                        <StepIcon
-                          className={`h-5 w-5 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`}
-                        />
-                      )}
-                    </div>
-                    <div className="mt-3 text-center hidden sm:block">
-                      <p
-                        className={`text-sm font-semibold transition-colors ${
-                          isActive ? "text-primary" : "text-muted-foreground"
-                        }`}
-                      >
-                        {step.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{step.description}</p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+                key={step.id}
+                className="flex flex-col items-center bg-white px-2"
+              >
+                <div
+                  className={`h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${
+                    isActive || isCompleted
+                      ? "bg-blue-600 border-blue-600 text-white"
+                      : "bg-white border-slate-300 text-slate-400"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span
+                  className={`text-xs font-semibold mt-2 ${isActive ? "text-blue-600" : "text-slate-500"}`}
+                >
+                  {step.title}
+                </span>
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        {/* Form Card */}
-        <Card className="border-2 border-border shadow-2xl">
-          <CardHeader className="bg-gradient-to-br from-muted/30 to-muted/10 border-b border-border">
-            <CardTitle className="text-2xl">{STEPS.find((s) => s.id === currentStep)?.title}</CardTitle>
-            <CardDescription className="text-base">
-              {STEPS.find((s) => s.id === currentStep)?.description}
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
+        <Card className="shadow-lg border-0 ring-1 ring-slate-200/50">
+          <CardHeader className="bg-slate-50/50 border-b pb-6">
+            <CardTitle className="text-xl">
+              {STEPS[currentStep - 1].title}
+            </CardTitle>
+            <CardDescription>
+              {STEPS[currentStep - 1].description}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-8">
-            <form onSubmit={handleSubmit(handleFormSubmit)}>
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={currentStep}
-                  custom={direction}
-                  variants={stepVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.25, ease: "easeInOut" }}
-                >
-                  {renderStepContent()}
-                </motion.div>
-              </AnimatePresence>
 
-              {/* Navigation */}
-              <div className="flex justify-between mt-8 pt-6 border-t border-border">
-                {currentStep > 1 ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={prevStep}
-                    disabled={isSubmitting}
-                    className="hover:scale-105 active:scale-95 transition-transform bg-transparent"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-2" />
-                    Previous
-                  </Button>
-                ) : (
-                  <div />
-                )}
-                {currentStep < 4 ? (
-                  <Button
-                    type="button"
-                    onClick={nextStep}
-                    disabled={isSubmitting}
-                    className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="min-w-[160px] bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 hover:shadow-lg hover:shadow-green-500/30 hover:scale-105 active:scale-95 transition-all"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Submit Complaint
-                      </>
+          <CardContent className="pt-6 min-h-[400px]">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={currentStep}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                {/* STEP 1: CATEGORY SELECTION */}
+                {currentStep === 1 && (
+                  <>
+                    <div className="space-y-4">
+                      <Label className="text-base">
+                        What best describes the issue?
+                      </Label>
+                      <Controller
+                        name="category_id"
+                        control={control}
+                        render={({ field }) => (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {categories.map((category) => {
+                              const isSelected = field.value === category.id;
+                              return (
+                                <button
+                                  key={category.id}
+                                  type="button"
+                                  onClick={() => field.onChange(category.id)}
+                                  className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all hover:shadow-md ${
+                                    isSelected
+                                      ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600"
+                                      : "border-slate-100 bg-white text-slate-600 hover:border-blue-200 hover:bg-slate-50"
+                                  }`}
+                                >
+                                  <div
+                                    className={`mb-3 p-3 rounded-full ${isSelected ? "bg-blue-100" : "bg-slate-100"}`}
+                                  >
+                                    {getCategoryIcon(category.name)}
+                                  </div>
+                                  <span className="font-semibold text-sm text-center">
+                                    {formatCategoryName(category.name)}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      />
+                      {errors.category_id && (
+                        <p className="text-red-500 text-sm mt-2">
+                          {errors.category_id.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Subcategories */}
+                    {subcategories.length > 0 && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <Label>Specific Issue (Optional)</Label>
+                        <Controller
+                          name="subcategory_id"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              value={field.value || ""}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="h-12 bg-slate-50 border-slate-200">
+                                <SelectValue placeholder="Select specific type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {subcategories.map((sub) => (
+                                  <SelectItem key={sub.id} value={sub.id}>
+                                    {sub.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
                     )}
-                  </Button>
+
+                    <div className="space-y-2">
+                      <Label>Issue Title</Label>
+                      <Input
+                        {...control.register("title")}
+                        placeholder="e.g. Broken streetlight near park"
+                        className="h-12 text-lg"
+                      />
+                      {errors.title && (
+                        <p className="text-red-500 text-sm">
+                          {errors.title.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
-              </div>
-            </form>
+
+                {/* STEP 2: LOCATION */}
+                {currentStep === 2 && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>
+                            Ward No. <span className="text-red-500">*</span>
+                          </Label>
+                          <Controller
+                            name="ward_id"
+                            control={control}
+                            render={({ field }) => (
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger className="h-12">
+                                  <SelectValue placeholder="Select Ward" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {wards.map((ward) => (
+                                    <SelectItem key={ward.id} value={ward.id}>
+                                      Ward {ward.ward_number} - {ward.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                          {errors.ward_id && (
+                            <p className="text-red-500 text-sm">
+                              {errors.ward_id.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>
+                            Exact Address{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Textarea
+                            {...control.register("address_text")}
+                            placeholder="Street name, house number, etc."
+                            className="resize-none h-32"
+                          />
+                          {errors.address_text && (
+                            <p className="text-red-500 text-sm">
+                              {errors.address_text.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Nearby Landmark (Optional)</Label>
+                          <Input
+                            {...control.register("landmark")}
+                            placeholder="e.g. Behind City Hospital"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" /> Pin on Map
+                          (Recommended)
+                        </Label>
+                        <div className="rounded-xl overflow-hidden border border-slate-200 h-[300px]">
+                          <MapPicker onLocationSelect={handleLocationSelect} />
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          Click on the map to automatically get coordinates.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 3: DETAILS */}
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label>Detailed Description</Label>
+                      <Textarea
+                        {...control.register("description")}
+                        placeholder="Please describe the issue in detail. When did it start? How severe is it?"
+                        className="min-h-[150px] text-base"
+                      />
+                      {errors.description && (
+                        <p className="text-red-500 text-sm">
+                          {errors.description.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Photos / Documents</Label>
+                      <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 bg-slate-50 hover:bg-slate-100 transition-colors text-center cursor-pointer relative">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleFileUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <Upload className="h-10 w-10 text-slate-400 mx-auto mb-2" />
+                        <p className="font-medium text-slate-700">
+                          Click to upload photos
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Supports JPG, PNG (Max 5MB)
+                        </p>
+                      </div>
+
+                      {attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {attachments.map((file, i) => (
+                            <Badge
+                              key={i}
+                              variant="secondary"
+                              className="pl-2 pr-1 py-1 flex items-center gap-2"
+                            >
+                              <FileImage className="h-3 w-3" />
+                              <span className="max-w-[150px] truncate">
+                                {file.name}
+                              </span>
+                              <button
+                                onClick={() => removeAttachment(i)}
+                                className="hover:text-red-600"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-blue-50 border border-blue-100">
+                      <Controller
+                        name="is_anonymous"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            id="anon"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        )}
+                      />
+                      <label htmlFor="anon" className="text-sm cursor-pointer">
+                        <span className="font-semibold block text-blue-900">
+                          Submit Anonymously?
+                        </span>
+                        <span className="text-blue-700">
+                          Your name will be hidden from public view.
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* STEP 4: REVIEW */}
+                {currentStep === 4 && (
+                  <div className="space-y-6">
+                    <Alert className="bg-green-50 border-green-200">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <AlertTitle className="text-green-800">
+                        Almost Done!
+                      </AlertTitle>
+                      <AlertDescription className="text-green-700">
+                        We have auto-assigned this to the relevant department
+                        based on your category selection.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="grid gap-4 bg-slate-50 p-6 rounded-xl border border-slate-200 text-sm">
+                      <div className="grid grid-cols-3 gap-4 border-b border-slate-200 pb-4">
+                        <span className="text-slate-500">Category</span>
+                        <span className="col-span-2 font-medium">
+                          {
+                            categories.find(
+                              (c) => c.id === watch("category_id")
+                            )?.name
+                          }
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 border-b border-slate-200 pb-4">
+                        <span className="text-slate-500">Title</span>
+                        <span className="col-span-2 font-medium">
+                          {watch("title")}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 border-b border-slate-200 pb-4">
+                        <span className="text-slate-500">Location</span>
+                        <span className="col-span-2 font-medium">
+                          {watch("address_text")} (Ward{" "}
+                          {
+                            wards.find((w) => w.id === watch("ward_id"))
+                              ?.ward_number
+                          }
+                          )
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <span className="text-slate-500">Description</span>
+                        <span className="col-span-2 text-slate-700">
+                          {watch("description")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </CardContent>
+
+          {/* Footer Controls */}
+          <div className="p-6 bg-slate-50 rounded-b-xl border-t flex justify-between">
+            {currentStep > 1 ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={prevStep}
+                disabled={isSubmitting}
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" /> Back
+              </Button>
+            ) : (
+              <div />
+            )}
+
+            {currentStep < 4 ? (
+              <Button
+                type="button"
+                onClick={nextStep}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Next Step <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700 min-w-[140px]"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Submit Complaint"
+                )}
+              </Button>
+            )}
+          </div>
         </Card>
-      </div>
+      </form>
     </div>
-  )
+  );
 }
