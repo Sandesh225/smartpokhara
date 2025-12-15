@@ -6,11 +6,17 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Shield, Lock, CreditCard, Wallet, AlertCircle } from "lucide-react";
 import { paymentsService } from "@/lib/supabase/queries/payments";
-import { Button } from "@/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import { Separator } from "@/ui/separator";
-import { Badge } from "@/ui/badge";
-import { Skeleton } from "@/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 type PaymentMethod = 'esewa' | 'khalti' | 'connect_ips' | 'bank_transfer' | 'wallet';

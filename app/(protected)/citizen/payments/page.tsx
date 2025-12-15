@@ -17,12 +17,12 @@ import BillsList from "@/components/citizen/payments/BillsList";
 import PaymentHistoryTable from "@/components/citizen/payments/PaymentHistoryTable";
 import WalletCard from "@/components/citizen/payments/WalletCard";
 import PaymentFilters from "@/components/citizen/payments/PaymentFilters";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
-import { Card, CardContent } from "@/ui/card";
-import { Button } from "@/ui/button";
-import { Badge } from "@/ui/badge";
-import { Separator } from "@/ui/separator";
-import { Skeleton } from "@/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 export default function PaymentsPage() {

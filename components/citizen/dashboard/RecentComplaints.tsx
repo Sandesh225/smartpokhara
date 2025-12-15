@@ -2,9 +2,15 @@
 
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/ui/card"
-import { Button } from "@/ui/button"
-import { Badge } from "@/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { FileText, ArrowRight, Clock } from "lucide-react"
 import type { Complaint } from "@/lib/types/database.types"
 

@@ -36,21 +36,21 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/ui/card";
-import { Button } from "@/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
-import { Separator } from "@/ui/separator";
-import { Badge } from "@/ui/badge";
-import { Skeleton } from "@/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
-import { ScrollArea } from "@/ui/scroll-area";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 // Import Custom Components
 import { CommentThread } from "@/components/citizen/complaints/CommentThread";

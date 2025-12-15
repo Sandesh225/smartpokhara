@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Palette, Save, Camera } from "lucide-react";
-import { useCurrentUser } from "@/lib/hooks/use-complaints";
+import { useCurrentUser } from "@/hooks/use-complaints";
 import { useToast } from "@/hooks/use-toast";
 
 export default function StaffSettingsPage() {

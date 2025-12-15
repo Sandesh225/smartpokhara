@@ -19,11 +19,17 @@ import {
   Share2,
 } from "lucide-react"
 
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/ui/card"
-import { Badge } from "@/ui/badge"
-import { Button } from "@/ui/button"
-import { ScrollArea } from "@/ui/scroll-area"
-import { Skeleton } from "@/ui/skeleton"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner"
 
 interface Notice {

@@ -1,4 +1,3 @@
-// lib/supabase/types.ts
 export type Json =
   | string
   | number
@@ -23,23 +22,15 @@ export interface Database {
           category_id: string;
           subcategory_id: string | null;
           ward_id: string;
-          location_point: any;
+          location_point: any; // specific PostGIS types can be used here if needed
           address_text: string | null;
           landmark: string | null;
           latitude: number | null;
           longitude: number | null;
-          status:
-            | "received"
-            | "under_review"
-            | "assigned"
-            | "in_progress"
-            | "resolved"
-            | "closed"
-            | "rejected"
-            | "reopened";
-          priority: "critical" | "urgent" | "high" | "medium" | "low";
+          status: Database["public"]["Enums"]["complaint_status"];
+          priority: Database["public"]["Enums"]["complaint_priority"];
           is_anonymous: boolean;
-          source: "web" | "mobile" | "call_center" | "field_office" | "email";
+          source: Database["public"]["Enums"]["complaint_source"];
           assigned_department_id: string | null;
           assigned_staff_id: string | null;
           assigned_at: string | null;
@@ -75,18 +66,10 @@ export interface Database {
           landmark?: string | null;
           latitude?: number | null;
           longitude?: number | null;
-          status?:
-            | "received"
-            | "under_review"
-            | "assigned"
-            | "in_progress"
-            | "resolved"
-            | "closed"
-            | "rejected"
-            | "reopened";
-          priority?: "critical" | "urgent" | "high" | "medium" | "low";
+          status?: Database["public"]["Enums"]["complaint_status"];
+          priority?: Database["public"]["Enums"]["complaint_priority"];
           is_anonymous?: boolean;
-          source?: "web" | "mobile" | "call_center" | "field_office" | "email";
+          source?: Database["public"]["Enums"]["complaint_source"];
           assigned_department_id?: string | null;
           assigned_staff_id?: string | null;
           assigned_at?: string | null;
@@ -122,18 +105,10 @@ export interface Database {
           landmark?: string | null;
           latitude?: number | null;
           longitude?: number | null;
-          status?:
-            | "received"
-            | "under_review"
-            | "assigned"
-            | "in_progress"
-            | "resolved"
-            | "closed"
-            | "rejected"
-            | "reopened";
-          priority?: "critical" | "urgent" | "high" | "medium" | "low";
+          status?: Database["public"]["Enums"]["complaint_status"];
+          priority?: Database["public"]["Enums"]["complaint_priority"];
           is_anonymous?: boolean;
-          source?: "web" | "mobile" | "call_center" | "field_office" | "email";
+          source?: Database["public"]["Enums"]["complaint_source"];
           assigned_department_id?: string | null;
           assigned_staff_id?: string | null;
           assigned_at?: string | null;
@@ -153,9 +128,11 @@ export interface Database {
           closed_at?: string | null;
         };
       };
-      // Add other table definitions as needed
+      // You can add other tables here (e.g. notices, bills) as you expand
     };
-    Views: {};
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
       rpc_submit_complaint: {
         Args: {
@@ -167,15 +144,10 @@ export interface Database {
           p_location_point?: Json;
           p_address_text?: string;
           p_landmark?: string;
-          p_priority?: "critical" | "urgent" | "high" | "medium" | "low";
+          p_priority?: Database["public"]["Enums"]["complaint_priority"];
           p_is_anonymous?: boolean;
           p_phone?: string;
-          p_source?:
-            | "web"
-            | "mobile"
-            | "call_center"
-            | "field_office"
-            | "email";
+          p_source?: Database["public"]["Enums"]["complaint_source"];
         };
         Returns: Json;
       };
@@ -196,7 +168,6 @@ export interface Database {
         };
         Returns: Json;
       };
-      // Add other function definitions
     };
     Enums: {
       complaint_status:
@@ -226,3 +197,36 @@ export interface Database {
     };
   };
 }
+
+// --- Frontend Helper Types ---
+
+export type Complaint = Database["public"]["Tables"]["complaints"]["Row"];
+export type ComplaintInsert =
+  Database["public"]["Tables"]["complaints"]["Insert"];
+export type ComplaintUpdate =
+  Database["public"]["Tables"]["complaints"]["Update"];
+
+export type ComplaintStatus = Database["public"]["Enums"]["complaint_status"];
+export type ComplaintPriority =
+  Database["public"]["Enums"]["complaint_priority"];
+
+export type Bill = {
+  id: string;
+  bill_number: string;
+  title: string;
+  amount: number;
+  total_amount: number; // API consistency
+  due_date: string;
+  status: "pending" | "paid" | "overdue";
+  bill_type: string;
+};
+
+export type Notice = {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  published_at: string;
+  is_urgent: boolean;
+  notice_type: string;
+};

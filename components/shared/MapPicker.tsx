@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useCallback } from "react"
-import { Button } from "@/ui/button"
+import { Button } from "@/components/ui/button";
 import { Loader2, MapPin, Navigation, ZoomIn, ZoomOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 

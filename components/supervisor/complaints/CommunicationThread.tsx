@@ -1,9 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { Send, Paperclip } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Send,
+  Paperclip,
+  Loader2,
+  MessageSquare,
+  CalendarDays,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
+import { createClient } from "@/lib/supabase/client";
+import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Message {
   id: string;
@@ -11,6 +28,8 @@ interface Message {
   author_role: string;
   created_at: string;
   is_internal: boolean;
+  author_name?: string;
+  author_avatar?: string;
 }
 
 interface CommunicationThreadProps {
@@ -19,114 +38,245 @@ interface CommunicationThreadProps {
   currentUserId: string;
 }
 
-export function CommunicationThread({ complaintId, initialMessages, currentUserId }: CommunicationThreadProps) {
-  const [messages, setMessages] = useState(initialMessages);
+export function CommunicationThread({
+  complaintId,
+  initialMessages,
+  currentUserId,
+}: CommunicationThreadProps) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClient();
 
-  // Filter out internal notes if this was a public thread component
-  // But for supervisor, we typically see everything. 
-  // Here we just render them distinctively.
+  // Group messages by date
+  const groupMessagesByDate = (messages: Message[]) => {
+    const groups: { [key: string]: Message[] } = {};
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    
-    // Optimistic update
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      author_role: "supervisor",
-      created_at: new Date().toISOString(),
-      is_internal: false
-    };
-    
-    setMessages([...messages, newMessage]);
-    setInput("");
-    // TODO: Call API to persist
+    messages.forEach((message) => {
+      const date = format(new Date(message.created_at), "yyyy-MM-dd");
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(message);
+    });
+
+    return groups;
   };
 
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || sending) return;
+
+    setSending(true);
+    try {
+      // Optimistic UI Update
+      const optimisticMsg: Message = {
+        id: `temp-${Date.now()}`,
+        content: input,
+        author_role: "supervisor",
+        created_at: new Date().toISOString(),
+        is_internal: false,
+        author_name: "You",
+      };
+
+      setMessages((prev) => [...prev, optimisticMsg]); // Add to end for chronological order
+      setInput("");
+
+      await supervisorComplaintsQueries.addComment(
+        supabase,
+        complaintId,
+        optimisticMsg.content,
+        false
+      );
+      toast.success("Message sent");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to send message");
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter((msg) => !msg.id.startsWith("temp-")));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Sort messages: Oldest to newest for chat feel
+  const sortedMessages = [...messages].sort(
+    (a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+
+  const groupedMessages = groupMessagesByDate(sortedMessages);
+
+  // Initial loading state
+  useEffect(() => {
+    if (initialMessages.length === 0) {
+      setIsLoading(true);
+      const timer = setTimeout(() => setIsLoading(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [initialMessages]);
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[500px]">
-      <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-        <h3 className="text-base font-semibold text-gray-900">Communication</h3>
-      </div>
+    <Card className="flex flex-col h-[600px] overflow-hidden">
+      <CardHeader className="pb-3 border-b">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold">
+            Communication Thread
+          </CardTitle>
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
+            Visible to Citizen & Staff
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          All messages are visible to both citizens and staff members
+        </p>
+      </CardHeader>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.length === 0 ? (
-          <div className="text-center text-gray-400 py-10">
-            <p className="text-sm">No messages yet.</p>
-          </div>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.author_role === "supervisor"; // Simplified check
-            const isSystem = msg.author_role === "system";
-
-            if (isSystem) {
-              return (
-                <div key={msg.id} className="flex justify-center my-4">
-                  <span className="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
-                    {msg.content}
-                  </span>
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={msg.id}
-                className={cn(
-                  "flex flex-col max-w-[80%]",
-                  isMe ? "self-end items-end" : "self-start items-start"
-                )}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-gray-600 capitalize">
-                    {msg.author_role}
-                  </span>
-                  <span className="text-[10px] text-gray-400">
-                    {format(new Date(msg.created_at), "h:mm a")}
-                  </span>
-                </div>
-                <div
-                  className={cn(
-                    "px-4 py-3 rounded-2xl text-sm",
-                    isMe
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-gray-100 text-gray-800 rounded-bl-none"
-                  )}
-                >
-                  {msg.content}
+      <ScrollArea className="flex-1 p-4">
+        {isLoading ? (
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-16 rounded-lg" />
                 </div>
               </div>
-            );
-          })
-        )}
-      </div>
+            ))}
+          </div>
+        ) : sortedMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+            <div className="mb-4 rounded-full bg-muted p-4">
+              <MessageSquare className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">No messages yet</h3>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              Start the conversation by sending a message. All communications
+              will be visible here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {Object.entries(groupedMessages).map(([date, dateMessages]) => (
+              <div key={date} className="space-y-4">
+                <div className="flex items-center justify-center">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-full">
+                    <CalendarDays className="h-3 w-3" />
+                    <span className="text-xs font-medium">
+                      {format(new Date(date), "MMM d, yyyy")}
+                    </span>
+                  </div>
+                </div>
 
-      <div className="p-4 bg-gray-50 border-t border-gray-200">
-        <form onSubmit={handleSend} className="flex gap-2">
-          <button
+                {dateMessages.map((msg) => {
+                  const isMe = msg.author_role === "supervisor";
+                  const messageDate = new Date(msg.created_at);
+
+                  return (
+                    <div
+                      key={msg.id}
+                      className={cn(
+                        "flex gap-3",
+                        isMe ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      {!isMe && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={msg.author_avatar} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {msg.author_name?.charAt(0).toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+
+                      <div
+                        className={cn(
+                          "flex flex-col max-w-[80%]",
+                          isMe ? "items-end" : "items-start"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium">
+                            {msg.author_name || msg.author_role}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {format(messageDate, "h:mm a")}
+                          </span>
+                        </div>
+
+                        <div
+                          className={cn(
+                            "rounded-2xl px-4 py-2.5 text-sm",
+                            isMe
+                              ? "bg-primary text-primary-foreground rounded-br-none"
+                              : "bg-muted rounded-bl-none"
+                          )}
+                        >
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                      </div>
+
+                      {isMe && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={msg.author_avatar} />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            You
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+      </ScrollArea>
+
+      <div className="border-t p-4">
+        <form onSubmit={handleSend} className="flex items-center gap-2">
+          <Button
             type="button"
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors"
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            aria-label="Attach file"
           >
-            <Paperclip className="h-5 w-5" />
-          </button>
-          <input
+            <Paperclip className="h-4 w-4" />
+          </Button>
+
+          <Input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Type your message here..."
+            className="flex-1"
+            disabled={sending}
           />
-          <button
+
+          <Button
             type="submit"
-            disabled={!input.trim()}
-            className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            size="icon"
+            disabled={!input.trim() || sending}
+            className="shrink-0"
+            aria-label="Send message"
           >
-            <Send className="h-4 w-4" />
-          </button>
+            {sending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
         </form>
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          Press Enter to send • Messages are visible to both parties
+        </p>
       </div>
-    </div>
+    </Card>
   );
 }

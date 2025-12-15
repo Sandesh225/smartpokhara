@@ -14,9 +14,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/ui/button";
-import { ScrollArea } from "@/ui/scroll-area";
-import { Separator } from "@/ui/separator";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 import ProfileView from "@/components/citizen/profile/ProfileView";

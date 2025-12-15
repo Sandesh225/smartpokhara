@@ -66,11 +66,11 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
         ? { lat: targetComplaint.location_point.coordinates[1], lng: targetComplaint.location_point.coordinates[0] } 
         : null;
 
-      const rankedStaff = getSuggestedStaff(staff, location);
+      const rankedStaff = getSuggestedStaff(staff || [], location);
       setStaffList(rankedStaff);
     } catch (error) {
       toast.error("Failed to load staff list");
-      console.error(error);
+      console.error("Staff load error:", error);
     } finally {
       setLoadingStaff(false);
     }
@@ -84,41 +84,63 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
 
   // 3. Assignment Logic
   const handleAssign = async (staffId: string, note: string, options: any) => {
-    if (!activeComplaintId && selectedIds.length === 0) return;
+    if ((!activeComplaintId && selectedIds.length === 0) || !staffId) {
+      toast.error("Invalid selection");
+      return;
+    }
 
     const idsToAssign = activeComplaintId ? [activeComplaintId] : selectedIds;
-    const targetStaff = staffList.find(s => s.user_id === staffId);
+    const targetStaff = staffList.find((s) => s.user_id === staffId);
 
     try {
       if (activeComplaintId) {
         // Single Assign - passing 'supabase' client
-        await supervisorComplaintsQueries.assignComplaint(supabase, activeComplaintId, staffId, note);
+        await supervisorComplaintsQueries.assignComplaint(
+          supabase,
+          activeComplaintId,
+          staffId,
+          note
+        );
       } else {
         // Bulk Assign - passing 'supabase' client
-        await supervisorComplaintsQueries.bulkAssignComplaints(supabase, selectedIds, staffId, supervisorId);
+        await supervisorComplaintsQueries.bulkAssignComplaints(
+          supabase,
+          selectedIds,
+          staffId,
+          supervisorId
+        );
       }
 
       // Notifications
       if (targetStaff) {
-        idsToAssign.forEach(cid => {
-          const comp = complaints.find(c => c.id === cid);
+        idsToAssign.forEach((cid) => {
+          const comp = complaints.find((c) => c.id === cid);
           if (comp) {
             notifyStaffOfAssignment(
-              { id: targetStaff.user_id, name: targetStaff.full_name, phone: targetStaff.phone, email: targetStaff.email },
-              { id: comp.id, tracking_code: comp.tracking_code, title: comp.title },
+              {
+                id: targetStaff.user_id,
+                name: targetStaff.full_name,
+                phone: targetStaff.phone,
+                email: targetStaff.email,
+              },
+              {
+                id: comp.id,
+                tracking_code: comp.tracking_code,
+                title: comp.title,
+              },
               note
             );
           }
         });
       }
 
-      toast.success(`Assigned to ${targetStaff?.full_name}`);
-      
+      toast.success(`Assigned to ${targetStaff?.full_name || "Staff"}`);
+
       // Optimistic Update
-      setComplaints(prev => prev.filter(c => !idsToAssign.includes(c.id)));
+      setComplaints((prev) => prev.filter((c) => !idsToAssign.includes(c.id)));
       setSelectedIds([]);
       setActiveComplaintId(null);
-
+      setIsAssignModalOpen(false);
     } catch (error) {
       toast.error("Assignment failed");
       console.error(error);

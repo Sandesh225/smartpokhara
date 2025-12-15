@@ -8,12 +8,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/ui/card";
-import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
-import { Separator } from "@/ui/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/ui/tabs";
-import { Badge } from "@/ui/badge";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Plus,
   RefreshCw,

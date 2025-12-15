@@ -1,6 +1,16 @@
-import { Check, Circle, Clock } from "lucide-react";
+import {
+  CheckCircle,
+  Circle,
+  Clock,
+  User,
+  AlertCircle,
+  ArrowRight,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface TimelineEvent {
   id: string;
@@ -8,61 +18,168 @@ interface TimelineEvent {
   old_status: string | null;
   created_at: string;
   note: string;
-  changed_by: string; // ID or logic to get name
+  changed_by: string;
 }
 
 interface StatusTimelineProps {
   history: TimelineEvent[];
 }
 
+const statusColors: Record<string, string> = {
+  new: "bg-blue-100 text-blue-800 border-blue-200",
+  in_progress: "bg-amber-100 text-amber-800 border-amber-200",
+  pending: "bg-purple-100 text-purple-800 border-purple-200",
+  resolved: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  closed: "bg-gray-100 text-gray-800 border-gray-200",
+  reopened: "bg-orange-100 text-orange-800 border-orange-200",
+};
+
+const statusIcons: Record<string, React.ReactNode> = {
+  new: <Circle className="h-3 w-3" />,
+  in_progress: <Clock className="h-3 w-3" />,
+  pending: <AlertCircle className="h-3 w-3" />,
+  resolved: <CheckCircle className="h-3 w-3" />,
+  closed: <CheckCircle className="h-3 w-3" />,
+  reopened: <AlertCircle className="h-3 w-3" />,
+};
+
 export function StatusTimeline({ history }: StatusTimelineProps) {
   // Sort history newest first
   const sortedHistory = [...history].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 
+  // Group events by date
+  const groupedEvents: { [key: string]: TimelineEvent[] } = {};
+
+  sortedHistory.forEach((event) => {
+    const date = format(new Date(event.created_at), "yyyy-MM-dd");
+    if (!groupedEvents[date]) {
+      groupedEvents[date] = [];
+    }
+    groupedEvents[date].push(event);
+  });
+
+  const formatStatus = (status: string) => {
+    return status
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100">
-        <h3 className="text-base font-semibold text-gray-900">Activity Timeline</h3>
-      </div>
-      <div className="p-6">
-        <div className="relative pl-4 border-l-2 border-gray-100 space-y-8">
-          {sortedHistory.length === 0 ? (
-            <p className="text-sm text-gray-500 italic pl-4">No activity recorded yet.</p>
-          ) : (
-            sortedHistory.map((event, idx) => (
-              <div key={event.id} className="relative pl-4">
-                {/* Connector Dot */}
-                <div
-                  className={cn(
-                    "absolute -left-[21px] top-1 h-3.5 w-3.5 rounded-full border-2 bg-white",
-                    idx === 0 ? "border-blue-600" : "border-gray-300"
-                  )}
-                >
-                  {idx === 0 && (
-                    <div className="absolute inset-0 m-auto h-1.5 w-1.5 rounded-full bg-blue-600" />
-                  )}
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">
+          Activity Timeline
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Track all status changes and updates on this complaint
+        </p>
+      </CardHeader>
+      <CardContent>
+        {sortedHistory.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="mb-3 rounded-full bg-muted p-3 inline-block">
+              <Clock className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="font-medium mb-1">No activity recorded</h3>
+            <p className="text-sm text-muted-foreground">
+              Status changes and updates will appear here
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(groupedEvents).map(([date, events]) => (
+              <div key={date} className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Separator className="flex-1" />
+                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                    {format(new Date(date), "MMM d, yyyy")}
+                  </span>
+                  <Separator className="flex-1" />
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      Status changed to <span className="capitalize text-blue-700">{event.new_status.replace('_', ' ')}</span>
-                    </p>
-                    {event.note && (
-                      <p className="text-sm text-gray-500 mt-1">{event.note}</p>
-                    )}
-                  </div>
-                  <time className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-                    {format(new Date(event.created_at), "MMM d, h:mm a")}
-                  </time>
+                <div className="space-y-4">
+                  {events.map((event, idx) => (
+                    <div key={event.id} className="relative pl-8">
+                      <div className="absolute left-0 top-1 flex items-center justify-center">
+                        <div
+                          className={cn(
+                            "h-4 w-4 rounded-full border-2 flex items-center justify-center",
+                            idx === 0
+                              ? "border-primary bg-primary/10"
+                              : "border-muted-foreground/30 bg-background"
+                          )}
+                        >
+                          {idx === 0 && (
+                            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "gap-1",
+                                statusColors[event.new_status] ||
+                                  "bg-gray-100 text-gray-800"
+                              )}
+                            >
+                              {statusIcons[event.new_status] || (
+                                <Circle className="h-3 w-3" />
+                              )}
+                              {formatStatus(event.new_status)}
+                            </Badge>
+
+                            {event.old_status && (
+                              <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+                                <ArrowRight className="h-3 w-3" />
+                                <Badge
+                                  variant="outline"
+                                  className="gap-1 bg-transparent"
+                                >
+                                  {formatStatus(event.old_status)}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {format(new Date(event.created_at), "h:mm a")}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <User className="h-3.5 w-3.5" />
+                            <span>
+                              Updated by {event.changed_by || "System"}
+                            </span>
+                          </div>
+
+                          {event.note && (
+                            <div className="text-sm bg-muted/50 rounded-lg p-3 mt-2">
+                              <p className="whitespace-pre-wrap">
+                                {event.note}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

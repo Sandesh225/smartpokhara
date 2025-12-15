@@ -3,11 +3,17 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card';
-import { Badge } from '@/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar';
-import { Button } from '@/ui/button';
-import { Separator } from '@/ui//separator';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   MessageSquare,
   User,

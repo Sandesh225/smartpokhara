@@ -7,12 +7,18 @@ import { Download, History, Search, Filter, FileText, CreditCard } from "lucide-
 import { paymentsService } from "@/lib/supabase/queries/payments";
 import PaymentHistoryTable from "@/components/citizen/payments/PaymentHistoryTable";
 import PaymentFilters from "@/components/citizen/payments/PaymentFilters";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
-import { Separator } from "@/ui/separator";
-import { Badge } from "@/ui/badge";
-import { Skeleton } from "@/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 export default function PaymentHistoryPage() {

@@ -8,19 +8,19 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/ui/dialog";
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select";/ui/
-import { Button } from "@/ui/button";/ui/
+} from "@/components/ui/select";/ui/
+import { Button } from "@/components/ui/button";/ui/
 import { Textarea } from "@/ui/textarea/ui/
-import { Label } from "@/ui/label";/ui/
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";/ui/
-import { Badge } from "@/ui/badge";/ui/
+import { Label } from "@/components/ui/label";/ui/
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";/ui/
+import { Badge } from "@/components/ui/badge";/ui/
 import { Loader2 } from "lucide-react";
 
 interface AssignModalProps {

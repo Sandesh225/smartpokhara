@@ -1,8 +1,8 @@
 "use client"
 import { useRouter } from "next/navigation"
 import { Bell, CheckCircle } from "lucide-react"
-import { Button } from "@/ui/button"
-import { Badge } from "@/ui/badge"/ui/
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"/ui/
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/ui/dropdown/ui/nu"
-import { useStaffNotifications } from "@/lib/hooks/use-complaints"
+import { useStaffNotifications } from "@/hooks/use-complaints"
 import { formatRelativeTime } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent } from "@/ui/card"
+import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Clock, Activity, CheckCircle2 } from "lucide-react"
 
 interface DashboardStatsProps {

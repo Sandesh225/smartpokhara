@@ -3,11 +3,17 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card';
-import { Badge } from '@/ui/badge';
-import { Button } from '@/ui/button';
-import { Separator } from '@/ui//separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin,
   Calendar,

@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Share2, Printer, MoreVertical, RefreshCw, UserPlus } from "lucide-react";
+import {
+  ArrowLeft,
+  Share2,
+  Printer,
+  MoreVertical,
+  RefreshCw,
+  UserPlus,
+  Download,
+} from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
 import { ConfirmationDialog } from "@/components/supervisor/shared/ConfirmationDialog";
@@ -15,29 +23,44 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ComplaintDetailHeaderProps {
   complaint: any;
   userId: string;
 }
 
-export function ComplaintDetailHeader({ complaint, userId }: ComplaintDetailHeaderProps) {
+export function ComplaintDetailHeader({
+  complaint,
+  userId,
+}: ComplaintDetailHeaderProps) {
   const router = useRouter();
-  const supabase = createClient(); // Instantiate client here
+  const supabase = createClient();
   const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
-  
-  // Assignment Modal State
+
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [staffList, setStaffList] = useState<AssignableStaff[]>([]);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
 
-  // Check if currently assigned
   const isAssigned = !!complaint.assigned_staff_id;
-  const currentStaffName = complaint.assigned_staff?.full_name || complaint.assigned_staff?.profile?.full_name;
+  const currentStaffName =
+    complaint.assigned_staff?.full_name ||
+    complaint.assigned_staff?.profile?.full_name;
 
   const handleCloseComplaint = async () => {
     try {
-      await supervisorComplaintsQueries.closeComplaint(supabase, complaint.id, "Closed via header action");
+      await supervisorComplaintsQueries.closeComplaint(
+        supabase,
+        complaint.id,
+        "Closed via header action"
+      );
       toast.success("Complaint closed successfully");
       setIsCloseDialogOpen(false);
       router.refresh();
@@ -46,16 +69,22 @@ export function ComplaintDetailHeader({ complaint, userId }: ComplaintDetailHead
     }
   };
 
-  // 1. Load Staff Data
   const loadStaffForAssignment = async () => {
     setIsLoadingStaff(true);
     try {
-      // FIX: Pass supabase client
-      const staff = await supervisorStaffQueries.getSupervisedStaff(supabase, userId);
-      
-      const location = complaint.location_point && Array.isArray(complaint.location_point.coordinates)
-        ? { lat: complaint.location_point.coordinates[1], lng: complaint.location_point.coordinates[0] } 
-        : null;
+      const staff = await supervisorStaffQueries.getSupervisedStaff(
+        supabase,
+        userId
+      );
+
+      const location =
+        complaint.location_point &&
+        Array.isArray(complaint.location_point.coordinates)
+          ? {
+              lat: complaint.location_point.coordinates[1],
+              lng: complaint.location_point.coordinates[0],
+            }
+          : null;
 
       const rankedStaff = getSuggestedStaff(staff, location);
       setStaffList(rankedStaff);
@@ -68,24 +97,33 @@ export function ComplaintDetailHeader({ complaint, userId }: ComplaintDetailHead
     }
   };
 
-  // 2. Handle Assignment
-  const handleAssign = async (staffId: string, note: string, options: any, reason?: string) => {
+  const handleAssign = async (
+    staffId: string,
+    note: string,
+    options: any,
+    reason?: string
+  ) => {
     try {
       if (isAssigned) {
         await supervisorComplaintsQueries.reassignComplaint(
           supabase,
-          complaint.id, 
-          staffId, 
-          reason || "Reassignment via header", 
+          complaint.id,
+          staffId,
+          reason || "Reassignment via header",
           note
         );
         toast.success("Complaint reassigned successfully");
       } else {
-        await supervisorComplaintsQueries.assignComplaint(supabase, complaint.id, staffId, note);
+        await supervisorComplaintsQueries.assignComplaint(
+          supabase,
+          complaint.id,
+          staffId,
+          note
+        );
         toast.success("Complaint assigned successfully");
       }
       setIsAssignModalOpen(false);
-      router.refresh(); // Refresh page to show new state
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Failed to assign staff");
@@ -93,86 +131,169 @@ export function ComplaintDetailHeader({ complaint, userId }: ComplaintDetailHead
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          
-          {/* Left: ID & Status */}
+    <div className="bg-gradient-to-r from-white via-gray-50/50 to-white border-b border-gray-200 shadow-sm sticky top-16 z-30 backdrop-blur-sm bg-white/95">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* Left: Navigation, ID & Status */}
           <div className="flex items-start gap-4">
-            <Link 
+            <Link
               href="/supervisor/complaints"
-              className="mt-1 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="mt-1.5 p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105 active:scale-95"
+              aria-label="Back to complaints list"
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-gray-900 tracking-tight">
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                   {complaint.tracking_code}
                 </h1>
                 <StatusBadge status={complaint.status} variant="complaint" />
+                <PriorityIndicator priority={complaint.priority} size="md" />
               </div>
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                {/* Fixed Hydration Error */}
-                <span>Submitted {format(new Date(complaint.submitted_at), "dd/MM/yyyy")}</span>
-                <span>•</span>
-                <PriorityIndicator priority={complaint.priority} size="sm" />
+
+              <div className="flex items-center gap-3 text-sm text-gray-600">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-gray-400"></span>
+                  Submitted{" "}
+                  {format(
+                    new Date(complaint.submitted_at),
+                    "MMM dd, yyyy 'at' h:mm a"
+                  )}
+                </span>
+                {isAssigned && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <span className="flex items-center gap-1.5 text-blue-600 font-medium">
+                      <UserPlus className="w-3.5 h-3.5" />
+                      {currentStaffName}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2 self-end sm:self-center">
-            <button 
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-              title="Print"
-            >
-              <Printer className="h-5 w-5" />
-            </button>
-            <button 
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-              title="Share"
-            >
-              <Share2 className="h-5 w-5" />
-            </button>
-            
-            <div className="h-6 w-px bg-gray-200 mx-1" />
+          <div className="flex items-center gap-2 self-end lg:self-center">
+            {/* Quick Actions - Hidden on Mobile */}
+            <div className="hidden md:flex items-center gap-2 mr-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 text-gray-600 hover:text-gray-900"
+                aria-label="Print complaint"
+              >
+                <Printer className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 text-gray-600 hover:text-gray-900"
+                aria-label="Share complaint"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 text-gray-600 hover:text-gray-900"
+                aria-label="Download report"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
 
-            <button 
-              className="hidden sm:inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            <div className="h-8 w-px bg-gray-200 hidden md:block" />
+
+            {/* Primary Actions */}
+            <Button
               onClick={loadStaffForAssignment}
               disabled={isLoadingStaff}
+              size="sm"
+              className="h-9 font-semibold shadow-sm hidden sm:inline-flex"
+              variant={isAssigned ? "outline" : "default"}
             >
               {isLoadingStaff ? (
-                "Loading..."
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Loading...
+                </>
               ) : isAssigned ? (
                 <>
-                  <RefreshCw className="h-4 w-4 mr-2" /> Reassign
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Reassign
                 </>
               ) : (
                 <>
-                  <UserPlus className="h-4 w-4 mr-2" /> Assign Staff
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Assign Staff
                 </>
               )}
-            </button>
+            </Button>
 
-            <button
-              className="hidden sm:inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 shadow-sm"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setIsCloseDialogOpen(true)}
+              className="h-9 font-semibold hidden sm:inline-flex"
             >
-              Close
-            </button>
+              Close Complaint
+            </Button>
 
             {/* Mobile Menu */}
-            <button className="sm:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-md">
-              <MoreVertical className="h-5 w-5" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-9 p-0 sm:hidden"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={loadStaffForAssignment}
+                  disabled={isLoadingStaff}
+                >
+                  {isAssigned ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reassign Staff
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Assign Staff
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsCloseDialogOpen(true)}>
+                  Close Complaint
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
-      {/* Confirmation Dialog for Close */}
-      <ConfirmationDialog 
+      <ConfirmationDialog
         isOpen={isCloseDialogOpen}
         onClose={() => setIsCloseDialogOpen(false)}
         onConfirm={handleCloseComplaint}
@@ -182,7 +303,6 @@ export function ComplaintDetailHeader({ complaint, userId }: ComplaintDetailHead
         variant="danger"
       />
 
-      {/* Staff Assignment Modal */}
       <StaffSelectionModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
@@ -190,7 +310,9 @@ export function ComplaintDetailHeader({ complaint, userId }: ComplaintDetailHead
         staffList={staffList}
         complaintTitle={complaint.title}
         mode={isAssigned ? "reassign" : "assign"}
-        currentStaff={isAssigned ? { name: currentStaffName || "Current Staff" } : undefined}
+        currentStaff={
+          isAssigned ? { name: currentStaffName || "Current Staff" } : undefined
+        }
       />
     </div>
   );

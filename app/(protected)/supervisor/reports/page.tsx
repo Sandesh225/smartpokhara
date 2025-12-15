@@ -7,20 +7,24 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/ui/card";
-import { Button } from "@/ui/button";
-import { Label } from "@/ui/label";
-import { Badge } from "@/ui/badge";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select";
-import { Calendar } from "@/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
-import { Checkbox } from "@/ui/checkbox";
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FileText,
   Download,
@@ -32,10 +36,14 @@ import {
   Filter,
   FileSpreadsheet,
   FilePen as FilePdf,
-} from "lucide-react"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import { useCategories, useWards, useDepartments } from "@/lib/hooks/use-complaints"
+} from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import {
+  useCategories,
+  useWards,
+  useDepartments,
+} from "@/hooks/use-complaints";
 import { useToast } from "@/hooks/use-toast"
 
 type ReportType = "summary" | "detailed" | "staff" | "ward" | "category" | "timeline"

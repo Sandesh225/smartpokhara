@@ -19,10 +19,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/ui/table";
-import { Button } from "@/ui/button";
-import { Badge } from "@/ui/badge";
-import { Skeleton } from "@/ui/skeleton";
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -30,14 +30,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/ui/card";
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import {
   Pagination,
   PaginationContent,
@@ -45,7 +45,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/ui/pagination";
+} from "@/components/ui/pagination";
 
 import {
   ArrowUpDown,

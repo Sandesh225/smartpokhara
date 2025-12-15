@@ -6,9 +6,15 @@ import { Bell, RefreshCw, Sparkles, TrendingUp } from "lucide-react";
 import { noticesService } from "@/lib/supabase/queries/notices";
 import NoticesList from "@/components/citizen/notices/NoticesList";
 import NoticeFilters from "@/components/citizen/notices/NoticeFilters";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 function StatCard({ icon: Icon, label, value, gradient, iconBg }: any) {

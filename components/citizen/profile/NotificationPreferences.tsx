@@ -11,18 +11,18 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/ui/card";
-import { Switch } from "@/ui/switch";
-import { Label } from "@/ui/label";
-import { Button } from "@/ui/button";
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select";
-import { Separator } from "@/ui/separator";
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 import {
   profileService,

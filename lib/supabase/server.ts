@@ -1,6 +1,3 @@
-// =============================================================================
-// lib/supabase/server.ts - Server Client (Fixed for Next.js 15)
-// =============================================================================
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -21,7 +18,9 @@ export async function createServerSupabaseClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Server Component - can't set cookies
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
           }
         },
       },
@@ -31,3 +30,7 @@ export async function createServerSupabaseClient() {
 
 // Shorter alias
 export const createClient = createServerSupabaseClient;
+
+// 🔴 REMOVED: export const supabase = createClient();
+// We removed the line above because it tried to access cookies
+// immediately upon file load, causing your crash.

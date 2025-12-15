@@ -2,14 +2,14 @@
 
 import { useRouter } from "next/navigation"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"/ui/
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
+} from "@/ui/dropdown/ui/nu"
 import { StatusBadge, PriorityBadge, OverdueBadge } from "@/components/shared/status-badge"
 import { NoTasksState } from "@/components/shared/empty-state"
 import { TableSkeleton } from "@/components/shared/loading-skeleton"

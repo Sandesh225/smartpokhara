@@ -12,7 +12,7 @@ import {
   Building,
   MessageSquare,
 } from "lucide-react";
-import { Badge } from "@/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 interface TimelineEvent {

@@ -7,7 +7,7 @@
 
 import { useCallback, useState } from 'react';
 import { Upload, X, FileIcon, ImageIcon, AlertTriangle } from 'lucide-react';
-import { Button } from '@/ui/button';
+import { Button } from "@/components/ui/button";
 import { toast } from 'sonner'; // Assuming sonner is used for notifications
 
 interface FileUploadProps {

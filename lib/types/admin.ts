@@ -1,59 +1,47 @@
-export interface DashboardStats {
-  total: number;
-  pending: number;
-  in_progress: number;
-  resolved: number;
-  closed: number;
-  escalated: number;
-  overdue: number;
-  avg_resolution_days?: number;
+export interface AdminDashboardMetrics {
+  totalComplaints: number;
+  resolvedComplaints: number;
+  revenue: number;
+  activeTasks: number;
 }
 
-export interface PriorityAlert {
-  id: string;
-  tracking_code: string;
-  title: string;
-  priority: string;
+export interface ComplaintStatusData {
   status: string;
-  assigned_staff_name?: string | null;
-  department_name?: string | null;
-  days_overdue: number;
-  sla_due_at: string;
-}
-
-export interface WardSummary {
-  ward_number: number;
-  ward_name: string;
-  total_complaints: number;
-  open_complaints: number;
-  resolved_complaints: number;
-  overdue_complaints: number;
-}
-
-export interface ComplaintFilters {
-  search: string;
-  status: string;
-  priority: string;
-  category: string;
-  department: string;
-  ward: string;
-  assignedStaff: string;
-  isOverdue: boolean | null;
-  isEscalated: boolean | null;
-  dateFrom: string;
-  dateTo: string;
-}
-
-export interface FilterCountItem {
-  value: string;
-  label?: string;
   count: number;
 }
 
-export interface FilterCounts {
-  status: FilterCountItem[];
-  priority: FilterCountItem[];
-  categories: FilterCountItem[];
-  departments: FilterCountItem[];
-  wards: FilterCountItem[];
+export interface TrendDataPoint {
+  date: string;
+  count: number;
+}
+
+export interface DepartmentWorkload {
+  id: string;
+  name: string;
+  active_count: number;
+  overdue_count: number;
+}
+
+export interface WardStat {
+  ward_number: number;
+  complaint_count: number;
+  resolved_count: number;
+}
+
+export interface TaskSummary {
+  id: string;
+  title: string;
+  assignee: string;
+  status: string;
+  due_date: string;
+  is_breached: boolean;
+}
+
+export interface AdminDashboardData {
+  metrics: AdminDashboardMetrics;
+  statusDist: ComplaintStatusData[];
+  trends: TrendDataPoint[];
+  deptWorkload: DepartmentWorkload[];
+  wardStats: WardStat[];
+  recentTasks: TaskSummary[];
 }

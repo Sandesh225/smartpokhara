@@ -14,8 +14,10 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+/ui/;
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+/ui/;
+import { Textarea } from "@/ui/textarea/ui";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {

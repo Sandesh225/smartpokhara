@@ -7,14 +7,17 @@ import {
   Clock, User, ArrowRightLeft, Building2, Mail, BadgeCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
+// Ensure this import path matches your project structure
+import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner"; 
 
-// Define a robust type that handles variations in staff data structure
+// 1. Robust Staff Interface
+// This handles data coming from different queries (some might use 'role', some 'staff_role')
 export interface StaffMember {
   user_id: string;
   email?: string;
   full_name?: string;
-  // Handle both naming conventions
+  
+  // Role fields (handle variations)
   staff_role?: string; 
   role?: string;
   
@@ -76,7 +79,8 @@ export function StaffSelectionModal({
     inApp: true
   });
 
-  // Filter Logic - Robust against missing fields
+  // 2. Safe Filtering Logic
+  // Prevents "cannot read property of undefined" errors during search
   const filteredStaff = useMemo(() => {
     if (!staffList || !Array.isArray(staffList)) return [];
     
@@ -84,6 +88,7 @@ export function StaffSelectionModal({
       const query = search.toLowerCase();
       
       const name = (s.full_name || "").toLowerCase();
+      // Check both field names for role
       const role = (s.staff_role || s.role || "").toLowerCase();
       const code = (s.staff_code || "").toLowerCase();
       const email = (s.email || "").toLowerCase();
@@ -106,12 +111,10 @@ export function StaffSelectionModal({
     setIsSubmitting(true);
     try {
       await onAssign(selectedStaffId, note, notifyOptions, reason);
-      // We don't auto-close here; we expect the parent to close the modal 
-      // (by setting isOpen=false) upon successful promise resolution.
-      // This allows the parent to handle errors or show success toasts first.
+      // We expect parent to close modal on success, but we can reset submitting state
     } catch (error) {
       console.error("Assignment failed in modal:", error);
-      // Ensure we stop loading state if error occurs but modal stays open
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -136,13 +139,14 @@ export function StaffSelectionModal({
     }
   };
 
-  // Helper: Format Role text safely
+  // Helper: Safe Role Formatting
+  // Prevents crash if role is undefined
   const formatRole = (role?: string) => {
     if (!role) return "Staff";
     return role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  // Helper: Format Rating safely
+  // Helper: Safe Rating Formatting
   const formatRating = (rating?: string | number) => {
     if (rating === undefined || rating === null) return "-";
     const num = Number(rating);
@@ -173,7 +177,7 @@ export function StaffSelectionModal({
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           className="relative w-full max-w-6xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden"
         >
-          {/* 1. Header */}
+          {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 shrink-0">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -191,7 +195,7 @@ export function StaffSelectionModal({
 
           <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
             
-            {/* 2. Left Panel: Staff List */}
+            {/* Left Panel: Staff List */}
             <div className="flex-1 flex flex-col border-r border-gray-200 min-w-0 bg-gray-50/30">
               {/* Search Bar */}
               <div className="p-4 border-b border-gray-100 bg-white z-10 shrink-0">
@@ -199,7 +203,7 @@ export function StaffSelectionModal({
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search by name, code, email or department..."
+                    placeholder="Search name, code, email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
@@ -267,6 +271,7 @@ export function StaffSelectionModal({
                                 )}
                               </div>
                               <div className="flex flex-col gap-0.5">
+                                {/* Safe Role Display */}
                                 <p className="text-xs text-gray-500 flex items-center gap-1">
                                   <BadgeCheck className="h-3 w-3 text-blue-500" />
                                   {formatRole(staff.staff_role || staff.role)}
@@ -281,7 +286,7 @@ export function StaffSelectionModal({
                             ) : null}
                           </div>
 
-                          {/* Email (Safe Render) */}
+                          {/* Email */}
                           <div className="flex items-center gap-4 mt-2 mb-3 pb-3 border-b border-gray-100">
                               <div className="flex items-center gap-1.5 text-xs text-gray-600 truncate w-full">
                                 <Mail className="h-3 w-3 text-gray-400" />
@@ -325,7 +330,7 @@ export function StaffSelectionModal({
               </div>
             </div>
 
-            {/* 3. Right Panel: Assignment Form */}
+            {/* Right Panel: Assignment Form */}
             <div className="w-full lg:w-[400px] bg-white p-6 flex flex-col border-t lg:border-t-0 lg:border-l border-gray-200 shadow-xl z-20 overflow-y-auto">
               {mode === "reassign" && currentStaff && (
                 <div className="mb-6 p-4 bg-orange-50 border border-orange-100 rounded-xl">

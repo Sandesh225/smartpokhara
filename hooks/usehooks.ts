@@ -6,7 +6,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from "@/ui/use-toast";
 
 // ============================================================================
 // TYPE DEFINITIONS

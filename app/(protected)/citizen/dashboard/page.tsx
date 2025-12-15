@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { Loader2, WifiOff, AlertCircle, RefreshCw } from "lucide-react"
-import { Button } from "@/ui/button"
+import { Button } from "@/components/ui/button";
 import DashboardStats from "@/components/citizen/dashboard/DashboardStats"
 import RecentComplaints from "@/components/citizen/dashboard/RecentComplaints"
 import PendingBills from "@/components/citizen/dashboard/PendingBills"

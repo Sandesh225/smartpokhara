@@ -2,11 +2,11 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import { Separator } from "@/ui/separator";
-import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
-import { Alert, AlertDescription } from "@/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Calendar, FileText, AlertCircle, CheckCircle, CreditCard, Info, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";

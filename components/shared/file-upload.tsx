@@ -7,7 +7,7 @@
 
 import { useCallback, useState } from 'react';
 import { Upload, X, FileIcon, ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 interface FileUploadProps {
   value?: File[];

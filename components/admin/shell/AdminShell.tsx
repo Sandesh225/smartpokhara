@@ -131,7 +131,7 @@ const navigationConfig: NavSection[] = [
     ],
   },
   {
-    section: "Finance",
+    section: "",
     items: [
       {
         name: "Payments",

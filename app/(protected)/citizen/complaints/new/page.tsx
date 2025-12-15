@@ -11,7 +11,7 @@ import {
   type Ward,
 } from "@/lib/supabase/queries/complaints";
 import ComplaintForm from "@/components/citizen/complaints/ComplaintForm";
-import { Button } from "@/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -27,10 +27,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/alert";
-import { Skeleton } from "@/ui/skeleton";
+} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 
 export default function NewComplaintPage() {

@@ -23,7 +23,7 @@ const actions = [
     title: "Post Notice",
     desc: "Public announcement",
     icon: Megaphone,
-    href: "/admin/cms/notices/new",
+    href: "/admin/content/notices/new",
     color: "text-purple-600",
     bg: "bg-purple-50 hover:bg-purple-100",
   },

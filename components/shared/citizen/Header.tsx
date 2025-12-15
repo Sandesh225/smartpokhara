@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/citizen/NotificationDropdown";
 import { createClient } from "@/lib/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface HeaderProps {
   user: any;

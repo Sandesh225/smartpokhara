@@ -1,4 +1,4 @@
-import { Badge } from "@/ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {

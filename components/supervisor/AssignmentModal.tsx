@@ -8,17 +8,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/ui/dialog";
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select";/ui/
-import { Button } from "@/ui/button";/ui/
+} from "@/components/ui/select";/ui/
+import { Button } from "@/components/ui/button";/ui/
 import { Textarea } from "@/ui/textarea/ui/
-import { Label } from "@/ui/label";/ui/
+import { Label } from "@/components/ui/label";/ui/
 import { Loader2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 

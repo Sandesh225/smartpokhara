@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Calendar, MapPin, FileText, Download, Share2, Printer, Copy, Check, AlertCircle, Shield } from "lucide-react";
 import { noticesService } from "@/lib/supabase/queries/notices";
-import { Button } from "@/ui/button";
-import { Badge } from "@/ui/badge";
-import { Card, CardContent } from "@/ui/card";
-import { Separator } from "@/ui/separator";
-import { Skeleton } from "@/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { format } from "date-fns";
 

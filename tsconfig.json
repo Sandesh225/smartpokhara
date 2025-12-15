@@ -30,7 +30,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "components/layout",
-    "components/supervisor/AssignmentModal"
+    "components/supervisor/AssignmentModal",
+    "app/(protected)/supervisor/SupervisorLayoutClien",
+    "types/admin-content"
   ],
   "exclude": ["node_modules"]
 }

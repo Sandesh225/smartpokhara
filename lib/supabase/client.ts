@@ -1,9 +1,8 @@
-// =============================================================================
-// lib/supabase/client.ts - Browser Client
-// =============================================================================
+// lib/supabase/client.ts
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
+let supabaseClient: SupabaseClient | null = null;
 
 export function createClient() {
   if (supabaseClient) return supabaseClient;
@@ -16,5 +15,5 @@ export function createClient() {
   return supabaseClient;
 }
 
-// Default export for convenience
+// Optional singleton export if you want to just import `supabase`
 export const supabase = createClient();

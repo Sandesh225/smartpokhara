@@ -2,14 +2,14 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Button } from '@/ui/button';
-import { Badge } from '@/ui/badge';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   ArrowLeft,
   Copy,

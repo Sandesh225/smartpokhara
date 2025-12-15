@@ -1,6 +1,6 @@
 "use client";
 
-import { useStaffQueue } from "@/lib/hooks/use-complaints";
+import { useStaffQueue } from "@/hooks/use-complaints";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -10,8 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+/ui/;
 import { Badge } from "@/components/ui/badge";
+/ui/;
 import { Button } from "@/components/ui/button";
+/ui/;
 import Link from "next/link";
 import { ArrowRight, Loader2, Calendar, MapPin, Inbox } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

@@ -14,9 +14,9 @@ import {
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
-import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
-import { Label } from "@/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -24,8 +24,8 @@ import {
   CardTitle,
   CardDescription,
   CardFooter,
-} from "@/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/alert";
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 const passwordSchema = z

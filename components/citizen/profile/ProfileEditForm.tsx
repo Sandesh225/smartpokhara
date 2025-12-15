@@ -16,9 +16,9 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/ui/button";
-import { Input } from "@/ui/input";
-import { Label } from "@/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -26,16 +26,16 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select";
-import { Textarea } from "@/ui/textarea";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 import {
   profileService,

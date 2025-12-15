@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+/ui/;
 import { CheckCircle, XCircle, Play, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 

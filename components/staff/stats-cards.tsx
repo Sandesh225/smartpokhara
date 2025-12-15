@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CardSkeleton } from "@/components/shared/loading-skeleton"
 import { cn } from "@/lib/utils"
 import { FileText, Clock, AlertTriangle, CheckCircle, TrendingUp, Users, type LucideIcon } from "lucide-react"
