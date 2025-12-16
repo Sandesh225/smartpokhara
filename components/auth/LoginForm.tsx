@@ -1,16 +1,13 @@
-// ============================================
-// FILE: components/auth/LoginForm.tsx
-// ============================================
 "use client";
 
 import { useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { getDefaultDashboardPath } from "@/lib/auth/role-helpers";
 import type { CurrentUser } from "@/lib/types/auth";
-import { useToast } from "@/hooks/use-toast";
 
 export function LoginForm() {
   const router = useRouter();
@@ -22,17 +19,14 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const supabase = createClient();
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
-      // 1. Sign in with Supabase
       const { data, error: signInError } =
         await supabase.auth.signInWithPassword({
           email,
@@ -40,24 +34,18 @@ export function LoginForm() {
         });
 
       if (signInError) throw signInError;
-      if (!data.user) {
-        throw new Error("Unable to sign in. Please try again.");
-      }
+      if (!data.user) throw new Error("Unable to sign in.");
 
-      // 2. Fetch user roles
       const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
         .select("role:roles(role_type)")
         .eq("user_id", data.user.id);
 
-      if (rolesError) {
-        console.error("Failed to fetch roles:", rolesError);
-      }
+      if (rolesError) console.error("Failed to fetch roles:", rolesError);
 
       const roles =
         rolesData?.map((ur: any) => ur.role?.role_type).filter(Boolean) ?? [];
 
-      // 3. Build minimal CurrentUser object
       const mockUser: CurrentUser = {
         id: data.user.id,
         email: data.user.email ?? email,
@@ -65,29 +53,26 @@ export function LoginForm() {
         profile: data.user.user_metadata?.profile ?? null,
       } as any;
 
-      // 4. Get role-based dashboard
+      // UX: Role-aware clarity
+      toast({
+        title: "Welcome back!",
+        description: "Login successful. Loading your dashboard...",
+        variant: "success",
+      });
+
       const dashboardPath = getDefaultDashboardPath(mockUser);
       const finalDestination =
         redirectPath && redirectPath !== "/" ? redirectPath : dashboardPath;
-
-      // 5. Success toast
-      toast({
-        variant: "success",
-        title: "Welcome back!",
-        description: `Signed in as ${data.user.email}`,
-      });
 
       router.push(finalDestination);
       router.refresh();
     } catch (err: any) {
       console.error("Login error:", err);
-      const errorMessage = err.message || "Invalid email or password";
-      setError(errorMessage);
-
+      // UX: Normalized error message
       toast({
-        variant: "destructive",
         title: "Login Failed",
-        description: errorMessage,
+        description: "Invalid email or password. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -95,108 +80,99 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleLogin} className="space-y-5">
-      {/* Email Field */}
+    <form
+      onSubmit={handleLogin}
+      className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500"
+    >
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-semibold text-gray-700 mb-2"
+          className="block text-sm font-medium text-slate-700 mb-1.5"
         >
           Email Address
         </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Mail className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 placeholder:text-gray-400"
-            placeholder="name@example.com"
-          />
-        </div>
+        <input
+          id="email"
+          type="email"
+          required
+          disabled={loading}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50"
+          placeholder="name@example.com"
+        />
+        {/* UX: Helper text */}
+        <p className="mt-1 text-xs text-slate-400">
+          Use the email you registered with
+        </p>
       </div>
 
-      {/* Password Field */}
       <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-semibold text-gray-700 mb-2"
-        >
-          Password
-        </label>
+        <div className="flex justify-between items-center mb-1.5">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-slate-700"
+          >
+            Password
+          </label>
+        </div>
+
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Lock className="h-5 w-5 text-gray-400" />
-          </div>
           <input
             id="password"
             type={showPassword ? "text" : "password"}
             required
+            disabled={loading}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 placeholder:text-gray-400"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all pr-10 disabled:opacity-50"
             placeholder="••••••••"
           />
           <button
             type="button"
+            disabled={loading}
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            title={showPassword ? "Hide password" : "Show password"} // UX: Tooltip
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
           >
-            {showPassword ? (
-              <EyeOff className="h-5 w-5" />
-            ) : (
-              <Eye className="h-5 w-5" />
-            )}
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
-        </div>
-        <div className="flex justify-end mt-2">
-          <Link
-            href="/forgot-password"
-            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-          >
-            Forgot password?
-          </Link>
         </div>
       </div>
 
-      {/* Submit Button */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg transform hover:scale-[1.02]"
+        className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-600/20 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
       >
         {loading ? (
           <>
-            <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
-            Signing in...
+            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+            {/* UX: Reassurance on slow networks */}
+            <span className="truncate">
+              Verifying... This may take a moment
+            </span>
           </>
         ) : (
           "Sign In"
         )}
       </button>
 
-      {/* Divider */}
-      <div className="relative">
+      <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-3 bg-white text-gray-500 font-medium">
+          <span className="px-4 bg-white text-slate-500">
             New to Smart Pokhara?
           </span>
         </div>
       </div>
 
-      {/* Register Link */}
       <div className="text-center">
         <Link
           href="/register"
-          className="inline-flex items-center justify-center w-full py-3 px-4 border-2 border-blue-600 rounded-lg text-sm font-semibold text-blue-600 bg-white hover:bg-blue-50 transition-all transform hover:scale-[1.02]"
+          className="font-medium text-blue-600 hover:text-blue-700 hover:underline underline-offset-4"
         >
           Create an account
         </Link>
