@@ -1,65 +1,64 @@
-// ============================================
-// FILE: app/(auth)/login/page.tsx
-// ============================================
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/LoginForm";
-import { AuthImageCarousel } from "@/components/auth/AuthImageCarousel";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Image Carousel */}
-      <div className="hidden lg:flex lg:w-1/2 relative">
-        <AuthImageCarousel />
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="w-full max-w-md">
-          {/* Card Container */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-            {/* Logo & Branding */}
-            <div className="flex justify-center mb-8">
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-xl font-bold text-white shadow-lg group-hover:shadow-xl transition-shadow">
-                  SP
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">
-                    Smart Pokhara
-                  </h1>
-                  <p className="text-xs text-gray-500 font-medium">
-                    पोखरा महानगरपालिका
-                  </p>
-                </div>
-              </Link>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <Link
+            href="/"
+            title="Back to homepage" // UX: Tooltip
+            className="inline-flex items-center justify-center mb-6 group"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white shadow-xl shadow-blue-600/20 transition-transform group-hover:scale-105">
+              SP
             </div>
+          </Link>
 
-            {/* Welcome Text */}
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Welcome Back
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Sign in to your Smart City Pokhara account
-              </p>
-            </div>
+          {/* Trust Signal */}
+          <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">
+            Official Digital Services Platform of Pokhara Metropolitan City
+          </p>
 
-            {/* Login Form Component */}
-            <LoginForm />
-          </div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+            Welcome Back
+          </h1>
 
-          {/* Footer Links */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Need help?{" "}
-              <Link
-                href="/support"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              >
-                Contact Support
-              </Link>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-slate-600">
+              Sign in to access your digital citizen services
             </p>
+            {/* Audience Clarification */}
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+              Citizen, Staff & Official Access
+            </span>
+          </div>
+        </div>
+
+        {/* Login Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-8">
+          <LoginForm />
+        </div>
+
+        {/* Improved Support Footer */}
+        <div className="text-center mt-8 space-y-2">
+          <p className="text-sm text-slate-500">Can't access your account?</p>
+          <div className="flex justify-center gap-4 text-sm">
+            <Link
+              href="/forgot-password"
+              className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              Reset Password
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link
+              href="/support"
+              className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              Contact Support
+            </Link>
           </div>
         </div>
       </div>

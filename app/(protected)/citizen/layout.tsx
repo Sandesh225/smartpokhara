@@ -21,12 +21,12 @@ export default async function CitizenLayout({ children }: CitizenLayoutProps) {
   const user = await getCurrentUserWithRoles();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?error=session_expired");
   }
 
   const supabase = await createClient();
 
-  // Get unread counts for badges
+  // Server-side data prefetch
   const [complaintsResult, notificationsResult] = await Promise.all([
     supabase
       .from("complaints")
@@ -50,7 +50,7 @@ export default async function CitizenLayout({ children }: CitizenLayoutProps) {
         id: user.id,
         email: user.email,
         displayName,
-        roleName,
+        roleName, // UX: Dynamic role label passed to client
         roles: user.roles,
         profile: user.profile,
       }}

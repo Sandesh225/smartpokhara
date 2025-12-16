@@ -1,66 +1,74 @@
-// ============================================
-// FILE: app/(auth)/register/page.tsx
-// ============================================
 import Link from "next/link";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { AuthImageCarousel } from "@/components/auth/AuthImageCarousel";
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Image Carousel */}
-      <div className="hidden lg:flex lg:w-1/2 relative">
-        <AuthImageCarousel />
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="w-full max-w-md">
-          {/* Card Container */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-            {/* Logo & Branding */}
-            <div className="flex justify-center mb-8">
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-xl font-bold text-white shadow-lg group-hover:shadow-xl transition-shadow">
-                  SP
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">
-                    Smart Pokhara
-                  </h1>
-                  <p className="text-xs text-gray-500 font-medium">
-                    पोखरा महानगरपालिका
-                  </p>
-                </div>
-              </Link>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <Link
+            href="/"
+            title="Back to homepage"
+            className="inline-flex items-center justify-center mb-6 group"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white shadow-xl shadow-blue-600/20 transition-transform group-hover:scale-105">
+              SP
             </div>
+          </Link>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+            Create Account
+          </h1>
+          <p className="text-slate-600">
+            Join Smart City Pokhara digital services
+          </p>
+          {/* Anxiety Reduction */}
+          <p className="text-xs text-slate-500 mt-1">
+            Create your account in under 2 minutes
+          </p>
+        </div>
 
-            {/* Welcome Text */}
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Create Account
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Join Smart City Pokhara today
-              </p>
-            </div>
+        {/* Register Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-8">
+          <RegisterForm />
+        </div>
 
-            {/* Register Form Component */}
-            <RegisterForm />
-          </div>
+        {/* Privacy & Terms Footer */}
+        <div className="mt-8 text-center space-y-4">
+          {/* Privacy Assurance */}
+          <p className="text-xs text-slate-500 max-w-xs mx-auto flex items-center justify-center gap-1.5">
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            Your information is protected and used only for city services.
+          </p>
 
-          {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              By registering, you agree to our{" "}
-              <Link
-                href="/terms"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              >
-                Terms of Service
-              </Link>
-            </p>
-          </div>
+          <p className="text-sm text-slate-500 max-w-xs mx-auto">
+            By registering, you agree to our{" "}
+            <Link
+              href="/terms"
+              className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/privacy"
+              className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
     </div>
