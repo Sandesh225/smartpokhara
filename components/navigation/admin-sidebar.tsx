@@ -46,7 +46,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         {/* Logo */}
         <div className="flex h-16 shrink-0 items-center border-b border-slate-200 px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-700 to-blue-900 text-sm font-semibold text-white shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-blue-700 to-blue-900 text-sm font-semibold text-white shadow-sm">
               SP
             </div>
             <div>

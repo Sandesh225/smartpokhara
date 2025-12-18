@@ -78,7 +78,7 @@ export function Navbar({ user }: NavbarProps) {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-sm font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-blue-600 to-blue-700 text-sm font-bold text-white">
               SP
             </div>
             <div>

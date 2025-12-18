@@ -76,7 +76,7 @@ export default function DashboardNavbar({ user }: DashboardNavbarProps) {
           {/* Logo & Brand */}
           <div className="flex items-center">
             <Link href="/citizen/dashboard" className="flex items-center gap-2 group">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white font-bold shadow-sm group-hover:shadow transition-all">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-blue-600 to-blue-700 text-white font-bold shadow-sm group-hover:shadow transition-all">
                 SP
               </div>
               <span className="text-lg font-bold text-gray-900 hidden sm:block">

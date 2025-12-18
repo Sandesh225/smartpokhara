@@ -79,7 +79,7 @@ export default function MapPicker({
         aria-label="Interactive map for selecting location"
       >
         {/* Map placeholder with grid pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/10">
+        <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-accent/10">
           <div
             className="absolute inset-0 opacity-20"
             style={{
@@ -107,7 +107,10 @@ export default function MapPicker({
           <div className="relative">
             <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 bg-primary/30 rounded-full animate-ping" />
             <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-primary/50 rounded-full" />
-            <MapPin className="h-8 w-8 text-primary drop-shadow-lg" fill="currentColor" />
+            <MapPin
+              className="h-8 w-8 text-primary drop-shadow-lg"
+              fill="currentColor"
+            />
           </div>
         </div>
 
@@ -135,8 +138,8 @@ export default function MapPicker({
             size="icon"
             className="h-8 w-8 shadow-sm"
             onClick={(e) => {
-              e.stopPropagation()
-              setZoom((z) => Math.min(z + 1, 20))
+              e.stopPropagation();
+              setZoom((z) => Math.min(z + 1, 20));
             }}
             aria-label="Zoom in"
           >
@@ -148,8 +151,8 @@ export default function MapPicker({
             size="icon"
             className="h-8 w-8 shadow-sm"
             onClick={(e) => {
-              e.stopPropagation()
-              setZoom((z) => Math.max(z - 1, 10))
+              e.stopPropagation();
+              setZoom((z) => Math.max(z - 1, 10));
             }}
             aria-label="Zoom out"
           >
@@ -187,5 +190,5 @@ export default function MapPicker({
         </Button>
       )}
     </div>
-  )
+  );
 }

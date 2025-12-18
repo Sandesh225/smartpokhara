@@ -27,7 +27,9 @@ export function StatCard({ title, value, description, trend, icon, color = 'blue
   };
 
   return (
-    <div className={`bg-gradient-to-br rounded-xl border p-6 ${colorClasses[color]}`}>
+    <div
+      className={`bg-linear-to-br rounded-xl border p-6 ${colorClasses[color]}`}
+    >
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium opacity-80">{title}</p>
@@ -36,15 +38,15 @@ export function StatCard({ title, value, description, trend, icon, color = 'blue
             <p className="text-sm opacity-70 mt-1">{description}</p>
           )}
           {trend && (
-            <p className={`text-sm mt-2 flex items-center gap-1 ${trendColors[trend.isPositive ? 'positive' : 'negative']}`}>
-              {trend.isPositive ? '↗' : '↘'} {Math.abs(trend.value)}%
+            <p
+              className={`text-sm mt-2 flex items-center gap-1 ${trendColors[trend.isPositive ? "positive" : "negative"]}`}
+            >
+              {trend.isPositive ? "↗" : "↘"} {Math.abs(trend.value)}%
               <span className="text-gray-500 text-xs">from last week</span>
             </p>
           )}
         </div>
-        {icon && (
-          <div className="text-3xl opacity-70">{icon}</div>
-        )}
+        {icon && <div className="text-3xl opacity-70">{icon}</div>}
       </div>
     </div>
   );
