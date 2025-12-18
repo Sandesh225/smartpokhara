@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,42 +34,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-
-import {
-  profileService,
-  type UserProfile,
-} from "@/lib/supabase/queries/profile";
+import { profileService } from "@/lib/supabase/queries/profile";
 
 const profileSchema = z.object({
-  full_name: z.string().min(2, "Name must be at least 2 characters"),
+  full_name: z.string().min(2, "Name required"),
   full_name_nepali: z.string().optional(),
   phone: z
     .string()
-    .min(10, "Phone number must be at least 10 digits")
+    .min(10, "Valid phone required")
     .optional()
     .or(z.literal("")),
-  ward_id: z.string().min(1, "Please select your ward"),
-  address_line1: z.string().min(3, "Primary address is required"),
-  address_line2: z.string().optional(),
-  landmark: z.string().optional(),
+  ward_id: z.string().min(1, "Select ward"),
+  address_line1: z.string().min(3, "Address required"),
 });
-
-type ProfileFormData = z.infer<typeof profileSchema>;
-
-interface ProfileEditFormProps {
-  profile: UserProfile;
-  wards: { id: string; name: string; ward_number: number }[];
-  onCancel: () => void;
-  onSave: () => void;
-}
 
 export default function ProfileEditForm({
   profile,
   wards,
   onCancel,
   onSave,
-}: ProfileEditFormProps) {
+}: any) {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(
@@ -83,7 +66,7 @@ export default function ProfileEditForm({
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<ProfileFormData>({
+  } = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: profile.full_name,
@@ -91,291 +74,171 @@ export default function ProfileEditForm({
       phone: profile.phone || "",
       ward_id: profile.ward_id || "",
       address_line1: profile.address_line1 || "",
-      address_line2: profile.address_line2 || "",
-      landmark: profile.landmark || "",
     },
   });
 
-  useEffect(() => {
-    return () => {
-      if (previewImage?.startsWith("blob:")) {
-        URL.revokeObjectURL(previewImage);
-      }
-    };
-  }, [previewImage]);
+  const onSubmit = async (data: any) => {
+    setIsSaving(true);
+    const result = await profileService.updateProfile(profile.user_id, data);
+    setIsSaving(false);
+    if (result.success) {
+      toast.success("Identity Updated");
+      onSave();
+    } else toast.error("Failed to update profile");
+  };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewImage(objectUrl);
-
     setIsUploading(true);
     const result = await profileService.uploadProfilePhoto(
       profile.user_id,
       file
     );
     setIsUploading(false);
-
-    if (result.success && result.url) {
-      toast.success("Photo updated successfully");
-    } else {
-      toast.error("Failed to upload photo");
-      setPreviewImage(profile.profile_photo_url);
-    }
-  };
-
-  const onSubmit = async (data: ProfileFormData) => {
-    setIsSaving(true);
-    const result = await profileService.updateProfile(profile.user_id, data);
-    setIsSaving(false);
-
     if (result.success) {
-      toast.success("Profile updated successfully");
-      onSave();
-    } else {
-      toast.error("Failed to update profile");
+      setPreviewImage(result.url);
+      toast.success("Photo Synchronized");
     }
   };
 
   return (
-    <Card className="border shadow-sm bg-white">
-      <CardHeader className="pb-6 border-b bg-slate-50/50">
+    <Card className="border-0 shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white ring-1 ring-slate-900/5 overflow-hidden">
+      <CardHeader className="p-10 bg-slate-50/50 border-b border-slate-100">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-xl">Edit Profile</CardTitle>
-            <CardDescription>
-              Update your personal details and contact information.
-            </CardDescription>
-          </div>
+          <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">
+            Edit Identity
+          </CardTitle>
           <Button
             variant="ghost"
             size="icon"
             onClick={onCancel}
-            className="h-8 w-8"
+            className="rounded-full"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="p-6 md:p-8 space-y-8">
-          {/* Photo Upload Section */}
-          <div className="flex flex-col sm:flex-row gap-8 items-center sm:items-start">
+        <CardContent className="p-10 space-y-10">
+          {/* Avatar Upload */}
+          <div className="flex flex-col sm:flex-row gap-8 items-center bg-blue-50/30 p-6 rounded-3xl border border-blue-100/50">
             <div
               className="relative group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Avatar className="h-28 w-28 border-2 border-slate-200 shadow-sm transition-all group-hover:border-blue-400">
+              <Avatar className="h-28 w-28 border-4 border-white shadow-xl">
                 <AvatarImage
                   src={previewImage || ""}
                   className="object-cover"
                 />
-                <AvatarFallback className="text-2xl">
-                  {profile.full_name.charAt(0)}
+                <AvatarFallback className="font-black text-slate-300">
+                  U
                 </AvatarFallback>
               </Avatar>
               <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="h-8 w-8 text-white" />
+                <Camera className="h-6 w-6 text-white" />
               </div>
-              {isUploading && (
-                <div className="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                </div>
-              )}
+            </div>
+            <div className="space-y-1 text-center sm:text-left">
+              <h3 className="font-bold text-slate-900">Display Photo</h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Used for verification by city officials.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2 rounded-xl h-9"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <UploadCloud className="mr-2 h-4 w-4" /> Change Photo
+              </Button>
               <input
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
                 accept="image/*"
                 onChange={handlePhotoSelect}
-                disabled={isUploading}
               />
             </div>
+          </div>
 
-            <div className="flex-1 space-y-2 text-center sm:text-left">
-              <h3 className="font-medium text-slate-900">Profile Picture</h3>
-              <p className="text-sm text-slate-500 max-w-sm">
-                Upload a clear photo of yourself. This helps officials verify
-                your identity. JPG, GIF or PNG. Max size 5MB.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                Full Name (English)
+              </Label>
+              <Input
+                {...register("full_name")}
+                className="h-12 rounded-2xl border-slate-200 focus:ring-4 focus:ring-blue-50"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                Full Name (Nepali)
+              </Label>
+              <Input
+                {...register("full_name_nepali")}
+                className="h-12 rounded-2xl border-slate-200 focus:ring-4 focus:ring-blue-50 font-semibold"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                Administrative Ward
+              </Label>
+              <Select
+                value={profile.ward_id || "all"}
+                onValueChange={(v) => setValue("ward_id", v)}
               >
-                <UploadCloud className="mr-2 h-4 w-4" />
-                Upload New Photo
-              </Button>
+                <SelectTrigger className="h-12 rounded-2xl border-slate-200 font-bold">
+                  <SelectValue placeholder="Locate Ward" />
+                </SelectTrigger>
+                {/* FIX: Scrolling Ward selection */}
+                <SelectContent className="max-h-[300px] rounded-2xl shadow-2xl border-slate-100">
+                  {wards.map((ward: any) => (
+                    <SelectItem
+                      key={ward.id}
+                      value={ward.id}
+                      className="font-medium"
+                    >
+                      Ward No. {ward.ward_number} — {ward.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 pb-2 border-b">
-              <User className="h-4 w-4 text-blue-600" />
-              <h3 className="font-semibold text-slate-900">
-                Personal Information
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">
-                  Full Name (English) <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="full_name"
-                  {...register("full_name")}
-                  className={cn(
-                    errors.full_name &&
-                      "border-red-500 focus-visible:ring-red-500"
-                  )}
-                />
-                {errors.full_name && (
-                  <p className="text-xs text-red-500">
-                    {errors.full_name.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="full_name_nepali">Full Name (Nepali)</Label>
-                <Input
-                  id="full_name_nepali"
-                  {...register("full_name_nepali")}
-                  placeholder="नेपालीमा नाम"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Mobile Number</Label>
-                <Input
-                  id="phone"
-                  {...register("phone")}
-                  className={cn(
-                    errors.phone && "border-red-500 focus-visible:ring-red-500"
-                  )}
-                />
-                {errors.phone && (
-                  <p className="text-xs text-red-500">{errors.phone.message}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 pb-2 border-b">
-              <MapPin className="h-4 w-4 text-emerald-600" />
-              <h3 className="font-semibold text-slate-900">Address Details</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="ward_id">
-                  Ward Number <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  onValueChange={(val) => setValue("ward_id", val)}
-                  defaultValue={profile.ward_id || ""}
-                >
-                  <SelectTrigger
-                    className={cn(
-                      "w-full md:w-[50%]",
-                      errors.ward_id && "border-red-500 focus:ring-red-500"
-                    )}
-                  >
-                    <SelectValue placeholder="Select your Ward" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {wards.map((ward) => (
-                      <SelectItem key={ward.id} value={ward.id}>
-                        Ward No. {ward.ward_number} - {ward.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.ward_id && (
-                  <p className="text-xs text-red-500">
-                    {errors.ward_id.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address_line1">
-                  Street Address <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="address_line1"
-                  {...register("address_line1")}
-                  placeholder="Tole/Street Name"
-                  className={cn(
-                    errors.address_line1 &&
-                      "border-red-500 focus-visible:ring-red-500"
-                  )}
-                />
-                {errors.address_line1 && (
-                  <p className="text-xs text-red-500">
-                    {errors.address_line1.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address_line2">Address Line 2 (Optional)</Label>
-                <Input
-                  id="address_line2"
-                  {...register("address_line2")}
-                  placeholder="Apartment, House No, etc."
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="landmark">Nearby Landmark</Label>
-                <Input
-                  id="landmark"
-                  {...register("landmark")}
-                  placeholder="E.g., Near Temple, Behind School"
-                />
-              </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                Residency Address
+              </Label>
+              <Input
+                {...register("address_line1")}
+                className="h-12 rounded-2xl border-slate-200"
+                placeholder="Street, Tole, Landmark"
+              />
             </div>
           </div>
         </CardContent>
-
-        <CardFooter className="flex justify-end gap-3 bg-slate-50/50 border-t p-6">
+        <CardFooter className="p-10 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
-            disabled={isSaving}
+            className="h-12 px-8 rounded-2xl font-bold border-slate-200"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            disabled={isSaving || isUploading}
-            className="min-w-[120px]"
+            disabled={isSaving}
+            className="h-12 px-10 rounded-2xl bg-blue-600 hover:bg-blue-700 font-black text-white shadow-xl shadow-blue-200 transition-all active:scale-95"
           >
             {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
+              "Save Identity"
             )}
           </Button>
         </CardFooter>

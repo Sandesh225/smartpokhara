@@ -22,7 +22,7 @@ export function ComplaintDetailsHeader({
   return (
     <div className="glass rounded-2xl shadow-xl p-6 sm:p-8 border border-white/30 overflow-hidden relative">
       {/* Decorative gradient */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"></div>
 
       <div className="relative z-10">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
@@ -45,7 +45,7 @@ export function ComplaintDetailsHeader({
             </div>
 
             {/* Tracking Code */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
               <span className="text-sm font-medium text-slate-600">
                 Tracking Code:
               </span>
@@ -84,14 +84,14 @@ export function ComplaintDetailsHeader({
           {/* Status Indicator Circle */}
           <div className="flex-shrink-0">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl animate-pulse-scale">
+              <div className="w-24 h-24 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl animate-pulse-scale">
                 <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center">
-                  <span className="text-2xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <span className="text-2xl font-bold bg-linear-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {getStatusIcon(complaint.status)}
                   </span>
                 </div>
               </div>
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 blur-xl opacity-30 animate-pulse"></div>
+              <div className="absolute inset-0 rounded-full bg-linear-to-br from-blue-500 to-purple-600 blur-xl opacity-30 animate-pulse"></div>
             </div>
           </div>
         </div>

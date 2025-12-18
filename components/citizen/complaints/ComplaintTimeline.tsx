@@ -21,18 +21,18 @@ export function ComplaintTimeline({ timeline }: ComplaintTimelineProps) {
             <div className="relative flex gap-4">
               {/* Timeline Line */}
               {itemIdx !== timeline.length - 1 && (
-                <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 to-purple-400 opacity-30"></div>
+                <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-linear-to-b from-blue-400 to-purple-400 opacity-30"></div>
               )}
 
               {/* Status Circle */}
               <div className="relative flex-shrink-0">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg ring-4 ring-white group-hover:scale-110 transition-transform">
+                <div className="h-12 w-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg ring-4 ring-white group-hover:scale-110 transition-transform">
                   <span className="text-white text-sm font-bold">
                     {itemIdx + 1}
                   </span>
                 </div>
                 {itemIdx === 0 && (
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 blur-xl opacity-40 animate-pulse"></div>
+                  <div className="absolute inset-0 rounded-full bg-linear-to-br from-blue-500 to-purple-600 blur-xl opacity-40 animate-pulse"></div>
                 )}
               </div>
 
@@ -65,7 +65,7 @@ export function ComplaintTimeline({ timeline }: ComplaintTimelineProps) {
 
                   {/* Note */}
                   {item.note && (
-                    <div className="mb-3 p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+                    <div className="mb-3 p-3 bg-linear-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-100">
                       <p className="text-sm text-slate-800 leading-relaxed">
                         {item.note}
                       </p>

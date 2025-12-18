@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, memo, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, differenceInDays, differenceInHours, differenceInMinutes } from "date-fns";
 import {
   ColumnDef,
   flexRender,
@@ -26,10 +26,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -42,10 +41,10 @@ import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
 
 import {
   ArrowUpDown,
@@ -53,7 +52,6 @@ import {
   Eye,
   MapPin,
   MoreVertical,
-  Search,
   Tag,
   AlertCircle,
   CheckCircle,
@@ -62,13 +60,15 @@ import {
   RefreshCw,
   Copy,
   Printer,
-  FileText,
   Shield,
-  ChevronRight,
+  Check,
 } from "lucide-react";
 
 import { toast } from "sonner";
-import type { Complaint, ComplaintStatus } from "@/lib/supabase/queries/complaints";
+import type {
+  Complaint,
+  ComplaintStatus,
+} from "@/lib/supabase/queries/complaints";
 
 type SortOrder = "ASC" | "DESC";
 
@@ -79,84 +79,236 @@ interface ComplaintsTableProps {
   currentPage: number;
   pageSize: number;
   onPageChange: (page: number) => void;
-
   onSortChange?: (sortBy: string, sortOrder: SortOrder) => void;
   sortBy?: string;
   sortOrder?: SortOrder;
-
   onRowClick?: (complaint: Complaint) => void;
-
-  /**
-   * ✅ IMPORTANT: where the detail page actually lives
-   * Default matches your app: /citizen/complaints/[id]
-   */
   basePath?: string;
 }
 
-const statusConfig: Record<
+// --- CONFIGURATIONS ---
+
+export const STATUS_CONFIG: Record<
   ComplaintStatus,
   {
     label: string;
     icon: ReactNode;
     pill: string;
+    ariaLabel: string;
   }
 > = {
   received: {
     label: "Received",
     icon: <Clock className="h-3.5 w-3.5" />,
     pill: "bg-blue-50 text-blue-700 border-blue-200",
+    ariaLabel: "Status: Received",
   },
   under_review: {
     label: "Under Review",
     icon: <AlertCircle className="h-3.5 w-3.5" />,
     pill: "bg-purple-50 text-purple-700 border-purple-200",
+    ariaLabel: "Status: Under Review",
   },
   assigned: {
     label: "Assigned",
     icon: <Shield className="h-3.5 w-3.5" />,
     pill: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    ariaLabel: "Status: Assigned",
   },
   in_progress: {
     label: "In Progress",
     icon: <RefreshCw className="h-3.5 w-3.5" />,
     pill: "bg-amber-50 text-amber-700 border-amber-200",
+    ariaLabel: "Status: In Progress",
   },
   resolved: {
     label: "Resolved",
     icon: <CheckCircle className="h-3.5 w-3.5" />,
     pill: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    ariaLabel: "Status: Resolved",
   },
   closed: {
     label: "Closed",
     icon: <CheckCircle className="h-3.5 w-3.5" />,
     pill: "bg-slate-50 text-slate-700 border-slate-200",
+    ariaLabel: "Status: Closed",
   },
   rejected: {
     label: "Rejected",
     icon: <XCircle className="h-3.5 w-3.5" />,
     pill: "bg-red-50 text-red-700 border-red-200",
+    ariaLabel: "Status: Rejected",
   },
   reopened: {
     label: "Reopened",
     icon: <RefreshCw className="h-3.5 w-3.5" />,
     pill: "bg-orange-50 text-orange-700 border-orange-200",
+    ariaLabel: "Status: Reopened",
   },
 };
 
-const priorityConfig = {
-  critical: { label: "Critical", pill: "bg-red-600 text-white" },
-  urgent: { label: "Urgent", pill: "bg-red-500 text-white" },
-  high: { label: "High", pill: "bg-orange-500 text-white" },
-  medium: { label: "Medium", pill: "bg-amber-500 text-white" },
-  low: { label: "Low", pill: "bg-slate-500 text-white" },
+// --- HELPER COMPONENTS ---
+
+// 1. Live SLA Cell Component (Fixes Static Time Issue)
+const LiveSLACell = ({ submittedAt, slaDueAt, status }: { submittedAt: string, slaDueAt: string | null, status: string }) => {
+    const [now, setNow] = useState(Date.now());
+
+    // Update time every minute
+    useEffect(() => {
+        const timer = setInterval(() => setNow(Date.now()), 60000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // 1. Handle Missing SLA
+    if (!slaDueAt) return <span className="text-slate-400 text-xs">—</span>;
+
+    // 2. Handle Resolved/Closed/Rejected (Stop Timer)
+    if (['resolved', 'closed', 'rejected'].includes(status)) {
+        return (
+            <div className="w-[140px] space-y-1.5">
+                 <div className="flex justify-between items-center text-xs">
+                    <span className="text-emerald-600 font-medium">Completed</span>
+                    <span className="text-slate-400">100%</span>
+                 </div>
+                 <Progress value={100} className="h-2 [&>div]:bg-emerald-500" />
+            </div>
+        );
+    }
+
+    // 3. Calculate Live Progress
+    const start = new Date(submittedAt).getTime();
+    const end = new Date(slaDueAt).getTime();
+    
+    // Prevent division by zero if start == end
+    const totalDuration = Math.max(end - start, 1); 
+    const elapsed = now - start;
+    
+    // Clamp between 0 and 100
+    const progress = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
+    const isOverdue = now > end;
+
+    // Format remaining time nicely
+    let timeLabel = "";
+    if (isOverdue) {
+        const days = differenceInDays(now, end);
+        timeLabel = days > 0 ? `${days}d overdue` : "Overdue";
+    } else {
+        const days = differenceInDays(end, now);
+        const hours = differenceInHours(end, now) % 24;
+        
+        if (days > 0) timeLabel = `${days}d ${hours}h left`;
+        else if (hours > 0) timeLabel = `${hours}h left`;
+        else timeLabel = `${differenceInMinutes(end, now) % 60}m left`;
+    }
+
+    return (
+        <div className="w-[140px] space-y-1.5">
+            <div className="flex justify-between items-center text-xs">
+                <span className={isOverdue ? "text-red-600 font-bold" : "text-slate-600 font-medium"}>
+                    {timeLabel}
+                </span>
+                <span className="text-slate-400 text-[10px]">
+                    {format(new Date(slaDueAt), "MMM dd")}
+                </span>
+            </div>
+            <Progress
+                value={progress}
+                className={`h-2 ${isOverdue ? "[&>div]:bg-red-500 bg-red-100" : "[&>div]:bg-blue-500 bg-blue-100"}`}
+            />
+        </div>
+    );
 };
 
-function isOverdue(slaDueAt?: string | null) {
-  if (!slaDueAt) return false;
-  const d = new Date(slaDueAt);
-  if (Number.isNaN(d.getTime())) return false;
-  return d.getTime() < Date.now();
-}
+// 2. Memoized Card Component (Mobile View)
+const ComplaintCard = memo(
+  ({
+    complaint,
+    onNavigate,
+  }: {
+    complaint: Complaint;
+    onNavigate: (complaint: Complaint) => void;
+  }) => {
+    const statusConf = STATUS_CONFIG[complaint.status];
+
+    return (
+      <Card
+        className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-slate-200 overflow-hidden relative"
+        onClick={() => onNavigate(complaint)}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/0 via-blue-50/50 to-indigo-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+
+        {/* Status Badge */}
+        <div className="absolute top-3 right-3 z-10">
+          <Badge className={`gap-1.5 border font-medium ${statusConf.pill}`}>
+            {statusConf.icon}
+            <span className="hidden sm:inline">{statusConf.label}</span>
+          </Badge>
+        </div>
+
+        <CardHeader className="pb-3 relative pt-6">
+          <div className="min-w-0 pr-20">
+            <CardTitle className="text-base font-semibold text-slate-900 line-clamp-2 leading-snug">
+              {complaint.title}
+            </CardTitle>
+
+            <CardDescription className="flex items-center gap-2 flex-wrap mt-2">
+              <code
+                className="font-mono text-xs font-semibold bg-slate-100 text-slate-900 px-2 py-0.5 rounded cursor-pointer hover:bg-slate-200 transition-colors"
+                onClick={(e) => {
+                   e.stopPropagation();
+                   navigator.clipboard.writeText(complaint.tracking_code);
+                   toast.success("Copied");
+                }}
+              >
+                {complaint.tracking_code}
+              </code>
+              <span className="text-slate-300">•</span>
+              <span className="flex items-center gap-1 text-slate-600">
+                <MapPin className="h-3.5 w-3.5" />
+                Ward {complaint.ward?.ward_number || "N/A"}
+              </span>
+            </CardDescription>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-0 pb-4 relative">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5 text-sm text-slate-700">
+                <Tag className="h-4 w-4 text-slate-500" />
+                <span className="font-medium">
+                  {complaint.category?.name || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                <Calendar className="h-4 w-4 text-slate-500" />
+                {format(new Date(complaint.submitted_at), "MMM dd")}
+              </div>
+            </div>
+
+            {/* SLA Progress */}
+            <div className="space-y-1 pt-2">
+                <LiveSLACell 
+                    submittedAt={complaint.submitted_at}
+                    slaDueAt={complaint.sla_due_at}
+                    status={complaint.status}
+                />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+);
+
+ComplaintCard.displayName = "ComplaintCard";
+
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export function ComplaintsTable({
   complaints,
@@ -172,49 +324,47 @@ export function ComplaintsTable({
   basePath = "/citizen/complaints",
 }: ComplaintsTableProps) {
   const router = useRouter();
-
   const [sorting, setSorting] = useState<SortingState>([
     { id: sortBy, desc: sortOrder === "DESC" },
   ]);
 
-  // ✅ keep table sorting UI in sync with parent URL state
   useEffect(() => {
     setSorting([{ id: sortBy, desc: sortOrder === "DESC" }]);
   }, [sortBy, sortOrder]);
 
   const totalPages = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
 
-  const goDetails = (complaint: Complaint) => {
-    if (onRowClick) return onRowClick(complaint);
-    router.push(`${basePath}/${complaint.id}`);
-  };
-
-  const handleCopyTracking = (code: string) => {
-    navigator.clipboard.writeText(code);
-    toast.success("Tracking code copied", { description: code, duration: 2000 });
-  };
+  const navigateToDetails = useMemo(
+    () => (complaint: Complaint) => {
+      if (onRowClick) return onRowClick(complaint);
+      router.push(`${basePath}/${complaint.id}`);
+    },
+    [onRowClick, router, basePath]
+  );
 
   const columns: ColumnDef<Complaint>[] = useMemo(
     () => [
       {
         accessorKey: "tracking_code",
-        header: () => <span className="font-semibold text-slate-900">Tracking</span>,
+        header: () => (
+          <span className="font-semibold text-slate-900">Tracking</span>
+        ),
         cell: ({ row }) => {
           const code = row.getValue("tracking_code") as string;
           return (
-            <div className="flex items-center gap-2 group">
+            <div className="flex items-center gap-2 group/copy">
               <code className="font-mono text-xs sm:text-sm font-semibold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">
                 {code}
               </code>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-7 w-7 p-0 opacity-0 group-hover/copy:opacity-100 transition-opacity"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  handleCopyTracking(code);
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(code);
+                    toast.success("Copied");
                 }}
-                aria-label="Copy tracking code"
               >
                 <Copy className="h-3.5 w-3.5" />
               </Button>
@@ -224,57 +374,34 @@ export function ComplaintsTable({
       },
       {
         accessorKey: "title",
-        header: () => <span className="font-semibold text-slate-900">Complaint</span>,
-        cell: ({ row }) => {
-          const c = row.original;
-          return (
-            <div className="min-w-0">
-              <div
-                className="font-semibold text-slate-900 truncate max-w-[280px]"
-                title={c.title}
-              >
-                {c.title}
-              </div>
-              <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
-                <Tag className="h-3.5 w-3.5" />
-                <span className="truncate max-w-[240px]">
-                  {c.category?.name || "N/A"}
-                  {c.subcategory?.name ? ` → ${c.subcategory.name}` : ""}
-                </span>
-              </div>
+        header: () => (
+          <span className="font-semibold text-slate-900">Complaint</span>
+        ),
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <div
+              className="font-semibold text-slate-900 truncate max-w-[280px]"
+              title={row.original.title}
+            >
+              {row.original.title}
             </div>
-          );
-        },
-      },
-      {
-        accessorKey: "ward",
-        header: () => <span className="font-semibold text-slate-900">Ward</span>,
-        cell: ({ row }) => {
-          const ward = row.original.ward;
-          return (
-            <div className="flex items-center gap-2 text-sm text-slate-700">
-              <span className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center">
-                <MapPin className="h-4 w-4 text-slate-600" />
+            <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
+              <Tag className="h-3.5 w-3.5" />
+              <span className="truncate max-w-[200px]">
+                {row.original.category?.name || "N/A"}
               </span>
-              <div className="leading-tight">
-                <div className="font-medium">
-                  {ward ? `Ward ${ward.ward_number}` : "N/A"}
-                </div>
-                <div className="text-xs text-slate-500 truncate max-w-[140px]">
-                  {ward?.name || "—"}
-                </div>
-              </div>
             </div>
-          );
-        },
+          </div>
+        ),
       },
       {
         accessorKey: "status",
-        header: () => <span className="font-semibold text-slate-900">Status</span>,
+        header: () => (
+          <span className="font-semibold text-slate-900">Status</span>
+        ),
         cell: ({ row }) => {
           const status = row.getValue("status") as ComplaintStatus;
-          const conf = statusConfig[status];
-          if (!conf) return null;
+          const conf = STATUS_CONFIG[status];
           return (
             <Badge className={`gap-1.5 border font-medium ${conf.pill}`}>
               {conf.icon}
@@ -284,123 +411,82 @@ export function ComplaintsTable({
         },
       },
       {
-        accessorKey: "priority",
-        header: () => <span className="font-semibold text-slate-900">Priority</span>,
-        cell: ({ row }) => {
-          const p = row.getValue("priority") as keyof typeof priorityConfig;
-          const conf = priorityConfig[p];
-          if (!conf) return null;
-          return (
-            <Badge className={`${conf.pill} border-0 font-semibold text-xs px-2.5 py-1`}>
-              {conf.label}
-            </Badge>
-          );
-        },
-      },
-      {
         accessorKey: "submitted_at",
-        header: () => {
-          const isActive = sortBy === "submitted_at";
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                const next: SortOrder = isActive && sortOrder === "ASC" ? "DESC" : "ASC";
-                onSortChange?.("submitted_at", next);
-              }}
-              className="px-0 font-semibold hover:bg-transparent hover:text-blue-700"
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Submitted
-              <ArrowUpDown className={`ml-2 h-4 w-4 ${isActive ? "text-blue-700" : "text-slate-400"}`} />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const date = new Date(row.getValue("submitted_at"));
-          return (
-            <div className="text-sm font-medium text-slate-700">
-              {Number.isNaN(date.getTime()) ? "—" : format(date, "MMM dd, yyyy")}
-            </div>
-          );
-        },
+        header: () => (
+          <Button
+            variant="ghost"
+            onClick={() =>
+              onSortChange?.(
+                "submitted_at",
+                sortOrder === "ASC" ? "DESC" : "ASC"
+              )
+            }
+            className="px-0 font-semibold hover:bg-transparent hover:text-blue-700"
+          >
+            Submitted
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="text-sm font-medium text-slate-700">
+            {format(new Date(row.getValue("submitted_at")), "MMM dd, yyyy")}
+          </div>
+        ),
       },
       {
         id: "sla",
-        header: () => <span className="font-semibold text-slate-900">SLA</span>,
+        header: () => (
+          <span className="font-semibold text-slate-900">SLA Status</span>
+        ),
         cell: ({ row }) => {
-          const due = (row.original as any).sla_due_at as string | null | undefined;
-          if (!due) return <span className="text-sm text-slate-400">—</span>;
-          const overdue = isOverdue(due);
           return (
-            <div className="flex items-center gap-2">
-              <Badge
-                className={
-                  overdue
-                    ? "bg-red-50 text-red-700 border border-red-200"
-                    : "bg-slate-50 text-slate-700 border border-slate-200"
-                }
-              >
-                {overdue ? "Overdue" : "Due"}
-              </Badge>
-              <span className={`text-sm ${overdue ? "text-red-700 font-semibold" : "text-slate-700"}`}>
-                {format(new Date(due), "MMM dd")}
-              </span>
-            </div>
+            <LiveSLACell 
+                submittedAt={row.original.submitted_at}
+                slaDueAt={row.original.sla_due_at}
+                status={row.original.status}
+            />
           );
         },
       },
       {
         id: "actions",
         header: () => <span className="sr-only">Actions</span>,
-        cell: ({ row }) => {
-          const c = row.original;
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-9 w-9 p-0 hover:bg-slate-100"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Open actions"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem
-                  onClick={() => router.push(`${basePath}/${c.id}`)}
-                  className="cursor-pointer gap-2"
-                >
-                  <Eye className="h-4 w-4 text-blue-600" />
-                  View details
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={() => handleCopyTracking(c.tracking_code)}
-                  className="cursor-pointer gap-2"
-                >
-                  <Copy className="h-4 w-4 text-slate-600" />
-                  Copy tracking code
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                  onClick={() => window.open(`${basePath}/${c.id}`, "_blank")}
-                  className="cursor-pointer gap-2"
-                >
-                  <Printer className="h-4 w-4 text-slate-600" />
-                  Open for printing
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => router.push(`${basePath}/${row.original.id}`)}
+              >
+                <Eye className="mr-2 h-4 w-4" /> View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(row.original.tracking_code);
+                    toast.success("Tracking code copied");
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" /> Copy Tracking
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  window.open(`${basePath}/${row.original.id}`, "_blank")
+                }
+              >
+                <Printer className="mr-2 h-4 w-4" /> Print
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
       },
     ],
-    [basePath, onSortChange, router, sortBy, sortOrder]
+    [basePath, onSortChange, router, sortOrder]
   );
 
   const table = useReactTable({
@@ -408,174 +494,57 @@ export function ComplaintsTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
     state: { sorting },
   });
 
-  const ComplaintCard = ({ complaint }: { complaint: Complaint }) => {
-    const statusConf = statusConfig[complaint.status];
-    const due = (complaint as any).sla_due_at as string | null | undefined;
-    const overdue = isOverdue(due);
-
-    return (
-      <Card
-        className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-slate-200 overflow-hidden relative"
-        onClick={() => goDetails(complaint)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") goDetails(complaint);
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/0 via-blue-50/50 to-indigo-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-
-        <CardHeader className="pb-3 relative">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <CardTitle className="text-base font-semibold text-slate-900 truncate">
-                {complaint.title}
-              </CardTitle>
-
-              <CardDescription className="flex items-center gap-2 flex-wrap mt-2">
-                <code className="font-mono text-xs font-semibold bg-slate-100 text-slate-900 px-2 py-0.5 rounded">
-                  {complaint.tracking_code}
-                </code>
-
-                <span className="text-slate-300">•</span>
-
-                <span className="flex items-center gap-1 text-slate-600">
-                  <MapPin className="h-3.5 w-3.5" />
-                  Ward {complaint.ward?.ward_number || "N/A"}
-                </span>
-
-                {due && (
-                  <>
-                    <span className="text-slate-300">•</span>
-                    <span className={`text-xs font-medium ${overdue ? "text-red-700" : "text-slate-600"}`}>
-                      {overdue ? "SLA Overdue" : `SLA: ${format(new Date(due), "MMM dd")}`}
-                    </span>
-                  </>
-                )}
-              </CardDescription>
-            </div>
-
-            <Badge className={`gap-1.5 border font-medium shrink-0 ${statusConf.pill}`}>
-              {statusConf.icon}
-              {statusConf.label}
-            </Badge>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-0 pb-4 relative">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 text-sm text-slate-700">
-              <Tag className="h-4 w-4 text-slate-500" />
-              <span className="font-medium">{complaint.category?.name || "N/A"}</span>
-              {complaint.subcategory?.name ? (
-                <span className="text-slate-500">→ {complaint.subcategory.name}</span>
-              ) : null}
-            </div>
-
-            <div className="flex items-center gap-1.5 text-sm text-slate-600">
-              <Calendar className="h-4 w-4 text-slate-500" />
-              {format(new Date(complaint.submitted_at), "MMM dd, yyyy")}
-            </div>
-          </div>
-        </CardContent>
-
-        <CardFooter className="pt-3 border-t border-slate-100 bg-slate-50/60 relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-between text-blue-700 hover:text-blue-800 hover:bg-blue-50 font-medium"
-            onClick={(e) => {
-              e.stopPropagation();
-              goDetails(complaint);
-            }}
-          >
-            View details
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  };
-
-  // -------------------- Loading --------------------
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="hidden md:block">
-          <div className="rounded-xl border border-slate-200 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-slate-50 to-blue-50/40">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <TableHead key={i} className="h-12">
-                      <Skeleton className="h-5 w-24 bg-slate-200" />
-                    </TableHead>
-                  ))}
+        {/* Simple skeleton loader */}
+        <div className="rounded-xl border border-slate-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50">
+                <TableHead>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-32" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-24" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-24" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[...Array(5)].map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Skeleton className="h-10 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-10 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-10 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-10 w-full" />
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.from({ length: 6 }).map((_, r) => (
-                  <TableRow key={r}>
-                    {Array.from({ length: 8 }).map((__, c) => (
-                      <TableCell key={c} className="py-4">
-                        <Skeleton className="h-5 w-full bg-slate-100" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
-        <div className="md:hidden space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="border-slate-200">
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4 bg-slate-200" />
-                <Skeleton className="h-4 w-1/2 bg-slate-100 mt-2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full mb-2 bg-slate-100" />
-                <Skeleton className="h-4 w-2/3 bg-slate-100" />
-              </CardContent>
-            </Card>
-          ))}
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
     );
   }
 
-  // -------------------- Empty --------------------
-  if (!complaints?.length) {
-    return (
-      <div className="text-center py-16 px-4">
-        <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-blue-100 flex items-center justify-center mb-5 shadow-sm">
-          <Search className="h-10 w-10 text-slate-400" />
-        </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-2">No complaints found</h3>
-        <p className="text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
-          You haven’t submitted any complaints yet, or none match your current search/tab.
-        </p>
-        <Button
-          onClick={() => router.push(`${basePath}/new`)}
-          className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
-        >
-          <FileText className="h-4 w-4" />
-          Submit New Complaint
-        </Button>
-      </div>
-    );
-  }
-
-  // -------------------- Normal --------------------
   return (
     <div className="space-y-6">
-      {/* Desktop Table */}
       <div className="hidden md:block">
         <div className="rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-white">
           <Table>
@@ -583,113 +552,94 @@ export function ComplaintsTable({
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
-                  className="bg-gradient-to-r from-slate-50 to-blue-50/40 border-b border-slate-200"
+                  className="bg-gradient-to-r from-slate-50 to-blue-50/40"
                 >
                   {hg.headers.map((h) => (
                     <TableHead key={h.id} className="h-12 text-slate-900">
-                      {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                      {flexRender(h.column.columnDef.header, h.getContext())}
                     </TableHead>
                   ))}
                 </TableRow>
               ))}
             </TableHeader>
-
             <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="cursor-pointer hover:bg-slate-50/70 transition-colors"
-                  onClick={() => goDetails(row.original)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") goDetails(row.original);
-                  }}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-4">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {table.getRowModel().rows.length === 0 ? (
+                 <TableRow>
+                     <TableCell colSpan={columns.length} className="h-32 text-center text-gray-500">
+                         No complaints found.
+                     </TableCell>
+                 </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                    <TableRow
+                    key={row.id}
+                    onClick={() => navigateToDetails(row.original)}
+                    className="cursor-pointer hover:bg-slate-50/70"
+                    >
+                    {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className="py-4">
+                        {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                        )}
+                        </TableCell>
+                    ))}
+                    </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
       </div>
 
-      {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
-        {complaints.map((c) => (
-          <ComplaintCard key={c.id} complaint={c} />
-        ))}
+        {complaints.length === 0 ? (
+            <div className="text-center text-gray-500 py-12 bg-white rounded-xl border border-dashed">
+                No complaints found.
+            </div>
+        ) : (
+            complaints.map((c) => (
+            <ComplaintCard
+                key={c.id}
+                complaint={c}
+                onNavigate={navigateToDetails}
+            />
+            ))
+        )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-8 space-y-4">
-          <Pagination>
-            <PaginationContent className="flex-wrap justify-center gap-1">
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-                  className={`${
-                    currentPage === 1 ? "pointer-events-none opacity-40" : "cursor-pointer hover:bg-blue-50 hover:text-blue-700"
-                  } transition-colors`}
-                  aria-disabled={currentPage === 1}
-                />
-              </PaginationItem>
-
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum: number;
-                if (totalPages <= 5) pageNum = i + 1;
-                else if (currentPage <= 3) pageNum = i + 1;
-                else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                else pageNum = currentPage - 2 + i;
-
-                return (
-                  <PaginationItem key={pageNum}>
-                    <PaginationLink
-                      onClick={() => onPageChange(pageNum)}
-                      isActive={pageNum === currentPage}
-                      className={`cursor-pointer transition-all ${
-                        pageNum === currentPage
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-md"
-                          : "hover:bg-blue-50 hover:text-blue-700"
-                      }`}
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-                  className={`${
-                    currentPage === totalPages ? "pointer-events-none opacity-40" : "cursor-pointer hover:bg-blue-50 hover:text-blue-700"
-                  } transition-colors`}
-                  aria-disabled={currentPage === totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-
-          <div className="text-center">
-            <p className="text-sm text-slate-600 bg-slate-50 inline-block px-4 py-2 rounded-full">
-              Showing{" "}
-              <span className="font-semibold text-slate-900">
-                {(currentPage - 1) * pageSize + 1}
-              </span>{" "}
-              to{" "}
-              <span className="font-semibold text-slate-900">
-                {Math.min(currentPage * pageSize, total)}
-              </span>{" "}
-              of <span className="font-semibold text-slate-900">{total}</span>
-            </p>
-          </div>
-        </div>
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+                className={
+                  currentPage === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <span className="text-sm px-4">
+                Page {currentPage} of {totalPages}
+              </span>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext
+                onClick={() =>
+                  currentPage < totalPages && onPageChange(currentPage + 1)
+                }
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   );

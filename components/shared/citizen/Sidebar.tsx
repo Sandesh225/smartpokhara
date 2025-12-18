@@ -118,7 +118,7 @@ export default function Sidebar({
       aria-label="Citizen sidebar"
     >
       {/* Branding */}
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-100 px-6 bg-gradient-to-r from-blue-50/50 to-white">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-100 px-6 bg-linear-to-r from-blue-50/50 to-white">
         <Link
           href="/citizen/dashboard"
           className="flex items-center gap-3 group"

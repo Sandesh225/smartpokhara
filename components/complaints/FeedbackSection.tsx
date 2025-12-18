@@ -48,14 +48,14 @@ export function FeedbackSection({ complaint }: FeedbackSectionProps) {
     return (
       <div className="glass rounded-2xl shadow-xl p-6 border border-white/30 animate-slide-up">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+          <div className="h-10 w-10 rounded-xl bg-linear-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
             <CheckCircle className="w-5 h-5" />
           </div>
           <h2 className="text-xl font-bold text-slate-900">Your Feedback</h2>
         </div>
 
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200">
+          <div className="p-4 rounded-xl bg-linear-to-br from-green-50 to-emerald-50 border border-green-200">
             <label className="text-sm font-semibold text-slate-700 block mb-2">
               Satisfaction Rating
             </label>
@@ -74,7 +74,7 @@ export function FeedbackSection({ complaint }: FeedbackSectionProps) {
           </div>
 
           {complaint.citizen_feedback && (
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200">
+            <div className="p-4 rounded-xl bg-linear-to-br from-blue-50 to-purple-50 border border-blue-200">
               <label className="text-sm font-semibold text-slate-700 block mb-2">
                 Your Comments
               </label>
@@ -100,7 +100,7 @@ export function FeedbackSection({ complaint }: FeedbackSectionProps) {
     return (
       <div className="glass rounded-2xl shadow-xl p-6 border border-white/30 animate-slide-up">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white shadow-lg">
+          <div className="h-10 w-10 rounded-xl bg-linear-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white shadow-lg">
             <MessageSquare className="w-5 h-5" />
           </div>
           <h2 className="text-xl font-bold text-slate-900">Provide Feedback</h2>
@@ -112,7 +112,7 @@ export function FeedbackSection({ complaint }: FeedbackSectionProps) {
             <label className="block text-sm font-semibold text-slate-700 mb-3">
               How satisfied are you with the resolution?
             </label>
-            <div className="flex items-center gap-2 p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-2 p-4 bg-linear-to-br from-slate-50 to-blue-50 rounded-xl border border-slate-200">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -162,7 +162,7 @@ export function FeedbackSection({ complaint }: FeedbackSectionProps) {
             type="button"
             onClick={handleSubmitFeedback}
             disabled={submitting || rating === 0}
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
           >
             {submitting ? (
               <>

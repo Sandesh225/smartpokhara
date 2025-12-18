@@ -147,7 +147,7 @@ export default function WalletCard({
   };
 
   return (
-    <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-white">
+    <Card className="border-blue-200 bg-linear-to-r from-blue-50 to-white">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center">
@@ -159,7 +159,7 @@ export default function WalletCard({
           </Badge>
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Balance Display */}
         <div className="text-center">
@@ -188,7 +188,7 @@ export default function WalletCard({
                   Add funds to your digital wallet for faster payments.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4 py-4">
                 {/* Quick Amounts */}
                 <div className="space-y-2">
@@ -202,7 +202,8 @@ export default function WalletCard({
                         type="button"
                         className={cn(
                           "h-10",
-                          topUpAmount === amount.toString() && "bg-blue-50 border-blue-200"
+                          topUpAmount === amount.toString() &&
+                            "bg-blue-50 border-blue-200"
                         )}
                       >
                         {amount}
@@ -285,10 +286,12 @@ export default function WalletCard({
                   Transfer funds from your wallet to your bank account.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="withdraw-amount">Amount to Withdraw (NPR)</Label>
+                  <Label htmlFor="withdraw-amount">
+                    Amount to Withdraw (NPR)
+                  </Label>
                   <Input
                     id="withdraw-amount"
                     type="number"
@@ -316,7 +319,11 @@ export default function WalletCard({
 
                 <Button
                   onClick={handleWithdraw}
-                  disabled={isLoading || !withdrawAmount || parseFloat(withdrawAmount) > balance}
+                  disabled={
+                    isLoading ||
+                    !withdrawAmount ||
+                    parseFloat(withdrawAmount) > balance
+                  }
                   className="w-full"
                 >
                   {isLoading ? "Processing..." : "Request Withdrawal"}
@@ -341,7 +348,7 @@ export default function WalletCard({
                 View All
               </Button>
             </div>
-            
+
             <div className="space-y-3">
               {transactions.slice(0, 3).map((transaction) => (
                 <div
@@ -349,12 +356,14 @@ export default function WalletCard({
                   className="flex items-center justify-between p-3 bg-white rounded-lg border"
                 >
                   <div className="flex items-center">
-                    <div className={cn(
-                      "p-2 rounded-full mr-3",
-                      transaction.type === "credit"
-                        ? "bg-green-100 text-green-600"
-                        : "bg-red-100 text-red-600"
-                    )}>
+                    <div
+                      className={cn(
+                        "p-2 rounded-full mr-3",
+                        transaction.type === "credit"
+                          ? "bg-green-100 text-green-600"
+                          : "bg-red-100 text-red-600"
+                      )}
+                    >
                       {transaction.type === "credit" ? (
                         <ArrowDownRight className="h-4 w-4" />
                       ) : (
@@ -362,16 +371,22 @@ export default function WalletCard({
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{transaction.description}</p>
+                      <p className="font-medium text-sm">
+                        {transaction.description}
+                      </p>
                       <p className="text-xs text-gray-500">
                         {format(transaction.date, "MMM d, yyyy")}
                       </p>
                     </div>
                   </div>
-                  <div className={cn(
-                    "font-semibold",
-                    transaction.type === "credit" ? "text-green-600" : "text-red-600"
-                  )}>
+                  <div
+                    className={cn(
+                      "font-semibold",
+                      transaction.type === "credit"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    )}
+                  >
                     {transaction.type === "credit" ? "+" : "-"}
                     NPR {transaction.amount.toFixed(2)}
                   </div>

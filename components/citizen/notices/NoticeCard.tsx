@@ -108,54 +108,65 @@ export default function NoticeCard({ notice, variant = "default" }: NoticeCardPr
       : "border-l-transparent";
 
   const subtleBg = notice.is_urgent
-    ? "bg-gradient-to-br from-red-50/60 via-orange-50/30 to-white"
+    ? "bg-linear-to-br from-red-50/60 via-orange-50/30 to-white"
     : isUnread
-      ? "bg-gradient-to-br from-blue-50/70 via-indigo-50/20 to-white"
+      ? "bg-linear-to-br from-blue-50/70 via-indigo-50/20 to-white"
       : "bg-white";
 
   // Compact (grid) card
   if (variant === "compact") {
     return (
-      <Link href={`/citizen/notices/${notice.id}`} className="block">
+      <Link
+        href={`/citizen/notices/${notice.id}`}
+        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-lg"
+      >
         <Card
           className={cn(
             "relative overflow-hidden border-2 border-slate-200 shadow-md hover:shadow-xl transition-all duration-300",
             "group cursor-pointer",
             "border-l-4",
             leftAccent,
-            subtleBg
+            subtleBg,
+            "h-full"
           )}
         >
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-r from-blue-50/0 via-blue-50/40 to-indigo-50/0" />
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-linear-to-r from-blue-50/0 via-blue-50/40 to-indigo-50/0" />
 
-          <CardContent className="p-5 relative">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-2">
+          <CardContent className="p-5 relative flex flex-col h-full">
+            <div className="flex items-start justify-between gap-3 flex-1">
+              <div className="min-w-0 flex-1 flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
                   {isUnread && (
                     <span className="inline-flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
-                      <span className="text-xs font-semibold text-blue-700">Unread</span>
+                      <span
+                        className="h-2 w-2 rounded-full bg-blue-600 animate-pulse"
+                        aria-hidden="true"
+                      />
+                      <span className="text-xs font-semibold text-blue-700">
+                        Unread
+                      </span>
                     </span>
                   )}
                   {notice.is_urgent && (
-                    <Badge className="bg-gradient-to-r from-red-600 to-orange-600 text-white border-0 shadow-sm gap-1.5">
+                    <Badge className="bg-linear-to-r from-red-600 to-orange-600 text-white border-0 shadow-sm gap-1.5 text-xs">
                       <AlertCircle className="h-3.5 w-3.5" />
                       Urgent
                     </Badge>
                   )}
                 </div>
 
-                <h3 className="font-bold text-slate-900 leading-snug line-clamp-2">
+                <h3 className="font-bold text-slate-900 leading-snug line-clamp-2 mb-3 text-base">
                   {notice.title}
                 </h3>
 
-                <p className="mt-2 text-sm text-slate-600 line-clamp-2">
+                <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed mb-4 flex-1">
                   {excerpt(notice.excerpt || notice.content, 130)}
                 </p>
 
-                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                  <Badge className={cn("border font-medium gap-1.5", typeMeta.pill)}>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 mt-auto">
+                  <Badge
+                    className={cn("border font-medium gap-1.5", typeMeta.pill)}
+                  >
                     {typeMeta.icon}
                     {typeMeta.label}
                   </Badge>
@@ -167,23 +178,26 @@ export default function NoticeCard({ notice, variant = "default" }: NoticeCardPr
                     </Badge>
                   )}
 
-                  {notice.ward_number ? (
+                  {notice.ward_number && (
                     <span className="inline-flex items-center gap-1.5">
                       <MapPin className="h-3.5 w-3.5 text-slate-500" />
                       Ward {notice.ward_number}
                     </span>
-                  ) : null}
+                  )}
 
-                  {notice.has_attachments ? (
+                  {notice.has_attachments && (
                     <span className="inline-flex items-center gap-1.5">
                       <FileText className="h-3.5 w-3.5 text-slate-500" />
                       Attachment
                     </span>
-                  ) : null}
+                  )}
                 </div>
               </div>
 
-              <ExternalLink className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition-colors" />
+              <ExternalLink
+                className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition-colors flex-shrink-0"
+                aria-hidden="true"
+              />
             </div>
           </CardContent>
 
@@ -206,37 +220,45 @@ export default function NoticeCard({ notice, variant = "default" }: NoticeCardPr
 
   // Default (list) card
   return (
-    <Link href={`/citizen/notices/${notice.id}`} className="block">
+    <Link
+      href={`/citizen/notices/${notice.id}`}
+      className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-lg"
+    >
       <Card
         className={cn(
-          "relative overflow-hidden border-2 border-slate-200 shadow-md hover:shadow-2xl transition-all duration-300",
+          "relative overflow-hidden border-2 border-slate-200 shadow-md hover:shadow-xl transition-all duration-300",
           "group cursor-pointer",
           "border-l-4",
           leftAccent,
           subtleBg
         )}
       >
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-r from-blue-50/0 via-blue-50/40 to-indigo-50/0" />
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-linear-to-r from-blue-50/0 via-blue-50/40 to-indigo-50/0" />
 
         <CardContent className="p-6 relative">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 {isUnread && (
-                  <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 shadow-sm gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-white/90" />
+                  <Badge className="bg-linear-to-r from-blue-600 to-indigo-600 text-white border-0 shadow-sm gap-1.5 text-xs">
+                    <span
+                      className="h-2 w-2 rounded-full bg-white/90"
+                      aria-hidden="true"
+                    />
                     New
                   </Badge>
                 )}
 
                 {notice.is_urgent && (
-                  <Badge className="bg-gradient-to-r from-red-600 to-orange-600 text-white border-0 shadow-sm gap-1.5">
+                  <Badge className="bg-linear-to-r from-red-600 to-orange-600 text-white border-0 shadow-sm gap-1.5 text-xs">
                     <AlertCircle className="h-3.5 w-3.5" />
                     Urgent
                   </Badge>
                 )}
 
-                <Badge className={cn("border font-medium gap-1.5", typeMeta.pill)}>
+                <Badge
+                  className={cn("border font-medium gap-1.5", typeMeta.pill)}
+                >
                   {typeMeta.icon}
                   {typeMeta.label}
                 </Badge>
@@ -265,30 +287,36 @@ export default function NoticeCard({ notice, variant = "default" }: NoticeCardPr
               </p>
             </div>
 
-            <ExternalLink className="h-5 w-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+            <ExternalLink
+              className="h-5 w-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all flex-shrink-0"
+              aria-hidden="true"
+            />
           </div>
         </CardContent>
 
         <CardFooter className="px-6 py-4 border-t border-slate-100 bg-white/70 relative flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-            <span className="inline-flex items-center gap-2" title={format(publishedAt, "PPpp")}>
+            <span
+              className="inline-flex items-center gap-2"
+              title={format(publishedAt, "PPpp")}
+            >
               <Calendar className="h-4 w-4 text-slate-500" />
               {formatDistanceToNow(publishedAt, { addSuffix: true })}
             </span>
 
-            {notice.ward_number ? (
+            {notice.ward_number && (
               <span className="inline-flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-slate-500" />
                 Ward {notice.ward_number}
               </span>
-            ) : null}
+            )}
           </div>
 
           <Button
             variant="ghost"
             size="sm"
-            className="text-blue-700 hover:text-blue-800 hover:bg-blue-50 font-semibold"
-            aria-label="Read notice"
+            className="text-blue-700 hover:text-blue-800 hover:bg-blue-50 font-semibold transition-colors"
+            aria-label={`Read notice: ${notice.title}`}
           >
             Read More
             <ChevronRight className="ml-1 h-4 w-4" />

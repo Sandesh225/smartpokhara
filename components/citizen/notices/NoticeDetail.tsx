@@ -41,9 +41,14 @@ interface NoticeDetailProps {
   }>;
 }
 
-export default function NoticeDetail({ notice, attachments }: NoticeDetailProps) {
+export default function NoticeDetail({
+  notice,
+  attachments,
+}: NoticeDetailProps) {
   const [copied, setCopied] = useState(false);
-  const publishedAt = notice.published_at ? new Date(notice.published_at) : null;
+  const publishedAt = notice.published_at
+    ? new Date(notice.published_at)
+    : null;
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
@@ -97,75 +102,95 @@ export default function NoticeDetail({ notice, attachments }: NoticeDetailProps)
   };
 
   return (
-    <Card className="border-2 border-slate-200 shadow-2xl overflow-hidden print:shadow-none">
+    <Card className="border-2 border-slate-200 shadow-xl overflow-hidden print:shadow-none print:border">
       {/* Premium Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-8 print:p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              {notice.is_urgent && (
-                <Badge className="bg-gradient-to-r from-red-600 to-orange-600 text-white border-0 shadow-md px-3 py-1 gap-1.5">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  Urgent
-                </Badge>
-              )}
-              <Badge className="bg-white/20 text-white border-white/30 px-3 py-1 capitalize">
-                {notice.notice_type?.replace(/_/g, " ")}
+      <div className="bg-linear-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-6 sm:p-8 print:bg-blue-600 print:p-6">
+        <div className="flex flex-col gap-6">
+          {/* Badges Row */}
+          <div className="flex flex-wrap items-center gap-2">
+            {notice.is_urgent && (
+              <Badge className="bg-linear-to-r from-red-600 to-orange-600 text-white border-0 shadow-lg px-3 py-1.5 gap-1.5 text-xs font-semibold">
+                <AlertCircle className="h-3.5 w-3.5" />
+                Urgent
               </Badge>
-              {notice.is_public && (
-                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1 gap-1.5">
-                  <Shield className="h-3.5 w-3.5" />
-                  Public
-                </Badge>
-              )}
-            </div>
+            )}
+            <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 px-3 py-1.5 capitalize text-xs font-semibold">
+              {notice.notice_type?.replace(/_/g, " ")}
+            </Badge>
+            {notice.is_public && (
+              <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 px-3 py-1.5 gap-1.5 text-xs font-semibold">
+                <Shield className="h-3.5 w-3.5" />
+                Public
+              </Badge>
+            )}
+          </div>
 
-            <h1 className="text-2xl md:text-4xl font-bold leading-tight mb-3">
-              {notice.title}
-            </h1>
+          {/* Title */}
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight text-white">
+            {notice.title}
+          </h1>
 
-            <div className="flex flex-wrap items-center gap-4 text-blue-100">
+          {/* Metadata and Actions Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-blue-100">
               {publishedAt && (
-                <div className="flex items-center" title={format(publishedAt, "PPpp")}>
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {format(publishedAt, "MMMM d, yyyy 'at' h:mm a")}
+                <div
+                  className="flex items-center gap-2"
+                  title={format(publishedAt, "PPpp")}
+                >
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  <span className="font-medium">
+                    {format(publishedAt, "MMMM d, yyyy 'at' h:mm a")}
+                  </span>
                 </div>
               )}
               {notice.ward_number && (
-                <div className="flex items-center">
-                  <MapPin className="mr-2 h-4 w-4" />
-                  Ward {notice.ward_number}
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="font-medium">Ward {notice.ward_number}</span>
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="flex gap-2 print:hidden">
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/10 hover:bg-white/20 border-white/30 text-white h-10 px-4"
-              onClick={handleShare}
-            >
-              {copied ? <Check className="h-4 w-4 mr-2" /> : <Share2 className="h-4 w-4 mr-2" />}
-              {copied ? "Copied!" : "Share"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/10 hover:bg-white/20 border-white/30 text-white h-10 px-4"
-              onClick={handlePrint}
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              Print
-            </Button>
+            {/* Action Buttons */}
+            <div className="flex gap-2 print:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border-white/30 text-white h-10 px-4 transition-all duration-200 font-medium"
+                onClick={handleShare}
+                aria-label="Share notice"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border-white/30 text-white h-10 px-4 transition-all duration-200 font-medium"
+                onClick={handlePrint}
+                aria-label="Print notice"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      <CardContent className="p-8 print:p-6">
+      <CardContent className="p-6 sm:p-8 print:p-6">
         {/* Content */}
-        <div className="prose prose-lg max-w-none prose-headings:text-slate-900 prose-p:text-slate-700 prose-li:text-slate-700 prose-strong:text-slate-900 prose-a:text-blue-600">
+        <div className="prose prose-slate prose-base sm:prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-tight prose-p:text-slate-700 prose-p:leading-relaxed prose-li:text-slate-700 prose-strong:text-slate-900 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline">
           <div
             dangerouslySetInnerHTML={{
               __html: (notice.content || "").replace(/\n/g, "<br>"),
@@ -175,93 +200,127 @@ export default function NoticeDetail({ notice, attachments }: NoticeDetailProps)
 
         <Separator className="my-8 bg-slate-200" />
 
-        {/* Metadata */}
-        <Card className="border-2 border-slate-200 shadow-md overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50/40 border-b border-slate-200">
+        {/* Metadata Card */}
+        <Card className="border-2 border-slate-200 shadow-sm overflow-hidden">
+          <CardHeader className="bg-linear-to-r from-slate-50 to-blue-50/30 border-b-2 border-slate-200 py-4 px-6">
             <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-700">
               Notice Information
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="flex flex-wrap gap-6 text-sm text-slate-700">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-900">Notice ID:</span>
-                <code className="bg-white px-3 py-1.5 rounded-lg text-xs font-mono border border-slate-200 shadow-sm">
-                  {notice.id}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 hover:bg-slate-100"
-                  onClick={() => copyToClipboard(notice.id)}
-                  aria-label="Copy notice id"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+              {/* Notice ID */}
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold text-slate-900 text-xs uppercase tracking-wide">
+                  Notice ID
+                </span>
+                <div className="flex items-center gap-2">
+                  <code className="bg-slate-100 px-3 py-2 rounded-lg text-xs font-mono border border-slate-200 shadow-sm flex-1 truncate">
+                    {notice.id}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0 hover:bg-slate-100 transition-colors flex-shrink-0"
+                    onClick={() => copyToClipboard(notice.id)}
+                    aria-label="Copy notice ID"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
+              {/* Published Date */}
               {publishedAt && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-900">Published:</span>
-                  <span>{format(publishedAt, "PPP")}</span>
+                <div className="flex flex-col gap-2">
+                  <span className="font-semibold text-slate-900 text-xs uppercase tracking-wide">
+                    Published
+                  </span>
+                  <span className="text-slate-700 font-medium">
+                    {format(publishedAt, "PPP")}
+                  </span>
                 </div>
               )}
 
+              {/* Ward */}
               {notice.ward_number && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-900">Target Ward:</span>
-                  <span>Ward {notice.ward_number}</span>
+                <div className="flex flex-col gap-2">
+                  <span className="font-semibold text-slate-900 text-xs uppercase tracking-wide">
+                    Target Ward
+                  </span>
+                  <span className="text-slate-700 font-medium">
+                    Ward {notice.ward_number}
+                  </span>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Attachments */}
+        {/* Attachments Section */}
         {attachments?.length > 0 && (
           <>
             <Separator className="my-8 bg-slate-200" />
 
-            <h3 className="text-2xl font-bold mb-6 flex items-center text-slate-900">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mr-3 shadow-lg">
-                <FileText className="h-5 w-5 text-white" />
+            <div className="space-y-6">
+              <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-3 text-slate-900">
+                <div className="h-10 w-10 rounded-lg bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <span>
+                  Attachments
+                  <span className="text-slate-500 font-normal ml-2">
+                    ({attachments.length})
+                  </span>
+                </span>
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {attachments.map((a) => (
+                  <Card
+                    key={a.id}
+                    className="border-2 border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 group overflow-hidden"
+                  >
+                    <CardContent className="p-5 flex items-center justify-between gap-4">
+                      <div className="flex items-center min-w-0 flex-1 gap-4">
+                        <div className="p-3 rounded-lg bg-linear-to-br from-blue-600 to-indigo-600 shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
+                          <FileText className="h-6 w-6 text-white" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold truncate text-slate-900 text-sm sm:text-base">
+                            {a.file_name}
+                          </p>
+                          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                            {a.file_size
+                              ? formatFileSize(a.file_size)
+                              : "Unknown size"}
+                            {a.file_type && (
+                              <>
+                                <span className="mx-1.5">•</span>
+                                <span className="uppercase">
+                                  {String(a.file_type)}
+                                </span>
+                              </>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownloadAttachment(a)}
+                        className="border-slate-300 bg-white hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 flex-shrink-0 h-10"
+                        aria-label={`Download ${a.file_name}`}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Download</span>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              Attachments ({attachments.length})
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {attachments.map((a) => (
-                <Card
-                  key={a.id}
-                  className="border-2 border-slate-200 hover:shadow-lg transition-all duration-200 group overflow-hidden"
-                >
-                  <CardContent className="p-5 flex items-center justify-between gap-3">
-                    <div className="flex items-center min-w-0 flex-1">
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 mr-4 shadow-md group-hover:scale-110 transition-transform">
-                        <FileText className="h-6 w-6 text-white" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold truncate text-slate-900">{a.file_name}</p>
-                        <p className="text-sm text-slate-600 mt-0.5">
-                          {a.file_size ? formatFileSize(a.file_size) : "Unknown size"}
-                          {a.file_type ? ` • ${String(a.file_type).toUpperCase()}` : ""}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownloadAttachment(a)}
-                      className="border-slate-300 bg-white hover:bg-blue-50 hover:border-blue-400 transition-all"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </>
         )}

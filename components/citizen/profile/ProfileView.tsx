@@ -29,7 +29,7 @@ export default function ProfileView({ profile, onEdit }: ProfileViewProps) {
       {/* Hero Section */}
       <Card className="overflow-hidden border-none shadow-md bg-white">
         {/* Decorative Background */}
-        <div className="h-32 w-full bg-gradient-to-r from-blue-600 to-indigo-600 relative">
+        <div className="h-32 w-full bg-linear-to-r from-blue-600 to-indigo-600 relative">
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
         </div>
 

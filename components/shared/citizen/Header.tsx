@@ -195,7 +195,7 @@ export default function Header({
                 </div>
 
                 <Link
-                  href="/citizen/profile"
+                  href="/citizen/settings"
                   onClick={() => setUserMenuOpen(false)}
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600"
                 >

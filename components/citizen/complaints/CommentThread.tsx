@@ -1,11 +1,10 @@
-// components/citizen/complaints/CommentThread.tsx
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format } from 'date-fns';
+import { useState, useEffect, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { format } from "date-fns";
 import {
   Card,
   CardContent,
@@ -18,22 +17,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import {
   Send,
-  User,
   MessageSquare,
   Clock,
   AlertCircle,
   CheckCircle,
   RefreshCw,
-  Paperclip,
   X,
-  Smile,
-  ThumbsUp,
-} from 'lucide-react';
-import { complaintsService } from '@/lib/supabase/queries/complaints';
-import type { ComplaintComment } from '@/lib/supabase/queries/complaints';
+} from "lucide-react";
+import { complaintsService } from "@/lib/supabase/queries/complaints";
+import type { ComplaintComment } from "@/lib/supabase/queries/complaints";
 
 interface CommentThreadProps {
   complaintId: string;
@@ -43,18 +37,19 @@ interface CommentThreadProps {
 }
 
 const commentSchema = z.object({
-  content: z.string()
-    .min(1, { message: 'Comment cannot be empty' })
-    .max(2000, { message: 'Comment is too long (max 2000 characters)' }),
+  content: z
+    .string()
+    .min(1, { message: "Comment cannot be empty" })
+    .max(2000, { message: "Comment is too long (max 2000 characters)" }),
 });
 
 type CommentFormData = z.infer<typeof commentSchema>;
 
-export function CommentThread({ 
-  complaintId, 
-  comments, 
+export function CommentThread({
+  complaintId,
+  comments,
   isSubscribed = false,
-  onNewComment 
+  onNewComment,
 }: CommentThreadProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,90 +68,84 @@ export function CommentThread({
   } = useForm<CommentFormData>({
     resolver: zodResolver(commentSchema),
     defaultValues: {
-      content: '',
+      content: "",
     },
   });
 
-  // Watch content for character count
-  const content = watch('content');
+  const content = watch("content");
   useEffect(() => {
-    setCharacterCount(content.length);
+    setCharacterCount(content?.length || 0);
   }, [content]);
 
-  // Auto-scroll to bottom on new comments
   useEffect(() => {
     scrollToBottom();
-  }, [comments]);
+  }, [comments.length]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const onSubmit = async (data: CommentFormData) => {
     if (!complaintId) return;
-    
+
     setIsSubmitting(true);
     setError(null);
     setSuccess(null);
 
     try {
-      // Submit comment via RPC
-      const result = await complaintsService.addComment(complaintId, data.content, false);
-      
-      // Clear form
+      const result = await complaintsService.addComment(
+        complaintId,
+        data.content,
+        false
+      );
+
       reset();
       setReplyingTo(null);
-      
-      // Show success message
-      setSuccess('Comment posted successfully');
-      
-      // Trigger callback if provided
+      setSuccess("Comment posted successfully");
+
       if (onNewComment) {
-        // Create a mock comment object for immediate UI update
-        // In real implementation, you would wait for the subscription to get the actual comment
+        // Use the ID returned from the server to prevent duplicates
+        // when the realtime subscription also picks it up.
         const mockComment: ComplaintComment = {
           id: result.comment_id,
           complaint_id: complaintId,
-          author_id: 'current-user',
-          author_role: 'citizen',
+          author_id: "current-user",
+          author_role: "citizen",
           content: data.content,
           is_internal: false,
           attachments: [],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           author: {
-            id: 'current-user',
-            email: 'user@example.com',
-            full_name: 'You',
+            id: "current-user",
+            email: "user@example.com",
+            full_name: "You",
             profile_photo_url: null,
           },
         };
         onNewComment(mockComment);
       }
 
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      console.error('Error posting comment:', err);
-      setError(err.message || 'Failed to post comment. Please try again.');
+      console.error("Error posting comment:", err);
+      setError(err.message || "Failed to post comment. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Separate comments by author type
-  const citizenComments = comments.filter(c => c.author_role === 'citizen');
-  const staffComments = comments.filter(c => c.author_role === 'staff');
-
   const formatTime = (date: string) => {
     const commentDate = new Date(date);
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - commentDate.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Just now';
+    const diffInMinutes = Math.floor(
+      (now.getTime() - commentDate.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return format(commentDate, 'MMM dd, hh:mm a');
+    return format(commentDate, "MMM dd, hh:mm a");
   };
 
   return (
@@ -169,15 +158,18 @@ export function CommentThread({
               Public conversation about this complaint
             </CardDescription>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1">
               <MessageSquare className="h-3 w-3" />
-              {comments.length} comment{comments.length !== 1 ? 's' : ''}
+              {comments.length} comment{comments.length !== 1 ? "s" : ""}
             </Badge>
-            
+
             {isSubscribed && (
-              <Badge variant="outline" className="animate-pulse gap-1">
+              <Badge
+                variant="outline"
+                className="animate-pulse gap-1 text-green-600 border-green-200 bg-green-50"
+              >
                 <div className="h-2 w-2 rounded-full bg-green-500" />
                 Live
               </Badge>
@@ -185,12 +177,11 @@ export function CommentThread({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
-        {/* Comments Container */}
-        <div 
+        <div
           ref={containerRef}
-          className="space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-4"
+          className="space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-4 scrollbar-thin scrollbar-thumb-slate-200"
         >
           {comments.length === 0 ? (
             <div className="text-center py-12">
@@ -201,85 +192,89 @@ export function CommentThread({
                 Start the conversation
               </h3>
               <p className="text-slate-600 max-w-md mx-auto mb-6">
-                Be the first to comment on this complaint. Ask questions or provide additional details.
+                Be the first to comment on this complaint. Ask questions or
+                provide additional details.
               </p>
             </div>
           ) : (
             comments.map((comment) => {
-              const isCitizen = comment.author_role === 'citizen';
-              const isStaff = comment.author_role === 'staff';
-              
+              const isCitizen = comment.author_role === "citizen";
+              const isStaff =
+                comment.author_role === "staff" ||
+                comment.author_role === "admin";
+
               return (
                 <div
                   key={comment.id}
-                  className={`flex gap-3 ${isCitizen ? 'justify-end' : ''}`}
+                  className={`flex gap-3 ${isCitizen ? "justify-end" : ""}`}
                 >
-                  {/* Staff/Citizen indicator */}
                   {isStaff && (
-                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
+                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm mt-1">
                       {comment.author?.profile_photo_url ? (
                         <AvatarImage src={comment.author.profile_photo_url} />
                       ) : (
                         <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
-                          {comment.author?.full_name?.split(' ').map(n => n[0]).join('') || 'MS'}
+                          {comment.author?.full_name
+                            ?.split(" ")
+                            .map((n) => n[0])
+                            .join("") || "ST"}
                         </AvatarFallback>
                       )}
                     </Avatar>
                   )}
-                  
-                  {/* Comment Bubble */}
-                  <div className={`flex-1 ${isCitizen ? 'max-w-[85%]' : 'max-w-[85%]'}`}>
-                    <div className={`rounded-2xl px-4 py-3 ${
-                      isCitizen 
-                        ? 'bg-blue-500 text-white rounded-br-none' 
-                        : isStaff 
-                          ? 'bg-slate-100 text-slate-900 rounded-bl-none border border-slate-200'
-                          : 'bg-slate-100'
-                    }`}>
-                      {/* Author info */}
-                      <div className={`flex items-center justify-between mb-2 ${isCitizen ? 'text-blue-100' : 'text-slate-600'}`}>
+
+                  <div
+                    className={`flex-1 ${isCitizen ? "max-w-[85%]" : "max-w-[85%]"}`}
+                  >
+                    <div
+                      className={`rounded-2xl px-4 py-3 ${
+                        isCitizen
+                          ? "bg-blue-600 text-white rounded-br-none shadow-sm"
+                          : "bg-slate-100 text-slate-900 rounded-bl-none border border-slate-200"
+                      }`}
+                    >
+                      <div
+                        className={`flex items-center justify-between mb-1 ${isCitizen ? "text-blue-100" : "text-slate-600"}`}
+                      >
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm">
-                            {comment.author?.full_name || 
-                              (isCitizen ? 'You' : 'Municipal Staff')}
+                          <span className="font-semibold text-xs">
+                            {comment.author?.full_name ||
+                              (isCitizen ? "You" : "Municipal Staff")}
                           </span>
                           {isStaff && (
-                            <Badge variant="outline" className="h-5 text-xs">
+                            <Badge
+                              variant="secondary"
+                              className="h-4 px-1.5 text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-100 border-0"
+                            >
                               Staff
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs">
+                        <div className="flex items-center gap-2 text-[10px]">
                           <Clock className="h-3 w-3" />
                           <span>{formatTime(comment.created_at)}</span>
                         </div>
                       </div>
-                      
-                      {/* Comment content */}
-                      <div className={`whitespace-pre-line ${isCitizen ? 'text-blue-50' : 'text-slate-700'}`}>
+
+                      <div
+                        className={`whitespace-pre-line text-sm ${isCitizen ? "text-white" : "text-slate-700"}`}
+                      >
                         {comment.content}
                       </div>
-                      
-                      {/* Updated indicator */}
-                      {comment.updated_at !== comment.created_at && (
-                        <div className={`mt-2 text-xs ${isCitizen ? 'text-blue-200' : 'text-slate-500'}`}>
-                          <span>Edited • {format(new Date(comment.updated_at), 'MMM dd, hh:mm a')}</span>
-                        </div>
-                      )}
                     </div>
-                    
-                    {/* Reply button (for citizen replies to staff) */}
+
                     {isStaff && (
-                      <div className="mt-1 ml-4">
+                      <div className="mt-1 ml-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 text-xs text-slate-500 hover:text-slate-700"
+                          className="h-5 px-2 text-xs text-slate-500 hover:text-slate-700"
                           onClick={() => {
                             setReplyingTo(comment.id);
-                            // Focus the textarea
                             setTimeout(() => {
-                              document.getElementById('comment-textarea')?.focus();
+                              document
+                                .getElementById("comment-textarea")
+                                ?.focus();
                             }, 100);
                           }}
                         >
@@ -288,11 +283,10 @@ export function CommentThread({
                       </div>
                     )}
                   </div>
-                  
-                  {/* Citizen avatar on right side */}
+
                   {isCitizen && (
-                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
-                      <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm mt-1">
+                      <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
                         You
                       </AvatarFallback>
                     </Avatar>
@@ -301,115 +295,94 @@ export function CommentThread({
               );
             })
           )}
-          
-          {/* Scroll anchor */}
+
           <div ref={messagesEndRef} />
         </div>
-        
-        {/* Replying indicator */}
+
         {replyingTo && (
-          <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-slate-500" />
-              <span className="text-sm text-slate-700">
-                Replying to staff comment
-              </span>
+          <div className="flex items-center justify-between bg-blue-50 p-2 px-3 rounded-lg border border-blue-100 text-sm mb-2">
+            <div className="flex items-center gap-2 text-blue-700">
+              <MessageSquare className="h-4 w-4" />
+              <span>Replying to comment...</span>
             </div>
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => setReplyingTo(null)}
-              className="h-6"
+              className="h-6 w-6 text-blue-400 hover:text-blue-700 hover:bg-blue-100"
             >
               <X className="h-3 w-3" />
             </Button>
           </div>
         )}
-        
-        {/* Error/Success alerts */}
+
         {error && (
-          <Alert variant="destructive" className="animate-in slide-in-from-top">
+          <Alert
+            variant="destructive"
+            className="animate-in slide-in-from-top-2 py-2"
+          >
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="text-xs">{error}</AlertDescription>
           </Alert>
         )}
-        
+
         {success && (
-          <Alert variant="default" className="bg-green-50 border-green-200 animate-in slide-in-from-top">
+          <Alert
+            variant="default"
+            className="bg-green-50 border-green-200 text-green-800 py-2 animate-in slide-in-from-top-2"
+          >
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-700">{success}</AlertDescription>
+            <AlertDescription className="text-xs font-medium">
+              {success}
+            </AlertDescription>
           </Alert>
         )}
-        
-        {/* Comment Form */}
-        <Separator />
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-3">
-            <Textarea
-              id="comment-textarea"
-              placeholder="Type your comment here... (Questions, updates, or additional details)"
-              className={`min-h-[100px] resize-none ${
-                errors.content ? 'border-red-500' : ''
-              }`}
-              {...register('content')}
-              disabled={isSubmitting}
-            />
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-slate-500">
-                  <span className={characterCount > 1800 ? 'text-amber-600' : ''}>
-                    {characterCount}
-                  </span>
-                  /2000 characters
-                </div>
-                
-                {errors.content && (
-                  <div className="text-sm text-red-500">
-                    {errors.content.message}
-                  </div>
-                )}
-              </div>
-              
-              <Button
-                type="submit"
-                disabled={isSubmitting || characterCount === 0}
-                className="gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Posting...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4" />
-                    Post Comment
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-          
-          {/* Comment guidelines */}
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-slate-500 mt-0.5" />
-              <div className="space-y-1">
-                <h4 className="text-sm font-medium text-slate-700">
-                  Comment Guidelines
-                </h4>
-                <ul className="text-xs text-slate-600 space-y-1">
-                  <li>• Be respectful and professional</li>
-                  <li>• Provide clear and relevant information</li>
-                  <li>• Staff will respond during business hours</li>
-                  <li>• Avoid sharing personal contact information</li>
-                  <li>• All comments are public and visible to assigned staff</li>
-                </ul>
+
+        <div className="pt-2 border-t border-slate-100">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex gap-3 items-end"
+          >
+            <div className="flex-1 space-y-2">
+              <Textarea
+                id="comment-textarea"
+                placeholder="Type your comment..."
+                className={`min-h-[40px] max-h-[120px] resize-none py-3 text-sm ${
+                  errors.content
+                    ? "border-red-300 focus-visible:ring-red-200"
+                    : ""
+                }`}
+                {...register("content")}
+                disabled={isSubmitting}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(onSubmit)();
+                  }
+                }}
+              />
+              <div className="flex justify-between items-center text-xs text-slate-400 px-1">
+                <span>Press Enter to send</span>
+                <span className={characterCount > 1800 ? "text-amber-600" : ""}>
+                  {characterCount}/2000
+                </span>
               </div>
             </div>
-          </div>
-        </form>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting || characterCount === 0}
+              size="icon"
+              className="h-10 w-10 shrink-0 rounded-full bg-blue-600 hover:bg-blue-700 shadow-sm mb-6"
+            >
+              {isSubmitting ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 ml-0.5" />
+              )}
+            </Button>
+          </form>
+        </div>
       </CardContent>
     </Card>
   );

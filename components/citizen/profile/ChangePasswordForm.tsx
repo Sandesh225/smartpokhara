@@ -10,7 +10,10 @@ import {
   Check,
   AlertCircle,
   ShieldCheck,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
@@ -49,10 +52,13 @@ export default function ChangePasswordForm() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
+
+  const newPassword = watch("password", "");
 
   const onSubmit = async (data: PasswordFormData) => {
     setIsUpdating(true);
@@ -66,85 +72,111 @@ export default function ChangePasswordForm() {
 
     if (error) {
       setErrorMsg(error.message);
-      toast.error("Failed to update password");
+      toast.error("Security Update Failed", { description: error.message });
     } else {
-      toast.success("Password updated successfully");
+      toast.success("Password Updated", {
+        description: "Your account security has been strengthened.",
+        icon: <ShieldCheck className="h-4 w-4 text-green-500" />,
+      });
       reset();
     }
   };
 
   return (
-    <Card className="border-none shadow-md bg-white">
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-            <ShieldCheck className="h-6 w-6" />
+    <Card className="border-0 shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white ring-1 ring-slate-900/5 overflow-hidden">
+      <CardHeader className="p-8 md:p-10 bg-slate-50/50 border-b border-slate-100">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+            <Lock className="h-6 w-6" />
           </div>
           <div>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>
-              Update your password to keep your account secure.
+            <CardTitle className="text-2xl font-black tracking-tight text-slate-900">
+              Security Credentials
+            </CardTitle>
+            <CardDescription className="font-medium text-slate-500">
+              Update your password to maintain account integrity.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-6">
+        <CardContent className="p-8 md:p-10 space-y-8">
           {errorMsg && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{errorMsg}</AlertDescription>
-            </Alert>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Alert variant="destructive" className="rounded-2xl border-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="font-bold">Update Blocked</AlertTitle>
+                <AlertDescription>{errorMsg}</AlertDescription>
+              </Alert>
+            </motion.div>
           )}
 
-          <div className="grid gap-5">
-            <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
-              <div className="relative">
-                <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <div className="grid gap-8">
+            <div className="space-y-3">
+              <Label
+                htmlFor="password"
+                className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+              >
+                New Secure Password
+              </Label>
+              <div className="relative group">
+                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                 <Input
                   id="password"
                   type="password"
                   {...register("password")}
                   className={cn(
-                    "pl-9",
-                    errors.password &&
-                      "border-red-500 focus-visible:ring-red-500"
+                    "pl-11 h-12 rounded-2xl border-slate-200 bg-white focus:ring-4 focus:ring-blue-50 transition-all",
+                    errors.password && "border-red-500 focus:ring-red-50"
                   )}
-                  placeholder="Min 8 characters"
+                  placeholder="••••••••"
                 />
               </div>
-              {errors.password ? (
-                <p className="text-xs text-red-500 font-medium">
-                  {errors.password.message}
+              <div className="flex items-center justify-between px-1">
+                <p
+                  className={cn(
+                    "text-[11px] font-bold transition-colors",
+                    errors.password ? "text-red-500" : "text-slate-400"
+                  )}
+                >
+                  {errors.password
+                    ? errors.password.message
+                    : "Minimum 8 characters required"}
                 </p>
-              ) : (
-                <p className="text-xs text-slate-500">
-                  Must contain at least 8 characters
-                </p>
-              )}
+                {newPassword.length >= 8 && !errors.password && (
+                  <span className="text-[10px] font-black text-emerald-500 uppercase flex items-center gap-1">
+                    <Check className="h-3 w-3" strokeWidth={3} /> Strong
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <div className="space-y-3">
+              <Label
+                htmlFor="confirmPassword"
+                className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+              >
+                Verify New Password
+              </Label>
+              <div className="relative group">
+                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                 <Input
                   id="confirmPassword"
                   type="password"
                   {...register("confirmPassword")}
                   className={cn(
-                    "pl-9",
-                    errors.confirmPassword &&
-                      "border-red-500 focus-visible:ring-red-500"
+                    "pl-11 h-12 rounded-2xl border-slate-200 bg-white focus:ring-4 focus:ring-blue-50 transition-all",
+                    errors.confirmPassword && "border-red-500 focus:ring-red-50"
                   )}
-                  placeholder="Retype new password"
+                  placeholder="••••••••"
                 />
               </div>
               {errors.confirmPassword && (
-                <p className="text-xs text-red-500 font-medium">
+                <p className="text-[11px] font-bold text-red-500 ml-1">
                   {errors.confirmPassword.message}
                 </p>
               )}
@@ -152,11 +184,11 @@ export default function ChangePasswordForm() {
           </div>
         </CardContent>
 
-        <CardFooter className="bg-slate-50 border-t p-6">
+        <CardFooter className="bg-slate-50/50 border-t border-slate-100 p-8 flex justify-end">
           <Button
             type="submit"
             disabled={isUpdating}
-            className="w-full sm:w-auto ml-auto"
+            className="w-full sm:w-auto min-w-[180px] h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 font-black text-white shadow-xl shadow-blue-200 transition-all active:scale-95"
           >
             {isUpdating ? (
               <>
@@ -165,8 +197,8 @@ export default function ChangePasswordForm() {
               </>
             ) : (
               <>
-                <Check className="h-4 w-4 mr-2" />
-                Update Password
+                Commit Changes
+                <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}
           </Button>

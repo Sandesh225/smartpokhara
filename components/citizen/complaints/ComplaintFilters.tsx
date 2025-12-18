@@ -342,8 +342,8 @@ export function ComplaintFilters({
               placeholder="Search by tracking code or title..."
               className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
               value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+              onChange={(e) => handleFilterChange("search", e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
             />
           </div>
         </div>
@@ -351,13 +351,15 @@ export function ComplaintFilters({
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 border-slate-300 hover:border-blue-400 hover:bg-blue-50 transition-all">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-slate-300 hover:border-blue-400 hover:bg-blue-50 transition-all"
+              >
                 <Filter className="h-4 w-4" />
                 Status
                 {filters.status.length > 0 && (
-                  <Badge
-                    className="ml-1 rounded-full h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white text-xs font-semibold"
-                  >
+                  <Badge className="ml-1 rounded-full h-5 w-5 p-0 flex items-center justify-center bg-blue-600 text-white text-xs font-semibold">
                     {filters.status.length}
                   </Badge>
                 )}
@@ -379,16 +381,16 @@ export function ComplaintFilters({
                           const newStatus = isSelected
                             ? filters.status.filter((s) => s !== option.value)
                             : [...filters.status, option.value];
-                          handleFilterChange('status', newStatus);
+                          handleFilterChange("status", newStatus);
                         }}
                         className="cursor-pointer"
                       >
                         <div
                           className={cn(
-                            'mr-2 flex h-4 w-4 items-center justify-center rounded border transition-colors',
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded border transition-colors",
                             filters.status.includes(option.value)
-                              ? 'bg-blue-600 border-blue-600'
-                              : 'border-slate-300'
+                              ? "bg-blue-600 border-blue-600"
+                              : "border-slate-300"
                           )}
                         >
                           {filters.status.includes(option.value) && (
@@ -405,12 +407,9 @@ export function ComplaintFilters({
           </Popover>
 
           <Select
-            value={filters.category_id ?? 'all'}
+            value={filters.category_id ?? "all"}
             onValueChange={(value) =>
-              handleFilterChange(
-                'category_id',
-                value === 'all' ? null : value
-              )
+              handleFilterChange("category_id", value === "all" ? null : value)
             }
           >
             <SelectTrigger className="w-[180px] border-slate-300 hover:border-blue-400 hover:bg-blue-50 transition-all">
@@ -430,9 +429,9 @@ export function ComplaintFilters({
           </Select>
 
           <Select
-            value={filters.ward_id ?? 'all'}
+            value={filters.ward_id ?? "all"}
             onValueChange={(value) =>
-              handleFilterChange('ward_id', value === 'all' ? null : value)
+              handleFilterChange("ward_id", value === "all" ? null : value)
             }
           >
             <SelectTrigger className="w-[180px] border-slate-300 hover:border-blue-400 hover:bg-blue-50 transition-all">
@@ -451,10 +450,10 @@ export function ComplaintFilters({
             </SelectContent>
           </Select>
 
-          <Button 
-            onClick={applyFilters} 
+          <Button
+            onClick={applyFilters}
             size="sm"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
+            className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
           >
             Apply
           </Button>
@@ -479,16 +478,16 @@ export function ComplaintFilters({
                 placeholder="Search complaints..."
                 className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyFilters()}
               />
             </div>
           </div>
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 className="relative border-slate-300 hover:border-blue-400 hover:bg-blue-50 transition-all"
               >
@@ -500,10 +499,13 @@ export function ComplaintFilters({
                 )}
               </Button>
             </SheetTrigger>
-                          <SheetContent side="right" className="w-[85vw] sm:w-[400px] flex flex-col p-0">
+            <SheetContent
+              side="right"
+              className="w-[85vw] sm:w-[400px] flex flex-col p-0"
+            >
               <SheetHeader className="pb-4 px-4 pt-4">
                 <SheetTitle className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                     <Filter className="h-4 w-4 text-white" />
                   </div>
                   Filter Complaints
@@ -515,21 +517,23 @@ export function ComplaintFilters({
 
               <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6">
                 <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-slate-700">Status</Label>
+                  <Label className="text-sm font-semibold text-slate-700">
+                    Status
+                  </Label>
                   <div className="flex flex-wrap gap-2">
                     {statusOptions.map((option) => (
                       <Badge
                         key={option.value}
                         variant={
                           filters.status.includes(option.value)
-                            ? 'default'
-                            : 'outline'
+                            ? "default"
+                            : "outline"
                         }
                         className={cn(
                           "cursor-pointer transition-all",
                           filters.status.includes(option.value)
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'hover:bg-blue-50 hover:border-blue-400'
+                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                            : "hover:bg-blue-50 hover:border-blue-400"
                         )}
                         onClick={() => {
                           const isSelected = filters.status.includes(
@@ -538,7 +542,7 @@ export function ComplaintFilters({
                           const newStatus = isSelected
                             ? filters.status.filter((s) => s !== option.value)
                             : [...filters.status, option.value];
-                          handleFilterChange('status', newStatus);
+                          handleFilterChange("status", newStatus);
                         }}
                       >
                         {option.label}
@@ -550,21 +554,23 @@ export function ComplaintFilters({
                 <Separator />
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-slate-700">Priority</Label>
+                  <Label className="text-sm font-semibold text-slate-700">
+                    Priority
+                  </Label>
                   <div className="flex flex-wrap gap-2">
                     {priorityOptions.map((option) => (
                       <Badge
                         key={option.value}
                         variant={
                           filters.priority.includes(option.value)
-                            ? 'default'
-                            : 'outline'
+                            ? "default"
+                            : "outline"
                         }
                         className={cn(
                           "cursor-pointer transition-all",
                           filters.priority.includes(option.value)
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'hover:bg-blue-50 hover:border-blue-400'
+                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                            : "hover:bg-blue-50 hover:border-blue-400"
                         )}
                         onClick={() => {
                           const isSelected = filters.priority.includes(
@@ -573,7 +579,7 @@ export function ComplaintFilters({
                           const newPriority = isSelected
                             ? filters.priority.filter((p) => p !== option.value)
                             : [...filters.priority, option.value];
-                          handleFilterChange('priority', newPriority);
+                          handleFilterChange("priority", newPriority);
                         }}
                       >
                         {option.label}
@@ -585,13 +591,15 @@ export function ComplaintFilters({
                 <Separator />
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-slate-700">Category</Label>
+                  <Label className="text-sm font-semibold text-slate-700">
+                    Category
+                  </Label>
                   <Select
-                    value={filters.category_id ?? 'all'}
+                    value={filters.category_id ?? "all"}
                     onValueChange={(value) =>
                       handleFilterChange(
-                        'category_id',
-                        value === 'all' ? null : value
+                        "category_id",
+                        value === "all" ? null : value
                       )
                     }
                   >
@@ -610,13 +618,15 @@ export function ComplaintFilters({
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-slate-700">Ward</Label>
+                  <Label className="text-sm font-semibold text-slate-700">
+                    Ward
+                  </Label>
                   <Select
-                    value={filters.ward_id ?? 'all'}
+                    value={filters.ward_id ?? "all"}
                     onValueChange={(value) =>
                       handleFilterChange(
-                        'ward_id',
-                        value === 'all' ? null : value
+                        "ward_id",
+                        value === "all" ? null : value
                       )
                     }
                   >
@@ -637,21 +647,23 @@ export function ComplaintFilters({
                 <Separator />
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-slate-700">Date Range</Label>
+                  <Label className="text-sm font-semibold text-slate-700">
+                    Date Range
+                  </Label>
                   <div className="grid grid-cols-2 gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            'justify-start text-left font-normal border-slate-300',
-                            !filters.date_from && 'text-slate-500'
+                            "justify-start text-left font-normal border-slate-300",
+                            !filters.date_from && "text-slate-500"
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {filters.date_from
-                            ? format(filters.date_from, 'MMM dd')
-                            : 'From'}
+                            ? format(filters.date_from, "MMM dd")
+                            : "From"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -659,7 +671,7 @@ export function ComplaintFilters({
                           mode="single"
                           selected={filters.date_from || undefined}
                           onSelect={(date) =>
-                            handleFilterChange('date_from', date || null)
+                            handleFilterChange("date_from", date || null)
                           }
                           initialFocus
                         />
@@ -671,14 +683,14 @@ export function ComplaintFilters({
                         <Button
                           variant="outline"
                           className={cn(
-                            'justify-start text-left font-normal border-slate-300',
-                            !filters.date_to && 'text-slate-500'
+                            "justify-start text-left font-normal border-slate-300",
+                            !filters.date_to && "text-slate-500"
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {filters.date_to
-                            ? format(filters.date_to, 'MMM dd')
-                            : 'To'}
+                            ? format(filters.date_to, "MMM dd")
+                            : "To"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -686,7 +698,7 @@ export function ComplaintFilters({
                           mode="single"
                           selected={filters.date_to || undefined}
                           onSelect={(date) =>
-                            handleFilterChange('date_to', date || null)
+                            handleFilterChange("date_to", date || null)
                           }
                           initialFocus
                           disabled={(date) =>
@@ -735,9 +747,9 @@ export function ComplaintFilters({
                   >
                     Clear All
                   </Button>
-                  <Button 
-                    onClick={applyFilters} 
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                  <Button
+                    onClick={applyFilters}
+                    className="flex-1 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                   >
                     Apply Filters
                   </Button>
@@ -770,7 +782,9 @@ export function ComplaintFilters({
                 className="gap-2 pl-3 pr-2 py-1.5 bg-blue-100 text-blue-900 border-blue-200 hover:bg-blue-200 transition-colors"
               >
                 <span className="font-semibold text-xs">{filter.label}:</span>
-                <span className="font-normal text-xs max-w-[150px] truncate">{filter.value}</span>
+                <span className="font-normal text-xs max-w-[150px] truncate">
+                  {filter.value}
+                </span>
                 <button
                   onClick={() => removeFilter(filter.key)}
                   className="ml-1 rounded-full hover:bg-blue-300 p-0.5 transition-colors"

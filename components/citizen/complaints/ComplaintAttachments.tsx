@@ -105,7 +105,7 @@ export function ComplaintAttachments({
             htmlFor="file-upload"
             className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all duration-300 group"
           >
-            <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg">
+            <div className="h-16 w-16 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg">
               {uploading ? (
                 <Loader2 className="w-8 h-8 text-white animate-spin" />
               ) : (
@@ -171,8 +171,8 @@ function AttachmentCard({
         <div
           className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center shadow-md ${
             isImage
-              ? "bg-gradient-to-br from-blue-500 to-cyan-500"
-              : "bg-gradient-to-br from-red-500 to-pink-500"
+              ? "bg-linear-to-br from-blue-500 to-cyan-500"
+              : "bg-linear-to-br from-red-500 to-pink-500"
           }`}
         >
           {isImage ? (
@@ -199,7 +199,7 @@ function AttachmentCard({
           href={attachment.file_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-r from-blue-600 to-purple-600 text-white text-xs font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
           <Eye className="w-3.5 h-3.5" />
           View
