@@ -212,25 +212,33 @@ function AcceptInvitationContent() {
   // MAIN FORM UI
   // -----------------------------
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-blue-50 to-slate-50 px-4 py-12">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
               <Shield className="h-8 w-8 text-blue-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Accept Staff Invitation</h1>
-            <p className="mt-2 text-sm text-gray-600">Create your staff account to get started</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Accept Staff Invitation
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Create your staff account to get started
+            </p>
           </div>
 
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Name:</span>
-              <span className="font-medium text-gray-900">{invitationData.full_name}</span>
+              <span className="font-medium text-gray-900">
+                {invitationData.full_name}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Email:</span>
-              <span className="font-medium text-gray-900">{invitationData.email}</span>
+              <span className="font-medium text-gray-900">
+                {invitationData.email}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Role:</span>
@@ -242,7 +250,9 @@ function AcceptInvitationContent() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Create Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Create Password
+              </label>
               <input
                 type="password"
                 required
@@ -255,7 +265,9 @@ function AcceptInvitationContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password
+              </label>
               <input
                 type="password"
                 required
@@ -287,15 +299,19 @@ function AcceptInvitationContent() {
 
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-xs text-yellow-800">
-              <strong>Note:</strong> By creating an account, you confirm that you have been authorized
-              by Pokhara Metropolitan City to access the staff portal.
+              <strong>Note:</strong> By creating an account, you confirm that
+              you have been authorized by Pokhara Metropolitan City to access
+              the staff portal.
             </p>
           </div>
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+          <a
+            href="/login"
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
             Sign in
           </a>
         </p>

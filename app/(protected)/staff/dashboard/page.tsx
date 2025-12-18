@@ -69,7 +69,7 @@ export default async function StaffDashboard() {
 
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-gradient-to-br from-white to-gray-50/50 p-6 rounded-xl border border-gray-200 shadow-sm">
+          <div className="bg-linear-to-br from-white to-gray-50/50 p-6 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="text-sm font-bold text-gray-900 mb-5 uppercase tracking-wider flex items-center gap-2">
               <span className="h-1 w-1 rounded-full bg-blue-600" />
               Quick Actions
