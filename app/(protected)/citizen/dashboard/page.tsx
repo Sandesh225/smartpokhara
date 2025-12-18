@@ -5,22 +5,35 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
-  Loader2,
   WifiOff,
-  AlertCircle,
   RefreshCw,
-  Info,
   CheckCircle2,
   ShieldCheck,
   Signal,
+  Phone,
+  Sparkles,
+  TrendingUp,
+  Activity,
 } from "lucide-react";
+
+// UI Components
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
 
 // Component Imports
 import DashboardStats from "@/components/citizen/dashboard/DashboardStats";
@@ -39,8 +52,6 @@ export default function CitizenDashboard() {
   const [userName, setUserName] = useState<string>("");
   const [wardId, setWardId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // UX: Last Updated State
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Data State
@@ -61,7 +72,7 @@ export default function CitizenDashboard() {
     resolved: 0,
   });
 
-  // 1. Fetch Data Logic
+  // Fetch Data Logic
   const fetchData = useCallback(
     async (isRefresh = false) => {
       if (isRefresh) setIsRefreshing(true);
@@ -140,15 +151,19 @@ export default function CitizenDashboard() {
         });
 
         setStats({ total, open, inProgress, resolved });
-        setLastUpdated(new Date()); // Update timestamp
+        setLastUpdated(new Date());
 
-        // UX: Soft feedback on manual refresh instead of heavy toast
         if (isRefresh) {
-          // Optional: minimal sound or subtle visual flash could go here
+          toast.success("Dashboard refreshed", {
+            description: "All data is now up to date",
+            duration: 2000,
+          });
         }
       } catch (error) {
         console.error("❌ Error:", error);
-        toast.error("Failed to load dashboard");
+        toast.error("Failed to load dashboard", {
+          description: "Please try refreshing the page",
+        });
       } finally {
         setIsRefreshing(false);
         if (!isRefresh) setData((prev) => ({ ...prev, loading: false }));
@@ -220,253 +235,406 @@ export default function CitizenDashboard() {
     router.push(`/citizen/complaints?status=${statusFilter}`);
   };
 
-  // UX: Helper for "Last updated" text
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  // UX: Context-Aware Subtitle Logic
   const activeIssues = stats.open + stats.inProgress;
   const getHeaderSubtitle = () => {
     if (data.loading) return "Loading your municipal overview...";
     if (activeIssues > 0)
-      return `You have ${activeIssues} active issue${activeIssues === 1 ? "" : "s"} being processed.`;
+      return `You have ${activeIssues} active issue${
+        activeIssues === 1 ? "" : "s"
+      } being processed.`;
     return "You have no active issues right now. Everything looks good!";
   };
 
+  // Enhanced Loading Skeleton
   if (data.loading) {
     return (
-      <div
-        className="min-h-[80vh] flex flex-col items-center justify-center"
-        role="status"
-        aria-live="polite"
-      >
-        <div className="relative mb-6">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <div className="absolute inset-0 h-12 w-12 animate-ping text-primary/20 rounded-full" />
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30">
+        <div className="container mx-auto px-4 py-6 md:py-8 space-y-8 max-w-7xl">
+          {/* Header Skeleton */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-4">
+            <div className="space-y-3 flex-1">
+              <Skeleton className="h-9 w-80 max-w-full" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-64 max-w-full" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-9 w-9 rounded-lg" />
+            </div>
+          </div>
+
+          {/* Stats Skeleton */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="border-2">
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-10 w-10 rounded-xl" />
+                    <Skeleton className="h-4 w-4 rounded" />
+                  </div>
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Quick Actions Skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-40 rounded-xl" />
+            ))}
+          </div>
+
+          {/* Content Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-96 rounded-xl" />
+              <Skeleton className="h-64 rounded-xl" />
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-96 rounded-xl" />
+              <Skeleton className="h-64 rounded-xl" />
+            </div>
+          </div>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 animate-pulse">
-          Loading Dashboard...
-        </h2>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      {/* --- HEADER --- */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-gray-100">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            {userName ? `Welcome back, ${userName}` : "Citizen Dashboard"}
-          </h1>
-          <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
-            {wardId ? (
-              <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs border border-blue-100 font-semibold">
-                Ward {wardId}
-              </span>
-            ) : null}
-            {/* 2.1 Context-Aware Subtitle */}
-            <span
-              className={activeIssues > 0 ? "text-blue-600" : "text-gray-500"}
-            >
-              {getHeaderSubtitle()}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3" role="group">
-          {/* 3. Connection Status UX */}
-          {!isConnected ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-200 animate-pulse cursor-help">
-                    <WifiOff className="w-3.5 h-3.5" />
-                    <span>Reconnecting...</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Live updates will resume automatically once connected</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-green-600 font-medium bg-green-50 px-2.5 py-1 rounded-full border border-green-100 cursor-help">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                    </span>
-                    Live
-                  </div>
-                </TooltipTrigger>
-                {/* 3.1 Live Tooltip */}
-                <TooltipContent>
-                  <p>Updates appear automatically when data changes</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-
-          <div className="flex items-center gap-2">
-            {/* 2.2 Last Updated Feedback */}
-            {lastUpdated && (
-              <span className="text-[10px] text-gray-400 font-medium hidden sm:inline-block">
-                Updated {formatTime(lastUpdated)}
-              </span>
-            )}
-
-            {/* Refresh Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchData(true)}
-              disabled={isRefreshing}
-              className="gap-2 transition-all active:scale-95 border-gray-200"
-              aria-label="Refresh dashboard data"
-            >
-              <RefreshCw
-                className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
-              />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* --- STATS SECTION --- */}
-      <section aria-label="Statistics overview">
-        {/* 5.1 & 5.2 Improvements would be passed as props if DashboardStats supported them, 
-             otherwise handled by tooltips inside that component */}
-        <DashboardStats
-          totalComplaints={stats.total}
-          openCount={stats.open}
-          inProgressCount={stats.inProgress}
-          resolvedCount={stats.resolved}
-          onStatClick={handleStatClick}
-        />
-      </section>
-
-      {/* --- QUICK ACTIONS --- */}
-      <section aria-label="Quick actions">
-        <QuickActions
-          complaintsCount={data.totalComplaints}
-          pendingBillsCount={data.pendingBillsCount}
-          noticesCount={data.notices.length}
-        />
-      </section>
-
-      {/* --- MAIN GRID --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COLUMN: Complaints & Bills */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Recent Complaints */}
-          <div className="relative">
-            <RecentComplaints complaints={data.complaints} />
-            {data.complaints.length === 0 && (
-              // 7.2 Positive Reassurance Empty State
-              <div className="text-center py-10 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 mt-[-1rem] flex flex-col items-center">
-                <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                </div>
-                <p className="text-gray-900 font-medium">
-                  No active complaints
-                </p>
-                <p className="text-gray-500 text-sm mt-1 max-w-xs">
-                  That's good news! If you notice any issues in your ward,
-                  report them here.
-                </p>
-                <Button
-                  variant="link"
-                  className="text-primary mt-2 h-auto p-0 font-semibold"
-                  onClick={() => router.push("/citizen/complaints/new")}
-                >
-                  Report an Issue
-                </Button>
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30">
+      <div className="container mx-auto px-4 py-6 md:py-8 space-y-8 pb-24 max-w-7xl">
+        {/* Enhanced Header with Status Banner */}
+        <header className="space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2 flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-linear-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent leading-tight">
+                  {userName ? `Welcome back, ${userName}` : "Citizen Dashboard"}
+                </h1>
+                {activeIssues > 0 && (
+                  <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200 px-3 py-1 text-sm font-semibold">
+                    <Activity className="w-3.5 h-3.5 mr-1.5" />
+                    {activeIssues} Active
+                  </Badge>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Pending Bills */}
-          <div className="relative">
-            <PendingBills bills={data.bills} />
-            {/* 8.1 Bill Safety/Reassurance */}
-            {data.bills.length > 0 && (
-              <div className="mt-2 flex items-center gap-2 text-xs text-gray-500 px-1">
-                <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
-                <span>Secure payments via official Pokhara Metro gateway.</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: Notices & Emergency */}
-        <aside className="space-y-8">
-          <div className="relative">
-            <RecentNotices notices={data.notices} wardNumber={wardId} />
-            {/* 9.2 Transparency Text */}
-            {wardId && data.notices.length > 0 && (
-              <p className="text-[10px] text-gray-400 text-right mt-1 px-1">
-                Showing notices relevant to Ward {wardId} & City-wide
-              </p>
-            )}
-          </div>
-
-          {/* EMERGENCY SECTION */}
-          <div
-            className="bg-white border-l-4 border-red-500 rounded-r-xl shadow-sm overflow-hidden"
-            role="region"
-            aria-label="Emergency contacts"
-          >
-            <div className="bg-red-50/50 p-5 border-b border-red-100 flex items-start gap-4">
-              <div className="p-2 bg-red-100 text-red-600 rounded-lg shrink-0">
-                <Signal className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg">
-                  Emergency Contacts
-                </h3>
-                {/* 10.1 Location Context */}
-                <p className="text-xs text-gray-500 font-medium mt-1">
-                  Applicable within Pokhara Metropolitan City
-                </p>
-              </div>
-            </div>
-
-            <div className="p-2" role="list">
-              {[
-                { label: "Police Control", number: "100" },
-                { label: "Ambulance", number: "102" },
-                { label: "Fire Brigade", number: "101" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg group transition-colors"
-                  role="listitem"
-                >
-                  <span className="font-medium text-gray-700">
-                    {item.label}
-                  </span>
-                  <a
-                    href={`tel:${item.number}`}
-                    className="flex items-center gap-2 font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-md group-hover:bg-red-600 group-hover:text-white transition-all"
-                    aria-label={`Call ${item.label} at ${item.number}`}
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                {wardId && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 hover:from-blue-100 hover:to-indigo-100 border border-blue-200 px-3 py-1.5 font-medium shadow-sm"
                   >
-                    {item.number}
-                  </a>
-                </div>
-              ))}
+                    <div className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse" />
+                    Ward {wardId}
+                  </Badge>
+                )}
+                <Separator
+                  orientation="vertical"
+                  className="h-4 hidden sm:block"
+                />
+                <p
+                  className={`font-medium ${activeIssues > 0 ? "text-blue-600" : "text-slate-600"}`}
+                >
+                  {getHeaderSubtitle()}
+                </p>
+              </div>
             </div>
-            {/* 10.2 Offline Awareness */}
-            <div className="bg-gray-50 p-2 text-center border-t border-gray-100">
-              <p className="text-[10px] text-gray-500">
-                These numbers work even without internet connection
-              </p>
+
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Connection Status */}
+              {!isConnected ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="destructive"
+                        className="gap-2 px-3 py-1.5 animate-pulse"
+                      >
+                        <WifiOff className="w-3.5 h-3.5" />
+                        <span className="font-medium">Reconnecting</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p className="text-xs font-medium">
+                        Live updates will resume automatically once connected
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className="bg-linear-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-200 gap-2 px-3 py-1.5 shadow-sm hover:shadow-md transition-all"
+                      >
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span className="font-semibold">Live</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p className="text-xs font-medium mb-1">
+                        Real-time updates enabled
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Changes appear automatically as they happen
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+
+              <Separator
+                orientation="vertical"
+                className="h-6 hidden sm:block"
+              />
+
+              {/* Refresh Controls */}
+              <div className="flex items-center gap-2 bg-white rounded-lg border border-slate-200 px-3 py-1.5 shadow-sm">
+                {lastUpdated && (
+                  <span className="text-xs text-slate-600 font-medium hidden sm:inline-block tabular-nums">
+                    {formatTime(lastUpdated)}
+                  </span>
+                )}
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 hover:bg-blue-50 hover:text-blue-600 transition-all"
+                        onClick={() => fetchData(true)}
+                        disabled={isRefreshing}
+                        aria-label="Refresh dashboard data"
+                      >
+                        <RefreshCw
+                          className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                        />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p className="text-xs font-medium">Refresh all data</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           </div>
-        </aside>
+
+          {/* Status Banner - Only show when there are active issues */}
+          {activeIssues > 0 && (
+            <Card className="border-l-4 border-l-blue-500 bg-linear-to-r from-blue-50/50 to-transparent shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h3 className="font-semibold text-slate-900">
+                      Active Issues Summary
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      {stats.open > 0 && `${stats.open} awaiting assignment`}
+                      {stats.open > 0 && stats.inProgress > 0 && " • "}
+                      {stats.inProgress > 0 &&
+                        `${stats.inProgress} in progress`}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push("/citizen/complaints")}
+                    className="flex-shrink-0 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all"
+                  >
+                    View All
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </header>
+
+        {/* Stats Section */}
+        <section aria-label="Statistics overview" className="scroll-mt-6">
+          <DashboardStats
+            totalComplaints={stats.total}
+            openCount={stats.open}
+            inProgressCount={stats.inProgress}
+            resolvedCount={stats.resolved}
+            onStatClick={handleStatClick}
+          />
+        </section>
+
+        {/* Quick Actions Section */}
+        <section aria-label="Quick actions" className="scroll-mt-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
+              Quick Actions
+            </h2>
+            <p className="text-sm text-slate-600 mt-1">
+              Common tasks and shortcuts
+            </p>
+          </div>
+          <QuickActions
+            complaintsCount={data.totalComplaints}
+            pendingBillsCount={data.pendingBillsCount}
+            noticesCount={data.notices.length}
+          />
+        </section>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Left Column: Complaints & Bills */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Recent Complaints */}
+            <div className="space-y-4">
+              <RecentComplaints complaints={data.complaints} />
+
+              {/* Empty State Enhancement */}
+              {data.complaints.length === 0 && (
+                <Card className="border-2 border-dashed bg-linear-to-br from-slate-50 to-slate-100/50 shadow-none">
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-emerald-400/20 blur-2xl rounded-full animate-pulse" />
+                      <div className="relative h-16 w-16 bg-linear-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <CheckCircle2 className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-w-sm">
+                      <h3 className="font-bold text-lg text-slate-900">
+                        No Active Complaints
+                      </h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        Great news! You don't have any complaints at the moment.
+                        If you notice any issues in your ward, you can report
+                        them here.
+                      </p>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="mt-2 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                      onClick={() => router.push("/citizen/complaints/new")}
+                    >
+                      Report New Issue
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Pending Bills */}
+            <div className="space-y-3">
+              <PendingBills bills={data.bills} />
+              {data.bills.length > 0 && (
+                <div className="flex items-center gap-2 text-xs text-slate-600 px-2 py-1.5 bg-green-50 rounded-lg border border-green-100">
+                  <ShieldCheck className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  <span className="font-medium">
+                    Secure payments powered by official Pokhara Metro payment
+                    gateway
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Notices & Emergency */}
+          <aside className="space-y-8">
+            {/* Recent Notices */}
+            <div className="space-y-3">
+              <RecentNotices notices={data.notices} wardNumber={wardId} />
+              {wardId && data.notices.length > 0 && (
+                <p className="text-xs text-slate-500 text-right px-2 font-medium">
+                  Showing {data.notices.length} notices for Ward {wardId} &
+                  city-wide announcements
+                </p>
+              )}
+            </div>
+
+            {/* Enhanced Emergency Contact Card */}
+            <Card
+              className="border-l-4 border-l-red-500 overflow-hidden shadow-lg hover:shadow-xl transition-all"
+              role="region"
+              aria-label="Emergency contacts"
+            >
+              <CardHeader className="bg-linear-to-br from-red-50 via-orange-50 to-red-50 border-b border-red-100 pb-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-white text-red-600 rounded-xl shadow-md border border-red-100 flex-shrink-0">
+                    <Signal className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-1.5 flex-1">
+                    <CardTitle className="text-xl font-bold text-slate-900">
+                      Emergency Services
+                    </CardTitle>
+                    <CardDescription className="text-xs font-semibold text-red-600/80 uppercase tracking-wide">
+                      Available 24/7 • Pokhara Metropolitan City
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-0">
+                <div role="list" className="divide-y divide-slate-200">
+                  {[
+                    { label: "Police Control", number: "100", icon: "🚔" },
+                    { label: "Ambulance", number: "102", icon: "🚑" },
+                    { label: "Fire Brigade", number: "101", icon: "🚒" },
+                  ].map((item, index) => (
+                    <div
+                      key={item.label}
+                      className="flex justify-between items-center px-6 py-5 hover:bg-red-50/50 transition-all group"
+                      role="listitem"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <span className="text-sm font-semibold text-slate-900 flex items-center gap-3">
+                        <span className="text-2xl">{item.icon}</span>
+                        <span className="flex flex-col">
+                          <span>{item.label}</span>
+                          <span className="text-xs text-slate-500 font-normal">
+                            Free call from any network
+                          </span>
+                        </span>
+                      </span>
+                      <a
+                        href={`tel:${item.number}`}
+                        className="text-base font-black text-red-600 bg-red-50 px-4 py-2.5 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm group-hover:shadow-md ring-offset-2 focus-visible:ring-2 focus-visible:ring-red-600 outline-none min-w-[80px] text-center"
+                        aria-label={`Call ${item.label} at ${item.number}`}
+                      >
+                        {item.number}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-slate-50 p-4 text-center border-t border-slate-200">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Phone className="h-4 w-4 text-slate-600" />
+                    <p className="text-xs font-semibold text-slate-700">
+                      No internet required
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    These emergency numbers work from any phone, even without
+                    mobile balance or internet connection
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
       </div>
     </div>
   );

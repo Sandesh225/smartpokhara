@@ -1,17 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,21 +17,45 @@ import {
   Clock,
   FileText,
   Activity,
+  X,
+  Filter,
+  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"; // Assuming you have this or similar
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; // Assuming you have this
 
 import { createClient } from "@/lib/supabase/client";
 import { ComplaintsTable } from "@/components/citizen/complaints/ComplaintsTable";
-// Filter components and types are removed:
-// import { ComplaintFilters, type FilterState } from "@/components/citizen/complaints/ComplaintFilters";
 import { complaintsService } from "@/lib/supabase/queries/complaints";
 import type {
   Complaint,
   ComplaintStatus,
-  // ComplaintPriority, // Not needed
 } from "@/lib/supabase/queries/complaints";
 
-// Local UI Component: Stat Card
+// ============================================
+// TYPES & UTILS
+// ============================================
+type SortOption = "submitted_at" | "priority" | "sla_due_at";
+
+// ============================================
+// STAT CARD COMPONENT
+// ============================================
 function StatCard({
   icon: Icon,
   label,
@@ -74,17 +91,130 @@ function StatCard({
   );
 }
 
+// ============================================
+// INTELLIGENT EMPTY STATE COMPONENT
+// ============================================
+function EmptyState({
+  hasSearch,
+  activeTab,
+  searchTerm,
+  onClearFilters,
+  onNewComplaint,
+}: {
+  hasSearch: boolean;
+  activeTab: string;
+  searchTerm: string;
+  onClearFilters: () => void;
+  onNewComplaint: () => void;
+}) {
+  // Determine the reason for empty state
+  const getEmptyStateContent = () => {
+    if (hasSearch) {
+      return {
+        title: `No results for "${searchTerm}"`,
+        description:
+          "Try adjusting your search terms or clearing filters to see more complaints.",
+        icon: Search,
+        action: {
+          label: "Clear search",
+          onClick: onClearFilters,
+        },
+      };
+    }
+
+    switch (activeTab) {
+      case "resolved":
+        return {
+          title: "No resolved complaints yet",
+          description: "Once your complaints are resolved, they'll appear here.",
+          icon: CheckCircle,
+          action: {
+            label: "View all complaints",
+            onClick: onClearFilters,
+          },
+        };
+      case "in_progress":
+        return {
+          title: "No complaints in progress",
+          description: "Complaints being actively worked on will show here.",
+          icon: Activity,
+          action: {
+            label: "View all complaints",
+            onClick: onClearFilters,
+          },
+        };
+      case "pending":
+        return {
+          title: "No pending complaints",
+          description: "New complaints awaiting review will appear here.",
+          icon: Clock,
+          action: {
+            label: "Submit new complaint",
+            onClick: onNewComplaint,
+          },
+        };
+      case "open":
+        return {
+          title: "No open complaints",
+          description: "All your complaints have been resolved or closed.",
+          icon: AlertCircle,
+          action: {
+            label: "Submit new complaint",
+            onClick: onNewComplaint,
+          },
+        };
+      default:
+        return {
+          title: "No complaints found",
+          description:
+            "Get started by submitting your first complaint to the municipality.",
+          icon: FileText,
+          action: {
+            label: "Submit new complaint",
+            onClick: onNewComplaint,
+          },
+        };
+    }
+  };
+
+  const content = getEmptyStateContent();
+  const IconComponent = content.icon;
+
+  return (
+    <div className="text-center py-16 px-4">
+      <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-blue-100 flex items-center justify-center mb-5 shadow-sm">
+        <IconComponent className="h-10 w-10 text-slate-400" />
+      </div>
+      <h3 className="text-xl font-bold text-slate-900 mb-2">{content.title}</h3>
+      <p className="text-slate-600 max-w-md mx-auto mb-6 leading-relaxed">
+        {content.description}
+      </p>
+      <Button
+        onClick={content.action.onClick}
+        className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+      >
+        {content.action.label}
+      </Button>
+    </div>
+  );
+}
+
+// ============================================
+// MAIN PAGE COMPONENT
+// ============================================
 export default function ComplaintsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
 
+  // Browser-safe timer type
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [totalComplaints, setTotalComplaints] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  // Filter-related states removed:
-  // const [categories, setCategories] = useState<any[]>([]);
-  // const [wards, setWards] = useState<any[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     open: 0,
@@ -95,58 +225,59 @@ export default function ComplaintsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  // Filters state simplified to only search term
-  const [currentSearchTerm, setCurrentSearchTerm] = useState("");
+  // Search State
+  const [inputValue, setInputValue] = useState(""); // Immediate input
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(""); // API value
 
-  const [sortBy, setSortBy] = useState<
-    "submitted_at" | "priority" | "sla_due_at"
-  >("submitted_at");
+  const [sortBy, setSortBy] = useState<SortOption>("submitted_at");
   const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
-    // Categories and Wards fetching logic removed
-
-    // Stats fetching kept
-    (async () => {
-      try {
-        const s = await complaintsService.getDashboardStats();
-        setStats(s.complaints);
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    // Filter reading logic simplified
-    const search = params.get("search") || "";
-
-    setCurrentSearchTerm(search);
-    setSearchTerm(search);
-
-    setCurrentPage(Number.parseInt(params.get("page") || "1") || 1);
-
-    if (params.get("sort_by")) setSortBy(params.get("sort_by") as any);
-    if (params.get("sort_order"))
-      setSortOrder(params.get("sort_order") as "ASC" | "DESC");
-    if (params.get("tab")) setActiveTab(params.get("tab")!);
-  }, [searchParams]);
-
+  // ============================================
+  // STATS FETCHING
+  // ============================================
   const fetchStats = useCallback(async () => {
     try {
       const s = await complaintsService.getDashboardStats();
       setStats(s.complaints);
     } catch (e) {
-      console.error(e);
+      console.error("Failed to fetch stats:", e);
     }
   }, []);
 
-  const fetchComplaints = useCallback(async () => {
-    setIsLoading(true);
+  // ============================================
+  // URL PARAMS SYNC
+  // ============================================
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    const search = params.get("search") || "";
+    
+    // Only update if mounting or external navigation changed it
+    if (search !== inputValue) {
+      setInputValue(search);
+      setDebouncedSearchTerm(search);
+    }
+
+    setCurrentPage(Number.parseInt(params.get("page") || "1") || 1);
+
+    if (params.get("sort_by")) setSortBy(params.get("sort_by") as SortOption);
+    if (params.get("sort_order"))
+      setSortOrder(params.get("sort_order") as "ASC" | "DESC");
+    if (params.get("tab")) setActiveTab(params.get("tab")!);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Exclude inputValue to prevent loop
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // ============================================
+  // COMPLAINTS FETCHING
+  // ============================================
+  const fetchComplaints = useCallback(async (isBackgroundRefresh = false) => {
+    if (!isBackgroundRefresh) setIsLoading(true);
+    else setIsRefreshing(true);
+
     try {
       let statusFilter: ComplaintStatus[] = [];
 
@@ -166,17 +297,12 @@ export default function ComplaintsPage() {
         statusFilter = ["received", "under_review", "assigned"];
       }
 
-      // Filter state is now combined status OR empty array if no tab is selected
       const combinedStatus = activeTab === "all" ? [] : statusFilter;
 
       const result = await complaintsService.getUserComplaints({
-        search_term: currentSearchTerm || undefined,
+        search_term: debouncedSearchTerm || undefined,
         status: combinedStatus,
-        priority: [], // Removed priority filter
-        category_id: undefined, // Removed category filter
-        ward_id: undefined, // Removed ward filter
-        date_from: undefined, // Removed date filter
-        date_to: undefined, // Removed date filter
+        priority: [],
         sort_by: sortBy,
         sort_order: sortOrder,
         limit: pageSize,
@@ -186,19 +312,23 @@ export default function ComplaintsPage() {
       setComplaints(result.complaints);
       setTotalComplaints(result.total);
     } catch (error: any) {
-      console.error(error);
-      toast.error("Failed to load complaints", {
-        description: error.message || "Try again later",
-      });
+      console.error("Failed to fetch complaints:", error);
+      if (!isBackgroundRefresh) {
+        toast.error("Failed to load complaints");
+      }
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
-  }, [activeTab, currentPage, currentSearchTerm, pageSize, sortBy, sortOrder]);
+  }, [activeTab, currentPage, debouncedSearchTerm, pageSize, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchComplaints();
   }, [fetchComplaints]);
 
+  // ============================================
+  // REALTIME SUBSCRIPTION
+  // ============================================
   useEffect(() => {
     let channel: any;
 
@@ -218,8 +348,12 @@ export default function ComplaintsPage() {
             filter: `citizen_id=eq.${user.id}`,
           },
           () => {
-            fetchComplaints();
-            fetchStats();
+            if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+            // Debounce the refresh
+            refreshTimerRef.current = setTimeout(() => {
+              fetchComplaints(true); // Quiet refresh
+              fetchStats();
+            }, 1000);
           }
         )
         .subscribe();
@@ -227,35 +361,52 @@ export default function ComplaintsPage() {
 
     return () => {
       if (channel) supabase.removeChannel(channel);
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
   }, [fetchComplaints, fetchStats, supabase]);
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setCurrentSearchTerm(value); // Update current search term for fetch
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set("search", value);
-    else params.delete("search");
-
-    params.set("page", "1");
-    router.replace(`?${params.toString()}`);
-    setCurrentPage(1);
+  // ============================================
+  // HANDLERS
+  // ============================================
+  
+  // Debounced Search Handler
+  const handleSearchInput = (value: string) => {
+    setInputValue(value);
+    
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    
+    searchDebounceRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(value);
+      setCurrentPage(1);
+      
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) params.set("search", value);
+      else params.delete("search");
+      params.set("page", "1");
+      
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }, 500); // 500ms debounce
   };
 
-  // handleFilterChange logic removed
+  const handleClearSearch = () => {
+    setInputValue("");
+    setDebouncedSearchTerm("");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    router.replace(`?${params.toString()}`);
+  };
 
   const handleSortChange = (
     newSortBy: string,
     newSortOrder: "ASC" | "DESC"
   ) => {
-    setSortBy(newSortBy as any);
+    setSortBy(newSortBy as SortOption);
     setSortOrder(newSortOrder);
 
     const params = new URLSearchParams(searchParams.toString());
     params.set("sort_by", newSortBy);
     params.set("sort_order", newSortOrder);
-    router.replace(`?${params.toString()}`);
+    router.replace(`?${params.toString()}`, { scroll: false });
   };
 
   const handlePageChange = (page: number) => {
@@ -263,6 +414,7 @@ export default function ComplaintsPage() {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", page.toString());
     router.replace(`?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleTabChange = (tab: string) => {
@@ -274,12 +426,17 @@ export default function ComplaintsPage() {
     router.replace(`?${params.toString()}`);
   };
 
-  const handleClearSearch = () => {
-    handleSearch(""); // Clear the search term
-    handleTabChange("all"); // Reset tab to "all"
+  const handleClearFilters = () => {
+    setInputValue("");
+    setDebouncedSearchTerm("");
+    setActiveTab("all");
+    setCurrentPage(1);
+
     const params = new URLSearchParams();
     params.set("page", "1");
+    params.set("tab", "all");
     router.replace(`?${params.toString()}`);
+    toast.success("Filters cleared");
   };
 
   const handleRefresh = () => {
@@ -288,11 +445,17 @@ export default function ComplaintsPage() {
     toast.success("Complaints list refreshed");
   };
 
-  // hasActiveFilters logic simplified
-  const hasActiveSearch = searchTerm.length > 0;
+  const handleNewComplaint = () => {
+    router.push("/citizen/complaints/new");
+  };
 
+  const hasActiveFilters = debouncedSearchTerm.length > 0 || activeTab !== "all";
+
+  // ============================================
+  // RENDER
+  // ============================================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 pb-20 sm:pb-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Header Section */}
         <div className="mb-8 sm:mb-10">
@@ -302,8 +465,7 @@ export default function ComplaintsPage() {
                 My Complaints
               </h1>
               <p className="text-slate-600 text-base sm:text-lg max-w-2xl leading-relaxed">
-                Track, manage, and monitor all your submitted complaints in one
-                place
+                Track, manage, and monitor all your submitted complaints in one place
               </p>
             </div>
 
@@ -311,24 +473,21 @@ export default function ComplaintsPage() {
               <Button
                 variant="outline"
                 onClick={handleRefresh}
-                disabled={isLoading}
+                disabled={isLoading || isRefreshing}
                 className="gap-2 border-slate-300 hover:bg-white hover:border-blue-400 hover:text-blue-600 transition-all duration-200 shadow-sm"
-                aria-label="Refresh complaints list"
               >
                 <RefreshCw
-                  className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                  className={`h-4 w-4 ${isLoading || isRefreshing ? "animate-spin" : ""}`}
                 />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
 
               <Button
-                onClick={() => router.push("/citizen/complaints/new")}
-                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 text-white"
-                aria-label="Create new complaint"
+                onClick={handleNewComplaint}
+                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 text-white hidden sm:flex"
               >
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">New Complaint</span>
-                <span className="sm:hidden">New</span>
+                <span>New Complaint</span>
               </Button>
             </div>
           </div>
@@ -366,100 +525,203 @@ export default function ComplaintsPage() {
           </div>
         </div>
 
-        {/* Main Content Grid */}
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-          {/* Main Content Area */}
-          <main className="lg:col-span-9">
+          <main className="lg:col-span-12">
             <Card className="border-slate-200/60 shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/20 opacity-40 pointer-events-none" />
+
               <CardHeader className="relative pb-6 bg-gradient-to-r from-white/90 to-blue-50/80 backdrop-blur-sm border-b border-slate-200/60">
                 <div className="space-y-6">
-                  {/* Search Bar */}
+                  {/* Search Bar & Filters */}
                   <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                     <div className="relative flex-1 w-full sm:max-w-md">
                       <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
                       <Input
                         placeholder="Search by tracking code or title..."
-                        className="pl-12 pr-4 h-12 bg-white border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm transition-all duration-200 text-base"
-                        value={searchTerm}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        aria-label="Search complaints"
+                        className="pl-12 pr-10 h-12 bg-white border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm transition-all duration-200 text-base"
+                        value={inputValue}
+                        onChange={(e) => handleSearchInput(e.target.value)}
                       />
+                      {inputValue && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-slate-100"
+                          onClick={handleClearSearch}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
 
-                    <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 shadow-md text-sm font-medium whitespace-nowrap">
-                      {totalComplaints}{" "}
-                      {totalComplaints === 1 ? "complaint" : "complaints"}
-                    </Badge>
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      {/* Mobile Filter Sheet */}
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <Button variant="outline" className="sm:hidden flex-1 gap-2">
+                            <SlidersHorizontal className="h-4 w-4" />
+                            Filters
+                          </Button>
+                        </SheetTrigger>
+                        <SheetContent>
+                          <SheetHeader>
+                            <SheetTitle>Filter & Sort</SheetTitle>
+                            <SheetDescription>
+                              Refine your complaints list
+                            </SheetDescription>
+                          </SheetHeader>
+                          <div className="py-6 space-y-6">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Sort By</label>
+                              <Select
+                                value={sortBy}
+                                onValueChange={(val) => handleSortChange(val, sortOrder)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Sort by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="submitted_at">Date Submitted</SelectItem>
+                                  <SelectItem value="priority">Priority</SelectItem>
+                                  <SelectItem value="sla_due_at">SLA Due Date</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Order</label>
+                              <div className="flex gap-2">
+                                <Button 
+                                  variant={sortOrder === "DESC" ? "default" : "outline"} 
+                                  onClick={() => handleSortChange(sortBy, "DESC")}
+                                  className="flex-1"
+                                >
+                                  Newest First
+                                </Button>
+                                <Button 
+                                  variant={sortOrder === "ASC" ? "default" : "outline"}
+                                  onClick={() => handleSortChange(sortBy, "ASC")}
+                                  className="flex-1"
+                                >
+                                  Oldest First
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          <SheetFooter>
+                             <SheetClose asChild>
+                               <Button onClick={handleClearFilters} variant="ghost" className="w-full">
+                                 Clear All Filters
+                               </Button>
+                             </SheetClose>
+                          </SheetFooter>
+                        </SheetContent>
+                      </Sheet>
+
+                      {hasActiveFilters && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleClearFilters}
+                          className="gap-2 text-slate-600 hover:text-slate-900 border-slate-300 hidden sm:flex"
+                        >
+                          <Filter className="h-4 w-4" />
+                          Clear filters
+                        </Button>
+                      )}
+
+                      <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 shadow-md text-sm font-medium whitespace-nowrap hidden sm:inline-flex">
+                        {totalComplaints}{" "}
+                        {totalComplaints === 1 ? "complaint" : "complaints"}
+                      </Badge>
+                    </div>
                   </div>
 
-                  {/* Tabs */}
+                  {/* Scrollable Tabs */}
                   <Tabs
                     value={activeTab}
-                    onValueChange={handleTabChange} // Changed from setActiveTab to handleTabChange
+                    onValueChange={handleTabChange}
                     className="w-full"
                   >
-                    <TabsList className="grid grid-cols-5 w-full bg-white/80 backdrop-blur-sm border border-slate-200 p-1 h-auto shadow-sm">
-                      <TabsTrigger
-                        value="all"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 text-sm font-medium"
-                      >
-                        <span className="hidden sm:inline">All</span>
-                        <span className="sm:hidden">All</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="open"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
-                      >
-                        <AlertCircle className="h-4 w-4 hidden sm:block" />
-                        <span className="hidden md:inline">Open</span>
-                        <span className="md:hidden">Open</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="in_progress"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
-                      >
-                        <Clock className="h-4 w-4 hidden sm:block" />
-                        <span className="hidden lg:inline">In Progress</span>
-                        <span className="lg:hidden">Progress</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="resolved"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
-                      >
-                        <CheckCircle className="h-4 w-4 hidden sm:block" />
-                        <span className="hidden md:inline">Resolved</span>
-                        <span className="md:hidden">Done</span>
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="pending"
-                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-500 data-[state=active]:to-slate-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
-                      >
-                        <Bell className="h-4 w-4 hidden sm:block" />
-                        <span className="hidden md:inline">Pending</span>
-                        <span className="md:hidden">Pend</span>
-                      </TabsTrigger>
-                    </TabsList>
+                    <div className="overflow-x-auto pb-2 -mb-2">
+                      <TabsList className="inline-flex w-full sm:w-auto min-w-full bg-white/80 backdrop-blur-sm border border-slate-200 p-1 h-auto shadow-sm">
+                        <TabsTrigger
+                          value="all"
+                          className="flex-1 min-w-[80px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 text-sm font-medium"
+                        >
+                          All
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="open"
+                          className="flex-1 min-w-[100px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
+                        >
+                          <AlertCircle className="h-4 w-4 hidden sm:block" />
+                          Open
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="in_progress"
+                          className="flex-1 min-w-[120px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
+                        >
+                          <Clock className="h-4 w-4 hidden sm:block" />
+                          In Progress
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="resolved"
+                          className="flex-1 min-w-[110px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
+                        >
+                          <CheckCircle className="h-4 w-4 hidden sm:block" />
+                          Resolved
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="pending"
+                          className="flex-1 min-w-[100px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 py-2.5 gap-1.5 text-sm font-medium"
+                        >
+                          <Bell className="h-4 w-4 hidden sm:block" />
+                          Pending
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
                   </Tabs>
                 </div>
               </CardHeader>
 
-              <CardContent className="pt-6 relative">
-                <ComplaintsTable
-                  complaints={complaints}
-                  total={totalComplaints}
-                  isLoading={isLoading}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                  onPageChange={handlePageChange}
-                  onSortChange={handleSortChange}
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                />
+              <CardContent className="pt-6 relative min-h-[400px]">
+                {!isLoading && complaints.length === 0 ? (
+                  <EmptyState
+                    hasSearch={debouncedSearchTerm.length > 0}
+                    activeTab={activeTab}
+                    searchTerm={debouncedSearchTerm}
+                    onClearFilters={handleClearFilters}
+                    onNewComplaint={handleNewComplaint}
+                  />
+                ) : (
+                  <ComplaintsTable
+                    complaints={complaints}
+                    total={totalComplaints}
+                    isLoading={isLoading}
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onSortChange={handleSortChange}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                  />
+                )}
               </CardContent>
             </Card>
           </main>
         </div>
+      </div>
+
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-6 right-6 z-50 sm:hidden">
+        <Button
+          onClick={handleNewComplaint}
+          size="icon"
+          className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all"
+        >
+          <Plus className="h-6 w-6 text-white" />
+        </Button>
       </div>
     </div>
   );
