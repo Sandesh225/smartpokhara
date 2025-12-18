@@ -153,7 +153,9 @@ export function WorkloadDashboard() {
 
         <Card className="border-purple-200 bg-purple-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Assigned</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Assigned
+            </CardTitle>
             <ClipboardList className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -335,7 +337,7 @@ export function WorkloadDashboard() {
       </Card>
 
       {/* Insights */}
-      <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <Card className="border-blue-200 bg-linear-to-br from-blue-50 to-indigo-50">
         <CardHeader>
           <CardTitle className="text-base">Workload Insights</CardTitle>
         </CardHeader>
@@ -345,8 +347,9 @@ export function WorkloadDashboard() {
               <div className="flex items-start gap-2 text-red-700">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  <strong>{totalStats.overdue}</strong> complaints are overdue across
-                  the team. Consider redistributing workload or escalating.
+                  <strong>{totalStats.overdue}</strong> complaints are overdue
+                  across the team. Consider redistributing workload or
+                  escalating.
                 </p>
               </div>
             )}
@@ -354,8 +357,9 @@ export function WorkloadDashboard() {
               <div className="flex items-start gap-2 text-yellow-700">
                 <Clock className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  <strong>{totalStats.pending_acceptance}</strong> complaints are
-                  awaiting staff acceptance. Follow up with assigned members.
+                  <strong>{totalStats.pending_acceptance}</strong> complaints
+                  are awaiting staff acceptance. Follow up with assigned
+                  members.
                 </p>
               </div>
             )}
@@ -363,8 +367,8 @@ export function WorkloadDashboard() {
               <div className="flex items-start gap-2 text-orange-700">
                 <Users className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  Some staff members have high workloads (10+ complaints). Consider
-                  redistributing to balance the team.
+                  Some staff members have high workloads (10+ complaints).
+                  Consider redistributing to balance the team.
                 </p>
               </div>
             )}
@@ -374,7 +378,8 @@ export function WorkloadDashboard() {
                 <div className="flex items-start gap-2 text-green-700">
                   <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <p>
-                    Team workload is well balanced with no major issues. Great work!
+                    Team workload is well balanced with no major issues. Great
+                    work!
                   </p>
                 </div>
               )}

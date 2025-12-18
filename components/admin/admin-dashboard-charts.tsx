@@ -71,7 +71,7 @@ export function AdminDashboardCharts({
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Complaints by Status */}
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
+        <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-linear-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
               <BarChart3 className="h-5 w-5 text-violet-600 dark:text-violet-400" />
@@ -142,7 +142,7 @@ export function AdminDashboardCharts({
 
       {/* Recent Activity */}
       <Card className="overflow-hidden">
-        <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
+        <CardHeader className="border-b border-slate-100 dark:border-slate-800 bg-linear-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-900">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
               <TrendingUp className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />

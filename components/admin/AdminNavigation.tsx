@@ -92,7 +92,7 @@ export default function AdminNavigation() {
                 className={cx(
                   "group flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium transition-all duration-200",
                   parentActive
-                    ? "bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 shadow-sm ring-1 ring-blue-200/50"
+                    ? "bg-linear-to-r from-blue-50 to-blue-100/50 text-blue-700 shadow-sm ring-1 ring-blue-200/50"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
                 )}
               >
@@ -157,7 +157,7 @@ export default function AdminNavigation() {
             className={cx(
               "group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
               active
-                ? "bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 shadow-sm ring-1 ring-blue-200/50"
+                ? "bg-linear-to-r from-blue-50 to-blue-100/50 text-blue-700 shadow-sm ring-1 ring-blue-200/50"
                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
             )}
           >
@@ -184,7 +184,7 @@ export default function AdminNavigation() {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50 flex items-center justify-between px-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+          <div className="h-8 w-8 bg-linear-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
             SP
           </div>
           <span className="font-bold text-lg text-gray-900">Smart Pokhara</span>
@@ -209,7 +209,7 @@ export default function AdminNavigation() {
           <div className="absolute left-0 top-0 h-full w-[85%] max-w-xs bg-white shadow-xl border-r border-gray-200 flex flex-col">
             <div className="h-16 px-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+                <div className="h-9 w-9 bg-linear-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
                   SP
                 </div>
                 <div className="flex flex-col">
@@ -249,8 +249,8 @@ export default function AdminNavigation() {
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex fixed top-0 left-0 flex-col w-64 h-screen bg-white border-r border-gray-200 z-40 shadow-sm">
-        <div className="h-16 flex items-center px-5 border-b border-gray-100 bg-gradient-to-r from-white to-blue-50/30">
-          <div className="h-9 w-9 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md ring-2 ring-blue-100 ring-offset-2">
+        <div className="h-16 flex items-center px-5 border-b border-gray-100 bg-linear-to-r from-white to-blue-50/30">
+          <div className="h-9 w-9 bg-linear-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md ring-2 ring-blue-100 ring-offset-2">
             SP
           </div>
           <div className="ml-3 flex flex-col">

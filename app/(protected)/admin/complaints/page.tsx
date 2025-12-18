@@ -90,7 +90,7 @@ export default function AdminComplaintsPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-5 bg-gradient-to-br from-blue-50 to-white border-blue-100">
+        <Card className="p-5 bg-linear-to-br from-blue-50 to-white border-blue-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">
@@ -106,7 +106,7 @@ export default function AdminComplaintsPage() {
           </div>
         </Card>
 
-        <Card className="p-5 bg-gradient-to-br from-amber-50 to-white border-amber-100">
+        <Card className="p-5 bg-linear-to-br from-amber-50 to-white border-amber-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pending</p>
@@ -124,7 +124,7 @@ export default function AdminComplaintsPage() {
           </div>
         </Card>
 
-        <Card className="p-5 bg-gradient-to-br from-purple-50 to-white border-purple-100">
+        <Card className="p-5 bg-linear-to-br from-purple-50 to-white border-purple-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">In Progress</p>
@@ -141,7 +141,7 @@ export default function AdminComplaintsPage() {
           </div>
         </Card>
 
-        <Card className="p-5 bg-gradient-to-br from-green-50 to-white border-green-100">
+        <Card className="p-5 bg-linear-to-br from-green-50 to-white border-green-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Resolved</p>

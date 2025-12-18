@@ -112,7 +112,7 @@ export default function StaffProfilePage() {
         <div className="xl:col-span-4 flex flex-col gap-6">
           <Card className="overflow-hidden border-slate-200 shadow-sm relative">
             {/* Gradient Banner */}
-            <div className="h-28 bg-gradient-to-r from-blue-600 to-indigo-700 relative overflow-hidden">
+            <div className="h-28 bg-linear-to-r from-blue-600 to-indigo-700 relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
             </div>
 

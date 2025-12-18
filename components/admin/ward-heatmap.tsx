@@ -125,7 +125,7 @@ export function WardHeatmap({ wardData }: WardHeatmapProps) {
       </div>
 
       {/* Ward Statistics Summary */}
-      <div className="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30 p-4 border border-slate-200/80 dark:border-slate-700">
+      <div className="rounded-xl bg-linear-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30 p-4 border border-slate-200/80 dark:border-slate-700">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-slate-900 dark:text-white">

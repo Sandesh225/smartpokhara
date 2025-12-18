@@ -275,7 +275,7 @@ export function AdminShell({
   }, [userMenuOpen]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="flex h-screen overflow-hidden bg-linear-to-br from-slate-50 via-slate-50 to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
@@ -291,7 +291,7 @@ export function AdminShell({
               sidebarOpen ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
             )}
           >
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/25">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/25">
               <Shield className="h-5 w-5 text-white" />
               <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-slate-900 bg-emerald-500" />
             </div>
@@ -383,8 +383,8 @@ export function AdminShell({
         {/* Sidebar Footer */}
         {sidebarOpen && (
           <div className="p-3 border-t border-slate-200/80 dark:border-slate-800">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30">
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-semibold text-sm shadow-md">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-linear-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30">
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-blue-600 to-indigo-600 text-white font-semibold text-sm shadow-md">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
@@ -418,7 +418,7 @@ export function AdminShell({
         {/* Mobile Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200/80 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/25">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/25">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col">
@@ -482,7 +482,7 @@ export function AdminShell({
         {/* Mobile User Info */}
         <div className="p-3 border-t border-slate-200/80 dark:border-slate-800">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-semibold text-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-blue-600 to-indigo-600 text-white font-semibold text-sm">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
@@ -568,7 +568,7 @@ export function AdminShell({
                 onClick={() => setUserMenuOpen((v) => !v)}
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md">
                   {initials}
                 </div>
                 <ChevronDown
@@ -646,7 +646,7 @@ export function AdminShell({
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="min-h-full bg-gradient-to-br from-slate-50/50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 lg:p-6">
+          <div className="min-h-full bg-linear-to-br from-slate-50/50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 lg:p-6">
             <div className="max-w-7xl mx-auto">{children}</div>
           </div>
         </main>

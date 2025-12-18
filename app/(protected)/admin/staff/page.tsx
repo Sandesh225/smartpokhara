@@ -204,7 +204,7 @@ export default function StaffDirectoryPage() {
         <div className="space-y-6">
           <StaffWorkload />
 
-          <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-sm">
+          <Card className="bg-linear-to-br from-indigo-50 to-white border-indigo-100 shadow-sm">
             <CardContent className="p-5">
               <h3 className="font-semibold text-indigo-900 mb-2">
                 Optimize Shifts

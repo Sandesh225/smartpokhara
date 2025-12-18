@@ -41,7 +41,7 @@ export function PriorityAlertsPanel({ alerts }: PriorityAlertsPanelProps) {
   };
 
   return (
-    <Card className="border-red-200 dark:border-red-900/50 bg-gradient-to-br from-red-50 to-orange-50/30 dark:from-red-950/30 dark:to-orange-950/10 overflow-hidden">
+    <Card className="border-red-200 dark:border-red-900/50 bg-linear-to-br from-red-50 to-orange-50/30 dark:from-red-950/30 dark:to-orange-950/10 overflow-hidden">
       <CardHeader className="border-b border-red-100 dark:border-red-900/50 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
