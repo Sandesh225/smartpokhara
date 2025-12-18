@@ -4,12 +4,10 @@ import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
 
 import { ComplaintDetailHeader } from "@/components/supervisor/complaints/ComplaintDetailHeader";
-
 import { AssignmentPanel } from "@/components/supervisor/complaints/AssignmentPanel";
 import { StatusTimeline } from "@/components/supervisor/complaints/StatusTimeline";
 import { SLATracker } from "@/components/supervisor/complaints/SLATracker";
 import { CommunicationThread } from "@/components/supervisor/complaints/CommunicationThread";
-
 import { AttachmentsSection } from "@/components/supervisor/complaints/AttachmentsSection";
 import { InternalNotes } from "@/components/supervisor/complaints/InternalNotes";
 import { PriorityPanel } from "@/components/supervisor/complaints/PriorityPanel";
@@ -33,14 +31,12 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
   const { data: complaint, error } =
     await supervisorComplaintsQueries.getComplaintById(supabase, id);
 
-  // If the complaint is not found or error occurred
   if (error || !complaint) {
     console.error(`Supervisor Complaint Detail Error [${id}]:`, error);
     return notFound();
   }
 
   // 2. Fetch Ancillary Data Parallelly
-  // Errors here are non-fatal, return empty arrays to keep page usable
   const [internalNotes, attachments] = await Promise.all([
     supervisorComplaintsQueries.getInternalNotes(supabase, id).catch(() => []),
     supervisorComplaintsQueries
@@ -56,6 +52,7 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT COLUMN (Main Info) */}
           <div className="lg:col-span-8 space-y-6">
+            {/* The Attachments Section */}
             <AttachmentsSection
               citizenUploads={attachments.citizenUploads}
               staffUploads={attachments.staffUploads}
