@@ -235,7 +235,7 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
         }`}
         aria-label="Sidebar"
       >
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 px-5">
+        <div className="flex h-16 items-center justify-between border-b border-gray-200 bg-linear-to-r from-blue-600 to-blue-700 px-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm text-white font-bold text-base shadow-lg">
               SP
@@ -257,7 +257,7 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
           </button>
         </div>
 
-        <nav className="h-[calc(100vh-4rem)] overflow-y-auto px-4 py-6 bg-gradient-to-b from-gray-50/50 to-white">
+        <nav className="h-[calc(100vh-4rem)] overflow-y-auto px-4 py-6 bg-linear-to-b from-gray-50/50 to-white">
           {sections.map((section) => {
             const visibleItems = section.items.filter((item) =>
               hasRole(user, item.roles)
@@ -268,7 +268,7 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
             return (
               <div key={section.title} className="mb-8 last:mb-0">
                 <p className="px-3 pb-3 text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
-                  <span className="h-px flex-1 bg-gradient-to-r from-gray-300 to-transparent" />
+                  <span className="h-px flex-1 bg-linear-to-r from-gray-300 to-transparent" />
                   {section.title}
                 </p>
 
@@ -284,7 +284,7 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
                         onClick={onClose}
                         className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-200 ${
                           active
-                            ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25"
+                            ? "bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25"
                             : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:scale-[0.98]"
                         }`}
                         aria-current={active ? "page" : undefined}

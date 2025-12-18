@@ -154,7 +154,7 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
               aria-haspopup="menu"
               aria-expanded={isUserMenuOpen}
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-xs font-bold text-white ring-2 ring-white shadow-md">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-blue-600 to-blue-700 text-xs font-bold text-white ring-2 ring-white shadow-md">
                 {initials}
               </div>
               <div className="hidden text-left sm:block">
@@ -172,7 +172,7 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
                 role="menu"
                 className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-gray-500/10 animate-in fade-in slide-in-from-top-2 duration-200"
               >
-                <div className="border-b border-gray-100 bg-gradient-to-br from-gray-50 to-white px-4 py-4">
+                <div className="border-b border-gray-100 bg-linear-to-br from-gray-50 to-white px-4 py-4">
                   <p className="text-sm font-bold text-gray-900 mb-1">
                     {displayName}
                   </p>
