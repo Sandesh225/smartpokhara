@@ -59,7 +59,7 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
       <div className="flex items-start gap-3 mb-4">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+        <div className="h-12 w-12 rounded-full bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0">
           {member.avatar_url ? (
             <img
               src={member.avatar_url}
@@ -71,7 +71,9 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-gray-900 truncate">{member.full_name}</h4>
+          <h4 className="font-semibold text-gray-900 truncate">
+            {member.full_name}
+          </h4>
           <div className="mt-1">
             <StatusBadge
               status={member.availability_status}
@@ -140,7 +142,7 @@ export function TeamOverview({ staff }: TeamOverviewProps) {
   if (staff.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+        <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-indigo-50 to-purple-50">
           <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
             <User className="h-5 w-5 text-indigo-600" />
             Team Status
@@ -153,7 +155,7 @@ export function TeamOverview({ staff }: TeamOverviewProps) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+      <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-indigo-50 to-purple-50">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -167,7 +169,9 @@ export function TeamOverview({ staff }: TeamOverviewProps) {
           <div className="flex items-center gap-2">
             <select
               value={sortBy}
-              onChange={(e) => handleSort(e.target.value as "workload" | "rating")}
+              onChange={(e) =>
+                handleSort(e.target.value as "workload" | "rating")
+              }
               className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="workload">Sort by Workload</option>
@@ -209,7 +213,7 @@ export function TeamOverview({ staff }: TeamOverviewProps) {
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {member.avatar_url ? (
                         <img
                           src={member.avatar_url}

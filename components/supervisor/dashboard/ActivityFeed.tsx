@@ -62,7 +62,7 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm h-full flex flex-col overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-blue-50 to-indigo-50">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
             <Activity className="h-5 w-5 text-blue-600" />
@@ -74,7 +74,9 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
             disabled={isRefreshing}
             className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded px-2 py-1"
           >
-            <RefreshCw className={cn("h-3 w-3", isRefreshing && "animate-spin")} />
+            <RefreshCw
+              className={cn("h-3 w-3", isRefreshing && "animate-spin")}
+            />
             Refresh
           </button>
         </div>
@@ -90,10 +92,12 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {activities.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="h-16 w-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="h-16 w-16 bg-linear-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Activity className="h-8 w-8 text-blue-600" />
             </div>
-            <p className="text-sm font-medium text-gray-900 mb-1">No Recent Activity</p>
+            <p className="text-sm font-medium text-gray-900 mb-1">
+              No Recent Activity
+            </p>
             <p className="text-xs text-gray-500 max-w-[200px] mx-auto">
               Activity will appear here as your team works on complaints.
             </p>
@@ -101,8 +105,10 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
         ) : (
           <div className="divide-y divide-gray-50">
             {activities.map((item) => {
-              const IconComponent = activityIcons[item.type] || activityIcons.default;
-              const colorClass = activityColors[item.type] || activityColors.default;
+              const IconComponent =
+                activityIcons[item.type] || activityIcons.default;
+              const colorClass =
+                activityColors[item.type] || activityColors.default;
 
               return (
                 <Link
@@ -113,7 +119,7 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
                   <div className="flex items-start gap-3">
                     <div
                       className={cn(
-                        "mt-1 h-8 w-8 rounded-full bg-gradient-to-br flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform",
+                        "mt-1 h-8 w-8 rounded-full bg-linear-to-br flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform",
                         colorClass
                       )}
                     >
@@ -125,7 +131,9 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
                         {item.description}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(item.timestamp), {
+                          addSuffix: true,
+                        })}
                       </p>
                     </div>
                   </div>

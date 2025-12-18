@@ -13,7 +13,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Header Section */}
-      <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white">
+      <div className="px-6 py-5 border-b border-gray-100 bg-linear-to-r from-gray-50/80 to-white">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <Badge
             variant="secondary"
@@ -48,7 +48,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
               Description
             </h4>
           </div>
-          <div className="bg-gradient-to-br from-gray-50 to-gray-50/50 rounded-xl p-5 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap border border-gray-100">
+          <div className="bg-linear-to-br from-gray-50 to-gray-50/50 rounded-xl p-5 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap border border-gray-100">
             {complaint.description}
           </div>
         </div>
@@ -56,7 +56,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
         {/* Metadata Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Location Card */}
-          <div className="group p-5 rounded-xl border border-gray-200 bg-gradient-to-br from-emerald-50/50 to-white hover:shadow-md transition-all duration-200">
+          <div className="group p-5 rounded-xl border border-gray-200 bg-linear-to-br from-emerald-50/50 to-white hover:shadow-md transition-all duration-200">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-white border border-emerald-100 shadow-sm flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform duration-200">
                 <MapPin className="h-5 w-5" />
@@ -93,7 +93,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
           </div>
 
           {/* Department Card */}
-          <div className="group p-5 rounded-xl border border-gray-200 bg-gradient-to-br from-purple-50/50 to-white hover:shadow-md transition-all duration-200">
+          <div className="group p-5 rounded-xl border border-gray-200 bg-linear-to-br from-purple-50/50 to-white hover:shadow-md transition-all duration-200">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-white border border-purple-100 shadow-sm flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform duration-200">
                 <Tag className="h-5 w-5" />

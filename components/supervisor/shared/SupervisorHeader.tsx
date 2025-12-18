@@ -51,7 +51,6 @@ export function SupervisorHeader({
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 transition-all duration-200">
       <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
-        
         {/* LEFT: Mobile Toggle + Search */}
         <div className="flex items-center gap-4 flex-1">
           {/* Mobile Menu Button */}
@@ -71,7 +70,6 @@ export function SupervisorHeader({
 
         {/* RIGHT: Actions + Profile */}
         <div className="flex items-center gap-3 sm:gap-4">
-          
           {/* Jurisdiction Pill (Desktop Only) */}
           <div className="hidden xl:flex flex-col items-end mr-2">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -91,7 +89,7 @@ export function SupervisorHeader({
               isOpen={notificationsOpen}
               onClick={() => setNotificationsOpen(!notificationsOpen)}
             />
-            
+
             {/* Notifications Dropdown */}
             {isMounted && (
               <NotificationDropdown
@@ -115,11 +113,11 @@ export function SupervisorHeader({
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Supervisor</p>
                   </div>
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white group-hover:ring-blue-100 transition-all">
+                  <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white group-hover:ring-blue-100 transition-all">
                     {user.profile?.profile_photo_url ? (
-                      <img 
-                        src={user.profile.profile_photo_url} 
-                        alt={displayName} 
+                      <img
+                        src={user.profile.profile_photo_url}
+                        alt={displayName}
                         className="h-full w-full rounded-full object-cover"
                       />
                     ) : (
@@ -131,10 +129,14 @@ export function SupervisorHeader({
               <DropdownMenuContent align="end" className="w-56 mt-2">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/supervisor/profile")}>
+                <DropdownMenuItem
+                  onClick={() => router.push("/supervisor/profile")}
+                >
                   <User className="mr-2 h-4 w-4" /> Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/supervisor/settings")}>
+                <DropdownMenuItem
+                  onClick={() => router.push("/supervisor/settings")}
+                >
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/help")}>

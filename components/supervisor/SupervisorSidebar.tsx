@@ -104,11 +104,11 @@ export function SupervisorSidebar({
   };
 
   return (
-    <div className="flex h-full flex-col bg-gradient-to-b from-white to-gray-50/30">
+    <div className="flex h-full flex-col bg-linear-to-b from-white to-gray-50/30">
       {/* Desktop Header */}
       <div className="hidden lg:flex h-16 items-center px-6 border-b border-gray-200/60 bg-white/80 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-600/20 ring-2 ring-blue-100">
+          <div className="h-9 w-9 rounded-xl bg-linear-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-600/20 ring-2 ring-blue-100">
             SP
           </div>
           <div>
@@ -150,12 +150,12 @@ export function SupervisorSidebar({
                   className={cn(
                     "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
                     isActive
-                      ? "text-blue-700 bg-gradient-to-r from-blue-50 to-blue-50/50 shadow-sm"
+                      ? "text-blue-700 bg-linear-to-r from-blue-50 to-blue-50/50 shadow-sm"
                       : "text-gray-700 hover:bg-gray-100/80 hover:text-gray-900"
                   )}
                 >
                   {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-600 to-blue-500 rounded-r-full" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-linear-to-b from-blue-600 to-blue-500 rounded-r-full" />
                   )}
                   <div className="flex items-center gap-3">
                     <Icon
@@ -186,13 +186,13 @@ export function SupervisorSidebar({
                   className={cn(
                     "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
                     isActive
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25"
+                      ? "bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25"
                       : "text-gray-700 hover:bg-gray-100/80 hover:text-gray-900"
                   )}
                   aria-current={isActive ? "page" : undefined}
                 >
                   {isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
                   )}
                   <div className="flex items-center gap-3 relative z-10">
                     <Icon
@@ -235,7 +235,7 @@ export function SupervisorSidebar({
                     className="overflow-hidden"
                   >
                     <div className="pl-5 pr-2 space-y-0.5 mt-1 ml-4 relative">
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 to-transparent rounded-full" />
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-linear-to-b from-blue-300 to-transparent rounded-full" />
                       {item.submenu!.map((sub) => {
                         const isSubActive = pathname === sub.href;
                         const subBadge = sub.badgeKey
@@ -317,14 +317,14 @@ export function SupervisorSidebar({
       </div>
 
       {/* Footer / Logout */}
-      <div className="border-t border-gray-200/60 p-4 bg-gradient-to-t from-gray-50/80 to-white/50 backdrop-blur-sm">
+      <div className="border-t border-gray-200/60 p-4 bg-linear-to-t from-gray-50/80 to-white/50 backdrop-blur-sm">
         <button
           type="button"
           onClick={onLogout}
           disabled={isLoggingOut}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-red-50/0 via-red-50/50 to-red-50/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+          <div className="absolute inset-0 bg-linear-to-r from-red-50/0 via-red-50/50 to-red-50/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
           {isLoggingOut ? (
             <Loader2 className="h-5 w-5 animate-spin text-red-600 relative z-10" />
           ) : (

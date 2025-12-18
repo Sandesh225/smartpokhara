@@ -162,7 +162,7 @@ export function StaffSelectionModal({
     <AnimatePresence>
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
         {/* Backdrop */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -181,20 +181,27 @@ export function StaffSelectionModal({
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 shrink-0">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                {mode === "reassign" ? <ArrowRightLeft className="h-5 w-5 text-orange-600" /> : null}
+                {mode === "reassign" ? (
+                  <ArrowRightLeft className="h-5 w-5 text-orange-600" />
+                ) : null}
                 {mode === "reassign" ? "Reassign Staff" : "Assign Staff"}
               </h2>
               <p className="text-xs text-gray-500 mt-0.5 truncate max-w-md">
-                Task: <span className="font-medium text-gray-700">{complaintTitle}</span>
+                Task:{" "}
+                <span className="font-medium text-gray-700">
+                  {complaintTitle}
+                </span>
               </p>
             </div>
-            <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-200 rounded-full transition-colors">
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:bg-gray-200 rounded-full transition-colors"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-            
             {/* Left Panel: Staff List */}
             <div className="flex-1 flex flex-col border-r border-gray-200 min-w-0 bg-gray-50/30">
               {/* Search Bar */}
@@ -216,7 +223,9 @@ export function StaffSelectionModal({
                 {filteredStaff.length === 0 ? (
                   <div className="h-40 flex flex-col items-center justify-center text-gray-500">
                     <User className="h-10 w-10 mb-2 opacity-20" />
-                    <p className="text-sm">No staff members match your search.</p>
+                    <p className="text-sm">
+                      No staff members match your search.
+                    </p>
                   </div>
                 ) : (
                   filteredStaff.map((staff) => (
@@ -235,23 +244,37 @@ export function StaffSelectionModal({
                         <div className="flex flex-col items-center gap-2">
                           <div className="relative">
                             {staff.avatar_url ? (
-                              <img src={staff.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm" />
+                              <img
+                                src={staff.avatar_url}
+                                alt=""
+                                className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm"
+                              />
                             ) : (
                               <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm text-slate-500 font-bold text-xl">
-                                {(staff.full_name || "?").charAt(0).toUpperCase()}
+                                {(staff.full_name || "?")
+                                  .charAt(0)
+                                  .toUpperCase()}
                               </div>
                             )}
-                            <span className={cn(
-                              "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-white",
-                              staff.availability_status === 'available' ? "bg-emerald-500" :
-                              staff.availability_status === 'busy' ? "bg-amber-500" : 
-                              staff.availability_status === 'on_leave' ? "bg-purple-500" : "bg-gray-400"
-                            )} />
+                            <span
+                              className={cn(
+                                "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-white",
+                                staff.availability_status === "available"
+                                  ? "bg-emerald-500"
+                                  : staff.availability_status === "busy"
+                                    ? "bg-amber-500"
+                                    : staff.availability_status === "on_leave"
+                                      ? "bg-purple-500"
+                                      : "bg-gray-400"
+                              )}
+                            />
                           </div>
-                          <span className={cn(
-                            "text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize",
-                            getStatusColor(staff.availability_status)
-                          )}>
+                          <span
+                            className={cn(
+                              "text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize",
+                              getStatusColor(staff.availability_status)
+                            )}
+                          >
                             {staff.availability_status || "unknown"}
                           </span>
                         </div>
@@ -278,8 +301,9 @@ export function StaffSelectionModal({
                                 </p>
                               </div>
                             </div>
-                            
-                            {(staff.recommendation_rank && staff.recommendation_rank > 50) ? (
+
+                            {staff.recommendation_rank &&
+                            staff.recommendation_rank > 50 ? (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700 shrink-0 ml-2">
                                 <Star className="h-3 w-3 fill-current" /> Match
                               </span>
@@ -288,30 +312,37 @@ export function StaffSelectionModal({
 
                           {/* Email */}
                           <div className="flex items-center gap-4 mt-2 mb-3 pb-3 border-b border-gray-100">
-                              <div className="flex items-center gap-1.5 text-xs text-gray-600 truncate w-full">
-                                <Mail className="h-3 w-3 text-gray-400" />
-                                {staff.email || "No email"}
-                              </div>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-600 truncate w-full">
+                              <Mail className="h-3 w-3 text-gray-400" />
+                              {staff.email || "No email"}
+                            </div>
                           </div>
 
                           {/* Metrics */}
                           <div className="grid grid-cols-2 gap-3 max-w-[220px]">
                             <div className="bg-gray-50 p-1.5 rounded-lg text-center border border-gray-100">
-                              <span className="block text-[10px] uppercase text-gray-400 font-semibold mb-0.5">Workload</span>
+                              <span className="block text-[10px] uppercase text-gray-400 font-semibold mb-0.5">
+                                Workload
+                              </span>
                               <div className="flex items-center justify-center gap-1 font-bold text-gray-800 text-sm">
                                 <Briefcase className="h-3 w-3 text-blue-500" />
-                                {staff.current_workload ?? 0} <span className="text-gray-400 text-xs font-normal">/ {staff.max_concurrent_assignments || 10}</span>
+                                {staff.current_workload ?? 0}{" "}
+                                <span className="text-gray-400 text-xs font-normal">
+                                  / {staff.max_concurrent_assignments || 10}
+                                </span>
                               </div>
                             </div>
                             <div className="bg-gray-50 p-1.5 rounded-lg text-center border border-gray-100">
-                              <span className="block text-[10px] uppercase text-gray-400 font-semibold mb-0.5">Rating</span>
+                              <span className="block text-[10px] uppercase text-gray-400 font-semibold mb-0.5">
+                                Rating
+                              </span>
                               <div className="flex items-center justify-center gap-1 font-bold text-gray-800 text-sm">
                                 <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                                 {formatRating(staff.performance_rating)}
                               </div>
                             </div>
                           </div>
-                          
+
                           {/* Department Display */}
                           {staff.department_name && (
                             <div className="mt-2 flex justify-end">
@@ -321,7 +352,6 @@ export function StaffSelectionModal({
                               </div>
                             </div>
                           )}
-
                         </div>
                       </div>
                     </div>
@@ -335,14 +365,18 @@ export function StaffSelectionModal({
               {mode === "reassign" && currentStaff && (
                 <div className="mb-6 p-4 bg-orange-50 border border-orange-100 rounded-xl">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-bold text-orange-800 uppercase tracking-wide bg-orange-100 px-2 py-0.5 rounded">Replacing</span>
+                    <span className="text-xs font-bold text-orange-800 uppercase tracking-wide bg-orange-100 px-2 py-0.5 rounded">
+                      Replacing
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold">
                       {(currentStaff.name || "?").charAt(0)}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900">{currentStaff.name || "Unknown Staff"}</p>
+                      <p className="text-sm font-bold text-gray-900">
+                        {currentStaff.name || "Unknown Staff"}
+                      </p>
                       <p className="text-xs text-gray-500">Current Assignee</p>
                     </div>
                   </div>
@@ -361,19 +395,23 @@ export function StaffSelectionModal({
                 </label>
                 {selectedStaff ? (
                   <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center gap-3 shadow-sm">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg">
-                        {(selectedStaff.full_name || "?").charAt(0).toUpperCase()}
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg">
+                      {(selectedStaff.full_name || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-gray-900 truncate">
+                        {selectedStaff.full_name}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <span className="font-mono text-blue-600">
+                          {selectedStaff.staff_code}
+                        </span>
+                        <span>•</span>
+                        <span className="truncate">
+                          {selectedStaff.department_name || "General"}
+                        </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-gray-900 truncate">
-                          {selectedStaff.full_name}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
-                          <span className="font-mono text-blue-600">{selectedStaff.staff_code}</span>
-                          <span>•</span>
-                          <span className="truncate">{selectedStaff.department_name || "General"}</span>
-                        </div>
-                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 border-dashed text-sm text-gray-400 italic text-center">
@@ -387,7 +425,8 @@ export function StaffSelectionModal({
                 {mode === "reassign" && (
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Reason for Reassignment <span className="text-red-500">*</span>
+                      Reason for Reassignment{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={reason}
@@ -395,7 +434,11 @@ export function StaffSelectionModal({
                       className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                     >
                       <option value="">Select a reason...</option>
-                      {REASSIGNMENT_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                      {REASSIGNMENT_REASONS.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
@@ -414,14 +457,38 @@ export function StaffSelectionModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-2">Notification Channels</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Notification Channels
+                  </label>
                   <div className="space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={notifyOptions.inApp} onChange={e => setNotifyOptions({...notifyOptions, inApp: e.target.checked})} className="rounded text-blue-600 focus:ring-blue-500" />
-                      <span className="text-sm text-gray-700">In-App Notification</span>
+                      <input
+                        type="checkbox"
+                        checked={notifyOptions.inApp}
+                        onChange={(e) =>
+                          setNotifyOptions({
+                            ...notifyOptions,
+                            inApp: e.target.checked,
+                          })
+                        }
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        In-App Notification
+                      </span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={notifyOptions.sms} onChange={e => setNotifyOptions({...notifyOptions, sms: e.target.checked})} className="rounded text-blue-600 focus:ring-blue-500" />
+                      <input
+                        type="checkbox"
+                        checked={notifyOptions.sms}
+                        onChange={(e) =>
+                          setNotifyOptions({
+                            ...notifyOptions,
+                            sms: e.target.checked,
+                          })
+                        }
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                      />
                       <span className="text-sm text-gray-600">SMS Alert</span>
                     </label>
                   </div>
@@ -431,16 +498,24 @@ export function StaffSelectionModal({
               <div className="pt-4 mt-auto">
                 <button
                   onClick={handleConfirm}
-                  disabled={!selectedStaffId || isSubmitting || (mode === "reassign" && !reason)}
+                  disabled={
+                    !selectedStaffId ||
+                    isSubmitting ||
+                    (mode === "reassign" && !reason)
+                  }
                   className={cn(
                     "w-full flex items-center justify-center gap-2 text-white py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed",
-                    mode === "reassign" ? "bg-gradient-to-r from-orange-600 to-red-600" : "bg-gradient-to-r from-blue-600 to-indigo-600"
+                    mode === "reassign"
+                      ? "bg-linear-to-r from-orange-600 to-red-600"
+                      : "bg-linear-to-r from-blue-600 to-indigo-600"
                   )}
                 >
                   {isSubmitting ? (
                     <LoadingSpinner size="sm" className="text-white" />
+                  ) : mode === "reassign" ? (
+                    "Confirm Reassignment"
                   ) : (
-                    mode === "reassign" ? "Confirm Reassignment" : "Confirm Assignment"
+                    "Confirm Assignment"
                   )}
                 </button>
               </div>

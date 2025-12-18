@@ -59,7 +59,7 @@ function MetricCard({
         "relative overflow-hidden rounded-2xl border border-gray-200 shadow-sm h-full",
         "transition-all duration-300 group",
         href && "hover:shadow-xl hover:scale-[1.02] cursor-pointer",
-        `bg-gradient-to-br ${gradient}`
+        `bg-linear-to-br ${gradient}`
       )}
     >
       {/* Decorative background pattern */}
@@ -94,9 +94,7 @@ function MetricCard({
           </div>
         </div>
 
-        {subtitle && (
-          <p className="text-xs text-gray-500 mt-2">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-xs text-gray-500 mt-2">{subtitle}</p>}
       </div>
     </div>
   );

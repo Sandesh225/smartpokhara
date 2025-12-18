@@ -25,14 +25,14 @@ export function CitizenInfoPanel({
   if (isAnonymous) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white">
+        <div className="px-5 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50/80 to-white">
           <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
             <User className="w-4 h-4" />
             Citizen Information
           </h3>
         </div>
         <div className="p-6">
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-4 border border-slate-200 border-dashed">
+          <div className="bg-linear-to-br from-slate-50 to-slate-100/50 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-4 border border-slate-200 border-dashed">
             <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
               <Shield className="w-8 h-8 text-slate-400" />
             </div>
@@ -58,7 +58,7 @@ export function CitizenInfoPanel({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white">
+      <div className="px-5 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50/80 to-white">
         <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
           <User className="w-4 h-4" />
           Citizen Information
@@ -70,7 +70,7 @@ export function CitizenInfoPanel({
         <div className="flex items-center gap-4 mb-6">
           <Avatar className="h-16 w-16 border-2 border-white shadow-md ring-2 ring-gray-100">
             <AvatarImage src={avatarUrl} alt={displayName} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xl">
+            <AvatarFallback className="bg-linear-to-br from-blue-500 to-indigo-600 text-white font-bold text-xl">
               {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -90,7 +90,7 @@ export function CitizenInfoPanel({
         {/* Contact Information */}
         <div className="space-y-3">
           <div className="group flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-all duration-200 -mx-1">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-50 to-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
               <Mail className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
@@ -104,7 +104,7 @@ export function CitizenInfoPanel({
           </div>
 
           <div className="group flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-all duration-200 -mx-1">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-green-50 to-green-100 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
               <Phone className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">

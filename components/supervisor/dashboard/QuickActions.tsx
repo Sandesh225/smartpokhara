@@ -60,12 +60,12 @@ export function QuickActions({ counts }: QuickActionsProps) {
           <Link
             key={action.label}
             href={action.href}
-            className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 hover:shadow-lg hover:border-gray-300 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="group relative overflow-hidden bg-linear-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 hover:shadow-lg hover:border-gray-300 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             <div className="flex items-start gap-4">
               <div
                 className={cn(
-                  "h-12 w-12 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300",
+                  "h-12 w-12 rounded-lg bg-linear-to-br flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform duration-300",
                   action.gradient
                 )}
               >

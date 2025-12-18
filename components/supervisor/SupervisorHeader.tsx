@@ -74,7 +74,7 @@ export function SupervisorHeader({
         {/* RIGHT: Actions + Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Jurisdiction Pill (Desktop Only) */}
-          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/60 rounded-full mr-2">
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200/60 rounded-full mr-2">
             <Shield className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
             <div className="flex flex-col">
               <span className="text-[9px] font-bold text-blue-600/70 uppercase tracking-wider leading-none">
@@ -123,7 +123,7 @@ export function SupervisorHeader({
                       Supervisor
                     </p>
                   </div>
-                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-600/20 ring-2 ring-white group-hover:ring-blue-100 group-hover:shadow-lg group-hover:shadow-blue-600/30 transition-all duration-200">
+                  <div className="h-9 w-9 rounded-full bg-linear-to-br from-blue-600 via-blue-700 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-600/20 ring-2 ring-white group-hover:ring-blue-100 group-hover:shadow-lg group-hover:shadow-blue-600/30 transition-all duration-200">
                     {user.profile?.profile_photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

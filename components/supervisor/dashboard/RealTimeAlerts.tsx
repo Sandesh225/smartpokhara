@@ -82,7 +82,7 @@ export function RealTimeAlerts({ initialAlerts = [] }: { initialAlerts?: Alert[]
 
   if (visibleAlerts.length === 0) {
     return (
-      <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl border border-green-200 shadow-sm p-8 h-full flex flex-col items-center justify-center text-center">
+      <div className="bg-linear-to-br from-green-50 to-white rounded-2xl border border-green-200 shadow-sm p-8 h-full flex flex-col items-center justify-center text-center">
         <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce">
           <CheckCircle2 className="h-8 w-8 text-green-600" />
         </div>
@@ -95,7 +95,7 @@ export function RealTimeAlerts({ initialAlerts = [] }: { initialAlerts?: Alert[]
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm h-full flex flex-col overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-red-50 to-orange-50">
+      <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-red-50 to-orange-50">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -139,7 +139,9 @@ export function RealTimeAlerts({ initialAlerts = [] }: { initialAlerts?: Alert[]
                     {alert.message}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(alert.timestamp), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">

@@ -36,14 +36,16 @@ export function ComplaintsOverview({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Trend Chart - Spans 2 columns */}
       <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
+        <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-blue-50 to-cyan-50">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
                 <TrendingUp className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900">Volume Trend</h3>
+                <h3 className="text-base font-bold text-gray-900">
+                  Volume Trend
+                </h3>
                 <p className="text-xs text-gray-600">Last 30 days</p>
               </div>
             </div>
@@ -74,7 +76,7 @@ export function ComplaintsOverview({
 
       {/* Status Distribution - 1 column */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+        <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-purple-50 to-pink-50">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
               <PieChartIcon className="h-4 w-4 text-purple-600" />
@@ -106,13 +108,15 @@ export function ComplaintsOverview({
 
       {/* Category Breakdown - Full width */}
       <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-blue-50">
+        <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-indigo-50 to-blue-50">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
               <BarChart3 className="h-4 w-4 text-indigo-600" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">Top Categories</h3>
+              <h3 className="text-base font-bold text-gray-900">
+                Top Categories
+              </h3>
               <p className="text-xs text-gray-600">Most reported issues</p>
             </div>
           </div>
