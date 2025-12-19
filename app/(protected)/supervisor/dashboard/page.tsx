@@ -10,16 +10,19 @@ import { TeamOverview } from "@/components/supervisor/dashboard/TeamOverview";
 import { QuickActions } from "@/components/supervisor/dashboard/QuickActions";
 import { createClient } from "@/lib/supabase/server";
 
+// Force dynamic rendering to ensure fresh data on every request
 export const dynamic = "force-dynamic";
 
 export default async function SupervisorDashboard() {
+  // 1. Auth Check & User Context
   const user = await getCurrentUserWithRoles();
   if (!user) redirect("/login");
 
-  // Create Server Client (Has Cookies/Auth)
+  // 2. Create Server-Side Supabase Client (Handles Cookies)
   const supabase = await createClient();
 
-  // Pass 'supabase' client to ALL queries
+  // 3. Parallel Data Fetching
+  // CRITICAL: We pass 'user.id' to EVERY query to enforce jurisdiction filtering.
   const [
     metrics,
     statusData,
@@ -28,15 +31,20 @@ export default async function SupervisorDashboard() {
     activityData,
     staffData,
   ] = await Promise.all([
+    // Operational Counters (Active, Overdue, etc.)
     supervisorAnalyticsQueries.getComplaintMetrics(supabase, user.id),
-    supervisorAnalyticsQueries.getStatusDistribution(supabase),
-    supervisorAnalyticsQueries.getCategoryBreakdown(supabase),
+    
+    // Charts Data - Now scoped to department!
+    supervisorAnalyticsQueries.getStatusDistribution(supabase, user.id),
+    supervisorAnalyticsQueries.getCategoryBreakdown(supabase, user.id),
     supervisorAnalyticsQueries.getTrendData(supabase, user.id),
-    supervisorAnalyticsQueries.getRecentActivity(supabase),
+    
+    // Feeds & Lists
+    supervisorAnalyticsQueries.getRecentActivity(supabase, user.id),
     supervisorStaffQueries.getSupervisedStaff(supabase, user.id),
   ]);
 
-  // Construct initial alerts based on metrics
+  // 4. Construct Alerts based on live metrics
   const initialAlerts: any[] = [];
 
   if (metrics.overdueCount > 0) {
@@ -60,21 +68,21 @@ export default async function SupervisorDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6 bg-slate-50 min-h-screen">
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Dashboard Overview
         </h1>
         <p className="text-gray-600">
-          Monitor complaints, team performance, and key metrics at a glance.
+          Monitor complaints, team performance, and key metrics for your jurisdiction.
         </p>
       </div>
 
-      {/* Header Metrics */}
+      {/* Header Metrics Cards */}
       <DashboardMetrics metrics={metrics} />
 
-      {/* Quick Actions */}
+      {/* Quick Actions Bar */}
       <QuickActions
         counts={{
           unassigned: metrics.unassignedCount,
@@ -84,23 +92,27 @@ export default async function SupervisorDashboard() {
 
       {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content Area - 2 columns */}
+        {/* Left Column (Charts & Tables) - Spans 2 cols */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Charts Section */}
           <ComplaintsOverview
             statusData={statusData}
             categoryData={categoryData}
             trendData={trendData}
           />
 
+          {/* Staff Table */}
           <TeamOverview staff={staffData} />
         </div>
 
-        {/* Sidebar - Alerts & Activity */}
+        {/* Right Column (Sidebar) - Spans 1 col */}
         <div className="space-y-6">
-          <div className="min-h-[350px]">
+          {/* Alerts Panel */}
+          <div className="min-h-[200px]">
             <RealTimeAlerts initialAlerts={initialAlerts} />
           </div>
 
+          {/* Activity Feed Panel */}
           <div className="min-h-[400px]">
             <ActivityFeed initialActivity={activityData} />
           </div>

@@ -1,101 +1,83 @@
 // lib/types/auth.ts
-import type { Enums, Tables } from "./database.types";
 
-/**
- * Role type from DB enum
- */
-export type RoleType = Enums<"user_role">;
+/* -------------------------------------------------------------------------- */
+/* CORE TYPES                                  */
+/* -------------------------------------------------------------------------- */
 
-export interface Role {
-  id: string;
-  name: string;
-  role_type: RoleType;
-  description: string | null;
-  permissions: Record<string, any>;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserRole {
-  id: string;
-  user_id: string;
-  role_id: string;
-  assigned_by: string | null;
-  assigned_at: string;
-  expires_at: string | null;
-  created_at: string;
-  role?: Role;
-}
+export type RoleType =
+  | "admin"
+  | "dept_head"
+  | "dept_staff"
+  | "ward_staff"
+  | "field_staff"
+  | "call_center"
+  | "citizen"
+  | "business_owner"
+  | "tourist";
 
 export interface UserProfile {
   id: string;
   user_id: string;
   full_name: string;
   full_name_nepali: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  citizenship_number: string | null;
   ward_id: string | null;
-  address_line1: string | null;
-  address_line2: string | null;
-  landmark: string | null;
   profile_photo_url: string | null;
-  language_preference: string;
-  notification_preferences: {
+  language_preference: "en" | "ne";
+  // Simplified preferences for frontend usage
+  notification_preferences?: {
     sms: boolean;
     email: boolean;
     in_app: boolean;
   };
-  created_at: string;
-  updated_at: string;
 }
 
-export interface AuthUser {
+export interface StaffProfile {
+  staff_code: string;
+  department_id: string | null;
+  ward_id: string | null;
+  staff_role: RoleType;
+  is_supervisor: boolean;
+  is_active: boolean;
+}
+
+/**
+ * The main user object used throughout the application.
+ * Calculated efficiently by session.ts
+ */
+export interface CurrentUser {
   id: string;
   email: string;
-  phone: string | null;
-  is_active: boolean;
-  is_verified: boolean;
-  email_verified_at: string | null;
-  phone_verified_at: string | null;
-  last_login_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
+  phone?: string | null;
 
-/**
- * Current user with full context
- */
-export interface CurrentUser extends AuthUser {
-  profile: UserProfile | null;
-  /**
-   * Flat list of role types (for quick checks)
-   */
+  // Authorization Data
   roles: RoleType[];
-  /**
-   * Full role assignments (if you hydrate them from /roles + /user_roles)
-   */
-  userRoles: UserRole[];
+  primary_role: RoleType;
+
+  // Profile Data
+  profile: UserProfile | null;
+  staff_profile?: StaffProfile | null;
+
+  // Status
+  is_active: boolean;
+  is_verified?: boolean;
 }
 
-/**
- * Dashboard types based on role precedence
- */
-export type DashboardType = "admin" | "staff" | "citizen" | "supervisor";
+/* -------------------------------------------------------------------------- */
+/* FORM TYPES                                  */
+/* -------------------------------------------------------------------------- */
 
-/**
- * Auth form modes
- */
 export type AuthMode =
   | "login"
   | "register"
   | "forgot-password"
   | "reset-password";
 
-/**
- * Registration form data
- */
+export interface LoginFormData {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
 export interface RegisterFormData {
   email: string;
   password: string;
@@ -105,183 +87,11 @@ export interface RegisterFormData {
   language_preference?: "en" | "ne";
 }
 
-/**
- * Login form data
- */
-export interface LoginFormData {
-  email: string;
-  password: string;
-  rememberMe?: boolean;
-}
-
-/**
- * Password reset request data
- */
 export interface ForgotPasswordFormData {
   email: string;
 }
 
-/**
- * Password reset confirmation data
- */
 export interface ResetPasswordFormData {
   password: string;
   confirmPassword: string;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                          Role precedence & helpers                         */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Role precedence mapping – must match SQL ORDER BY in fn_get_user_roles & RPC
- * Lower index = higher precedence
- */
-export const ROLE_PRECEDENCE: RoleType[] = [
-  "admin",
-  "dept_head",
-  "dept_staff",
-  "ward_staff",
-  "field_staff",
-  "call_center",
-  "citizen",
-  "business_owner",
-  "tourist",
-];
-
-/**
- * Extract primary role from a list of role types according to precedence.
- */
-export function getPrimaryRoleFromList(roles: RoleType[]): RoleType | null {
-  if (!roles.length) return null;
-  const ordered = [...roles].sort(
-    (a, b) => ROLE_PRECEDENCE.indexOf(a) - ROLE_PRECEDENCE.indexOf(b)
-  );
-  return ordered[0] ?? null;
-}
-
-/**
- * Check if user has at least one of the allowed roles.
- */
-export function hasRole(
-  user: Pick<CurrentUser, "roles"> | { roles?: RoleType[] } | null | undefined,
-  allowed: RoleType[]
-): boolean {
-  if (!user || !user.roles || user.roles.length === 0) return false;
-  return user.roles.some((r) => allowed.includes(r));
-}
-
-export function isAdmin(user: CurrentUser | null | undefined): boolean {
-  return hasRole(user, ["admin", "dept_head"]);
-}
-
-export function isStaff(user: CurrentUser | null | undefined): boolean {
-  return hasRole(user, [
-    "admin",
-    "dept_head",
-    "dept_staff",
-    "ward_staff",
-    "field_staff",
-    "call_center",
-  ]);
-}
-
-export function isCitizenOnly(user: CurrentUser | null | undefined): boolean {
-  if (!user || !user.roles?.length) return false;
-  return (
-    user.roles.includes("citizen") &&
-    !hasRole(user, [
-      "admin",
-      "dept_head",
-      "dept_staff",
-      "ward_staff",
-      "field_staff",
-      "call_center",
-    ])
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*          Mapper: from RPC row -> CurrentUser (optional RPC usage)         */
-/* -------------------------------------------------------------------------- */
-
-export interface RpcCurrentUserRow {
-  user_id: string;
-  email: string;
-  phone: string | null;
-  is_active: boolean;
-  is_verified: boolean;
-  full_name: string | null;
-  profile_photo_url: string | null;
-  language_preference: string | null;
-  roles:
-    | {
-        role_type: RoleType;
-        role_name: string;
-        permissions: Record<string, any>;
-      }[]
-    | null;
-  primary_role: RoleType | null;
-}
-
-/**
- * Map the get_current_user_with_roles RPC row + raw DB rows into a CurrentUser.
- */
-export function mapRpcUserToCurrentUser(args: {
-  rpcRow: RpcCurrentUserRow;
-  userRow: Tables<"users">;
-  profileRow: Tables<"user_profiles"> | null;
-  userRoles?: (Tables<"user_roles"> & { role?: Tables<"roles"> })[];
-}): CurrentUser {
-  const { rpcRow, userRow, profileRow, userRoles = [] } = args;
-
-  const rolesFromRpc = (rpcRow.roles ?? []).map((r) => r.role_type);
-  const uniqueRoles = Array.from(new Set<RoleType>(rolesFromRpc));
-
-  const profile: UserProfile | null = profileRow
-    ? {
-        id: profileRow.id,
-        user_id: profileRow.user_id,
-        full_name: profileRow.full_name,
-        full_name_nepali: profileRow.full_name_nepali,
-        date_of_birth: profileRow.date_of_birth,
-        gender: profileRow.gender,
-        citizenship_number: profileRow.citizenship_number,
-        ward_id: profileRow.ward_id,
-        address_line1: profileRow.address_line1,
-        address_line2: profileRow.address_line2,
-        landmark: profileRow.landmark,
-        profile_photo_url: profileRow.profile_photo_url,
-        language_preference: profileRow.language_preference,
-        notification_preferences:
-          profileRow.notification_preferences as UserProfile["notification_preferences"],
-        created_at: profileRow.created_at,
-        updated_at: profileRow.updated_at,
-      }
-    : null;
-
-  return {
-    id: userRow.id,
-    email: userRow.email,
-    phone: userRow.phone,
-    is_active: userRow.is_active,
-    is_verified: userRow.is_verified,
-    email_verified_at: userRow.email_verified_at,
-    phone_verified_at: userRow.phone_verified_at,
-    last_login_at: userRow.last_login_at,
-    created_at: userRow.created_at,
-    updated_at: userRow.updated_at,
-    profile,
-    roles: uniqueRoles,
-    userRoles: userRoles.map((ur) => ({
-      id: ur.id,
-      user_id: ur.user_id,
-      role_id: ur.role_id,
-      assigned_by: ur.assigned_by,
-      assigned_at: ur.assigned_at,
-      expires_at: ur.expires_at,
-      created_at: ur.created_at,
-      role: (ur as any).role ?? undefined,
-    })),
-  };
 }

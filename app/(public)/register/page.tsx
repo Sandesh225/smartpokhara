@@ -1,5 +1,4 @@
-"use client";
-
+// app/register/page.tsx
 import Link from "next/link";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ArrowLeft, Sparkles } from "lucide-react";
@@ -20,7 +19,7 @@ export default function RegisterPage() {
               Back to Home
             </Link>
 
-            <div className="h-12 w-12 rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-600/20 mb-6">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-600/20 mb-6">
               <Sparkles className="h-6 w-6" />
             </div>
 
@@ -69,7 +68,7 @@ export default function RegisterPage() {
               backgroundImage: `url('https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=2071')`,
             }}
           />
-          <div className="absolute inset-0 bg-linear-to-t from-blue-900/90 via-blue-900/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 via-blue-900/40 to-transparent" />
         </div>
 
         {/* Floating Content over Image */}
@@ -92,7 +91,9 @@ export default function RegisterPage() {
                     key={i}
                     className="h-10 w-10 rounded-full border-2 border-slate-900 bg-slate-200"
                     style={{
-                      backgroundImage: `url(https://i.pravatar.cc/100?img=${i + 20})`,
+                      backgroundImage: `url(https://i.pravatar.cc/100?img=${
+                        i + 20
+                      })`,
                       backgroundSize: "cover",
                     }}
                   />

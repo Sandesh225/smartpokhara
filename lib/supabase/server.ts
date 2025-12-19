@@ -1,7 +1,8 @@
+// lib/supabase/server.ts
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function createServerSupabaseClient() {
+export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -18,19 +19,10 @@ export async function createServerSupabaseClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Handled by middleware
           }
         },
       },
     }
   );
 }
-
-// Shorter alias
-export const createClient = createServerSupabaseClient;
-
-// 🔴 REMOVED: export const supabase = createClient();
-// We removed the line above because it tried to access cookies
-// immediately upon file load, causing your crash.

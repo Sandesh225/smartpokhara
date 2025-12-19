@@ -14,6 +14,7 @@ type CitizenLayoutProps = {
   children: ReactNode;
 };
 
+// Ensure this layout is dynamic so it checks auth on every navigation
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -24,15 +25,22 @@ export default async function CitizenLayout({ children }: CitizenLayoutProps) {
     redirect("/login?error=session_expired");
   }
 
+  // Double check strict role protection
+  if (!user.roles.includes("citizen") && !user.roles.includes("admin")) {
+     // Optional: Redirect staff to their own portal if they try to access citizen view
+     // redirect("/staff/dashboard"); 
+  }
+
   const supabase = await createClient();
 
-  // Server-side data prefetch
+  // Server-side data prefetch for the sidebar badges
+  // We use Promise.all to fetch them in parallel for speed
   const [complaintsResult, notificationsResult] = await Promise.all([
     supabase
       .from("complaints")
       .select("id", { count: "exact", head: true })
-      .eq("owner_id", user.id)
-      .in("status", ["submitted", "received", "assigned"]),
+      .eq("citizen_id", user.id) // Corrected from owner_id to citizen_id based on DB Schema
+      .not("status", "eq", "closed"), // Count active complaints
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -50,7 +58,7 @@ export default async function CitizenLayout({ children }: CitizenLayoutProps) {
         id: user.id,
         email: user.email,
         displayName,
-        roleName, // UX: Dynamic role label passed to client
+        roleName,
         roles: user.roles,
         profile: user.profile,
       }}

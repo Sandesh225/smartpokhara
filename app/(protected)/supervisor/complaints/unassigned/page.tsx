@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server"; // Import server client
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
 import { UnassignedQueue } from "@/components/supervisor/complaints/UnassignedQueue";
@@ -16,13 +16,16 @@ export default async function UnassignedComplaintsPage() {
   // Create client with cookies
   const supabase = await createClient();
 
-  // Pass client to query
-  const complaints = await supervisorComplaintsQueries.getUnassignedComplaints(supabase);
+  // Pass supervisor ID to filter complaints by department
+  const complaints = await supervisorComplaintsQueries.getUnassignedComplaints(
+    supabase,
+    user.id
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <UnassignedQueue 
+        <UnassignedQueue
           initialComplaints={complaints}
           supervisorId={user.id}
         />

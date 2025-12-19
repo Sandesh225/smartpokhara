@@ -1,187 +1,238 @@
-/**
- * Supervisor Portal Type Definitions
- * * Aggregates types for Complaints, Staff, Tasks, and Notifications
- * aligned with the PostgreSQL schema V4.0.
- */
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
-/* -------------------------------------------------------------------------- */
-/* ENUMS                                   */
-/* -------------------------------------------------------------------------- */
+export type SupervisorLevel = "ward" | "department" | "combined" | "senior";
+export type TaskType =
+  | "maintenance"
+  | "inspection"
+  | "follow_up"
+  | "emergency"
+  | "routine"
+  | "project"
+  | "training";
+export type TaskStatus =
+  | "not_started"
+  | "in_progress"
+  | "completed"
+  | "overdue"
+  | "cancelled"
+  | "pending_approval";
+export type EscalationTarget =
+  | "admin"
+  | "senior_supervisor"
+  | "other_department"
+  | "external_agency";
+export type StaffAvailability =
+  | "available"
+  | "busy"
+  | "on_break"
+  | "off_duty"
+  | "on_leave"
+  | "training";
+export type ReportFormat = "pdf" | "excel" | "csv" | "html";
 
-export type SupervisorLevel = 'ward' | 'department' | 'combined' | 'senior';
-
-export type PriorityLevel = 'critical' | 'urgent' | 'high' | 'medium' | 'low';
-
-export type ComplaintStatus = 
-  | 'received' 
-  | 'under_review' 
-  | 'assigned' 
-  | 'in_progress' 
-  | 'resolved' 
-  | 'closed' 
-  | 'rejected' 
-  | 'escalated';
-
-export type TaskStatus = 
-  | 'not_started' 
-  | 'in_progress' 
-  | 'completed' 
-  | 'overdue' 
-  | 'cancelled';
-
-export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
-
-/* -------------------------------------------------------------------------- */
-/* COMPLAINTS                                 */
-/* -------------------------------------------------------------------------- */
-
-export interface ComplaintFilters {
-  search?: string;
-  status?: string[];
-  priority?: string[];
-  ward_id?: string[];
-  category?: string[]; // category_id array
-  assigned_to?: string; // staff_id
-  date_from?: string; // ISO Date string
-  date_to?: string;   // ISO Date string
-  sla_status?: 'on_time' | 'at_risk' | 'overdue';
-}
-
-export interface Complaint {
-  id: string;
-  tracking_code: string;
-  title: string;
-  description: string;
-  status: ComplaintStatus;
-  priority: PriorityLevel;
-  
-  // Relations (Flattened for UI)
-  category: {
-    id?: string;
-    name: string;
+export interface Database {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          phone: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          phone?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          phone?: string | null;
+          is_active?: boolean;
+          updated_at?: string;
+        };
+      };
+      departments: {
+        Row: {
+          id: string;
+          name: string;
+          code: string;
+          description: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          code: string;
+          description?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          code?: string;
+          description?: string | null;
+          is_active?: boolean;
+        };
+      };
+      wards: {
+        Row: {
+          id: string;
+          ward_number: number;
+          name: string;
+          area_sq_km: number | null;
+          population: number | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          ward_number: number;
+          name: string;
+          area_sq_km?: number | null;
+          population?: number | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          ward_number?: number;
+          name?: string;
+          area_sq_km?: number | null;
+          population?: number | null;
+          is_active?: boolean;
+        };
+      };
+      staff_profiles: {
+        Row: {
+          user_id: string;
+          staff_code: string | null;
+          department_id: string | null;
+          ward_id: string | null;
+          staff_role: string;
+          is_supervisor: boolean;
+          current_workload: number;
+          max_concurrent_assignments: number;
+          performance_rating: number;
+          availability_status: StaffAvailability;
+          last_known_location: string | null;
+          last_active_at: string | null;
+          is_active: boolean;
+        };
+      };
+      supervisor_profiles: {
+        Row: {
+          user_id: string;
+          supervisor_level: SupervisorLevel;
+          assigned_wards: string[];
+          assigned_departments: string[];
+          can_assign_staff: boolean;
+          can_escalate: boolean;
+          can_approve_leave: boolean;
+          can_generate_reports: boolean;
+          can_close_complaints: boolean;
+          target_resolution_rate: number;
+          target_sla_compliance: number;
+          target_citizen_satisfaction: number;
+          dashboard_widgets: Json;
+        };
+      };
+      complaints: {
+        Row: {
+          id: string;
+          tracking_code: string;
+          citizen_id: string | null;
+          title: string;
+          category_id: string | null;
+          subcategory_id: string | null;
+          status: string;
+          priority: string;
+          ward_id: string | null;
+          assigned_staff_id: string | null;
+          assigned_department_id: string | null;
+          sla_due_at: string | null;
+          sla_breached_at: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          resolution_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+      };
+      supervisor_tasks: {
+        Row: {
+          id: string;
+          tracking_code: string;
+          title: string;
+          description: string;
+          task_type: TaskType;
+          priority: string;
+          supervisor_id: string;
+          assigned_to: string[];
+          primary_assigned_to: string | null;
+          due_date: string;
+          status: TaskStatus;
+          budget_allocated: number;
+          budget_spent: number;
+          location_point: string | null;
+          completion_notes: string | null;
+          completed_at: string | null;
+        };
+      };
+      sla_extensions: {
+        Row: {
+          id: string;
+          complaint_id: string;
+          requested_by: string;
+          approved_by: string | null;
+          reason_category: string | null;
+          reason_text: string;
+          original_deadline: string;
+          new_deadline: string;
+          status: string;
+        };
+      };
+    };
+    Views: {
+      supervisor_dashboard_metrics: {
+        Row: {
+          supervisor_id: string;
+          active_complaints: number;
+          overdue_complaints: number;
+          avg_resolution_hours: number;
+          team_size: number;
+          available_staff_count: number;
+        };
+      };
+    };
+    Functions: {
+      rpc_get_supervisor_dashboard_v13: {
+        Args: { p_supervisor_id: string };
+        Returns: Json;
+      };
+      rpc_recommend_staff_v13: {
+        Args: { p_loc: string; p_dept: string };
+        Returns: {
+          sid: string;
+          workload: number;
+          dist_km: number;
+          rating: number;
+        }[];
+      };
+    };
   };
-  ward: {
-    id?: string;
-    name: string;
-    ward_number: number;
-  };
-  citizen: {
-    full_name: string;
-    email?: string;
-    phone?: string;
-  };
-  assigned_staff: {
-    user_id?: string;
-    full_name: string;
-    staff_code?: string;
-    avatar_url?: string;
-  } | null;
-
-  // Timestamps
-  submitted_at: string;
-  updated_at: string;
-  sla_due_at: string;
-  resolved_at?: string | null;
-  closed_at?: string | null;
-}
-
-/* -------------------------------------------------------------------------- */
-/* SUPERVISOR                                  */
-/* -------------------------------------------------------------------------- */
-
-export interface SupervisorProfile {
-  id: string;
-  user_id: string;
-  supervisor_level: SupervisorLevel;
-  assigned_wards: string[]; // Array of Ward IDs
-  assigned_departments: string[]; // Array of Dept IDs
-  
-  // Permissions Flags
-  can_assign_staff: boolean;
-  can_escalate: boolean;
-  can_close_complaints: boolean;
-  can_create_tasks: boolean;
-  can_approve_leave: boolean;
-  can_generate_reports: boolean;
-}
-
-export interface SupervisorNotification {
-  id: string;
-  supervisor_id: string;
-  type: string; // 'complaint_status', 'assignment', 'system', etc.
-  title: string;
-  message: string;
-  priority: NotificationPriority;
-  is_read: boolean;
-  action_url?: string;
-  created_at: string;
-  read_at?: string | null;
-  metadata?: Record<string, any>;
-}
-
-/* -------------------------------------------------------------------------- */
-/* TASKS                                    */
-/* -------------------------------------------------------------------------- */
-
-export interface SupervisorTask {
-  id: string;
-  tracking_code: string;
-  title: string;
-  description: string;
-  task_type: string;
-  priority: PriorityLevel;
-  status: TaskStatus;
-  due_date: string;
-  
-  supervisor_id: string;
-  primary_assigned_to?: string; // User ID
-  assigned_to: string[]; // Array of User IDs
-  
-  location_point?: { lat: number; lng: number } | null;
-  ward_id?: string;
-  
-  completion_percentage: number;
-  checklist_items?: TaskChecklistItem[];
-  
-  created_at: string;
-  updated_at: string;
-}
-
-export interface TaskChecklistItem {
-  id: string;
-  task_id: string;
-  description: string;
-  is_required: boolean;
-  is_completed: boolean;
-  display_order: number;
-}
-
-/* -------------------------------------------------------------------------- */
-/* STAFF                                    */
-/* -------------------------------------------------------------------------- */
-
-export interface StaffProfile {
-  user_id: string;
-  full_name: string;
-  email?: string;
-  phone?: string;
-  staff_code: string;
-  department_id?: string;
-  ward_id?: string;
-  role: string;
-  is_active: boolean;
-  
-  // Workload & Status
-  availability_status: 'available' | 'busy' | 'on_break' | 'off_duty' | 'on_leave';
-  current_workload: number;
-  max_concurrent_assignments: number;
-  performance_rating: number;
-  last_known_location?: { lat: number; lng: number } | null;
-}
-
-export interface AssignableStaff extends StaffProfile {
-  capacity_percentage: number;
-  distance_km: number | null;
-  is_available: boolean;
-  recommendation_rank: number;
 }

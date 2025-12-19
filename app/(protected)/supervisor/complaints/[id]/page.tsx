@@ -37,6 +37,7 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
   }
 
   // 2. Fetch Ancillary Data Parallelly
+  // We use the specialized methods from our query service to ensure jurisdiction logic
   const [internalNotes, attachments] = await Promise.all([
     supervisorComplaintsQueries.getInternalNotes(supabase, id).catch(() => []),
     supervisorComplaintsQueries
@@ -45,14 +46,13 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
   ]);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-slate-50/50 pb-12">
       <ComplaintDetailHeader complaint={complaint} userId={user.id} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT COLUMN (Main Info) */}
           <div className="lg:col-span-8 space-y-6">
-            {/* The Attachments Section */}
             <AttachmentsSection
               citizenUploads={attachments.citizenUploads}
               staffUploads={attachments.staffUploads}

@@ -1,151 +1,125 @@
-// middleware.ts
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
 import { createServerClient } from "@supabase/ssr";
 
-const ROLE_CACHE = new Map<string, { roles: string[]; timestamp: number }>();
-const CACHE_TTL = 60 * 1000;
-
 export async function middleware(request: NextRequest) {
-  const response = await updateSession(request);
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options) {
-          response.cookies.set({ name, value: "", ...options });
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
         },
       },
     }
   );
 
+  // 1. Get User
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
+  const url = request.nextUrl;
+  const pathname = url.pathname;
 
+  // 2. Define Route Categories
   const isAuthPage = ["/login", "/register", "/forgot-password"].some((p) =>
     pathname.startsWith(p)
   );
-
   const isResetPasswordPage = pathname.startsWith("/reset-password");
-  const isPublicInvitationPage = pathname.startsWith(
-    "/staff/accept-invitation"
+  const isPublicInvitation = pathname.startsWith("/staff/accept-invitation");
+
+  // Protected roots
+  const isProtected = ["/citizen", "/staff", "/supervisor", "/admin"].some(
+    (p) => pathname.startsWith(p)
   );
-  const isProtectedRoute = ["/citizen", "/staff", "/admin"].some((p) =>
-    pathname.startsWith(p)
-  );
 
-  // CRITICAL: Always allow access to reset-password page
-  // Let the page itself handle session validation
-  // middleware.ts (update the reset password section)
-  if (isResetPasswordPage) {
-    console.log("🔐 Allowing access to reset-password page");
+  // 3. Handle Public/Auth Scenarios
 
-    // Check if user is in password reset flow
-    const passwordResetCookie = request.cookies.get("password-reset-flow");
+  // Allow password reset flow regardless of session
+  if (isResetPasswordPage) return response;
 
-    if (!user && !passwordResetCookie) {
-      // User might be coming from email link - let them through
-      console.log("👤 User might be in password reset flow, allowing access");
-    }
+  // Allow public invitation pages if not logged in
+  if (isPublicInvitation && !user) return response;
 
-    return response;
-  }
-  // Allow unauthenticated access to invitation page
-  if (isPublicInvitationPage && !user) {
-    return response;
-  }
-
-  // Redirect unauthenticated users from protected routes
-  if (!user && isProtectedRoute) {
-    const redirectUrl = new URL("/login", request.url);
+  // Redirect unauthenticated users trying to access protected routes
+  if (isProtected && !user) {
+    const redirectUrl = url.clone();
+    redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Redirect authenticated users from auth pages to their dashboard
-  if (user && isAuthPage) {
-    try {
-      const roles = await getUserRolesWithCache(supabase, user.id);
-      let dashboardPath = "/citizen/dashboard";
-
-      if (roles.includes("admin") || roles.includes("dept_head")) {
-        dashboardPath = "/admin/dashboard";
-      } else if (
-        roles.some((r) =>
-          ["dept_staff", "ward_staff", "field_staff", "call_center"].includes(r)
-        )
-      ) {
-        dashboardPath = "/staff/dashboard";
-      }
-
-      console.log(
-        "📍 Redirecting authenticated user from",
-        pathname,
-        "to",
-        dashboardPath
-      );
-      return NextResponse.redirect(new URL(dashboardPath, request.url));
-    } catch (error) {
-      console.error("Middleware error:", error);
-      return NextResponse.redirect(new URL("/citizen/dashboard", request.url));
-    }
-  }
-
-  // Role-based access control for protected routes
-  if (user && isProtectedRoute && !isPublicInvitationPage) {
-    try {
-      const roles = await getUserRolesWithCache(supabase, user.id);
-
-      if (pathname.startsWith("/admin")) {
-        const hasAdminAccess =
-          roles.includes("admin") || roles.includes("dept_head");
-
-        if (!hasAdminAccess) {
-          const fallback = roles.some((r) =>
-            ["dept_staff", "ward_staff", "field_staff", "call_center"].includes(
-              r
-            )
-          )
-            ? "/staff/dashboard"
-            : "/citizen/dashboard";
-
-          return NextResponse.redirect(new URL(fallback, request.url));
-        }
-      }
-
-      if (pathname.startsWith("/staff")) {
-        const hasStaffAccess = roles.some((r) =>
-          [
-            "admin",
-            "dept_head",
-            "dept_staff",
-            "ward_staff",
-            "field_staff",
-            "call_center",
-          ].includes(r)
+  // 4. Handle Authenticated User Routing
+  if (user) {
+    // If user is on an auth page, or we need to check role access for a protected route
+    if (isAuthPage || isProtected) {
+      try {
+        // CALL THE RPC: Let Postgres calculate the correct path
+        const { data: config, error } = await supabase.rpc(
+          "rpc_get_dashboard_config"
         );
 
-        if (!hasStaffAccess) {
-          return NextResponse.redirect(
-            new URL("/citizen/dashboard", request.url)
-          );
+        if (error || !config || !config.authenticated) {
+          // Fallback if RPC fails (shouldn't happen for valid users)
+          console.error("Middleware RPC Error:", error);
+          if (isAuthPage) return response; // Let them try to logout/login
+          return NextResponse.redirect(new URL("/login", request.url));
         }
-      }
-    } catch (error) {
-      console.error("Middleware role check error:", error);
-      if (pathname.startsWith("/admin") || pathname.startsWith("/staff")) {
-        if (!isPublicInvitationPage) {
+
+        const targetDashboard = config.dashboard_config.default_route;
+
+        // SCENARIO A: User is on Login/Register but already logged in
+        if (isAuthPage) {
+          // Prevent redirect loop: Only redirect if not already there
+          if (pathname !== targetDashboard) {
+            return NextResponse.redirect(new URL(targetDashboard, request.url));
+          }
+          return response;
+        }
+
+        // SCENARIO B: User is on a protected route. Check if they are allowed.
+        if (isProtected) {
+          // Simple check: Does the current path start with one of their allowed portals?
+          // e.g. path is /admin/users, available_portals is ['citizen', 'staff'] -> BLOCK
+          const currentPortal = pathname.split("/")[1]; // "admin", "staff", etc.
+          const allowedPortals = config.dashboard_config.available_portals;
+
+          // Note: "dashboard" is a common shared route, strictly check portal prefixes
+          const isAllowed = allowedPortals.includes(currentPortal);
+
+          if (!isAllowed) {
+            // Redirect to their default dashboard if they try to access unauthorized portal
+            if (pathname !== targetDashboard) {
+              return NextResponse.redirect(
+                new URL(targetDashboard, request.url)
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Middleware Exception:", err);
+        // Fail safe to citizen dashboard
+        if (pathname !== "/citizen/dashboard") {
           return NextResponse.redirect(
             new URL("/citizen/dashboard", request.url)
           );
@@ -155,43 +129,6 @@ export async function middleware(request: NextRequest) {
   }
 
   return response;
-}
-
-async function getUserRolesWithCache(
-  supabase: any,
-  userId: string
-): Promise<string[]> {
-  const now = Date.now();
-  const cached = ROLE_CACHE.get(userId);
-
-  if (cached && now - cached.timestamp < CACHE_TTL) {
-    return cached.roles;
-  }
-
-  const roles = await getUserRoles(supabase, userId);
-  ROLE_CACHE.set(userId, { roles, timestamp: now });
-  return roles;
-}
-
-async function getUserRoles(supabase: any, userId: string): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select(`role:roles(role_type, is_active)`)
-      .eq("user_id", userId)
-      .eq("role.is_active", true);
-
-    if (error || !data || data.length === 0) {
-      return [];
-    }
-
-    return data
-      .map((ur: any) => ur.role?.role_type)
-      .filter((rt: any) => rt && typeof rt === "string");
-  } catch (error) {
-    console.error("Error fetching roles:", error);
-    return [];
-  }
 }
 
 export const config = {
