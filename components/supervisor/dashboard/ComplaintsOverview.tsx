@@ -105,39 +105,6 @@ export function ComplaintsOverview({
           )}
         </div>
       </div>
-
-      {/* Category Breakdown - Full width */}
-      <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-        <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-indigo-50 to-blue-50">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-              <BarChart3 className="h-4 w-4 text-indigo-600" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-gray-900">
-                Top Categories
-              </h3>
-              <p className="text-xs text-gray-600">Most reported issues</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          {hasCategoryData ? (
-            <BarChart
-              data={categoryData}
-              xKey="name"
-              series={[{ key: "value", name: "Complaints", color: "#6366f1" }]}
-              height={200}
-            />
-          ) : (
-            <EmptyState
-              icon={InboxIcon}
-              title="No Category Data"
-              message="Category breakdown will appear once complaints are categorized"
-            />
-          )}
-        </div>
-      </div>
     </div>
   );
 }

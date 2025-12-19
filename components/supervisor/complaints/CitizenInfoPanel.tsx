@@ -18,6 +18,9 @@ interface CitizenInfoPanelProps {
   isAnonymous?: boolean;
 }
 
+/**
+ * Displays verified citizen information or anonymous status.
+ */
 export function CitizenInfoPanel({
   citizen,
   isAnonymous,
@@ -40,8 +43,8 @@ export function CitizenInfoPanel({
               <p className="text-base font-bold text-slate-900 mb-1">
                 Anonymous Submission
               </p>
-              <p className="text-sm text-slate-600">
-                Personal details are protected for privacy
+              <p className="text-sm text-slate-600 leading-relaxed">
+                The citizen has requested privacy. Contact details are restricted.
               </p>
             </div>
           </div>
@@ -50,14 +53,14 @@ export function CitizenInfoPanel({
     );
   }
 
-  const displayName = citizen?.full_name || "Unknown Citizen";
-  const displayEmail = citizen?.email || "Not provided";
-  const displayPhone = citizen?.phone || "Not provided";
+  const displayName = citizen?.full_name || "Citizen (Name Missing)";
+  const displayEmail = citizen?.email || "No email available";
+  const displayPhone = citizen?.phone || "No phone available";
   const avatarUrl = citizen?.avatar_url;
-  const hasContact = citizen?.email || citizen?.phone;
+  const hasContact = !!(citizen?.email || citizen?.phone);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-in fade-in duration-500">
       <div className="px-5 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50/80 to-white">
         <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
           <User className="w-4 h-4" />
@@ -66,76 +69,65 @@ export function CitizenInfoPanel({
       </div>
 
       <div className="p-6">
-        {/* Profile Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Avatar className="h-16 w-16 border-2 border-white shadow-md ring-2 ring-gray-100">
+          <Avatar className="h-16 w-16 border-2 border-white shadow-md ring-2 ring-blue-50">
             <AvatarImage src={avatarUrl} alt={displayName} />
-            <AvatarFallback className="bg-linear-to-br from-blue-500 to-indigo-600 text-white font-bold text-xl">
+            <AvatarFallback className="bg-linear-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl">
               {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
 
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-gray-900 text-lg truncate leading-tight">
+            <p className="font-extrabold text-gray-900 text-lg truncate leading-tight">
               {displayName}
             </p>
-            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-green-100 text-green-700 mt-2 uppercase tracking-wide">
-              ✓ Verified
-            </span>
+            <div className="flex items-center gap-1.5 mt-2">
+               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase tracking-wider">
+                ✓ Verified Account
+              </span>
+            </div>
           </div>
         </div>
 
-        <Separator className="my-4" />
+        <Separator className="my-4 opacity-50" />
 
-        {/* Contact Information */}
-        <div className="space-y-3">
-          <div className="group flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-all duration-200 -mx-1">
-            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-50 to-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
               <Mail className="w-4 h-4" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wide mb-0.5">
-                Email Address
-              </p>
-              <p className="font-medium text-gray-900 truncate text-sm">
-                {displayEmail}
-              </p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Email</p>
+              <p className="text-sm font-semibold text-slate-700 truncate">{displayEmail}</p>
             </div>
           </div>
 
-          <div className="group flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition-all duration-200 -mx-1">
-            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-green-50 to-green-100 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
               <Phone className="w-4 h-4" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wide mb-0.5">
-                Phone Number
-              </p>
-              <p className="font-medium text-gray-900 text-sm">
-                {displayPhone}
-              </p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Phone</p>
+              <p className="text-sm font-semibold text-slate-700">{displayPhone}</p>
             </div>
           </div>
         </div>
 
-        <Separator className="my-5" />
-
-        {/* Action Buttons */}
-        <div className="space-y-2">
+        <div className="mt-8 space-y-2">
           <Button
-            variant="outline"
-            className="w-full justify-start text-sm font-semibold h-10 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-all"
+            variant="default"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11"
             disabled={!hasContact}
           >
             <MessageSquare className="w-4 h-4 mr-2" />
-            Send Message
+            Send Private Message
           </Button>
           <Button
             variant="outline"
-            className="w-full justify-start text-sm font-semibold h-10 hover:bg-gray-50 transition-all"
+            className="w-full border-slate-200 text-slate-600 font-bold h-11 hover:bg-slate-50"
           >
             <Info className="w-4 h-4 mr-2" />
-            View Full Profile
+            Full History
           </Button>
         </div>
       </div>

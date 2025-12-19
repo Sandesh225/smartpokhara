@@ -29,16 +29,16 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
   const [staffList, setStaffList] = useState<AssignableStaff[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
 
-  // Initialize Supabase Client (Browser side)
   const supabase = createClient();
 
   // 1. Real-time Updates
   useEffect(() => {
-    // Safety check for the method
     if (!supervisorComplaintsSubscription.subscribeToUnassignedQueue) return;
 
     const channel = supervisorComplaintsSubscription.subscribeToUnassignedQueue(
       (newComplaint) => {
+        // Optimistic check: In a real app, you might want to double check if this new complaint matches dept
+        // For now, rely on RLS on the subscription channel if configured, or just show it
         setComplaints((prev) => [newComplaint, ...prev]);
         toast.info("New unassigned complaint received");
       },
@@ -53,18 +53,24 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
     };
   }, []);
 
-  // 2. Fetch Staff Logic (Lazy load when modal opens)
+  // 2. Fetch Staff Logic
   const loadStaffForAssignment = async (complaintId?: string) => {
     setLoadingStaff(true);
     try {
-      // FIX: Pass supabase client
-      const staff = await supervisorStaffQueries.getSupervisedStaff(supabase, supervisorId);
-      
-      // Get location of the specific complaint if ID provided
-      const targetComplaint = complaints.find(c => c.id === complaintId);
-      const location = targetComplaint?.location_point && Array.isArray(targetComplaint.location_point.coordinates)
-        ? { lat: targetComplaint.location_point.coordinates[1], lng: targetComplaint.location_point.coordinates[0] } 
-        : null;
+      const staff = await supervisorStaffQueries.getSupervisedStaff(
+        supabase,
+        supervisorId
+      );
+
+      const targetComplaint = complaints.find((c) => c.id === complaintId);
+      const location =
+        targetComplaint?.location_point &&
+        Array.isArray(targetComplaint.location_point.coordinates)
+          ? {
+              lat: targetComplaint.location_point.coordinates[1],
+              lng: targetComplaint.location_point.coordinates[0],
+            }
+          : null;
 
       const rankedStaff = getSuggestedStaff(staff || [], location);
       setStaffList(rankedStaff);
@@ -94,7 +100,6 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
 
     try {
       if (activeComplaintId) {
-        // Single Assign - passing 'supabase' client
         await supervisorComplaintsQueries.assignComplaint(
           supabase,
           activeComplaintId,
@@ -102,7 +107,6 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
           note
         );
       } else {
-        // Bulk Assign - passing 'supabase' client
         await supervisorComplaintsQueries.bulkAssignComplaints(
           supabase,
           selectedIds,
@@ -149,16 +153,17 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
 
   // 4. Selection Handlers
   const handleSelect = (id: string, selected: boolean) => {
-    setSelectedIds(prev => selected ? [...prev, id] : prev.filter(i => i !== id));
+    setSelectedIds((prev) =>
+      selected ? [...prev, id] : prev.filter((i) => i !== id)
+    );
   };
 
   const handleSelectAll = (selected: boolean) => {
-    setSelectedIds(selected ? complaints.map(c => c.id) : []);
+    setSelectedIds(selected ? complaints.map((c) => c.id) : []);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header / Stats */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Unassigned Queue</h1>
@@ -173,7 +178,6 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <ComplaintsTableView
           complaints={complaints}
@@ -181,7 +185,6 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
           onSelect={handleSelect}
           onSelectAll={handleSelectAll}
           isLoading={false}
-          // Custom Action for this view
           customAction={(id) => (
             <button
               onClick={() => openAssignModal(id)}
@@ -194,13 +197,12 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
         />
       </div>
 
-      {/* Bulk Actions */}
       <BulkActionsBar
         selectedCount={selectedIds.length}
         onClearSelection={() => setSelectedIds([])}
         onAssign={() => {
-          setActiveComplaintId(null); // Indicates bulk mode
-          loadStaffForAssignment(); // Load generic list
+          setActiveComplaintId(null);
+          loadStaffForAssignment();
           setIsAssignModalOpen(true);
         }}
         onPrioritize={() => {}}
@@ -208,15 +210,16 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
         onResolve={() => {}}
       />
 
-      {/* Modal */}
       <StaffSelectionModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         onAssign={handleAssign}
         staffList={staffList}
-        complaintTitle={activeComplaintId 
-          ? complaints.find(c => c.id === activeComplaintId)?.title || "Complaint"
-          : `${selectedIds.length} Selected Complaints`
+        complaintTitle={
+          activeComplaintId
+            ? complaints.find((c) => c.id === activeComplaintId)?.title ||
+              "Complaint"
+            : `${selectedIds.length} Selected Complaints`
         }
       />
     </div>

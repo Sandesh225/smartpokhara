@@ -53,6 +53,14 @@ import {
   Edit2,
   Paperclip,
   Check,
+  Building2,
+  Car,
+  HeartPulse,
+  Zap,
+  BusFront,
+  Wind,
+  HelpCircle,
+  Waves,
 } from "lucide-react";
 
 import type {
@@ -75,36 +83,46 @@ const formatCategoryName = (name: string) => {
   return name;
 };
 
+// FIX: Expanded icon mapping to cover all 14 seed categories
 const getCategoryIcon = (name: string) => {
   const lowerName = name.toLowerCase();
-  if (lowerName.includes("water") || lowerName.includes("leak"))
-    return <Droplets className="h-6 w-6" />;
+
+  if (lowerName.includes("road") || lowerName.includes("pothole"))
+    return <Construction className="h-6 w-6" />;
+  if (lowerName.includes("drain") || lowerName.includes("sewer"))
+    return <Waves className="h-6 w-6" />;
   if (
-    lowerName.includes("electric") ||
-    lowerName.includes("light") ||
-    lowerName.includes("power")
-  )
-    return <Lightbulb className="h-6 w-6" />;
-  if (
-    lowerName.includes("garbage") ||
     lowerName.includes("waste") ||
+    lowerName.includes("garbage") ||
     lowerName.includes("trash")
   )
     return <Trash2 className="h-6 w-6" />;
+  if (lowerName.includes("street light") || lowerName.includes("bulb"))
+    return <Lightbulb className="h-6 w-6" />;
+  if (lowerName.includes("water") || lowerName.includes("leak"))
+    return <Droplets className="h-6 w-6" />;
   if (
-    lowerName.includes("road") ||
-    lowerName.includes("pothole") ||
-    lowerName.includes("street")
-  )
-    return <Construction className="h-6 w-6" />;
-  if (
-    lowerName.includes("tree") ||
     lowerName.includes("park") ||
-    lowerName.includes("garden")
+    lowerName.includes("tree") ||
+    lowerName.includes("environment")
   )
     return <Trees className="h-6 w-6" />;
+  if (lowerName.includes("building") || lowerName.includes("construction"))
+    return <Building2 className="h-6 w-6" />;
+  if (lowerName.includes("traffic") || lowerName.includes("parking"))
+    return <Car className="h-6 w-6" />;
+  if (lowerName.includes("health") || lowerName.includes("hospital"))
+    return <HeartPulse className="h-6 w-6" />;
+  if (lowerName.includes("electric") || lowerName.includes("power"))
+    return <Zap className="h-6 w-6" />;
+  if (lowerName.includes("transport") || lowerName.includes("bus"))
+    return <BusFront className="h-6 w-6" />;
   if (lowerName.includes("noise") || lowerName.includes("sound"))
     return <Volume2 className="h-6 w-6" />;
+  if (lowerName.includes("air") || lowerName.includes("pollution"))
+    return <Wind className="h-6 w-6" />;
+  if (lowerName.includes("other") || lowerName.includes("general"))
+    return <HelpCircle className="h-6 w-6" />;
 
   return <FileText className="h-6 w-6" />;
 };
@@ -205,7 +223,6 @@ export default function ComplaintForm({
   const [subcategories, setSubcategories] = useState<ComplaintSubcategory[]>(
     []
   );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -461,8 +478,8 @@ export default function ComplaintForm({
                     isActive
                       ? "bg-white border-blue-600 shadow-lg shadow-blue-200 ring-4 ring-blue-100"
                       : isCompleted
-                        ? "bg-gradient-to-br from-indigo-500 to-indigo-600 border-indigo-600 shadow-md hover:scale-105 cursor-pointer"
-                        : "bg-slate-50 border-slate-300"
+                      ? "bg-gradient-to-br from-indigo-500 to-indigo-600 border-indigo-600 shadow-md hover:scale-105 cursor-pointer"
+                      : "bg-slate-50 border-slate-300"
                   }`}
                 >
                   {isCompleted ? (

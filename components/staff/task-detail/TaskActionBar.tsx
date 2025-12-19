@@ -28,7 +28,6 @@ export function TaskActionBar({
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
-
   const handleStartWork = async () => {
     setIsLoading(true);
     try {
@@ -36,17 +35,26 @@ export function TaskActionBar({
       try {
         location = await getCurrentLocation();
       } catch (err) {
-        console.warn("Location not retrieved", err);
+        console.warn("Location bypassed", err);
       }
 
-      await staffQueueQueries.startAssignment(supabase, assignmentId, location || undefined);
-      
+      const result = await staffQueueQueries.startAssignment(
+        supabase,
+        assignmentId,
+        location || undefined
+      );
+
       toast.success("Work started successfully");
-      router.refresh(); 
+      router.refresh();
     } catch (error: any) {
-      console.error(error);
-      if (error?.code === "42501") toast.error("Permission Denied: You cannot start this task.");
-      else toast.error(error?.message || "Failed to start work");
+      // FIX: Stringify the error properly
+      const errorMessage =
+        error?.message || error?.details || "Database connection error";
+      console.error("Full Error Object:", error);
+
+      toast.error("Process Failed", {
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
