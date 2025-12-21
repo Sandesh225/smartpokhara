@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils";
 
 interface Bill {
   id: string
