@@ -159,60 +159,61 @@ export const staffQueueQueries = {
     assignmentId: string,
     location?: { lat: number; lng: number }
   ) {
+    // 1. Ensure strictly defined JSON structure or NULL (not undefined)
     const locationJson = location
       ? { type: "Point", coordinates: [location.lng, location.lat] }
       : null;
 
+    // 2. Call RPC
     const { data, error } = await client.rpc("rpc_start_assignment", {
       p_assignment_id: assignmentId,
       p_checkin_location: locationJson,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error("RPC Error in startAssignment:", error);
+      throw error; // Pass the Supabase error object up
+    }
+
     return data;
   },
-
   async uploadWorkPhoto(client: SupabaseClient, staffId: string, file: File) {
     const fileExt = file.name.split(".").pop();
-    const fileName = `${staffId}/${Date.now()}_${Math.random()
+    const path = `${staffId}/${Date.now()}_${Math.random()
       .toString(36)
       .substring(7)}.${fileExt}`;
 
     const { error: uploadError } = await client.storage
       .from("staff-work-photos")
-      .upload(fileName, file);
+      .upload(path, file);
 
-    if (uploadError) {
-      console.error("Photo Upload Error:", uploadError);
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
 
-    const {
-      data: { publicUrl },
-    } = client.storage.from("staff-work-photos").getPublicUrl(fileName);
-
-    return publicUrl;
+    const { data } = client.storage
+      .from("staff-work-photos")
+      .getPublicUrl(path);
+    return data.publicUrl;
   },
 
   async completeAssignment(
     client: SupabaseClient,
     assignmentId: string,
     notes: string,
-    photos: string[] = [],
-    materials: any[] = []
+    photos: string[] = []
   ) {
     const { data, error } = await client.rpc("rpc_complete_assignment", {
       p_assignment_id: assignmentId,
       p_resolution_notes: notes,
       p_photos: photos,
-      p_materials_used: materials,
+      p_materials_used: [], // Ensure this is an empty array not null
     });
 
     if (error) {
-      // Log full error object to console for debugging
-      console.error("Complete Assignment RPC Error Details:", error);
-      throw error;
+      // Better error logging to avoid "{}"
+      console.error("RPC Error:", error.message, error.details, error.hint);
+      throw new Error(error.message || "Unknown database error occurred");
     }
+
     return data;
   },
 };
