@@ -1,4 +1,3 @@
-// components/shared/citizen/Sidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -14,8 +13,9 @@ import {
   Settings,
   User,
   X,
-  Phone,
   AlertTriangle,
+  ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +25,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion"; // IMPORTANT: Ensure this is imported
 
 interface SidebarProps {
   user: any;
@@ -55,7 +57,6 @@ export default function Sidebar({
 
   const profilePhotoUrl = user?.profile?.profile_photo_url || user?.avatar_url;
 
-  // UX Improvement: Grouped Navigation
   const navGroups = [
     {
       label: "Overview",
@@ -109,128 +110,159 @@ export default function Sidebar({
   ];
 
   return (
-    <aside
-      className={`
-        fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-gray-200 bg-white
-        transform transition-transform duration-300 ease-in-out lg:translate-x-0
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      `}
-      aria-label="Citizen sidebar"
-    >
-      {/* Branding */}
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-100 px-6 bg-linear-to-r from-blue-50/50 to-white">
-        <Link
-          href="/citizen/dashboard"
-          className="flex items-center gap-3 group"
+    <>
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md transition-transform group-hover:scale-105">
-            <MapPin className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 tracking-tight">
-              Smart Pokhara
-            </h1>
-            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-              Citizen Portal
-            </p>
-          </div>
-        </Link>
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="lg:hidden p-1 text-gray-500 hover:bg-gray-100 rounded-md"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
+        />
+      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
-        {navGroups.map((group) => (
-          <div key={group.label}>
-            <h3 className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-              {group.label}
-            </h3>
-            <div className="space-y-1">
-              {group.items.map((item) => {
-                const active = isActive(item.href);
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`
-                      group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all
-                      ${
-                        active
-                          ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      }
-                    `}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon
-                        className={`h-5 w-5 ${active ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"}`}
-                      />
-                      <span>{item.name}</span>
-                    </div>
-                    {item.badge > 0 && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-blue-100 px-1.5 text-[10px] font-bold text-blue-700">
-                              {item.badge > 99 ? "99+" : item.badge}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">
-                            <p>{item.badgeLabel || "New items"}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </nav>
-
-      {/* Bottom Actions */}
-      <div className="shrink-0 border-t border-gray-100 p-4 space-y-3 bg-gray-50/50">
-        {/* Emergency Shortcut (New Feature) */}
-        <Link
-          href="/citizen/emergency"
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-50 border border-red-100 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100 hover:border-red-200 transition-colors shadow-sm"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          Emergency Contacts
-        </Link>
-
-        {/* User Mini Profile */}
-        <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white transition-colors">
-          <Avatar className="h-9 w-9 border border-gray-200">
-            <AvatarImage src={profilePhotoUrl || ""} />
-            <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
-              {user.displayName?.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-semibold text-gray-900">
-              {user.displayName}
-            </p>
-            <p className="truncate text-xs text-gray-500">{user.email}</p>
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Sign Out"
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r-2 border-slate-100 bg-white transition-all duration-500 ease-in-out lg:translate-x-0",
+          sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        )}
+      >
+        {/* Branding Header */}
+        <div className="flex h-20 shrink-0 items-center justify-between px-6 bg-slate-50/50 border-b border-slate-100">
+          <Link
+            href="/citizen/dashboard"
+            className="flex items-center gap-3 group"
+            onClick={() => setSidebarOpen(false)}
           >
-            <LogOut className="h-4 w-4" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200 transition-transform group-hover:scale-110">
+              <MapPin className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-base font-black text-slate-900 tracking-tight leading-none">
+                Smart Pokhara
+              </h1>
+              <span className="text-[9px] font-black text-blue-600 uppercase tracking-[0.15em] mt-1 block">
+                Citizen Portal
+              </span>
+            </div>
+          </Link>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 text-slate-400 hover:bg-white hover:text-slate-900 rounded-xl transition-colors"
+          >
+            <X className="h-5 w-5" />
           </button>
         </div>
-      </div>
-    </aside>
+
+        {/* Navigation Section */}
+        <nav className="flex-1 overflow-y-auto px-4 py-8 space-y-10 scrollbar-hide">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              <h3 className="mb-4 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                {group.label}
+              </h3>
+              <div className="space-y-1.5">
+                {group.items.map((item) => {
+                  const active = isActive(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={cn(
+                        "group relative flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold transition-all duration-300",
+                        active
+                          ? "bg-blue-600 text-white shadow-xl shadow-blue-100 ring-1 ring-blue-500"
+                          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon
+                          className={cn(
+                            "h-5 w-5 transition-colors",
+                            active
+                              ? "text-white"
+                              : "text-slate-400 group-hover:text-blue-600"
+                          )}
+                        />
+                        <span>{item.name}</span>
+                      </div>
+
+                      {item.badge > 0 ? (
+                        <span
+                          className={cn(
+                            "flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-black",
+                            active
+                              ? "bg-white/20 text-white"
+                              : "bg-blue-50 text-blue-600"
+                          )}
+                        >
+                          {item.badge > 99 ? "99+" : item.badge}
+                        </span>
+                      ) : (
+                        <ChevronRight
+                          className={cn(
+                            "h-3 w-3 opacity-0 transition-all -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0",
+                            active ? "hidden" : "block text-slate-300"
+                          )}
+                        />
+                      )}
+
+                      {/* Hover Indicator Line */}
+                      {active && (
+                        <motion.div
+                          layoutId="sidebar-active"
+                          className="absolute left-0 w-1 h-6 bg-white rounded-r-full"
+                        />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* Bottom Panel */}
+        <div className="p-4 bg-slate-50/80 border-t border-slate-100">
+          {/* Emergency Alert Shortcut */}
+          <Link
+            href="/citizen/emergency"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 border-2 border-red-100 px-4 py-3 text-xs font-black text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 shadow-sm mb-4"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            EMERGENCY LINE
+          </Link>
+
+          <div className="flex items-center gap-3 p-2 rounded-2xl bg-white border border-slate-200 shadow-sm">
+            <Avatar className="h-10 w-10 border-2 border-slate-50 shadow-sm">
+              <AvatarImage src={profilePhotoUrl || ""} />
+              <AvatarFallback className="bg-blue-600 text-white font-black text-xs">
+                {user.displayName?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-xs font-black text-slate-900 uppercase tracking-tight">
+                {user.displayName}
+              </p>
+              <p className="truncate text-[10px] font-bold text-slate-400">
+                {user.roleName || "Citizen"}
+              </p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+              title="End Session"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mt-3 text-center">
+            <span className="text-[9px] font-bold text-slate-300 flex items-center justify-center gap-1">
+              <ShieldCheck className="h-3 w-3" /> VERIFIED CITIZEN
+            </span>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }
