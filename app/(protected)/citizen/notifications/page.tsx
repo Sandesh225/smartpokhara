@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   Card,
@@ -23,66 +23,69 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Bell, 
-  Check, 
-  Search, 
-  ExternalLink, 
-  Inbox, 
-  Settings2, 
+import {
+  Bell,
+  Check,
+  Search,
+  ExternalLink,
+  Inbox,
+  Settings2,
   ShieldCheck,
-  Trash2,
-  FilterX
-} from "lucide-react"; // Added missing ExternalLink and premium icons
-import { format } from "date-fns"; // FIXED: Added missing import
+  FilterX,
+  FileText,
+  CreditCard,
+  Megaphone,
+  AlertTriangle,
+  Info,
+} from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 // --- Types ---
+type NotificationType =
+  | "complaint_status"
+  | "bill_generated"
+  | "new_notice"
+  | "system_announcement"
+  | "general";
+
 type Notification = {
   id: string;
-  type: string;
+  type: NotificationType;
   title: string;
   message: string;
   complaint_id: string | null;
+  bill_id: string | null;
+  notice_id: string | null;
   is_read: boolean;
-  priority: string;
+  priority: "low" | "normal" | "high" | "urgent";
   action_url: string | null;
-  sent_at: string;
+  created_at: string;
 };
 
 type Preferences = {
-  email_enabled: boolean;
-  sms_enabled: boolean;
-  push_enabled: boolean;
-  in_app_enabled: boolean;
-  notify_on_complaint_received: boolean;
-  notify_on_complaint_assigned: boolean;
-  notify_on_complaint_in_progress: boolean;
-  notify_on_complaint_resolved: boolean;
-  notify_on_feedback_requested: boolean;
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  push_notifications: boolean;
+  in_app_notifications: boolean;
+  complaint_updates: boolean;
+  new_bills: boolean;
+  new_notices: boolean;
   digest_frequency: string;
-  quiet_hours_enabled: boolean;
-  quiet_hours_start: string | null;
-  quiet_hours_end: string | null;
 };
 
 const DEFAULT_PREFS: Preferences = {
-  email_enabled: true,
-  sms_enabled: false,
-  push_enabled: true,
-  in_app_enabled: true,
-  notify_on_complaint_received: true,
-  notify_on_complaint_assigned: true,
-  notify_on_complaint_in_progress: true,
-  notify_on_complaint_resolved: true,
-  notify_on_feedback_requested: true,
+  email_notifications: true,
+  sms_notifications: false,
+  push_notifications: true,
+  in_app_notifications: true,
+  complaint_updates: true,
+  new_bills: true,
+  new_notices: true,
   digest_frequency: "immediate",
-  quiet_hours_enabled: false,
-  quiet_hours_start: "22:00",
-  quiet_hours_end: "07:00",
 };
 
 export default function NotificationsPage() {
@@ -92,11 +95,11 @@ export default function NotificationsPage() {
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingPrefs, setSavingPrefs] = useState(false);
-  const [bulkLoading, setBulkLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"all" | "unread">("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
+  // --- Derived State ---
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.is_read).length,
     [notifications]
@@ -105,333 +108,488 @@ export default function NotificationsPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return notifications.filter((n) => {
-      if (view === "unread" && n.is_read) return false;
-      if (priorityFilter !== "all" && n.priority !== priorityFilter) return false;
-      if (!q) return true;
-      const hay = `${n.title} ${n.message} ${n.type}`.toLowerCase();
-      return hay.includes(q);
+      const matchesView = view === "all" || !n.is_read;
+      const matchesPriority =
+        priorityFilter === "all" || n.priority === priorityFilter;
+      const matchesSearch =
+        !q || `${n.title} ${n.message}`.toLowerCase().includes(q);
+      return matchesView && matchesPriority && matchesSearch;
     });
   }, [notifications, query, view, priorityFilter]);
 
-  const priorityBadgeClass: Record<string, string> = {
-    low: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    normal: "bg-blue-100 text-blue-800 border-blue-200",
-    high: "bg-amber-100 text-amber-800 border-amber-200",
-    urgent: "bg-rose-100 text-rose-800 border-rose-200",
+  // --- Helpers ---
+  const getNotificationIcon = (type: NotificationType) => {
+    switch (type) {
+      case "complaint_status":
+        return <FileText className="h-5 w-5 text-blue-500" />;
+      case "bill_generated":
+        return <CreditCard className="h-5 w-5 text-emerald-500" />;
+      case "new_notice":
+        return <Megaphone className="h-5 w-5 text-amber-500" />;
+      case "system_announcement":
+        return <AlertTriangle className="h-5 w-5 text-rose-500" />;
+      default:
+        return <Info className="h-5 w-5 text-slate-400" />;
+    }
   };
+
+  const priorityBadgeClass = {
+    low: "bg-slate-100 text-slate-600 border-slate-200",
+    normal: "bg-blue-50 text-blue-700 border-blue-100",
+    high: "bg-orange-50 text-orange-700 border-orange-100",
+    urgent: "bg-red-50 text-red-700 border-red-100",
+  };
+
+  // --- Data Loading ---
+  const loadData = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [notifsRes, prefsRes] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("user_notification_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
+
+    if (!notifsRes.error) setNotifications(notifsRes.data || []);
+    if (!prefsRes.error)
+      setPreferences(
+        prefsRes.data ? { ...DEFAULT_PREFS, ...prefsRes.data } : DEFAULT_PREFS
+      );
+
+    setLoading(false);
+  }, [supabase]);
 
   useEffect(() => {
-    let channel: any = null;
-    const boot = async () => {
-      setLoading(true);
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) return;
+    loadData();
 
-        const userId = session.user.id;
-        await Promise.all([loadNotifications(userId), loadPreferences(userId)]);
+    // Real-time Subscription
+    const channel = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setNotifications((prev) => [payload.new as Notification, ...prev]);
+            toast.info("New notification received");
+          } else if (payload.eventType === "UPDATE") {
+            setNotifications((prev) =>
+              prev.map((n) =>
+                n.id === payload.new.id ? (payload.new as Notification) : n
+              )
+            );
+          }
+        }
+      )
+      .subscribe();
 
-        channel = supabase
-          .channel(`notifications_page_${userId}`)
-          .on("postgres_changes", {
-              event: "*",
-              schema: "public",
-              table: "notifications",
-              filter: `user_id=eq.${userId}`,
-            },
-            (payload) => {
-              if (payload.eventType === "INSERT") {
-                setNotifications((prev) => [normalizeNotification(payload.new), ...prev]);
-              } else if (payload.eventType === "UPDATE") {
-                setNotifications((prev) =>
-                  prev.map((n) => n.id === payload.new.id ? normalizeNotification(payload.new) : n)
-                );
-              } else if (payload.eventType === "DELETE") {
-                setNotifications((prev) => prev.filter((n) => n.id !== payload.old.id));
-              }
-            }
-          ).subscribe();
-      } catch (e) {
-        toast.error("Sync Error", { description: "Real-time updates may be delayed." });
-      } finally {
-        setLoading(false);
-      }
+    return () => {
+      supabase.removeChannel(channel);
     };
-    boot();
-    return () => { if (channel) supabase.removeChannel(channel); };
-  }, []);
+  }, [loadData, supabase]);
 
-  const normalizeNotification = (row: any): Notification => ({
-    id: String(row.id),
-    type: row.type ?? "general",
-    title: row.title ?? "Notification",
-    message: row.message ?? "",
-    complaint_id: row.complaint_id ?? null,
-    is_read: Boolean(row.is_read),
-    priority: row.priority ?? "normal",
-    action_url: row.action_url ?? null,
-    sent_at: row.sent_at ?? row.created_at ?? new Date().toISOString(),
-  });
+  // --- Actions ---
+  const toggleSelected = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
-  const loadNotifications = async (userId: string) => {
-    const { data, error } = await supabase
+  const markAsRead = async (ids: string[]) => {
+    const { error } = await supabase
       .from("notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Fetch Failed", { description: "Could not load your inbox." });
-      return;
-    }
-    setNotifications((data ?? []).map(normalizeNotification));
-  };
-
-  const loadPreferences = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_notification_preferences")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (!error) setPreferences(data ? { ...DEFAULT_PREFS, ...data } : DEFAULT_PREFS);
-  };
-
-  const markSelectedRead = async () => {
-    if (selected.length === 0) return;
-    setBulkLoading(true);
-    const { error } = await supabase.from("notifications").update({ is_read: true }).in("id", selected);
+      .update({ is_read: true })
+      .in("id", ids);
     if (!error) {
-      setNotifications((prev) => prev.map((n) => (selected.includes(n.id) ? { ...n, is_read: true } : n)));
+      setNotifications((prev) =>
+        prev.map((n) => (ids.includes(n.id) ? { ...n, is_read: true } : n))
+      );
       setSelected([]);
-      toast.success("Inbox updated");
+      toast.success("Messages updated");
     }
-    setBulkLoading(false);
   };
 
-  const markAllRead = async () => {
-    setBulkLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true })
-        .eq("user_id", user.id)
-        .eq("is_read", false);
-      if (!error) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-        toast.success("All notifications read");
-      }
-    }
-    setBulkLoading(false);
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    await markAsRead(unreadIds);
   };
 
   const savePreferences = async () => {
     if (!preferences) return;
     setSavingPrefs(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       const { error } = await supabase
         .from("user_notification_preferences")
-        .upsert({ user_id: user.id, ...preferences, updated_at: new Date().toISOString() });
-      if (!error) toast.success("Preferences Saved");
-      else toast.error("Update Failed");
+        .upsert({
+          user_id: user.id,
+          ...preferences,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (!error) toast.success("Settings Synchronized");
+      else toast.error("Could not save preferences");
     }
     setSavingPrefs(false);
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 space-y-8 animate-pulse">
-        <div className="space-y-2"><Skeleton className="h-10 w-48 rounded-lg" /><Skeleton className="h-4 w-96" /></div>
-        <Skeleton className="h-[500px] w-full rounded-3xl" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingSkeleton />;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
-      {/* --- Header Section --- */}
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider mb-2">
-            <ShieldCheck className="h-3 w-3" /> Digital Registry
+    <div className="container mx-auto px-4 py-10 max-w-5xl space-y-10">
+      {/* --- Page Header --- */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 text-blue-700 text-[11px] font-black uppercase tracking-widest border border-blue-200">
+            <ShieldCheck className="h-3 w-3" /> Citizen Hub
           </div>
-          <h1 className="text-4xl font-black tracking-tight text-slate-900 leading-none">
-            Notifications
+          <h1 className="text-5xl font-black tracking-tight text-slate-900">
+            Inbox
           </h1>
-          <p className="text-slate-500 font-medium">Stay updated with Pokhara Metropolitan announcements.</p>
+          <p className="text-slate-500 text-lg">
+            Manage your metropolitan communications and alerts.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
           <AnimatePresence>
             {selected.length > 0 && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <Button variant="outline" size="sm" onClick={markSelectedRead} disabled={bulkLoading} className="rounded-xl border-slate-200 shadow-sm font-bold">
-                  <Check className="mr-2 h-4 w-4" /> Mark Read ({selected.length})
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => markAsRead(selected)}
+                  className="rounded-2xl border-slate-200 font-bold shadow-sm h-14 px-6"
+                >
+                  <Check className="mr-2 h-5 w-5" /> Mark Read (
+                  {selected.length})
                 </Button>
               </motion.div>
             )}
           </AnimatePresence>
-          {unreadCount > 0 && (
-            <Button variant="default" size="sm" onClick={markAllRead} disabled={bulkLoading} className="rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200 font-bold">
-              Mark all as read
-            </Button>
-          )}
+          <Button
+            onClick={markAllAsRead}
+            className="rounded-2xl bg-blue-600 hover:bg-blue-700 h-14 px-8 font-black shadow-xl shadow-blue-200 transition-all active:scale-95"
+          >
+            Mark all as read
+          </Button>
         </div>
       </div>
 
       <Tabs defaultValue="notifications" className="w-full">
-        <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200 inline-flex shadow-inner">
-          <TabsTrigger value="notifications" className="rounded-xl px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">
-            <Inbox className="h-4 w-4 mr-2" /> Inbox
+        <TabsList className="bg-slate-100 p-1.5 rounded-3xl mb-8">
+          <TabsTrigger
+            value="notifications"
+            className="rounded-2xl px-10 py-3 font-black text-sm data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+          >
+            <Inbox className="h-4 w-4 mr-2" /> Activity
             {unreadCount > 0 && (
-              <span className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-md leading-none">
+              <Badge className="ml-2 bg-blue-600 hover:bg-blue-600">
                 {unreadCount}
-              </span>
+              </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="rounded-xl px-8 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">
+          <TabsTrigger
+            value="preferences"
+            className="rounded-2xl px-10 py-3 font-black text-sm data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+          >
             <Settings2 className="h-4 w-4 mr-2" /> Settings
           </TabsTrigger>
         </TabsList>
 
-        {/* --- INBOX TAB --- */}
-        <TabsContent value="notifications" className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex flex-col lg:flex-row gap-4 justify-between bg-white/50 backdrop-blur-sm p-4 rounded-[2rem] border border-slate-200 shadow-sm">
+        {/* --- Inbox Tab --- */}
+        <TabsContent value="notifications" className="space-y-6 outline-none">
+          {/* Filters Bar */}
+          <div className="flex flex-col md:flex-row gap-4 p-4 bg-white rounded-[2rem] border border-slate-200 shadow-sm">
             <div className="flex gap-2">
               <Select value={view} onValueChange={(v: any) => setView(v)}>
-                <SelectTrigger className="w-[140px] rounded-xl border-slate-200 bg-white font-semibold">
+                <SelectTrigger className="w-[160px] h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">All Messages</SelectItem>
-                  <SelectItem value="unread">Unread Only</SelectItem>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="unread">Unread</SelectItem>
                 </SelectContent>
               </Select>
+
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-[140px] rounded-xl border-slate-200 bg-white font-semibold">
+                <SelectTrigger className="w-[160px] h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold">
                   <SelectValue placeholder="Priority" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">All Levels</SelectItem>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="all">All Priorities</SelectItem>
                   <SelectItem value="urgent">🔴 Urgent</SelectItem>
                   <SelectItem value="high">🟠 High</SelectItem>
                   <SelectItem value="normal">🔵 Normal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
               <Input
-                placeholder="Search by title or content..."
-                className="pl-11 h-11 rounded-xl border-slate-200 focus:ring-4 focus:ring-blue-50 transition-all bg-white"
+                placeholder="Search messages..."
+                className="pl-12 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-medium"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="space-y-4">
-            {filtered.length === 0 ? (
-              <div className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
-                <div className="h-20 w-20 rounded-3xl bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-inner">
-                   <FilterX className="h-10 w-10 text-slate-300" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">Your inbox is clear</h3>
-                <p className="text-slate-500 mt-1">No notifications match your current selection.</p>
-              </div>
-            ) : (
-              filtered.map((n) => (
+          {/* Notifications List */}
+          <div className="grid gap-4">
+            <AnimatePresence mode="popLayout">
+              {filtered.length === 0 ? (
                 <motion.div
-                  key={n.id}
-                  layout
-                  className={cn(
-                    "group relative flex items-start gap-4 p-5 rounded-[1.5rem] border transition-all duration-300",
-                    !n.is_read 
-                      ? "bg-white border-blue-200 shadow-xl shadow-blue-900/5 ring-1 ring-blue-50" 
-                      : "bg-slate-50/40 border-slate-200 grayscale-[0.5] opacity-80"
-                  )}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-32 bg-slate-50 rounded-[3rem] border-4 border-dashed border-slate-100"
                 >
-                  <div className="pt-1.5">
-                    <input
-                      type="checkbox"
-                      className="h-5 w-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer transition-all"
-                      checked={selected.includes(n.id)}
-                      onChange={() => toggleSelected(n.id)}
-                    />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={cn("font-bold text-lg tracking-tight", !n.is_read ? "text-slate-900" : "text-slate-600")}>
-                          {n.title}
-                        </span>
-                        <Badge variant="outline" className={cn("text-[10px] px-2 py-0 h-5 font-black uppercase rounded-md border-2", priorityBadgeClass[n.priority])}>
-                          {n.priority}
-                        </Badge>
-                        {!n.is_read && <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />}
-                      </div>
-                      <time className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white border px-2 py-1 rounded-md shadow-sm">
-                        {format(new Date(n.sent_at), "MMM d • h:mm a")}
-                      </time>
-                    </div>
-                    <p className="text-slate-600 leading-relaxed max-w-3xl">{n.message}</p>
-                    {n.action_url && (
-                      <div className="pt-2">
-                        <Button variant="secondary" size="sm" className="h-9 px-4 rounded-xl font-bold bg-white border border-slate-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm group/btn" asChild>
-                          <a href={n.action_url} className="flex items-center gap-2">
-                            View details <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
-                          </a>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  <FilterX className="h-16 w-16 text-slate-200 mx-auto mb-4" />
+                  <h3 className="text-2xl font-black text-slate-900">
+                    No results found
+                  </h3>
+                  <p className="text-slate-500">
+                    Try adjusting your filters or search keywords.
+                  </p>
                 </motion.div>
-              ))
-            )}
+              ) : (
+                filtered.map((n) => (
+                  <motion.div
+                    key={n.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className={cn(
+                      "group relative flex items-start gap-5 p-6 rounded-[2rem] border transition-all duration-300",
+                      !n.is_read
+                        ? "bg-white border-blue-200 shadow-xl shadow-blue-900/5 ring-1 ring-blue-50"
+                        : "bg-slate-50/50 border-slate-200 opacity-75"
+                    )}
+                  >
+                    <div className="pt-1">
+                      <input
+                        type="checkbox"
+                        className="h-6 w-6 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        checked={selected.includes(n.id)}
+                        onChange={() => toggleSelected(n.id)}
+                      />
+                    </div>
+
+                    <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0">
+                      {getNotificationIcon(n.type)}
+                    </div>
+
+                    <div className="flex-1 space-y-3">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <h3
+                            className={cn(
+                              "text-xl font-black tracking-tight",
+                              !n.is_read ? "text-slate-900" : "text-slate-600"
+                            )}
+                          >
+                            {n.title}
+                          </h3>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] font-black uppercase px-2 rounded-lg border-2",
+                              priorityBadgeClass[n.priority]
+                            )}
+                          >
+                            {n.priority}
+                          </Badge>
+                          {!n.is_read && (
+                            <span className="h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse" />
+                          )}
+                        </div>
+                        <time className="text-xs font-bold text-slate-400 bg-white border border-slate-100 px-3 py-1 rounded-full shadow-sm">
+                          {format(
+                            new Date(n.created_at),
+                            "MMM d, yyyy • h:mm a"
+                          )}
+                        </time>
+                      </div>
+
+                      <p className="text-slate-600 text-lg leading-relaxed">
+                        {n.message}
+                      </p>
+
+                      {n.action_url && (
+                        <div className="pt-2">
+                          <Button
+                            variant="outline"
+                            className="rounded-xl font-bold hover:bg-blue-600 hover:text-white transition-all group/btn"
+                            asChild
+                          >
+                            <a href={n.action_url}>
+                              View Application{" "}
+                              <ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
+                            </a>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
           </div>
         </TabsContent>
 
-        {/* --- SETTINGS TAB --- */}
-        <TabsContent value="preferences" className="mt-8">
-          <Card className="border-0 shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white ring-1 ring-slate-900/5 overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
-              <CardTitle className="text-2xl font-black tracking-tight text-slate-900">Communication Preferences</CardTitle>
-              <CardDescription className="text-slate-500 font-medium">Control how and when Pokhara City communicates with you.</CardDescription>
+        {/* --- Preferences Tab --- */}
+        <TabsContent value="preferences" className="outline-none">
+          <Card className="border-0 shadow-2xl rounded-[3rem] bg-white ring-1 ring-slate-200 overflow-hidden">
+            <CardHeader className="bg-slate-50/50 p-10 border-b border-slate-100">
+              <CardTitle className="text-3xl font-black">
+                Notification Rules
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Define how the Smart City Pokhara system should reach you.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  { id: "email_enabled", label: "Email Alerts", desc: "Official documentation copies" },
-                  { id: "push_enabled", label: "Mobile Push", desc: "Immediate status changes" },
-                  { id: "in_app_enabled", label: "In-App Console", desc: "Live portal updates" }
-                ].map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-6 rounded-3xl border-2 border-slate-50 bg-slate-50/30 transition-all hover:border-blue-100 hover:bg-white group">
-                    <div className="space-y-1">
-                      <Label htmlFor={item.id} className="text-base font-bold text-slate-900">{item.label}</Label>
-                      <p className="text-xs text-slate-400 font-medium">{item.desc}</p>
+
+            <CardContent className="p-10 space-y-12">
+              {/* Channels */}
+              <section className="space-y-6">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+                  Delivery Channels
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    {
+                      id: "email_notifications",
+                      label: "Email Addresses",
+                      desc: "For official receipts and detailed summaries",
+                    },
+                    {
+                      id: "push_notifications",
+                      label: "Mobile Push",
+                      desc: "Instant alerts on your smartphone",
+                    },
+                    {
+                      id: "sms_notifications",
+                      label: "SMS Messages",
+                      desc: "Critical emergency alerts only",
+                    },
+                    {
+                      id: "in_app_notifications",
+                      label: "In-App Banner",
+                      desc: "Visual cues while using the portal",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-6 rounded-[2rem] border-2 border-slate-50 hover:border-blue-100 transition-all"
+                    >
+                      <div className="space-y-1">
+                        <Label className="text-lg font-black">
+                          {item.label}
+                        </Label>
+                        <p className="text-sm text-slate-400 font-medium">
+                          {item.desc}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={(preferences as any)?.[item.id]}
+                        onCheckedChange={(v) =>
+                          setPreferences((prev) =>
+                            prev ? { ...prev, [item.id]: v } : null
+                          )
+                        }
+                      />
                     </div>
-                    <Switch 
-                      id={item.id} 
-                      checked={(preferences as any)?.[item.id]} 
-                      onCheckedChange={(v) => setPreferences(prev => prev ? {...prev, [item.id]: v} : null)}
-                    />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Topics */}
+              <section className="space-y-6">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+                  Content Topics
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { id: "complaint_updates", label: "Complaint Status" },
+                    { id: "new_bills", label: "Financial / Bills" },
+                    { id: "new_notices", label: "Public Notices" },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-6 rounded-[1.5rem] bg-slate-50/50"
+                    >
+                      <Label className="font-bold">{item.label}</Label>
+                      <Switch
+                        checked={(preferences as any)?.[item.id]}
+                        onCheckedChange={(v) =>
+                          setPreferences((prev) =>
+                            prev ? { ...prev, [item.id]: v } : null
+                          )
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
             </CardContent>
-            <CardFooter className="bg-slate-50/80 backdrop-blur-sm border-t border-slate-100 p-8 flex justify-between items-center">
-              <div className="text-xs text-slate-400 font-bold flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-blue-500" /> End-to-end encrypted alerts
-              </div>
-              <Button onClick={savePreferences} disabled={savingPrefs} className="min-w-[160px] h-12 rounded-2xl bg-slate-900 hover:bg-black font-black text-white shadow-xl shadow-slate-200 transition-all active:scale-95">
-                {savingPrefs ? "Synchronizing..." : "Save Preferences"}
+
+            <CardFooter className="p-10 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+              <p className="text-sm font-bold text-slate-400 flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-blue-500" /> Advanced data
+                encryption active
+              </p>
+              <Button
+                size="lg"
+                onClick={savePreferences}
+                disabled={savingPrefs}
+                className="rounded-2xl bg-slate-900 hover:bg-black h-14 px-10 font-black shadow-xl shadow-slate-200"
+              >
+                {savingPrefs ? "Saving..." : "Save Configuration"}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// --- Internal Sub-components ---
+
+function LoadingSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-10 space-y-8 animate-pulse">
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-32 rounded-full" />
+        <Skeleton className="h-16 w-64 rounded-xl" />
+      </div>
+      <div className="flex gap-4">
+        <Skeleton className="h-14 w-40 rounded-2xl" />
+        <Skeleton className="h-14 w-40 rounded-2xl" />
+      </div>
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-32 w-full rounded-[2rem]" />
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
-// components/shared/citizen/Header.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,7 +11,6 @@ import {
   Settings,
   LogOut,
   User,
-  Shield,
   RefreshCcw,
 } from "lucide-react";
 import NotificationDropdown from "@/components/shared/citizen/NotificationDropdown";
@@ -25,6 +23,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface HeaderProps {
   user: any;
@@ -45,34 +45,29 @@ export default function Header({
   const router = useRouter();
   const supabase = createClient();
 
-  const profilePhotoUrl =
-    user?.profile?.profile_photo_url ??
-    user?.profile_photo_url ??
-    user?.avatar_url ??
-    null;
-
+  // Listen for real-time notifications to update the badge count globally
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target as Node)
-      ) {
-        setUserMenuOpen(false);
-      }
-    };
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setUserMenuOpen(false);
-        setNotificationOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEsc);
+    const channel = supabase
+      .channel("header-notifs")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => onCountUpdate(notificationCount + 1)
+      )
+      .subscribe();
+
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEsc);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user.id, notificationCount, onCountUpdate, supabase]);
+
+  const profilePhotoUrl =
+    user?.profile?.profile_photo_url ?? user?.avatar_url ?? null;
 
   const handleSignOut = async () => {
     toast.promise(
@@ -82,153 +77,157 @@ export default function Header({
         router.refresh();
       },
       {
-        loading: "Signing out...",
-        success: "Signed out successfully",
-        error: "Failed to sign out",
+        loading: "Cleaning session...",
+        success: "Signed out safely",
+        error: "Could not clear session",
       }
     );
   };
 
   return (
-    <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-gray-200 bg-white/80 backdrop-blur-md shadow-sm">
-      <div className="flex h-full items-center justify-between gap-4 px-4 lg:px-8">
-        {/* Left: Menu & Search */}
-        <div className="flex flex-1 items-center gap-4">
+    <header className="sticky top-0 z-30 h-20 shrink-0 border-b-2 border-slate-100 bg-white/80 backdrop-blur-xl transition-all">
+      <div className="flex h-full items-center justify-between gap-4 px-6 lg:px-10">
+        {/* Left: Search Bar with "Command" style */}
+        <div className="flex flex-1 items-center gap-6">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden rounded-lg p-2 text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Open sidebar"
+            className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 border border-slate-200"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
 
-          <div className="hidden w-full max-w-sm lg:block">
+          <div className="hidden w-full max-w-md lg:block">
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
               <input
                 type="text"
-                placeholder="Search complaints, bills, notices..."
-                className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
-                aria-label="Global search"
+                placeholder="Search Registry..."
+                className="w-full h-11 rounded-2xl border-2 border-slate-100 bg-slate-50/50 py-2 pl-12 pr-4 text-sm font-bold outline-none transition-all placeholder:text-slate-400 focus:border-blue-600/20 focus:bg-white focus:ring-4 focus:ring-blue-600/5"
               />
             </div>
           </div>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-3">
-          {/* Notifications */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="relative">
+        <div className="flex items-center gap-5">
+          {/* Real-time Notifications Bell */}
+          <div className="relative">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <button
-                    type="button"
                     onClick={() => setNotificationOpen(!notificationOpen)}
-                    className="relative rounded-full p-2.5 text-gray-500 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label="Notifications"
-                    aria-expanded={notificationOpen}
+                    className={cn(
+                      "relative h-11 w-11 flex items-center justify-center rounded-2xl border-2 transition-all",
+                      notificationOpen
+                        ? "border-blue-600 bg-blue-50 text-blue-600 shadow-lg shadow-blue-600/10"
+                        : "border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200"
+                    )}
                   >
-                    <Bell className="h-5 w-5" />
+                    <Bell
+                      className={cn(
+                        "h-5 w-5",
+                        notificationCount > 0 &&
+                          "animate-[bell-swing_2s_infinite]"
+                      )}
+                    />
                     {notificationCount > 0 && (
-                      <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
+                      <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-blue-600 text-[10px] font-black text-white ring-4 ring-white">
+                        {notificationCount}
+                      </span>
                     )}
                   </button>
-                  {notificationOpen && (
-                    <NotificationDropdown
-                      userId={user.id}
-                      onClose={() => setNotificationOpen(false)}
-                      onCountUpdate={onCountUpdate}
-                    />
-                  )}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {notificationCount > 0
-                    ? `${notificationCount} unread notifications`
-                    : "No new notifications"}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-xl font-bold">
+                  {notificationCount} Unread Alerts
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-          {/* User Menu */}
+            <AnimatePresence>
+              {notificationOpen && (
+                <NotificationDropdown
+                  userId={user.id}
+                  onClose={() => setNotificationOpen(false)}
+                  onCountUpdate={onCountUpdate}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="h-8 w-[2px] bg-slate-100 mx-1 hidden sm:block" />
+
+          {/* User Profile Menu */}
           <div className="relative" ref={userMenuRef}>
             <button
-              type="button"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="group flex items-center gap-3 rounded-full border border-transparent py-1 pl-1 pr-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex items-center gap-3 rounded-2xl border-2 border-transparent p-1 transition-all hover:bg-slate-50"
             >
-              <Avatar className="h-8 w-8 ring-2 ring-gray-100 group-hover:ring-blue-100 transition-all">
-                <AvatarImage
-                  src={profilePhotoUrl || ""}
-                  alt={user.displayName}
-                />
-                <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
-                  {user.displayName?.charAt(0)?.toUpperCase()}
+              <Avatar className="h-10 w-10 border-2 border-white shadow-md ring-2 ring-slate-100">
+                <AvatarImage src={profilePhotoUrl || ""} />
+                <AvatarFallback className="bg-blue-600 text-white font-black text-xs uppercase">
+                  {user.displayName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
 
-              <div className="hidden flex-col items-start lg:flex">
-                <span className="text-sm font-semibold text-gray-700 group-hover:text-gray-900">
+              <div className="hidden flex-col items-start lg:flex text-left">
+                <span className="text-xs font-black text-slate-900 leading-none truncate max-w-[120px]">
                   {user.displayName}
                 </span>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-gray-500">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 mt-1">
                   {user.roleName || "Citizen"}
                 </span>
               </div>
               <ChevronDown
-                className={`hidden h-4 w-4 text-gray-400 transition-transform lg:block ${userMenuOpen ? "rotate-180" : ""}`}
+                className={cn(
+                  "hidden h-4 w-4 text-slate-400 transition-transform lg:block",
+                  userMenuOpen && "rotate-180"
+                )}
               />
             </button>
 
-            {/* Dropdown */}
             {userMenuOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-xl border border-gray-100 bg-white p-2 shadow-xl ring-1 ring-black/5 animate-in slide-in-from-top-1 fade-in">
-                <div className="px-3 py-2 border-b border-gray-100 mb-1">
-                  <p className="font-medium text-gray-900 truncate">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute right-0 top-full mt-3 w-64 rounded-[1.5rem] border-2 border-slate-100 bg-white p-2 shadow-2xl z-50 ring-1 ring-slate-900/5"
+              >
+                <div className="px-4 py-3 bg-slate-50/50 rounded-2xl mb-2">
+                  <p className="text-xs font-black text-slate-900 truncate">
                     {user.displayName}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <p className="text-[10px] font-bold text-slate-400 truncate">
+                    {user.email}
+                  </p>
                 </div>
 
-                <Link
-                  href="/citizen/settings"
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                >
-                  <User className="h-4 w-4" /> My Profile
-                </Link>
-                <Link
-                  href="/citizen/settings"
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                >
-                  <Settings className="h-4 w-4" /> Settings
-                </Link>
+                <div className="space-y-1">
+                  <Link
+                    href="/citizen/settings"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all"
+                  >
+                    <User className="h-4 w-4" /> My Registry Profile
+                  </Link>
+                  <Link
+                    href="/citizen/settings"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all"
+                  >
+                    <Settings className="h-4 w-4" /> Account Settings
+                  </Link>
+                </div>
 
-                {/* Role Switch Mockup - Future Proofing */}
-                <button
-                  disabled
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-400 cursor-not-allowed opacity-70"
-                >
-                  <RefreshCcw className="h-4 w-4" /> Switch Role{" "}
-                  <span className="text-[10px] ml-auto border border-gray-200 px-1 rounded">
-                    Soon
-                  </span>
-                </button>
-
-                <div className="my-1 border-t border-gray-100" />
+                <div className="my-2 border-t border-slate-100" />
 
                 <button
                   onClick={handleSignOut}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-xs font-black text-red-600 hover:bg-red-50 transition-all"
                 >
                   <LogOut className="h-4 w-4" /> Sign Out
                 </button>
-              </div>
+              </motion.div>
             )}
           </div>
         </div>
