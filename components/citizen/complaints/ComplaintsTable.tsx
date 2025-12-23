@@ -1,8 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState, memo, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  memo,
+  useCallback,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
-import { format, differenceInDays, differenceInHours, differenceInMinutes } from "date-fns";
+import {
+  format,
+  formatDistanceToNow,
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+} from "date-fns";
 import {
   ColumnDef,
   flexRender,
@@ -11,6 +24,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   Table,
@@ -37,15 +51,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { Progress } from "@/components/ui/progress";
-
 import {
   ArrowUpDown,
   Calendar,
@@ -54,7 +60,7 @@ import {
   MoreVertical,
   Tag,
   AlertCircle,
-  CheckCircle,
+  CheckCircle2,
   Clock,
   XCircle,
   RefreshCw,
@@ -62,253 +68,224 @@ import {
   Printer,
   Shield,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+  Building2,
 } from "lucide-react";
 
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type {
   Complaint,
   ComplaintStatus,
 } from "@/lib/supabase/queries/complaints";
 
-type SortOrder = "ASC" | "DESC";
-
-interface ComplaintsTableProps {
-  complaints: Complaint[];
-  total: number;
-  isLoading: boolean;
-  currentPage: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-  onSortChange?: (sortBy: string, sortOrder: SortOrder) => void;
-  sortBy?: string;
-  sortOrder?: SortOrder;
-  onRowClick?: (complaint: Complaint) => void;
-  basePath?: string;
-}
-
 // --- CONFIGURATIONS ---
 
 export const STATUS_CONFIG: Record<
   ComplaintStatus,
-  {
-    label: string;
-    icon: ReactNode;
-    pill: string;
-    ariaLabel: string;
-  }
+  { label: string; icon: ReactNode; pill: string }
 > = {
   received: {
     label: "Received",
-    icon: <Clock className="h-3.5 w-3.5" />,
+    icon: <Clock className="h-3 w-3" />,
     pill: "bg-blue-50 text-blue-700 border-blue-200",
-    ariaLabel: "Status: Received",
   },
   under_review: {
-    label: "Under Review",
-    icon: <AlertCircle className="h-3.5 w-3.5" />,
+    label: "Review",
+    icon: <AlertCircle className="h-3 w-3" />,
     pill: "bg-purple-50 text-purple-700 border-purple-200",
-    ariaLabel: "Status: Under Review",
   },
   assigned: {
     label: "Assigned",
-    icon: <Shield className="h-3.5 w-3.5" />,
+    icon: <Shield className="h-3 w-3" />,
     pill: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    ariaLabel: "Status: Assigned",
   },
   in_progress: {
-    label: "In Progress",
-    icon: <RefreshCw className="h-3.5 w-3.5" />,
+    label: "Working",
+    icon: <RefreshCw className="h-3 w-3" />,
     pill: "bg-amber-50 text-amber-700 border-amber-200",
-    ariaLabel: "Status: In Progress",
   },
   resolved: {
     label: "Resolved",
-    icon: <CheckCircle className="h-3.5 w-3.5" />,
+    icon: <CheckCircle2 className="h-3 w-3" />,
     pill: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    ariaLabel: "Status: Resolved",
   },
   closed: {
     label: "Closed",
-    icon: <CheckCircle className="h-3.5 w-3.5" />,
-    pill: "bg-slate-50 text-slate-700 border-slate-200",
-    ariaLabel: "Status: Closed",
+    icon: <CheckCircle2 className="h-3 w-3" />,
+    pill: "bg-slate-50 text-slate-600 border-slate-200",
   },
   rejected: {
     label: "Rejected",
-    icon: <XCircle className="h-3.5 w-3.5" />,
+    icon: <XCircle className="h-3 w-3" />,
     pill: "bg-red-50 text-red-700 border-red-200",
-    ariaLabel: "Status: Rejected",
   },
   reopened: {
     label: "Reopened",
-    icon: <RefreshCw className="h-3.5 w-3.5" />,
+    icon: <RefreshCw className="h-3 w-3" />,
     pill: "bg-orange-50 text-orange-700 border-orange-200",
-    ariaLabel: "Status: Reopened",
   },
 };
 
-// --- HELPER COMPONENTS ---
-
-// 1. Live SLA Cell Component (Fixes Static Time Issue)
-const LiveSLACell = ({ submittedAt, slaDueAt, status }: { submittedAt: string, slaDueAt: string | null, status: string }) => {
-    const [now, setNow] = useState(Date.now());
-
-    // Update time every minute
-    useEffect(() => {
-        const timer = setInterval(() => setNow(Date.now()), 60000);
-        return () => clearInterval(timer);
-    }, []);
-
-    // 1. Handle Missing SLA
-    if (!slaDueAt) return <span className="text-slate-400 text-xs">—</span>;
-
-    // 2. Handle Resolved/Closed/Rejected (Stop Timer)
-    if (['resolved', 'closed', 'rejected'].includes(status)) {
-        return (
-            <div className="w-[140px] space-y-1.5">
-                 <div className="flex justify-between items-center text-xs">
-                    <span className="text-emerald-600 font-medium">Completed</span>
-                    <span className="text-slate-400">100%</span>
-                 </div>
-                 <Progress value={100} className="h-2 [&>div]:bg-emerald-500" />
-            </div>
-        );
-    }
-
-    // 3. Calculate Live Progress
-    const start = new Date(submittedAt).getTime();
-    const end = new Date(slaDueAt).getTime();
-    
-    // Prevent division by zero if start == end
-    const totalDuration = Math.max(end - start, 1); 
-    const elapsed = now - start;
-    
-    // Clamp between 0 and 100
-    const progress = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
-    const isOverdue = now > end;
-
-    // Format remaining time nicely
-    let timeLabel = "";
-    if (isOverdue) {
-        const days = differenceInDays(now, end);
-        timeLabel = days > 0 ? `${days}d overdue` : "Overdue";
-    } else {
-        const days = differenceInDays(end, now);
-        const hours = differenceInHours(end, now) % 24;
-        
-        if (days > 0) timeLabel = `${days}d ${hours}h left`;
-        else if (hours > 0) timeLabel = `${hours}h left`;
-        else timeLabel = `${differenceInMinutes(end, now) % 60}m left`;
-    }
-
-    return (
-        <div className="w-[140px] space-y-1.5">
-            <div className="flex justify-between items-center text-xs">
-                <span className={isOverdue ? "text-red-600 font-bold" : "text-slate-600 font-medium"}>
-                    {timeLabel}
-                </span>
-                <span className="text-slate-400 text-[10px]">
-                    {format(new Date(slaDueAt), "MMM dd")}
-                </span>
-            </div>
-            <Progress
-                value={progress}
-                className={`h-2 ${isOverdue ? "[&>div]:bg-red-500 bg-red-100" : "[&>div]:bg-blue-500 bg-blue-100"}`}
-            />
-        </div>
-    );
+const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
+  critical: {
+    label: "Critical",
+    color: "text-red-600 bg-red-50 border-red-100",
+  },
+  high: {
+    label: "High",
+    color: "text-orange-600 bg-orange-50 border-orange-100",
+  },
+  medium: {
+    label: "Medium",
+    color: "text-blue-600 bg-blue-50 border-blue-100",
+  },
+  low: { label: "Low", color: "text-slate-600 bg-slate-50 border-slate-100" },
 };
 
-// 2. Memoized Card Component (Mobile View)
-const ComplaintCard = memo(
+// --- SUB-COMPONENTS ---
+
+/**
+ * LIVE SLA CELL
+ * Shows real-time countdown and automated color shifting
+ */
+const LiveSLACell = ({
+  submittedAt,
+  slaDueAt,
+  status,
+}: {
+  submittedAt: string;
+  slaDueAt: string | null;
+  status: string;
+}) => {
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (!slaDueAt)
+    return <span className="text-slate-400 text-xs italic">Not Set</span>;
+
+  const isResolved = ["resolved", "closed", "rejected"].includes(status);
+
+  if (isResolved) {
+    return (
+      <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        SLA Met
+      </div>
+    );
+  }
+
+  const start = new Date(submittedAt).getTime();
+  const end = new Date(slaDueAt).getTime();
+  const totalDuration = Math.max(end - start, 1);
+  const elapsed = now - start;
+  const progress = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
+  const isOverdue = now > end;
+
+  let timeLabel = "";
+  if (isOverdue) {
+    const days = differenceInDays(now, end);
+    timeLabel = days > 0 ? `${days}d Overdue` : "Overdue";
+  } else {
+    const days = differenceInDays(end, now);
+    const hours = differenceInHours(end, now) % 24;
+    timeLabel = days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
+  }
+
+  return (
+    <div className="w-[140px] space-y-1">
+      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
+        <span className={isOverdue ? "text-red-600" : "text-slate-500"}>
+          {timeLabel}
+        </span>
+        <span className="text-slate-400">{Math.round(progress)}%</span>
+      </div>
+      <Progress
+        value={progress}
+        className={cn(
+          "h-1.5 rounded-full bg-slate-100",
+          isOverdue
+            ? "[&>div]:bg-red-500"
+            : progress > 80
+              ? "[&>div]:bg-orange-500"
+              : "[&>div]:bg-blue-600"
+        )}
+      />
+    </div>
+  );
+};
+
+/**
+ * MOBILE CARD VIEW
+ */
+const ComplaintMobileCard = memo(
   ({
     complaint,
-    onNavigate,
+    onClick,
   }: {
     complaint: Complaint;
-    onNavigate: (complaint: Complaint) => void;
+    onClick: (c: Complaint) => void;
   }) => {
-    const statusConf = STATUS_CONFIG[complaint.status];
+    const status = STATUS_CONFIG[complaint.status];
+    const priority = PRIORITY_CONFIG[complaint.priority || "medium"];
 
     return (
-      <Card
-        className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-slate-200 overflow-hidden relative"
-        onClick={() => onNavigate(complaint)}
-        role="button"
-        tabIndex={0}
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => onClick(complaint)}
+        className="bg-white border-2 border-slate-100 rounded-2xl p-4 shadow-sm active:border-blue-300 transition-all space-y-3"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/0 via-blue-50/50 to-indigo-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-
-        {/* Status Badge */}
-        <div className="absolute top-3 right-3 z-10">
-          <Badge className={`gap-1.5 border font-medium ${statusConf.pill}`}>
-            {statusConf.icon}
-            <span className="hidden sm:inline">{statusConf.label}</span>
+        <div className="flex justify-between items-start">
+          <code className="bg-slate-100 text-slate-900 px-2 py-1 rounded-lg font-mono text-[10px] font-bold">
+            {complaint.tracking_code}
+          </code>
+          <Badge
+            className={cn(
+              "px-2 py-0.5 text-[10px] uppercase font-black border-0",
+              status.pill
+            )}
+          >
+            {status.label}
           </Badge>
         </div>
 
-        <CardHeader className="pb-3 relative pt-6">
-          <div className="min-w-0 pr-20">
-            <CardTitle className="text-base font-semibold text-slate-900 line-clamp-2 leading-snug">
-              {complaint.title}
-            </CardTitle>
-
-            <CardDescription className="flex items-center gap-2 flex-wrap mt-2">
-              <code
-                className="font-mono text-xs font-semibold bg-slate-100 text-slate-900 px-2 py-0.5 rounded cursor-pointer hover:bg-slate-200 transition-colors"
-                onClick={(e) => {
-                   e.stopPropagation();
-                   navigator.clipboard.writeText(complaint.tracking_code);
-                   toast.success("Copied");
-                }}
-              >
-                {complaint.tracking_code}
-              </code>
-              <span className="text-slate-300">•</span>
-              <span className="flex items-center gap-1 text-slate-600">
-                <MapPin className="h-3.5 w-3.5" />
-                Ward {complaint.ward?.ward_number || "N/A"}
-              </span>
-            </CardDescription>
+        <div>
+          <h4 className="font-bold text-slate-900 leading-snug line-clamp-2">
+            {complaint.title}
+          </h4>
+          <div className="flex items-center gap-2 mt-1 text-slate-500 text-[11px] font-medium">
+            <MapPin className="h-3 w-3" /> Ward {complaint.ward?.ward_number}
+            <span>•</span>
+            <Tag className="h-3 w-3" /> {complaint.category?.name}
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="pt-0 pb-4 relative">
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1.5 text-sm text-slate-700">
-                <Tag className="h-4 w-4 text-slate-500" />
-                <span className="font-medium">
-                  {complaint.category?.name || "N/A"}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                <Calendar className="h-4 w-4 text-slate-500" />
-                {format(new Date(complaint.submitted_at), "MMM dd")}
-              </div>
-            </div>
-
-            {/* SLA Progress */}
-            <div className="space-y-1 pt-2">
-                <LiveSLACell 
-                    submittedAt={complaint.submitted_at}
-                    slaDueAt={complaint.sla_due_at}
-                    status={complaint.status}
-                />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="pt-2 border-t border-slate-50 flex justify-between items-center">
+          <LiveSLACell
+            submittedAt={complaint.submitted_at}
+            slaDueAt={complaint.sla_due_at}
+            status={complaint.status}
+          />
+          <ChevronRight className="h-4 w-4 text-slate-300" />
+        </div>
+      </motion.div>
     );
   }
 );
 
-ComplaintCard.displayName = "ComplaintCard";
+ComplaintMobileCard.displayName = "ComplaintMobileCard";
 
-
-// ============================================
-// MAIN COMPONENT
-// ============================================
+// --- MAIN TABLE ---
 
 export function ComplaintsTable({
   complaints,
@@ -322,22 +299,13 @@ export function ComplaintsTable({
   sortOrder = "DESC",
   onRowClick,
   basePath = "/citizen/complaints",
-}: ComplaintsTableProps) {
+}: any) {
   const router = useRouter();
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: sortBy, desc: sortOrder === "DESC" },
-  ]);
 
-  useEffect(() => {
-    setSorting([{ id: sortBy, desc: sortOrder === "DESC" }]);
-  }, [sortBy, sortOrder]);
-
-  const totalPages = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
-
-  const navigateToDetails = useMemo(
-    () => (complaint: Complaint) => {
-      if (onRowClick) return onRowClick(complaint);
-      router.push(`${basePath}/${complaint.id}`);
+  const handleRowClick = useCallback(
+    (complaint: Complaint) => {
+      if (onRowClick) onRowClick(complaint);
+      else router.push(`${basePath}/${complaint.id}`);
     },
     [onRowClick, router, basePath]
   );
@@ -346,64 +314,72 @@ export function ComplaintsTable({
     () => [
       {
         accessorKey: "tracking_code",
-        header: () => (
-          <span className="font-semibold text-slate-900">Tracking</span>
+        header: "Tracking ID",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2 group/copy">
+            <code className="text-xs font-black text-slate-900 bg-slate-100 px-2 py-1 rounded-md tracking-tighter">
+              {row.original.tracking_code}
+            </code>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 opacity-0 group-hover/copy:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(row.original.tracking_code);
+                toast.success("ID Copied");
+              }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
         ),
-        cell: ({ row }) => {
-          const code = row.getValue("tracking_code") as string;
-          return (
-            <div className="flex items-center gap-2 group/copy">
-              <code className="font-mono text-xs sm:text-sm font-semibold text-slate-900 bg-slate-100 px-2 py-1 rounded-md">
-                {code}
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 opacity-0 group-hover/copy:opacity-100 transition-opacity"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(code);
-                    toast.success("Copied");
-                }}
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          );
-        },
       },
       {
         accessorKey: "title",
-        header: () => (
-          <span className="font-semibold text-slate-900">Complaint</span>
-        ),
+        header: "Complaint Summary",
         cell: ({ row }) => (
-          <div className="min-w-0">
-            <div
-              className="font-semibold text-slate-900 truncate max-w-[280px]"
-              title={row.original.title}
-            >
+          <div className="max-w-[300px] space-y-1">
+            <p className="font-bold text-slate-900 truncate leading-tight">
               {row.original.title}
-            </div>
-            <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
-              <Tag className="h-3.5 w-3.5" />
-              <span className="truncate max-w-[200px]">
-                {row.original.category?.name || "N/A"}
-              </span>
+            </p>
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <Building2 className="h-3 w-3" />
+              {row.original.category?.name}
             </div>
           </div>
         ),
       },
       {
-        accessorKey: "status",
-        header: () => (
-          <span className="font-semibold text-slate-900">Status</span>
-        ),
+        accessorKey: "priority",
+        header: "Priority",
         cell: ({ row }) => {
-          const status = row.getValue("status") as ComplaintStatus;
-          const conf = STATUS_CONFIG[status];
+          const p = row.original.priority || "medium";
+          const config = PRIORITY_CONFIG[p];
           return (
-            <Badge className={`gap-1.5 border font-medium ${conf.pill}`}>
+            <Badge
+              className={cn(
+                "rounded-lg px-2 py-0.5 text-[10px] font-black uppercase border shadow-none",
+                config.color
+              )}
+            >
+              {p}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const conf = STATUS_CONFIG[row.original.status];
+          return (
+            <Badge
+              className={cn(
+                "gap-1.5 border-2 font-black text-[10px] uppercase shadow-sm",
+                conf.pill
+              )}
+            >
               {conf.icon}
               {conf.label}
             </Badge>
@@ -411,8 +387,19 @@ export function ComplaintsTable({
         },
       },
       {
+        id: "sla",
+        header: "SLA Progress",
+        cell: ({ row }) => (
+          <LiveSLACell
+            submittedAt={row.original.submitted_at}
+            slaDueAt={row.original.sla_due_at}
+            status={row.original.status}
+          />
+        ),
+      },
+      {
         accessorKey: "submitted_at",
-        header: () => (
+        header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() =>
@@ -421,72 +408,49 @@ export function ComplaintsTable({
                 sortOrder === "ASC" ? "DESC" : "ASC"
               )
             }
-            className="px-0 font-semibold hover:bg-transparent hover:text-blue-700"
+            className="font-bold p-0 hover:bg-transparent"
           >
-            Submitted
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            Submitted <ArrowUpDown className="ml-2 h-3 w-3" />
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="text-sm font-medium text-slate-700">
-            {format(new Date(row.getValue("submitted_at")), "MMM dd, yyyy")}
+          <div className="text-xs font-bold text-slate-600">
+            {format(new Date(row.original.submitted_at), "MMM d, yyyy")}
+            <span className="block text-[10px] font-medium text-slate-400">
+              {formatDistanceToNow(new Date(row.original.submitted_at))} ago
+            </span>
           </div>
         ),
       },
       {
-        id: "sla",
-        header: () => (
-          <span className="font-semibold text-slate-900">SLA Status</span>
-        ),
-        cell: ({ row }) => {
-          return (
-            <LiveSLACell 
-                submittedAt={row.original.submitted_at}
-                slaDueAt={row.original.sla_due_at}
-                status={row.original.status}
-            />
-          );
-        },
-      },
-      {
         id: "actions",
-        header: () => <span className="sr-only">Actions</span>,
         cell: ({ row }) => (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 rounded-full hover:bg-slate-100"
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => router.push(`${basePath}/${row.original.id}`)}
-              >
-                <Eye className="mr-2 h-4 w-4" /> View Details
+            <DropdownMenuContent align="end" className="rounded-xl w-48">
+              <DropdownMenuItem onClick={() => handleRowClick(row.original)}>
+                <Eye className="mr-2 h-4 w-4" /> Open Details
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(row.original.tracking_code);
-                    toast.success("Tracking code copied");
-                }}
-              >
-                <Copy className="mr-2 h-4 w-4" /> Copy Tracking
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="mr-2 h-4 w-4" /> Print Document
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  window.open(`${basePath}/${row.original.id}`, "_blank")
-                }
-              >
-                <Printer className="mr-2 h-4 w-4" /> Print
+              <DropdownMenuItem className="text-red-600">
+                <XCircle className="mr-2 h-4 w-4" /> Cancel Request
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [basePath, onSortChange, router, sortOrder]
+    [sortOrder, onSortChange, handleRowClick]
   );
 
   const table = useReactTable({
@@ -494,68 +458,27 @@ export function ComplaintsTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    state: { sorting },
   });
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {/* Simple skeleton loader */}
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead>
-                  <Skeleton className="h-4 w-20" />
-                </TableHead>
-                <TableHead>
-                  <Skeleton className="h-4 w-32" />
-                </TableHead>
-                <TableHead>
-                  <Skeleton className="h-4 w-24" />
-                </TableHead>
-                <TableHead>
-                  <Skeleton className="h-4 w-24" />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...Array(5)].map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <TableSkeleton />;
 
   return (
     <div className="space-y-6">
+      {/* Desktop View */}
       <div className="hidden md:block">
-        <div className="rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+        <div className="rounded-[2rem] border-2 border-slate-100 overflow-hidden bg-white shadow-xl shadow-slate-200/50">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-slate-50/50">
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
-                  className="bg-gradient-to-r from-slate-50 to-blue-50/40"
+                  className="hover:bg-transparent border-b-2 border-slate-100"
                 >
                   {hg.headers.map((h) => (
-                    <TableHead key={h.id} className="h-12 text-slate-900">
+                    <TableHead
+                      key={h.id}
+                      className="h-14 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400"
+                    >
                       {flexRender(h.column.columnDef.header, h.getContext())}
                     </TableHead>
                   ))}
@@ -563,84 +486,105 @@ export function ComplaintsTable({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.length === 0 ? (
-                 <TableRow>
-                     <TableCell colSpan={columns.length} className="h-32 text-center text-gray-500">
-                         No complaints found.
-                     </TableCell>
-                 </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                    <TableRow
-                    key={row.id}
-                    onClick={() => navigateToDetails(row.original)}
-                    className="cursor-pointer hover:bg-slate-50/70"
+              <AnimatePresence mode="popLayout">
+                {complaints.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-64 text-center"
                     >
-                    {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="py-4">
-                        {flexRender(
+                      <div className="flex flex-col items-center gap-2 opacity-50">
+                        <AlertTriangle className="h-10 w-10 text-slate-300" />
+                        <p className="font-bold text-slate-900">
+                          No Registry Records Found
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      onClick={() => handleRowClick(row.original)}
+                      className="group cursor-pointer hover:bg-blue-50/30 transition-colors border-b border-slate-50"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className="px-6 py-4">
+                          {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
-                        )}
+                          )}
                         </TableCell>
-                    ))}
+                      ))}
                     </TableRow>
-                ))
-              )}
+                  ))
+                )}
+              </AnimatePresence>
             </TableBody>
           </Table>
         </div>
       </div>
 
-      <div className="md:hidden space-y-4">
-        {complaints.length === 0 ? (
-            <div className="text-center text-gray-500 py-12 bg-white rounded-xl border border-dashed">
-                No complaints found.
-            </div>
-        ) : (
-            complaints.map((c) => (
-            <ComplaintCard
-                key={c.id}
-                complaint={c}
-                onNavigate={navigateToDetails}
-            />
-            ))
-        )}
+      {/* Mobile View */}
+      <div className="md:hidden grid grid-cols-1 gap-4">
+        {complaints.map((c: Complaint) => (
+          <ComplaintMobileCard
+            key={c.id}
+            complaint={c}
+            onClick={handleRowClick}
+          />
+        ))}
       </div>
 
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-                className={
-                  currentPage === 1
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <span className="text-sm px-4">
-                Page {currentPage} of {totalPages}
-              </span>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                onClick={() =>
-                  currentPage < totalPages && onPageChange(currentPage + 1)
-                }
-                className={
-                  currentPage === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : "cursor-pointer"
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      {/* Improved Pagination Footer */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          Showing{" "}
+          <span className="text-slate-900">
+            {(currentPage - 1) * pageSize + 1}
+          </span>{" "}
+          to{" "}
+          <span className="text-slate-900">
+            {Math.min(currentPage * pageSize, total)}
+          </span>{" "}
+          of <span className="text-slate-900">{total}</span> Registry Entries
+        </p>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className="rounded-xl border-2 font-black text-xs uppercase h-10 px-4"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+          </Button>
+          <div className="h-10 px-4 flex items-center justify-center bg-white border-2 border-slate-100 rounded-xl text-xs font-black">
+            {currentPage} / {Math.ceil(total / pageSize)}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage >= Math.ceil(total / pageSize)}
+            onClick={() => onPageChange(currentPage + 1)}
+            className="rounded-xl border-2 font-black text-xs uppercase h-10 px-4"
+          >
+            Next <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TableSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-14 w-full rounded-[2rem]" />
+      {[...Array(5)].map((_, i) => (
+        <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+      ))}
     </div>
   );
 }
