@@ -15,8 +15,6 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +40,6 @@ import {
 } from "@/lib/supabase/queries/profile";
 import { complaintsService } from "@/lib/supabase/queries/complaints";
 
-// Sidebar Navigation Items
 const navItems = [
   {
     id: "profile",
@@ -125,10 +122,10 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50/50">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground animate-pulse">
+      <div className="flex min-h-screen w-full items-center justify-center bg-[rgb(244,245,247)]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-[rgb(43,95,117)]" />
+          <p className="text-sm font-mono text-[rgb(26,32,44)] animate-pulse">
             Loading your profile...
           </p>
         </div>
@@ -139,21 +136,20 @@ export default function ProfilePage() {
   if (!profile || !userId) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <div className="container mx-auto max-w-7xl px-4 py-8 md:px-8">
-        {/* Header */}
-        <header className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+    <div className="min-h-screen bg-[rgb(244,245,247)]">
+      <div className="container-padding section-spacing max-w-7xl mx-auto">
+        <header className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-4xl font-black tracking-tight text-[rgb(26,32,44)] leading-tight">
               Account Settings
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-[rgb(26,32,44)]/60 mt-2 font-medium leading-relaxed">
               Manage your profile, security preferences, and notifications.
             </p>
           </div>
           <Button
             variant="ghost"
-            className="w-fit text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            className="w-fit text-[rgb(26,32,44)]/60 hover:text-red-600 hover:bg-red-50 transition-colors rounded-2xl h-12 px-6 font-bold"
             onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4" /> Sign Out
@@ -161,10 +157,9 @@ export default function ProfilePage() {
         </header>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Sidebar Navigation */}
           <aside className="lg:col-span-3">
-            <nav className="flex flex-col gap-2 sticky top-6">
-              <div className="rounded-xl border bg-white p-2 shadow-sm">
+            <nav className="flex flex-col gap-3 sticky top-6">
+              <div className="rounded-3xl border-2 border-slate-100 bg-white p-3 elevation-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -176,32 +171,26 @@ export default function ProfilePage() {
                         if (item.id !== "profile") setIsEditing(false);
                       }}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200",
+                        "flex w-full items-center gap-4 rounded-2xl px-5 py-4 text-sm font-bold transition-all duration-200",
                         isActive
-                          ? "bg-primary/10 text-primary shadow-sm"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          ? "bg-[rgb(43,95,117)] text-white elevation-2"
+                          : "text-[rgb(26,32,44)]/60 hover:bg-[rgb(244,245,247)] hover:text-[rgb(43,95,117)]"
                       )}
                     >
-                      <Icon
-                        className={cn(
-                          "h-5 w-5",
-                          isActive ? "text-primary" : "text-slate-400"
-                        )}
-                      />
+                      <Icon className="h-5 w-5" />
                       <div className="flex flex-col items-start">
                         <span>{item.label}</span>
                       </div>
                       {isActive && (
-                        <ChevronRight className="ml-auto h-4 w-4 opacity-50" />
+                        <ChevronRight className="ml-auto h-4 w-4 opacity-80" />
                       )}
                     </button>
                   );
                 })}
               </div>
 
-              {/* Danger Zone - Separate for emphasis */}
-              <div className="mt-6 rounded-xl border border-red-100 bg-red-50/50 p-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-red-600 mb-3">
+              <div className="mt-4 rounded-3xl border-2 border-[rgb(229,121,63)]/20 bg-[rgb(229,121,63)]/5 p-6">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(229,121,63)] mb-4">
                   Danger Zone
                 </h3>
 
@@ -209,28 +198,30 @@ export default function ProfilePage() {
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-red-600 hover:bg-red-100 hover:text-red-700 h-auto py-2 px-2"
+                      className="w-full justify-start text-[rgb(229,121,63)] hover:bg-[rgb(229,121,63)]/10 hover:text-[rgb(229,121,63)] h-auto py-3 px-3 rounded-xl font-bold"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       <span className="text-sm">Delete Account</span>
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="rounded-3xl">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>
+                      <AlertDialogTitle className="text-2xl font-black">
                         Are you absolutely sure?
                       </AlertDialogTitle>
-                      <AlertDialogDescription>
+                      <AlertDialogDescription className="text-base leading-relaxed">
                         This will permanently delete your citizen profile and
                         remove all related records. This action cannot be
                         undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel className="rounded-2xl font-bold">
+                        Cancel
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDeleteAccount}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-[rgb(229,121,63)] hover:bg-[rgb(229,121,63)]/90 rounded-2xl font-bold"
                       >
                         Yes, delete account
                       </AlertDialogAction>
@@ -241,7 +232,6 @@ export default function ProfilePage() {
             </nav>
           </aside>
 
-          {/* Main Content Area */}
           <main className="lg:col-span-9">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {activeTab === "profile" && (
@@ -267,11 +257,11 @@ export default function ProfilePage() {
 
               {activeTab === "security" && (
                 <div className="max-w-2xl">
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-slate-900">
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-black text-[rgb(26,32,44)]">
                       Security Settings
                     </h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-[rgb(26,32,44)]/60 mt-2 font-medium leading-relaxed">
                       Manage your password and account security preferences.
                     </p>
                   </div>
@@ -281,11 +271,11 @@ export default function ProfilePage() {
 
               {activeTab === "notifications" && (
                 <div className="max-w-3xl">
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-slate-900">
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-black text-[rgb(26,32,44)]">
                       Notification Preferences
                     </h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-[rgb(26,32,44)]/60 mt-2 font-medium leading-relaxed">
                       Choose what updates you want to receive and how.
                     </p>
                   </div>

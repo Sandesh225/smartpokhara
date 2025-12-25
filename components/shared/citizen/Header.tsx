@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,20 +11,14 @@ import {
   Settings,
   LogOut,
   User,
-  RefreshCcw,
 } from "lucide-react";
-import NotificationDropdown from "@/components/shared/citizen/NotificationDropdown";
+
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { NotificationDropdown } from "../NotificationDropdown";
 
 interface HeaderProps {
   user: any;
@@ -45,7 +39,7 @@ export default function Header({
   const router = useRouter();
   const supabase = createClient();
 
-  // Listen for real-time notifications to update the badge count globally
+  // Listen for real-time notifications
   useEffect(() => {
     const channel = supabase
       .channel("header-notifs")
@@ -66,6 +60,20 @@ export default function Header({
     };
   }, [user.id, notificationCount, onCountUpdate, supabase]);
 
+  // Close user menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const profilePhotoUrl =
     user?.profile?.profile_photo_url ?? user?.avatar_url ?? null;
 
@@ -77,73 +85,65 @@ export default function Header({
         router.refresh();
       },
       {
-        loading: "Cleaning session...",
-        success: "Signed out safely",
-        error: "Could not clear session",
+        loading: "Signing out...",
+        success: "Signed out successfully",
+        error: "Failed to sign out",
       }
     );
   };
 
   return (
-    <header className="sticky top-0 z-30 h-20 shrink-0 border-b-2 border-slate-100 bg-white/80 backdrop-blur-xl transition-all">
-      <div className="flex h-full items-center justify-between gap-4 px-6 lg:px-10">
-        {/* Left: Search Bar with "Command" style */}
-        <div className="flex flex-1 items-center gap-6">
+    <header className="sticky top-0 z-30 h-20 shrink-0 border-b border-[rgb(229,231,235)] glass-strong">
+      <div className="flex h-full items-center justify-between gap-4 px-6 lg:px-8">
+        {/* Left: Mobile Menu + Search */}
+        <div className="flex flex-1 items-center gap-4">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 border border-slate-200"
+            className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-[rgb(229,231,235)] text-[rgb(107,114,128)] hover:text-[rgb(26,32,44)] hover:bg-[rgb(249,250,251)] transition-colors shadow-sm"
+            aria-label="Open sidebar"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           <div className="hidden w-full max-w-md lg:block">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[rgb(156,163,175)] group-focus-within:text-[rgb(43,95,117)] transition-colors" />
               <input
                 type="text"
-                placeholder="Search Registry..."
-                className="w-full h-11 rounded-2xl border-2 border-slate-100 bg-slate-50/50 py-2 pl-12 pr-4 text-sm font-bold outline-none transition-all placeholder:text-slate-400 focus:border-blue-600/20 focus:bg-white focus:ring-4 focus:ring-blue-600/5"
+                placeholder="Search services, complaints, bills..."
+                className="w-full h-11 rounded-xl border border-[rgb(229,231,235)] bg-white py-2 pl-11 pr-4 text-sm font-medium outline-none transition-all placeholder:text-[rgb(156,163,175)] focus:border-[rgb(43,95,117)] focus:ring-2 focus:ring-[rgb(43,95,117)]/10"
               />
             </div>
           </div>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-5">
-          {/* Real-time Notifications Bell */}
+        <div className="flex items-center gap-4">
+          {/* Notifications Bell */}
           <div className="relative">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => setNotificationOpen(!notificationOpen)}
-                    className={cn(
-                      "relative h-11 w-11 flex items-center justify-center rounded-2xl border-2 transition-all",
-                      notificationOpen
-                        ? "border-blue-600 bg-blue-50 text-blue-600 shadow-lg shadow-blue-600/10"
-                        : "border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200"
-                    )}
-                  >
-                    <Bell
-                      className={cn(
-                        "h-5 w-5",
-                        notificationCount > 0 &&
-                          "animate-[bell-swing_2s_infinite]"
-                      )}
-                    />
-                    {notificationCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-blue-600 text-[10px] font-black text-white ring-4 ring-white">
-                        {notificationCount}
-                      </span>
-                    )}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="rounded-xl font-bold">
-                  {notificationCount} Unread Alerts
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <button
+              onClick={() => setNotificationOpen(!notificationOpen)}
+              className={cn(
+                "relative h-10 w-10 flex items-center justify-center rounded-xl border transition-all",
+                notificationOpen
+                  ? "border-[rgb(43,95,117)] bg-[rgb(43,95,117)]/5 text-[rgb(43,95,117)] shadow-md"
+                  : "border-[rgb(229,231,235)] bg-white text-[rgb(107,114,128)] hover:border-[rgb(209,213,219)] hover:bg-[rgb(249,250,251)]"
+              )}
+              aria-label={`Notifications: ${notificationCount} unread`}
+            >
+              <Bell
+                className={cn(
+                  "h-5 w-5",
+                  notificationCount > 0 && "animate-[bell-swing_2s_infinite]"
+                )}
+              />
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-[rgb(43,95,117)] text-[10px] font-mono font-bold text-white ring-2 ring-white tabular-nums">
+                  {notificationCount > 99 ? "99+" : notificationCount}
+                </span>
+              )}
+            </button>
 
             <AnimatePresence>
               {notificationOpen && (
@@ -156,79 +156,90 @@ export default function Header({
             </AnimatePresence>
           </div>
 
-          <div className="h-8 w-[2px] bg-slate-100 mx-1 hidden sm:block" />
+          <div className="h-6 w-px bg-[rgb(229,231,235)] hidden sm:block" />
 
           {/* User Profile Menu */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-3 rounded-2xl border-2 border-transparent p-1 transition-all hover:bg-slate-50"
+              className="flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 hover:bg-[rgb(249,250,251)] hover:border-[rgb(229,231,235)] transition-all"
+              aria-label="User menu"
+              aria-expanded={userMenuOpen}
             >
-              <Avatar className="h-10 w-10 border-2 border-white shadow-md ring-2 ring-slate-100">
-                <AvatarImage src={profilePhotoUrl || ""} />
-                <AvatarFallback className="bg-blue-600 text-white font-black text-xs uppercase">
-                  {user.displayName?.charAt(0)}
+              <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-[rgb(229,231,235)]">
+                <AvatarImage
+                  src={profilePhotoUrl || ""}
+                  alt={user.displayName}
+                />
+                <AvatarFallback className="bg-[rgb(43,95,117)] text-white font-bold text-sm">
+                  {user.displayName?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
 
               <div className="hidden flex-col items-start lg:flex text-left">
-                <span className="text-xs font-black text-slate-900 leading-none truncate max-w-[120px]">
+                <span className="text-sm font-bold text-[rgb(26,32,44)] leading-tight truncate max-w-[140px]">
                   {user.displayName}
                 </span>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 mt-1">
+                <span className="text-[10px] font-medium text-[rgb(107,114,128)] mt-0.5 uppercase tracking-wide">
                   {user.roleName || "Citizen"}
                 </span>
               </div>
               <ChevronDown
                 className={cn(
-                  "hidden h-4 w-4 text-slate-400 transition-transform lg:block",
+                  "hidden h-4 w-4 text-[rgb(156,163,175)] transition-transform lg:block",
                   userMenuOpen && "rotate-180"
                 )}
               />
             </button>
 
-            {userMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute right-0 top-full mt-3 w-64 rounded-[1.5rem] border-2 border-slate-100 bg-white p-2 shadow-2xl z-50 ring-1 ring-slate-900/5"
-              >
-                <div className="px-4 py-3 bg-slate-50/50 rounded-2xl mb-2">
-                  <p className="text-xs font-black text-slate-900 truncate">
-                    {user.displayName}
-                  </p>
-                  <p className="text-[10px] font-bold text-slate-400 truncate">
-                    {user.email}
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <Link
-                    href="/citizen/settings"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all"
-                  >
-                    <User className="h-4 w-4" /> My Registry Profile
-                  </Link>
-                  <Link
-                    href="/citizen/settings"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all"
-                  >
-                    <Settings className="h-4 w-4" /> Account Settings
-                  </Link>
-                </div>
-
-                <div className="my-2 border-t border-slate-100" />
-
-                <button
-                  onClick={handleSignOut}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-xs font-black text-red-600 hover:bg-red-50 transition-all"
+            <AnimatePresence>
+              {userMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-[rgb(229,231,235)] bg-white p-2 shadow-xl z-50 elevation-4"
                 >
-                  <LogOut className="h-4 w-4" /> Sign Out
-                </button>
-              </motion.div>
-            )}
+                  {/* User Info */}
+                  <div className="px-4 py-3 bg-[rgb(249,250,251)] rounded-xl mb-2">
+                    <p className="text-sm font-bold text-[rgb(26,32,44)] truncate leading-tight">
+                      {user.displayName}
+                    </p>
+                    <p className="text-xs font-medium text-[rgb(107,114,128)] truncate mt-1">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/citizen/profile"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[rgb(75,85,99)] hover:bg-[rgb(249,250,251)] hover:text-[rgb(43,95,117)] transition-all"
+                    >
+                      <User className="h-4 w-4" /> My Profile
+                    </Link>
+                    <Link
+                      href="/citizen/settings"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[rgb(75,85,99)] hover:bg-[rgb(249,250,251)] hover:text-[rgb(43,95,117)] transition-all"
+                    >
+                      <Settings className="h-4 w-4" /> Settings
+                    </Link>
+                  </div>
+
+                  <div className="my-2 border-t border-[rgb(229,231,235)]" />
+
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-[rgb(239,68,68)] hover:bg-[rgb(239,68,68)]/5 transition-all"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

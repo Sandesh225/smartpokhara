@@ -149,49 +149,56 @@ export function CommentThread({
   };
 
   return (
-    <Card className="border-slate-200">
-      <CardHeader>
+    <Card className="border-2 border-[rgb(var(--neutral-stone-200))] stone-card">
+      <CardHeader className="card-padding border-b border-[rgb(var(--neutral-stone-200))]">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Comments</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-[rgb(var(--text-ink))] font-bold text-lg">
+              Comments
+            </CardTitle>
+            <CardDescription className="text-[rgb(var(--neutral-stone-500))] mt-1">
               Public conversation about this complaint
             </CardDescription>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="gap-1">
-              <MessageSquare className="h-3 w-3" />
-              {comments.length} comment{comments.length !== 1 ? "s" : ""}
+          <div className="flex items-center gap-3">
+            <Badge
+              variant="outline"
+              className="gap-2 border-[rgb(var(--neutral-stone-300))] px-3 py-1.5 rounded-full"
+            >
+              <MessageSquare className="h-3.5 w-3.5 text-[rgb(var(--primary-brand))]" />
+              <span className="font-mono text-[rgb(var(--text-ink))] font-semibold">
+                {comments.length}
+              </span>
             </Badge>
 
             {isSubscribed && (
               <Badge
                 variant="outline"
-                className="animate-pulse gap-1 text-green-600 border-green-200 bg-green-50"
+                className="animate-pulse gap-2 text-[rgb(var(--success-green))] border-[rgb(var(--success-green))] bg-green-50 px-3 py-1.5 rounded-full"
               >
-                <div className="h-2 w-2 rounded-full bg-green-500" />
-                Live
+                <div className="h-2 w-2 rounded-full bg-[rgb(var(--success-green))]" />
+                <span className="font-semibold text-xs">Live</span>
               </Badge>
             )}
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="card-padding space-y-6">
         <div
           ref={containerRef}
-          className="space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-4 scrollbar-thin scrollbar-thumb-slate-200"
+          className="space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-4 scrollbar-hide"
         >
           {comments.length === 0 ? (
             <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                <MessageSquare className="h-8 w-8 text-slate-400" />
+              <div className="mx-auto w-16 h-16 rounded-full bg-[rgb(var(--neutral-stone-100))] flex items-center justify-center mb-4">
+                <MessageSquare className="h-8 w-8 text-[rgb(var(--neutral-stone-400))]" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              <h3 className="text-lg font-semibold text-[rgb(var(--text-ink))] mb-2">
                 Start the conversation
               </h3>
-              <p className="text-slate-600 max-w-md mx-auto mb-6">
+              <p className="text-[rgb(var(--neutral-stone-500))] max-w-md mx-auto mb-6 leading-relaxed">
                 Be the first to comment on this complaint. Ask questions or
                 provide additional details.
               </p>
@@ -209,11 +216,16 @@ export function CommentThread({
                   className={`flex gap-3 ${isCitizen ? "justify-end" : ""}`}
                 >
                   {isStaff && (
-                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm mt-1">
+                    <Avatar className="h-9 w-9 border-2 border-white shadow-sm mt-1 elevation-1">
                       {comment.author?.profile_photo_url ? (
-                        <AvatarImage src={comment.author.profile_photo_url} />
+                        <AvatarImage
+                          src={
+                            comment.author.profile_photo_url ||
+                            "/placeholder.svg"
+                          }
+                        />
                       ) : (
-                        <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                        <AvatarFallback className="bg-[rgb(var(--primary-brand-light))] text-white text-xs font-semibold">
                           {comment.author?.full_name
                             ?.split(" ")
                             .map((n) => n[0])
@@ -229,12 +241,12 @@ export function CommentThread({
                     <div
                       className={`rounded-2xl px-4 py-3 ${
                         isCitizen
-                          ? "bg-blue-600 text-white rounded-br-none shadow-sm"
-                          : "bg-slate-100 text-slate-900 rounded-bl-none border border-slate-200"
+                          ? "bg-[rgb(var(--primary-brand))] text-white rounded-br-none shadow-sm elevation-2"
+                          : "bg-[rgb(var(--neutral-stone-100))] text-[rgb(var(--text-ink))] rounded-bl-none border-2 border-[rgb(var(--neutral-stone-200))]"
                       }`}
                     >
                       <div
-                        className={`flex items-center justify-between mb-1 ${isCitizen ? "text-blue-100" : "text-slate-600"}`}
+                        className={`flex items-center justify-between mb-1.5 ${isCitizen ? "text-white/80" : "text-[rgb(var(--neutral-stone-500))]"}`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-xs">
@@ -244,20 +256,20 @@ export function CommentThread({
                           {isStaff && (
                             <Badge
                               variant="secondary"
-                              className="h-4 px-1.5 text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-100 border-0"
+                              className="h-4 px-1.5 text-[10px] bg-[rgb(var(--accent-nature-light))] text-[rgb(var(--text-ink))] border-0 font-semibold"
                             >
                               Staff
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px]">
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono">
                           <Clock className="h-3 w-3" />
                           <span>{formatTime(comment.created_at)}</span>
                         </div>
                       </div>
 
                       <div
-                        className={`whitespace-pre-line text-sm ${isCitizen ? "text-white" : "text-slate-700"}`}
+                        className={`whitespace-pre-line text-sm leading-relaxed ${isCitizen ? "text-white" : "text-[rgb(var(--text-ink))]"}`}
                       >
                         {comment.content}
                       </div>
@@ -268,7 +280,7 @@ export function CommentThread({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-5 px-2 text-xs text-slate-500 hover:text-slate-700"
+                          className="h-6 px-2 text-xs text-[rgb(var(--neutral-stone-500))] hover:text-[rgb(var(--primary-brand))] hover:bg-[rgb(var(--neutral-stone-50))]"
                           onClick={() => {
                             setReplyingTo(comment.id);
                             setTimeout(() => {
@@ -285,8 +297,8 @@ export function CommentThread({
                   </div>
 
                   {isCitizen && (
-                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm mt-1">
-                      <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
+                    <Avatar className="h-9 w-9 border-2 border-white shadow-sm mt-1 elevation-1">
+                      <AvatarFallback className="bg-[rgb(var(--accent-nature))] text-white text-xs font-semibold">
                         You
                       </AvatarFallback>
                     </Avatar>
@@ -300,18 +312,20 @@ export function CommentThread({
         </div>
 
         {replyingTo && (
-          <div className="flex items-center justify-between bg-blue-50 p-2 px-3 rounded-lg border border-blue-100 text-sm mb-2">
-            <div className="flex items-center gap-2 text-blue-700">
+          <div className="flex items-center justify-between bg-[rgb(var(--accent-nature))]/10 p-3 px-4 rounded-xl border border-[rgb(var(--accent-nature))]/20 text-sm">
+            <div className="flex items-center gap-2 text-[rgb(var(--accent-nature-dark))]">
               <MessageSquare className="h-4 w-4" />
-              <span>Replying to comment...</span>
+              <span className="font-semibold text-xs">
+                Replying to comment...
+              </span>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setReplyingTo(null)}
-              className="h-6 w-6 text-blue-400 hover:text-blue-700 hover:bg-blue-100"
+              className="h-6 w-6 text-[rgb(var(--neutral-stone-400))] hover:text-[rgb(var(--accent-nature))] hover:bg-[rgb(var(--accent-nature))]/10"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
@@ -319,7 +333,7 @@ export function CommentThread({
         {error && (
           <Alert
             variant="destructive"
-            className="animate-in slide-in-from-top-2 py-2"
+            className="animate-in slide-in-from-top-2 py-3 border-[rgb(var(--error-red))]"
           >
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-xs">{error}</AlertDescription>
@@ -329,16 +343,16 @@ export function CommentThread({
         {success && (
           <Alert
             variant="default"
-            className="bg-green-50 border-green-200 text-green-800 py-2 animate-in slide-in-from-top-2"
+            className="bg-green-50 border-[rgb(var(--success-green))]/30 text-[rgb(var(--success-green))] py-3 animate-in slide-in-from-top-2"
           >
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-4 w-4" />
             <AlertDescription className="text-xs font-medium">
               {success}
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="pt-2 border-t border-slate-100">
+        <div className="pt-4 border-t border-[rgb(var(--neutral-stone-200))]">
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex gap-3 items-end"
@@ -347,10 +361,10 @@ export function CommentThread({
               <Textarea
                 id="comment-textarea"
                 placeholder="Type your comment..."
-                className={`min-h-[40px] max-h-[120px] resize-none py-3 text-sm ${
+                className={`min-h-[44px] max-h-[120px] resize-none py-3 text-sm border-2 rounded-xl ${
                   errors.content
-                    ? "border-red-300 focus-visible:ring-red-200"
-                    : ""
+                    ? "border-[rgb(var(--error-red))] focus-visible:ring-[rgb(var(--error-red))]/20"
+                    : "border-[rgb(var(--neutral-stone-200))] focus-visible:ring-[rgb(var(--primary-brand))]/20"
                 }`}
                 {...register("content")}
                 disabled={isSubmitting}
@@ -361,9 +375,11 @@ export function CommentThread({
                   }
                 }}
               />
-              <div className="flex justify-between items-center text-xs text-slate-400 px-1">
+              <div className="flex justify-between items-center text-xs text-[rgb(var(--neutral-stone-400))] px-1">
                 <span>Press Enter to send</span>
-                <span className={characterCount > 1800 ? "text-amber-600" : ""}>
+                <span
+                  className={`font-mono ${characterCount > 1800 ? "text-[rgb(var(--warning-amber))] font-semibold" : ""}`}
+                >
                   {characterCount}/2000
                 </span>
               </div>
@@ -373,7 +389,7 @@ export function CommentThread({
               type="submit"
               disabled={isSubmitting || characterCount === 0}
               size="icon"
-              className="h-10 w-10 shrink-0 rounded-full bg-blue-600 hover:bg-blue-700 shadow-sm mb-6"
+              className="h-11 w-11 shrink-0 rounded-full bg-[rgb(var(--primary-brand))] hover:bg-[rgb(var(--primary-brand-dark))] shadow-md elevation-2 mb-6"
             >
               {isSubmitting ? (
                 <RefreshCw className="h-4 w-4 animate-spin" />

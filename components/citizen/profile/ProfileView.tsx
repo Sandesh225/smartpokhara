@@ -25,74 +25,73 @@ interface ProfileViewProps {
 
 export default function ProfileView({ profile, onEdit }: ProfileViewProps) {
   return (
-    <div className="space-y-6">
-      {/* Hero Section */}
-      <Card className="overflow-hidden border-none shadow-md bg-white">
-        {/* Decorative Background */}
-        <div className="h-32 w-full bg-linear-to-r from-blue-600 to-indigo-600 relative">
+    <div className="space-y-8">
+      <Card className="overflow-hidden border-0 elevation-2 rounded-3xl bg-white">
+        <div className="h-40 w-full bg-gradient-to-r from-[rgb(43,95,117)] to-[rgb(95,158,160)] relative">
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
         </div>
 
-        <CardContent className="px-6 pb-6 pt-0 relative">
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            {/* Avatar - Negative margin to pull it up */}
-            <div className="-mt-12 relative">
-              <div className="rounded-full p-1 bg-white shadow-sm">
-                <Avatar className="h-32 w-32 border-4 border-white shadow-md">
+        <CardContent className="card-padding relative">
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+            <div className="-mt-20 relative">
+              <div className="rounded-full p-1.5 bg-white elevation-3">
+                <Avatar className="h-36 w-36 border-4 border-white">
                   <AvatarImage
                     src={profile.profile_photo_url || ""}
                     alt={profile.full_name}
                     className="object-cover"
                   />
-                  <AvatarFallback className="text-4xl bg-slate-100 text-slate-400 font-medium">
+                  <AvatarFallback className="text-4xl bg-[rgb(244,245,247)] text-[rgb(26,32,44)]/40 font-black">
                     {profile.full_name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
               </div>
               {profile.is_verified && (
                 <div
-                  className="absolute bottom-2 right-2 bg-white rounded-full p-1 shadow-sm"
+                  className="absolute bottom-2 right-2 bg-white rounded-full p-1.5 elevation-2"
                   title="Verified Citizen"
                 >
-                  <CheckCircle2 className="h-6 w-6 text-blue-500 fill-blue-50" />
+                  <CheckCircle2 className="h-7 w-7 text-[rgb(95,158,160)] fill-[rgb(95,158,160)]/10" />
                 </div>
               )}
             </div>
 
-            {/* Basic Info */}
-            <div className="mt-4 md:mt-6 flex-1 space-y-2">
+            <div className="mt-4 md:mt-8 flex-1 space-y-3">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-900">
+                  <h1 className="text-3xl font-black text-[rgb(26,32,44)] tracking-tight">
                     {profile.full_name}
                   </h1>
                   {profile.full_name_nepali && (
-                    <p className="text-lg text-slate-500 font-serif">
+                    <p className="text-xl text-[rgb(26,32,44)]/60 mt-1 font-semibold">
                       {profile.full_name_nepali}
                     </p>
                   )}
                 </div>
-                <Button onClick={onEdit} className="shadow-sm">
+                <Button
+                  onClick={onEdit}
+                  className="bg-[rgb(43,95,117)] hover:bg-[rgb(43,95,117)]/90 rounded-2xl h-12 px-6 font-bold elevation-1"
+                >
                   <Edit2 className="h-4 w-4 mr-2" />
                   Edit Profile
                 </Button>
               </div>
 
-              <div className="flex flex-wrap gap-3 mt-4">
+              <div className="flex flex-wrap gap-3 mt-5">
                 <Badge
                   variant={profile.is_verified ? "default" : "secondary"}
                   className={
                     profile.is_verified
-                      ? "bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200"
-                      : ""
+                      ? "bg-[rgb(95,158,160)]/10 text-[rgb(95,158,160)] hover:bg-[rgb(95,158,160)]/20 border-2 border-[rgb(95,158,160)]/20 rounded-xl px-4 py-1.5 font-bold"
+                      : "rounded-xl px-4 py-1.5 font-bold"
                   }
                 >
                   {profile.is_verified
                     ? "Verified Citizen"
                     : "Unverified Account"}
                 </Badge>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <CalendarDays className="h-4 w-4 mr-1.5" />
+                <div className="flex items-center text-sm text-[rgb(26,32,44)]/60 font-mono">
+                  <CalendarDays className="h-4 w-4 mr-2" />
                   Joined {format(new Date(profile.created_at), "MMMM yyyy")}
                 </div>
               </div>
@@ -101,44 +100,42 @@ export default function ProfileView({ profile, onEdit }: ProfileViewProps) {
         </CardContent>
       </Card>
 
-      {/* Details Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Contact Info Card */}
-        <Card className="shadow-sm h-full">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
-              <span className="p-1.5 bg-blue-50 text-blue-600 rounded-md">
-                <Mail className="h-4 w-4" />
+        <Card className="elevation-1 h-full rounded-3xl border-2 border-slate-100 bg-white">
+          <CardContent className="card-padding">
+            <h3 className="font-black text-lg mb-8 flex items-center gap-3 text-[rgb(26,32,44)]">
+              <span className="p-2 bg-[rgb(43,95,117)]/10 text-[rgb(43,95,117)] rounded-2xl">
+                <Mail className="h-5 w-5" />
               </span>
               Contact Information
             </h3>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="group flex items-start gap-4">
-                <div className="mt-1 h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
-                  <Mail className="h-4 w-4" />
+                <div className="mt-1 h-10 w-10 rounded-2xl bg-[rgb(244,245,247)] flex items-center justify-center text-[rgb(26,32,44)]/60 group-hover:text-[rgb(43,95,117)] group-hover:bg-[rgb(43,95,117)]/10 transition-all">
+                  <Mail className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-500 mb-0.5">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 mb-1.5">
                     Email Address
                   </p>
-                  <p className="text-base font-medium text-slate-900">
+                  <p className="text-base font-bold text-[rgb(26,32,44)]">
                     {profile.email}
                   </p>
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="bg-slate-100" />
 
               <div className="group flex items-start gap-4">
-                <div className="mt-1 h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
-                  <Phone className="h-4 w-4" />
+                <div className="mt-1 h-10 w-10 rounded-2xl bg-[rgb(244,245,247)] flex items-center justify-center text-[rgb(26,32,44)]/60 group-hover:text-[rgb(43,95,117)] group-hover:bg-[rgb(43,95,117)]/10 transition-all">
+                  <Phone className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-500 mb-0.5">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 mb-1.5">
                     Mobile Number
                   </p>
-                  <p className="text-base font-medium text-slate-900">
+                  <p className="text-base font-mono font-bold text-[rgb(26,32,44)]">
                     {profile.phone || "Not provided"}
                   </p>
                 </div>
@@ -147,64 +144,63 @@ export default function ProfileView({ profile, onEdit }: ProfileViewProps) {
           </CardContent>
         </Card>
 
-        {/* Location Info Card */}
-        <Card className="shadow-sm h-full">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
-              <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-md">
-                <MapPin className="h-4 w-4" />
+        <Card className="elevation-1 h-full rounded-3xl border-2 border-slate-100 bg-white">
+          <CardContent className="card-padding">
+            <h3 className="font-black text-lg mb-8 flex items-center gap-3 text-[rgb(26,32,44)]">
+              <span className="p-2 bg-[rgb(95,158,160)]/10 text-[rgb(95,158,160)] rounded-2xl">
+                <MapPin className="h-5 w-5" />
               </span>
               Location Details
             </h3>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="group flex items-start gap-4">
-                <div className="mt-1 h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-emerald-600 group-hover:bg-emerald-50 transition-colors">
-                  <Building2 className="h-4 w-4" />
+                <div className="mt-1 h-10 w-10 rounded-2xl bg-[rgb(244,245,247)] flex items-center justify-center text-[rgb(26,32,44)]/60 group-hover:text-[rgb(95,158,160)] group-hover:bg-[rgb(95,158,160)]/10 transition-all">
+                  <Building2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-500 mb-0.5">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 mb-1.5">
                     Administrative Ward
                   </p>
-                  <p className="text-base font-medium text-slate-900">
+                  <p className="text-base font-bold text-[rgb(26,32,44)]">
                     {profile.ward_id
                       ? `Ward No. ${profile.ward_id}`
                       : "Not Assigned"}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-xs text-[rgb(26,32,44)]/50 mt-1 font-medium">
                     Your primary administrative division
                   </p>
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="bg-slate-100" />
 
               <div className="group flex items-start gap-4">
-                <div className="mt-1 h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-emerald-600 group-hover:bg-emerald-50 transition-colors">
-                  <Navigation className="h-4 w-4" />
+                <div className="mt-1 h-10 w-10 rounded-2xl bg-[rgb(244,245,247)] flex items-center justify-center text-[rgb(26,32,44)]/60 group-hover:text-[rgb(95,158,160)] group-hover:bg-[rgb(95,158,160)]/10 transition-all">
+                  <Navigation className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-500 mb-0.5">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 mb-1.5">
                     Residential Address
                   </p>
                   {profile.address_line1 || profile.address_line2 ? (
-                    <div className="space-y-1">
-                      <p className="text-base font-medium text-slate-900">
+                    <div className="space-y-1.5">
+                      <p className="text-base font-bold text-[rgb(26,32,44)]">
                         {profile.address_line1}
                       </p>
                       {profile.address_line2 && (
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-[rgb(26,32,44)]/70 font-medium">
                           {profile.address_line2}
                         </p>
                       )}
                       {profile.landmark && (
-                        <p className="text-sm text-slate-500 italic mt-1">
+                        <p className="text-sm text-[rgb(26,32,44)]/50 italic mt-2">
                           Near: {profile.landmark}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">
+                    <p className="text-sm text-[rgb(26,32,44)]/40 italic">
                       No address provided
                     </p>
                   )}

@@ -12,7 +12,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 
 import {
   Card,
@@ -94,28 +93,27 @@ export default function NotificationPreferences({
   };
 
   return (
-    <Card className="border-0 shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white ring-1 ring-slate-900/5 overflow-hidden">
-      <CardHeader className="p-8 md:p-10 bg-slate-50/50 border-b border-slate-100">
+    <Card className="border-0 elevation-3 rounded-3xl bg-white ring-1 ring-slate-900/5 overflow-hidden">
+      <CardHeader className="card-padding bg-[rgb(244,245,247)]/50 border-b-2 border-slate-100">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-200">
-            <BellRing className="h-6 w-6" />
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[rgb(43,95,117)] to-[rgb(95,158,160)] flex items-center justify-center text-white elevation-2">
+            <BellRing className="h-7 w-7" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-black tracking-tight text-slate-900">
+            <CardTitle className="text-2xl font-black tracking-tight text-[rgb(26,32,44)]">
               Alert Configuration
             </CardTitle>
-            <CardDescription className="font-medium text-slate-500">
+            <CardDescription className="font-medium text-[rgb(26,32,44)]/60 mt-1">
               Manage your connection with municipal digital services.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-8 md:p-10 space-y-12">
-        {/* Communication Channels */}
+      <CardContent className="card-padding space-y-12">
         <section className="space-y-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 flex items-center gap-2 ml-1">
-            <Globe className="h-3 w-3" /> Delivery Channels
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(43,95,117)] flex items-center gap-2 ml-1">
+            <Globe className="h-3.5 w-3.5" /> Delivery Channels
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ChannelCard
@@ -139,10 +137,9 @@ export default function NotificationPreferences({
 
         <Separator className="bg-slate-100" />
 
-        {/* Specific Updates */}
         <section className="space-y-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 flex items-center gap-2 ml-1">
-            <MessageSquare className="h-3 w-3" /> Subscription Topics
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(95,158,160)] flex items-center gap-2 ml-1">
+            <MessageSquare className="h-3.5 w-3.5" /> Subscription Topics
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
@@ -169,16 +166,16 @@ export default function NotificationPreferences({
             ].map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-5 rounded-[1.5rem] border-2 border-slate-50 bg-slate-50/30 transition-all hover:bg-white hover:border-emerald-100 group"
+                className="flex items-center justify-between p-5 rounded-2xl border-2 border-slate-100 bg-[rgb(244,245,247)]/30 transition-all hover:bg-white hover:border-[rgb(95,158,160)]/20 group"
               >
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   <Label
                     htmlFor={item.id}
-                    className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors"
+                    className="text-sm font-bold text-[rgb(26,32,44)] group-hover:text-[rgb(95,158,160)] transition-colors"
                   >
                     {item.label}
                   </Label>
-                  <p className="text-[10px] font-medium text-slate-400">
+                  <p className="text-xs font-medium text-[rgb(26,32,44)]/50">
                     {item.desc}
                   </p>
                 </div>
@@ -198,13 +195,12 @@ export default function NotificationPreferences({
 
         <Separator className="bg-slate-100" />
 
-        {/* Frequency */}
-        <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-blue-50/30 p-8 rounded-3xl border border-blue-100/50">
+        <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[rgb(43,95,117)]/5 p-8 rounded-3xl border-2 border-[rgb(43,95,117)]/10">
           <div className="space-y-1">
-            <Label className="text-lg font-bold text-slate-900">
+            <Label className="text-lg font-black text-[rgb(26,32,44)]">
               Digest Frequency
             </Label>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-[rgb(26,32,44)]/60 font-medium leading-relaxed">
               How should we bundle non-urgent system updates?
             </p>
           </div>
@@ -212,10 +208,10 @@ export default function NotificationPreferences({
             value={safePrefs.digest_frequency}
             onValueChange={handleSelect}
           >
-            <SelectTrigger className="w-full md:w-[240px] h-12 rounded-2xl border-slate-200 bg-white font-bold shadow-sm">
+            <SelectTrigger className="w-full md:w-[240px] h-12 rounded-2xl border-2 border-slate-200 bg-white font-bold elevation-1">
               <SelectValue placeholder="Select logic" />
             </SelectTrigger>
-            <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
+            <SelectContent className="rounded-2xl elevation-3 border-2 border-slate-100">
               <SelectItem value="immediate" className="font-medium">
                 Real-time (Standard)
               </SelectItem>
@@ -230,15 +226,15 @@ export default function NotificationPreferences({
         </section>
       </CardContent>
 
-      <CardFooter className="bg-slate-50/80 backdrop-blur-sm border-t border-slate-100 p-8 flex justify-between items-center">
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-          <ShieldCheck className="h-4 w-4 text-blue-500" /> AES-256 Encrypted
-          Preferences
+      <CardFooter className="bg-[rgb(244,245,247)]/80 backdrop-blur-sm border-t-2 border-slate-100 card-padding flex justify-between items-center">
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40">
+          <ShieldCheck className="h-4 w-4 text-[rgb(43,95,117)]" /> AES-256
+          Encrypted
         </div>
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="min-w-[180px] h-12 rounded-2xl bg-slate-900 hover:bg-black font-black text-white shadow-xl shadow-slate-200 transition-all active:scale-95"
+          className="min-w-[180px] h-12 rounded-2xl bg-[rgb(26,32,44)] hover:bg-black font-black text-white elevation-2 transition-all active:scale-95"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -253,34 +249,35 @@ export default function NotificationPreferences({
   );
 }
 
-// Sub-component for Channels
 function ChannelCard({ id, label, desc, icon: Icon, checked, onToggle }: any) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-300",
+        "flex items-center justify-between p-6 rounded-3xl border-2 transition-all duration-300",
         checked
-          ? "bg-white border-blue-600 shadow-xl shadow-blue-900/5 ring-4 ring-blue-50"
-          : "bg-slate-50/50 border-slate-100 opacity-60"
+          ? "bg-white border-[rgb(43,95,117)] elevation-2 ring-4 ring-[rgb(43,95,117)]/10"
+          : "bg-[rgb(244,245,247)]/50 border-slate-100 opacity-60"
       )}
     >
       <div className="flex items-center gap-4">
         <div
           className={cn(
             "h-12 w-12 rounded-2xl flex items-center justify-center transition-colors",
-            checked ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"
+            checked
+              ? "bg-[rgb(43,95,117)] text-white"
+              : "bg-slate-200 text-[rgb(26,32,44)]/40"
           )}
         >
           <Icon className="h-6 w-6" />
         </div>
-        <div className="space-y-0.5">
+        <div className="space-y-1">
           <Label
             htmlFor={id}
-            className="text-base font-bold text-slate-900 cursor-pointer"
+            className="text-base font-bold text-[rgb(26,32,44)] cursor-pointer"
           >
             {label}
           </Label>
-          <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+          <p className="text-xs font-medium text-[rgb(26,32,44)]/50 uppercase tracking-wider">
             {desc}
           </p>
         </div>

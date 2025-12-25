@@ -43,7 +43,6 @@ import {
   ChevronRight,
   ChevronLeft,
   AlertCircle,
-  Image as ImageIcon,
   Droplets,
   Lightbulb,
   Trash2,
@@ -62,6 +61,7 @@ import {
   HelpCircle,
   Waves,
 } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 
 import type {
   SubmitComplaintRequest,
@@ -478,17 +478,15 @@ export default function ComplaintForm({
                     isActive
                       ? "bg-white border-blue-600 shadow-lg shadow-blue-200 ring-4 ring-blue-100"
                       : isCompleted
-                      ? "bg-gradient-to-br from-indigo-500 to-indigo-600 border-indigo-600 shadow-md hover:scale-105 cursor-pointer"
-                      : "bg-slate-50 border-slate-300"
+                        ? "bg-gradient-to-br from-indigo-500 to-indigo-600 border-indigo-600 shadow-md hover:scale-105 cursor-pointer"
+                        : "bg-slate-50 border-slate-300"
                   }`}
                 >
                   {isCompleted ? (
                     <Check className="h-5 w-5 text-white" strokeWidth={3} />
                   ) : (
                     <Icon
-                      className={`h-4 w-4 ${
-                        isActive ? "text-blue-600" : "text-slate-400"
-                      }`}
+                      className={`h-4 w-4 ${isActive ? "text-blue-600" : "text-slate-400"}`}
                     />
                   )}
                 </motion.button>
@@ -857,7 +855,7 @@ export default function ComplaintForm({
                             className="relative group rounded-xl overflow-hidden border-2 border-slate-200 aspect-square shadow-sm bg-white hover:border-blue-300 hover:shadow-md transition-all"
                           >
                             <img
-                              src={previews[i]}
+                              src={previews[i] || "/placeholder.svg"}
                               alt="Preview"
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
@@ -1043,7 +1041,7 @@ export default function ComplaintForm({
                                   className="h-20 w-20 rounded-xl overflow-hidden border-2 border-slate-200 shrink-0 shadow-sm hover:scale-105 hover:border-blue-300 transition-all"
                                 >
                                   <img
-                                    src={src}
+                                    src={src || "/placeholder.svg"}
                                     className="w-full h-full object-cover"
                                     alt={`attachment-${i + 1}`}
                                   />
@@ -1078,7 +1076,7 @@ export default function ComplaintForm({
               variant="outline"
               onClick={prevStep}
               disabled={isSubmitting}
-              className="w-full sm:w-auto h-12 px-6 rounded-xl border-2 border-slate-300 hover:bg-white hover:border-slate-400 hover:text-slate-900 font-bold text-slate-600 transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-slate-400"
+              className="w-full sm:w-auto h-12 px-6 rounded-xl border-2 border-slate-300 hover:bg-white hover:border-slate-400 hover:text-slate-900 font-bold text-slate-600 transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-slate-400 bg-transparent"
             >
               <ChevronLeft className="h-4 w-4 mr-2" /> Back
             </Button>

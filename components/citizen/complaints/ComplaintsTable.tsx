@@ -14,14 +14,12 @@ import {
   formatDistanceToNow,
   differenceInDays,
   differenceInHours,
-  differenceInMinutes,
 } from "date-fns";
 import {
-  ColumnDef,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,13 +36,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -54,7 +45,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import {
   ArrowUpDown,
-  Calendar,
   Eye,
   MapPin,
   MoreVertical,
@@ -67,7 +57,6 @@ import {
   Copy,
   Printer,
   Shield,
-  Check,
   ChevronLeft,
   ChevronRight,
   AlertTriangle,

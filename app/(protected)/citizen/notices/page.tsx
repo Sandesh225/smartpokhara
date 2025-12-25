@@ -1,23 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import {
   Bell,
   RefreshCw,
   Sparkles,
   TrendingUp,
-  Info,
   ShieldCheck,
-  LayoutGrid,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { noticesService } from "@/lib/supabase/queries/notices";
 import NoticesList from "@/components/citizen/notices/NoticesList";
 import NoticeFilters from "@/components/citizen/notices/NoticeFilters";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -50,21 +46,19 @@ function StatCard({ icon: Icon, label, value, gradient }: any) {
 }
 
 export default function NoticesPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const [notices, setNotices] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
-  const page = parseInt(searchParams.get("page") || "1");
-  const search = searchParams.get("search") || undefined;
-  const ward = searchParams.get("ward") || undefined;
-  const type = searchParams.get("type") || undefined;
-  const dateFrom = searchParams.get("dateFrom") || undefined;
-  const dateTo = searchParams.get("dateTo") || undefined;
-  const unreadOnly = searchParams.get("unreadOnly") === "true";
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({
+    search: undefined as string | undefined,
+    ward: undefined as string | undefined,
+    type: undefined as string | undefined,
+    dateFrom: undefined as string | undefined,
+    dateTo: undefined as string | undefined,
+    unreadOnly: false,
+  });
 
   const limit = 20;
   const offset = (page - 1) * limit;
@@ -77,12 +71,12 @@ export default function NoticesPage() {
           noticesService.getUserNotices({
             limit,
             offset,
-            search,
-            wardId: ward,
-            noticeType: type,
-            dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-            dateTo: dateTo ? new Date(dateTo) : undefined,
-            unreadOnly,
+            search: filters.search,
+            wardId: filters.ward,
+            noticeType: filters.type,
+            dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
+            dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
+            unreadOnly: filters.unreadOnly,
           }),
           noticesService.getUnreadNoticeCount(),
         ]);
@@ -98,7 +92,7 @@ export default function NoticesPage() {
         setIsLoading(false);
       }
     },
-    [page, search, ward, type, dateFrom, dateTo, unreadOnly, limit, offset]
+    [page, filters, limit, offset]
   );
 
   useEffect(() => {
@@ -113,9 +107,17 @@ export default function NoticesPage() {
     });
   };
 
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+    setPage(1); // Reset to first page when filters change
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50 relative overflow-hidden">
-      {/* Decorative Blur Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
       <div className="absolute bottom-[10%] right-[-5%] w-[400px] h-[400px] bg-indigo-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
@@ -182,18 +184,10 @@ export default function NoticesPage() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Filters Sidebar */}
           <aside className="lg:col-span-3 lg:sticky lg:top-28">
-            <NoticeFilters
-              onFilterChange={(f) => {
-                const params = new URLSearchParams(searchParams.toString());
-                // Filter logic...
-                router.push(`?${params.toString()}`);
-              }}
-            />
+            <NoticeFilters onFilterChange={handleFilterChange} />
           </aside>
 
-          {/* Notices List Area */}
           <main className="lg:col-span-9">
             <NoticesList
               notices={notices}
@@ -201,11 +195,7 @@ export default function NoticesPage() {
               total={total}
               page={page}
               limit={limit}
-              onPageChange={(p) => {
-                const params = new URLSearchParams(searchParams.toString());
-                params.set("page", p.toString());
-                router.push(`?${params.toString()}`);
-              }}
+              onPageChange={handlePageChange}
             />
           </main>
         </div>

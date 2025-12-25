@@ -5,58 +5,52 @@ export const adminStaffQueries = {
   /**
    * Fetch all staff using the RPC for optimized joining
    */
-  async getAllStaff(client: SupabaseClient, filters?: StaffFiltersState) {
-    // RPC call to get staff list with details
-    let query = client.rpc("rpc_get_all_staff", {
-      p_department_id: filters?.department_id || null,
-      p_ward_id: filters?.ward_id
-        ? typeof filters.ward_id === "string" && filters.ward_id.includes("-")
-          ? filters.ward_id
-          : null
-        : null, // Handle UUID vs int if needed, but schema uses UUID for IDs usually.
-      p_staff_role: filters?.role !== "all" ? filters?.role : null,
-      p_is_active:
-        filters?.status === "active"
-          ? true
-          : filters?.status === "inactive"
-          ? false
-          : null,
+  async getAllStaff(client: SupabaseClient) {
+    const { data, error } = await client
+      .from("staff_profiles")
+      .select(
+        `
+        *,
+        user:users!staff_profiles_user_id_fkey (
+          email,
+          profile:user_profiles (
+            full_name,
+            profile_photo_url
+          )
+        ),
+        department:departments (
+          name
+        ),
+        ward:wards (
+          ward_number
+        )
+      `
+      )
+      .eq("is_active", true);
+
+    if (error) {
+      // FIX: Standardize error throwing so UI receives a string, not {}
+      console.error("Staff Fetch Error:", error);
+      throw new Error(error.message || "Failed to load staff data");
+    }
+
+    // NORMALIZE: Flatten the Supabase array-nested joins
+    return (data || []).map((staff: any) => {
+      const user = staff.user;
+      const profile = Array.isArray(user?.profile)
+        ? user.profile[0]
+        : user?.profile;
+
+      return {
+        ...staff,
+        full_name: profile?.full_name || user?.email || "Unknown Staff",
+        avatar_url: profile?.profile_photo_url,
+        email: user?.email,
+        department_name: staff.department?.name || "Unassigned",
+        ward_num: staff.ward?.ward_number || "N/A",
+      };
     });
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    // Fetch avatar URLs separately or via join if not in RPC
-    // For now, we assume basic details are correct.
-    // To get workload/performance data for the list view, we might need to join with mv_staff_performance
-    // or rely on what rpc_get_all_staff returns.
-    // If rpc_get_all_staff doesn't return workload, we might need a secondary fetch or update the RPC.
-    // Assuming rpc_get_all_staff returns basic info.
-
-    // ENHANCEMENT: Fetch workload from mv_staff_performance to populate the table columns correctly
-    const staffIds = data.map((s: any) => s.user_id);
-    const { data: performanceData } = await client
-      .from("mv_staff_performance")
-      .select("user_id, current_workload, availability_status")
-      .in("user_id", staffIds);
-
-    const performanceMap = new Map(
-      performanceData?.map((p: any) => [p.user_id, p]) || []
-    );
-
-    return data.map((s: any) => ({
-      ...s,
-      current_workload: performanceMap.get(s.user_id)?.current_workload || 0,
-      availability_status:
-        performanceMap.get(s.user_id)?.availability_status || "offline",
-      // Start: Add missing fields for type compatibility if RPC doesn't return them directly
-      department_name: s.department_name,
-      ward_number: s.ward_number,
-      staff_role: s.staff_role,
-      // End
-    })) as AdminStaffListItem[];
   },
-
   /**
    * Get detailed profile for a single staff member
    */
@@ -180,5 +174,43 @@ export const adminStaffQueries = {
     const { data, error } = await query;
     if (error && error.code !== "PGRST116") throw error;
     return data;
+  },
+  async getStaffForSelection(client: SupabaseClient) {
+    const { data, error } = await client
+      .from("staff_profiles")
+      .select(
+        `
+        user_id,
+        staff_code,
+        staff_role,
+        user:users!staff_profiles_user_id_fkey (
+          email,
+          profile:user_profiles (
+            full_name
+          )
+        )
+      `
+      )
+      .eq("is_active", true);
+
+    if (error) {
+      console.error("Staff selection fetch error:", error);
+      throw new Error(error.message);
+    }
+
+    // MAP & UNWRAP: Handle the nested array structure from Supabase
+    return (data || []).map((s: any) => {
+      // Supabase returns 1-to-1 joins as an array of 1 item sometimes
+      const profile = Array.isArray(s.user?.profile)
+        ? s.user.profile[0]
+        : s.user?.profile;
+
+      return {
+        user_id: s.user_id,
+        full_name: profile?.full_name || s.user?.email || "Unknown Name",
+        staff_code: s.staff_code || "N/A",
+        role: s.staff_role,
+      };
+    });
   },
 };

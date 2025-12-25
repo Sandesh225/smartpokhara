@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Bell,
   Check,
   Search,
   ExternalLink,
@@ -44,7 +43,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-// --- Types ---
 type NotificationType =
   | "complaint_status"
   | "bill_generated"
@@ -99,7 +97,6 @@ export default function NotificationsPage() {
   const [view, setView] = useState<"all" | "unread">("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
-  // --- Derived State ---
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.is_read).length,
     [notifications]
@@ -117,7 +114,6 @@ export default function NotificationsPage() {
     });
   }, [notifications, query, view, priorityFilter]);
 
-  // --- Helpers ---
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
       case "complaint_status":
@@ -140,7 +136,6 @@ export default function NotificationsPage() {
     urgent: "bg-red-50 text-red-700 border-red-100",
   };
 
-  // --- Data Loading ---
   const loadData = useCallback(async () => {
     const {
       data: { user },
@@ -171,7 +166,6 @@ export default function NotificationsPage() {
   useEffect(() => {
     loadData();
 
-    // Real-time Subscription
     const channel = supabase
       .channel("schema-db-changes")
       .on(
@@ -197,7 +191,6 @@ export default function NotificationsPage() {
     };
   }, [loadData, supabase]);
 
-  // --- Actions ---
   const toggleSelected = (id: string) => {
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -249,7 +242,6 @@ export default function NotificationsPage() {
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-5xl space-y-10">
-      {/* --- Page Header --- */}
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 text-blue-700 text-[11px] font-black uppercase tracking-widest border border-blue-200">
@@ -313,9 +305,7 @@ export default function NotificationsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* --- Inbox Tab --- */}
         <TabsContent value="notifications" className="space-y-6 outline-none">
-          {/* Filters Bar */}
           <div className="flex flex-col md:flex-row gap-4 p-4 bg-white rounded-[2rem] border border-slate-200 shadow-sm">
             <div className="flex gap-2">
               <Select value={view} onValueChange={(v: any) => setView(v)}>
@@ -352,7 +342,6 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          {/* Notifications List */}
           <div className="grid gap-4">
             <AnimatePresence mode="popLayout">
               {filtered.length === 0 ? (
@@ -437,7 +426,7 @@ export default function NotificationsPage() {
                         <div className="pt-2">
                           <Button
                             variant="outline"
-                            className="rounded-xl font-bold hover:bg-blue-600 hover:text-white transition-all group/btn"
+                            className="rounded-xl font-bold hover:bg-blue-600 hover:text-white transition-all group/btn bg-transparent"
                             asChild
                           >
                             <a href={n.action_url}>
@@ -455,7 +444,6 @@ export default function NotificationsPage() {
           </div>
         </TabsContent>
 
-        {/* --- Preferences Tab --- */}
         <TabsContent value="preferences" className="outline-none">
           <Card className="border-0 shadow-2xl rounded-[3rem] bg-white ring-1 ring-slate-200 overflow-hidden">
             <CardHeader className="bg-slate-50/50 p-10 border-b border-slate-100">
@@ -468,7 +456,6 @@ export default function NotificationsPage() {
             </CardHeader>
 
             <CardContent className="p-10 space-y-12">
-              {/* Channels */}
               <section className="space-y-6">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
                   Delivery Channels
@@ -521,7 +508,6 @@ export default function NotificationsPage() {
                 </div>
               </section>
 
-              {/* Topics */}
               <section className="space-y-6">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
                   Content Topics
@@ -571,8 +557,6 @@ export default function NotificationsPage() {
     </div>
   );
 }
-
-// --- Internal Sub-components ---
 
 function LoadingSkeleton() {
   return (

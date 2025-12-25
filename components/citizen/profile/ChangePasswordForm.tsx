@@ -76,24 +76,24 @@ export default function ChangePasswordForm() {
     } else {
       toast.success("Password Updated", {
         description: "Your account security has been strengthened.",
-        icon: <ShieldCheck className="h-4 w-4 text-green-500" />,
+        icon: <ShieldCheck className="h-4 w-4 text-[rgb(95,158,160)]" />,
       });
       reset();
     }
   };
 
   return (
-    <Card className="border-0 shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white ring-1 ring-slate-900/5 overflow-hidden">
-      <CardHeader className="p-8 md:p-10 bg-slate-50/50 border-b border-slate-100">
+    <Card className="border-0 elevation-3 rounded-3xl bg-white ring-1 ring-slate-900/5 overflow-hidden">
+      <CardHeader className="card-padding bg-[rgb(244,245,247)]/50 border-b-2 border-slate-100">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-            <Lock className="h-6 w-6" />
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[rgb(43,95,117)] to-[rgb(95,158,160)] flex items-center justify-center text-white elevation-2">
+            <Lock className="h-7 w-7" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-black tracking-tight text-slate-900">
+            <CardTitle className="text-2xl font-black tracking-tight text-[rgb(26,32,44)]">
               Security Credentials
             </CardTitle>
-            <CardDescription className="font-medium text-slate-500">
+            <CardDescription className="font-medium text-[rgb(26,32,44)]/60 mt-1">
               Update your password to maintain account integrity.
             </CardDescription>
           </div>
@@ -101,7 +101,7 @@ export default function ChangePasswordForm() {
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="p-8 md:p-10 space-y-8">
+        <CardContent className="card-padding space-y-8">
           {errorMsg && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -119,19 +119,20 @@ export default function ChangePasswordForm() {
             <div className="space-y-3">
               <Label
                 htmlFor="password"
-                className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 ml-1"
               >
                 New Secure Password
               </Label>
               <div className="relative group">
-                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[rgb(26,32,44)]/40 group-focus-within:text-[rgb(43,95,117)] transition-colors" />
                 <Input
                   id="password"
                   type="password"
                   {...register("password")}
                   className={cn(
-                    "pl-11 h-12 rounded-2xl border-slate-200 bg-white focus:ring-4 focus:ring-blue-50 transition-all",
-                    errors.password && "border-red-500 focus:ring-red-50"
+                    "pl-11 h-12 rounded-2xl border-2 border-slate-200 bg-white focus:ring-4 focus:ring-[rgb(43,95,117)]/10 transition-all font-bold",
+                    errors.password &&
+                      "border-[rgb(229,121,63)] focus:ring-[rgb(229,121,63)]/10"
                   )}
                   placeholder="••••••••"
                 />
@@ -139,8 +140,10 @@ export default function ChangePasswordForm() {
               <div className="flex items-center justify-between px-1">
                 <p
                   className={cn(
-                    "text-[11px] font-bold transition-colors",
-                    errors.password ? "text-red-500" : "text-slate-400"
+                    "text-xs font-bold transition-colors",
+                    errors.password
+                      ? "text-[rgb(229,121,63)]"
+                      : "text-[rgb(26,32,44)]/40"
                   )}
                 >
                   {errors.password
@@ -148,7 +151,7 @@ export default function ChangePasswordForm() {
                     : "Minimum 8 characters required"}
                 </p>
                 {newPassword.length >= 8 && !errors.password && (
-                  <span className="text-[10px] font-black text-emerald-500 uppercase flex items-center gap-1">
+                  <span className="text-xs font-black text-[rgb(95,158,160)] uppercase flex items-center gap-1">
                     <Check className="h-3 w-3" strokeWidth={3} /> Strong
                   </span>
                 )}
@@ -158,25 +161,26 @@ export default function ChangePasswordForm() {
             <div className="space-y-3">
               <Label
                 htmlFor="confirmPassword"
-                className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 ml-1"
               >
                 Verify New Password
               </Label>
               <div className="relative group">
-                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[rgb(26,32,44)]/40 group-focus-within:text-[rgb(43,95,117)] transition-colors" />
                 <Input
                   id="confirmPassword"
                   type="password"
                   {...register("confirmPassword")}
                   className={cn(
-                    "pl-11 h-12 rounded-2xl border-slate-200 bg-white focus:ring-4 focus:ring-blue-50 transition-all",
-                    errors.confirmPassword && "border-red-500 focus:ring-red-50"
+                    "pl-11 h-12 rounded-2xl border-2 border-slate-200 bg-white focus:ring-4 focus:ring-[rgb(43,95,117)]/10 transition-all font-bold",
+                    errors.confirmPassword &&
+                      "border-[rgb(229,121,63)] focus:ring-[rgb(229,121,63)]/10"
                   )}
                   placeholder="••••••••"
                 />
               </div>
               {errors.confirmPassword && (
-                <p className="text-[11px] font-bold text-red-500 ml-1">
+                <p className="text-xs font-bold text-[rgb(229,121,63)] ml-1">
                   {errors.confirmPassword.message}
                 </p>
               )}
@@ -184,11 +188,11 @@ export default function ChangePasswordForm() {
           </div>
         </CardContent>
 
-        <CardFooter className="bg-slate-50/50 border-t border-slate-100 p-8 flex justify-end">
+        <CardFooter className="bg-[rgb(244,245,247)]/50 border-t-2 border-slate-100 card-padding flex justify-end">
           <Button
             type="submit"
             disabled={isUpdating}
-            className="w-full sm:w-auto min-w-[180px] h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 font-black text-white shadow-xl shadow-blue-200 transition-all active:scale-95"
+            className="w-full sm:w-auto min-w-[180px] h-12 rounded-2xl bg-[rgb(43,95,117)] hover:bg-[rgb(43,95,117)]/90 font-black text-white elevation-2 transition-all active:scale-95"
           >
             {isUpdating ? (
               <>

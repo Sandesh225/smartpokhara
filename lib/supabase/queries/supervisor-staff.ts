@@ -5,6 +5,10 @@ export const supervisorStaffQueries = {
   /**
    * Fetches team members strictly matching the supervisor's Respected Wards or Departments.
    */
+  // File: /lib/supabase/queries/supervisor-staff.ts
+
+  // File: /lib/supabase/queries/supervisor-staff.ts
+
   async getSupervisedStaff(
     client: SupabaseClient,
     supervisorId: string
@@ -27,24 +31,28 @@ export const supervisorStaffQueries = {
       .from("staff_profiles")
       .select(
         `
-        user_id, staff_code, department_id, ward_id, staff_role, is_active,
-        availability_status, current_workload, max_concurrent_assignments, performance_rating
-      `
+      user_id, staff_code, department_id, ward_id, staff_role, is_active,
+      availability_status, current_workload, max_concurrent_assignments, performance_rating
+    `
       )
       .eq("is_active", true)
-      .neq("user_id", supervisorId); // Exclude self
+      .neq("user_id", supervisorId); // This correctly hides you ("supervisor")
 
-    // 3. Apply Isolation by Respected IDs
+    // 3. Apply Isolation
     if (!isSenior) {
-      const orParts = [];
-      if (wards.length > 0) orParts.push(`ward_id.in.(${wards.join(",")})`);
-      if (depts.length > 0)
-        orParts.push(`department_id.in.(${depts.join(",")})`);
+      const filters = [];
 
-      if (orParts.length > 0) {
-        query = query.or(orParts.join(","));
+      // FIX: Remove double-quotes inside the join. PostgREST handles raw UUIDs.
+      if (wards.length > 0) {
+        filters.push(`ward_id.in.(${wards.join(",")})`);
+      }
+      if (depts.length > 0) {
+        filters.push(`department_id.in.(${depts.join(",")})`);
+      }
+
+      if (filters.length > 0) {
+        query = query.or(filters.join(","));
       } else {
-        // If supervisor has no assignments, return empty team
         return [];
       }
     }
@@ -67,17 +75,16 @@ export const supervisorStaffQueries = {
     );
     const userMap = new Map((usersRes.data || []).map((u) => [u.id, u]));
 
-    return staffData.map((s: any) => {
-      const p = profileMap.get(s.user_id);
-      const u = userMap.get(s.user_id);
-      return {
-        ...s,
-        full_name: p?.full_name || u?.email?.split("@")[0] || "Staff member",
-        avatar_url: p?.profile_photo_url,
-        email: u?.email,
-        phone: u?.phone,
-        role: s.staff_role,
-      };
-    });
+    return staffData.map((s: any) => ({
+      ...s,
+      full_name:
+        profileMap.get(s.user_id)?.full_name ||
+        userMap.get(s.user_id)?.email?.split("@")[0] ||
+        "Staff",
+      avatar_url: profileMap.get(s.user_id)?.profile_photo_url,
+      email: userMap.get(s.user_id)?.email,
+      phone: userMap.get(s.user_id)?.phone,
+      role: s.staff_role,
+    }));
   },
 };

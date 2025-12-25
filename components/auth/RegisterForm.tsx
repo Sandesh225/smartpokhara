@@ -1,5 +1,6 @@
-// components/auth/RegisterForm.tsx
 "use client";
+
+import type React from "react";
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -28,7 +29,6 @@ export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Track specific field errors for styling red borders
   const [fieldErrors, setFieldErrors] = useState({
     fullName: "",
     email: "",
@@ -41,7 +41,6 @@ export function RegisterForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error for this field when user types
     setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -98,12 +97,10 @@ export function RegisterForm() {
           email: formData.email,
           password: formData.password,
           options: {
-            // This redirect URL must be set in your Supabase Dashboard -> Auth -> URL Configuration
             emailRedirectTo: `${window.location.origin}/auth/callback`,
-            // CRITICAL: This data is passed to the SQL Trigger to create the User Profile
             data: {
               full_name: formData.fullName,
-              language: "en", // Default preference
+              language: "en",
             },
           },
         }
@@ -111,7 +108,6 @@ export function RegisterForm() {
 
       if (signUpError) throw signUpError;
 
-      // Handle case where user exists but isn't verified, or exists entirely
       if (
         authData.user &&
         authData.user.identities &&
@@ -137,23 +133,24 @@ export function RegisterForm() {
     }
   };
 
-  // Success View (Email Verification Prompt)
   if (success) {
     return (
       <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500 py-10">
-        <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-sm">
-          <PartyPopper className="h-10 w-10 text-green-600" />
+        <div className="h-20 w-20 rounded-full bg-[rgb(95,158,160)]/10 flex items-center justify-center mb-6 shadow-sm">
+          <PartyPopper className="h-10 w-10 text-[rgb(95,158,160)]" />
         </div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">
+        <h3 className="text-2xl font-bold text-[rgb(26,32,44)] mb-2">
           Verify your email
         </h3>
         <p className="text-slate-500 mb-8 max-w-xs mx-auto leading-relaxed">
           We've sent a verification link to <br />
-          <span className="font-semibold text-slate-900">{formData.email}</span>
+          <span className="font-semibold text-[rgb(26,32,44)]">
+            {formData.email}
+          </span>
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[rgb(43,95,117)] hover:text-[rgb(95,158,160)] transition-colors"
         >
           <ArrowRight className="h-4 w-4" /> Back to Login
         </Link>
@@ -161,7 +158,6 @@ export function RegisterForm() {
     );
   }
 
-  // Form View
   return (
     <form
       onSubmit={handleRegister}
@@ -171,7 +167,7 @@ export function RegisterForm() {
       <div className="space-y-1.5">
         <label
           htmlFor="fullName"
-          className="text-sm font-medium text-slate-700 ml-1"
+          className="text-sm font-medium text-[rgb(26,32,44)] ml-1"
         >
           Full Name
         </label>
@@ -183,10 +179,10 @@ export function RegisterForm() {
             required
             value={formData.fullName}
             onChange={handleChange}
-            className={`w-full rounded-xl bg-slate-50 px-4 py-3.5 pl-11 outline-none transition-all border ${
+            className={`w-full rounded-xl bg-[rgb(244,245,247)] px-4 py-3.5 pl-11 outline-none transition-all border ${
               fieldErrors.fullName
                 ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
-                : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                : "border-slate-200 focus:border-[rgb(43,95,117)] focus:ring-4 focus:ring-[rgb(43,95,117)]/10"
             }`}
             placeholder="John Doe"
           />
@@ -201,7 +197,7 @@ export function RegisterForm() {
       <div className="space-y-1.5">
         <label
           htmlFor="email"
-          className="text-sm font-medium text-slate-700 ml-1"
+          className="text-sm font-medium text-[rgb(26,32,44)] ml-1"
         >
           Email Address
         </label>
@@ -213,10 +209,10 @@ export function RegisterForm() {
             required
             value={formData.email}
             onChange={handleChange}
-            className={`w-full rounded-xl bg-slate-50 px-4 py-3.5 pl-11 outline-none transition-all border ${
+            className={`w-full rounded-xl bg-[rgb(244,245,247)] px-4 py-3.5 pl-11 outline-none transition-all border ${
               fieldErrors.email
                 ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
-                : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                : "border-slate-200 focus:border-[rgb(43,95,117)] focus:ring-4 focus:ring-[rgb(43,95,117)]/10"
             }`}
             placeholder="name@example.com"
           />
@@ -230,7 +226,7 @@ export function RegisterForm() {
       {/* Passwords Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700 ml-1">
+          <label className="text-sm font-medium text-[rgb(26,32,44)] ml-1">
             Password
           </label>
           <div className="relative">
@@ -240,10 +236,10 @@ export function RegisterForm() {
               required
               value={formData.password}
               onChange={handleChange}
-              className={`w-full rounded-xl bg-slate-50 px-4 py-3.5 pl-11 pr-10 outline-none transition-all border ${
+              className={`w-full rounded-xl bg-[rgb(244,245,247)] px-4 py-3.5 pl-11 pr-10 outline-none transition-all border ${
                 fieldErrors.password
                   ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
-                  : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  : "border-slate-200 focus:border-[rgb(43,95,117)] focus:ring-4 focus:ring-[rgb(43,95,117)]/10"
               }`}
               placeholder="Min 8 chars"
             />
@@ -251,7 +247,7 @@ export function RegisterForm() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-3 top-3.5 text-slate-400 hover:text-[rgb(43,95,117)] transition-colors"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -260,10 +256,13 @@ export function RegisterForm() {
               )}
             </button>
           </div>
+          {fieldErrors.password && (
+            <p className="text-xs text-red-500 ml-1">{fieldErrors.password}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700 ml-1">
+          <label className="text-sm font-medium text-[rgb(26,32,44)] ml-1">
             Confirm
           </label>
           <div className="relative">
@@ -273,15 +272,20 @@ export function RegisterForm() {
               required
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`w-full rounded-xl bg-slate-50 px-4 py-3.5 pl-11 outline-none transition-all border ${
+              className={`w-full rounded-xl bg-[rgb(244,245,247)] px-4 py-3.5 pl-11 outline-none transition-all border ${
                 fieldErrors.confirmPassword
                   ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
-                  : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  : "border-slate-200 focus:border-[rgb(43,95,117)] focus:ring-4 focus:ring-[rgb(43,95,117)]/10"
               }`}
               placeholder="Repeat"
             />
             <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-slate-400" />
           </div>
+          {fieldErrors.confirmPassword && (
+            <p className="text-xs text-red-500 ml-1">
+              {fieldErrors.confirmPassword}
+            </p>
+          )}
         </div>
       </div>
 
@@ -289,7 +293,7 @@ export function RegisterForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-blue-600 py-3.5 text-white font-semibold hover:bg-blue-500 transition-all active:scale-[0.98] shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+        className="w-full rounded-xl bg-[rgb(43,95,117)] py-3.5 text-white font-semibold hover:bg-[rgb(95,158,160)] transition-all active:scale-[0.98] shadow-lg shadow-[rgb(43,95,117)]/20 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -304,7 +308,7 @@ export function RegisterForm() {
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-semibold text-blue-600 hover:text-blue-500 hover:underline transition-colors"
+          className="font-semibold text-[rgb(43,95,117)] hover:text-[rgb(95,158,160)] hover:underline transition-colors"
         >
           Sign in
         </Link>

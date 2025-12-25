@@ -39,31 +39,32 @@ export function AssignmentPanel({
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const loadStaff = async () => {
-    setLoadingStaff(true);
-    try {
-      const staff = await supervisorStaffQueries.getSupervisedStaff(
-        supabase,
-        currentSupervisorId
-      );
+const loadStaff = async () => {
+  setLoadingStaff(true);
+  try {
+    const staff = await supervisorStaffQueries.getSupervisedStaff(
+      supabase,
+      currentSupervisorId
+    );
+    console.log("DEBUG: Staff received in Panel:", staff);
 
-      const location = complaint.location_point?.coordinates
-        ? {
-            lat: complaint.location_point.coordinates[1],
-            lng: complaint.location_point.coordinates[0],
-          }
-        : null;
+    const location = complaint.location_point?.coordinates
+      ? {
+          lat: complaint.location_point.coordinates[1],
+          lng: complaint.location_point.coordinates[0],
+        }
+      : null;
 
-      const rankedStaff = getSuggestedStaff(staff, location);
-      setStaffList(rankedStaff);
-    } catch (error: any) {
-      toast.error("Cloud Sync Error", {
-        description: "Failed to load team list.",
-      });
-    } finally {
-      setLoadingStaff(false);
-    }
-  };
+    const rankedStaff = getSuggestedStaff(staff, location);
+    setStaffList(rankedStaff);
+  } catch (error: any) {
+    toast.error("Cloud Sync Error", {
+      description: "Failed to load team list.",
+    });
+  } finally {
+    setLoadingStaff(false);
+  }
+};
 
   const handleOpenModal = () => {
     loadStaff();

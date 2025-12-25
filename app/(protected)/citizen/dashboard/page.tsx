@@ -7,16 +7,11 @@ import { toast } from "sonner";
 import {
   RefreshCw,
   Activity,
-  Calendar,
   Sparkles,
-  TrendingUp,
-  Signal,
-  ShieldCheck,
-  Phone,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
-  Clock,
+  ChevronRight,
+  MapPin,
+  Calendar,
+  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
@@ -24,77 +19,172 @@ import { format } from "date-fns";
 // UI Components
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Local Sub-components
+// Design System
+import { Container, Section, PageHeader } from "@/lib/design-system/container";
+
+// Shared Components
 import DashboardStats from "@/components/citizen/dashboard/DashboardStats";
-import RecentComplaints from "@/components/citizen/dashboard/RecentComplaints";
-import PendingBills from "@/components/citizen/dashboard/PendingBills";
-import RecentNotices from "@/components/citizen/dashboard/RecentNotices";
 import QuickActions from "@/components/citizen/dashboard/QuickActions";
+import RecentComplaints from "@/components/citizen/dashboard/RecentComplaints";
+import RecentNotices from "@/components/citizen/dashboard/RecentNotices";
 import { cn } from "@/lib/utils";
 
+// Types
+interface Ward {
+  ward_number: number;
+  name: string;
+}
+
+interface Profile {
+  full_name: string;
+  ward: Ward | null;
+}
+
+interface Complaint {
+  id: string;
+  status: string;
+  submitted_at: string;
+  [key: string]: any;
+}
+
+interface Bill {
+  id: string;
+  status: string;
+  [key: string]: any;
+}
+
+interface Notice {
+  id: string;
+  published_at: string;
+  [key: string]: any;
+}
+
+interface DashboardState {
+  profile: {
+    name: string;
+    wardNumber: number | null;
+    wardName: string;
+  };
+  complaints: Complaint[];
+  bills: Bill[];
+  notices: Notice[];
+  stats: {
+    total: number;
+    open: number;
+    inProgress: number;
+    resolved: number;
+  };
+  loading: boolean;
+  error: string | null;
+}
+
+interface EmergencyContact {
+  icon: string;
+  label: string;
+  phone: string;
+}
+
+// Emergency Contact Component
+function EmergencyItem({ icon, label, phone }: EmergencyContact) {
+  return (
+    <motion.a
+      href={`tel:${phone}`}
+      className="flex items-center justify-between p-4 hover:bg-white/10 transition-all duration-200 group rounded-xl"
+      whileHover={{ x: 4 }}
+      whileTap={{ scale: 0.98 }}
+      aria-label={`Call ${label} at ${phone}`}
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className="text-2xl grayscale group-hover:grayscale-0 transition-all duration-300"
+          role="img"
+          aria-label={label}
+        >
+          {icon}
+        </span>
+        <span className="font-bold text-sm lg:text-base">{label}</span>
+      </div>
+      <span className="bg-white text-[rgb(var(--error-red))] font-black px-3 py-2 rounded-xl font-mono tabular-nums text-xs lg:text-sm shadow-md group-hover:shadow-lg transition-shadow">
+        {phone}
+      </span>
+    </motion.a>
+  );
+}
+
+// Main Dashboard Component
 export default function CitizenDashboard() {
   const router = useRouter();
   const supabase = createClient();
 
-  // --- 1. UI & LIFE-CYCLE STATE ---
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isConnected, setIsConnected] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
-  // --- 2. DATA STATE ---
-  const [dashboardData, setDashboardData] = useState({
-    profile: { name: "", ward: null },
+  const [dashboardData, setDashboardData] = useState<DashboardState>({
+    profile: { name: "", wardNumber: null, wardName: "" },
     complaints: [],
     bills: [],
     notices: [],
     stats: { total: 0, open: 0, inProgress: 0, resolved: 0 },
     loading: true,
+    error: null,
   });
 
-  // --- 3. CLOCK LOGIC (Updates every minute) ---
+  // Update time every minute
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // --- 4. DATA FETCHING (Parallel Orchestration) ---
+  // Memoized greeting based on time of day
+  const greeting = useMemo(() => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "Subha Prabhat";
+    if (hour < 18) return "Namaste";
+    return "Subha Sandhya";
+  }, [currentTime]);
+
+  // Calculate complaint statistics
+  const calculateStats = useCallback((complaints: Complaint[]) => {
+    const openStatuses = ["received", "under_review", "assigned"];
+    const resolvedStatuses = ["resolved", "closed"];
+
+    return {
+      total: complaints.length,
+      open: complaints.filter((c) => openStatuses.includes(c.status)).length,
+      inProgress: complaints.filter((c) => c.status === "in_progress").length,
+      resolved: complaints.filter((c) => resolvedStatuses.includes(c.status))
+        .length,
+    };
+  }, []);
+
+  // Fetch dashboard data
   const fetchDashboardState = useCallback(
     async (isRefresh = false) => {
       if (isRefresh) setIsRefreshing(true);
 
       try {
+        // Verify user authentication
         const {
           data: { user },
+          error: authError,
         } = await supabase.auth.getUser();
-        if (!user) {
+
+        if (authError || !user) {
+          toast.error("Authentication required");
           router.push("/login");
           return;
         }
-        setUserId(user.id);
 
-        // Perform all requests in parallel for maximum speed
+        // Fetch all dashboard data in parallel
         const [profileRes, complaintsRes, billsRes, noticesRes] =
           await Promise.all([
             supabase
               .from("user_profiles")
-              .select("ward_id, full_name")
+              .select("full_name, ward:wards(ward_number, name)")
               .eq("user_id", user.id)
               .maybeSingle(),
             supabase
@@ -114,322 +204,300 @@ export default function CitizenDashboard() {
               .limit(5),
           ]);
 
+        // Handle profile data errors
+        if (profileRes.error) {
+          throw new Error(`Profile fetch failed: ${profileRes.error.message}`);
+        }
+
+        // Handle complaints data errors
+        if (complaintsRes.error) {
+          throw new Error(
+            `Complaints fetch failed: ${complaintsRes.error.message}`
+          );
+        }
+
+        // Process data with proper null handling
         const complaintsList = complaintsRes.data || [];
-        const stats = {
-          total: complaintsList.length,
-          open: complaintsList.filter((c) =>
-            ["received", "under_review", "assigned", "reopened"].includes(
-              c.status
-            )
-          ).length,
-          inProgress: complaintsList.filter((c) => c.status === "in_progress")
-            .length,
-          resolved: complaintsList.filter((c) =>
-            ["resolved", "closed"].includes(c.status)
-          ).length,
-        };
+        const stats = calculateStats(complaintsList);
+
+        const profileData = profileRes.data as Profile | null;
+        const wardData = profileData?.ward as Ward | null;
 
         setDashboardData({
           profile: {
-            name: profileRes.data?.full_name?.split(" ")[0] || "Citizen",
-            ward: profileRes.data?.ward_id,
+            name: profileData?.full_name?.split(" ")[0] || "Citizen",
+            wardNumber: wardData?.ward_number ?? null,
+            wardName: wardData?.name || "",
           },
           complaints: complaintsList.slice(0, 5),
           bills: billsRes.data || [],
           notices: noticesRes.data || [],
           stats,
           loading: false,
+          error: null,
         });
 
-        if (isRefresh) toast.success("Registry Synchronized");
-      } catch (e) {
-        console.error("Dashboard Fetch Error", e);
-        toast.error("Failed to connect to city servers");
+        if (isRefresh) {
+          toast.success("City Registry Synced", {
+            description: "All data updated successfully",
+          });
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "City server connection timeout";
+
+        console.error("Dashboard fetch error:", error);
+
+        setDashboardData((prev) => ({
+          ...prev,
+          loading: false,
+          error: errorMessage,
+        }));
+
+        toast.error("Failed to load dashboard", {
+          description: errorMessage,
+        });
       } finally {
         setIsRefreshing(false);
       }
     },
-    [router, supabase]
+    [router, supabase, calculateStats]
   );
 
+  // Initial data fetch
   useEffect(() => {
     fetchDashboardState();
   }, [fetchDashboardState]);
 
-  // --- 5. REAL-TIME SUBSCRIPTION ---
-  useEffect(() => {
-    if (!userId) return;
-    const channel = supabase
-      .channel(`citizen-dashboard-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "complaints",
-          filter: `citizen_id=eq.${userId}`,
-        },
-        () => fetchDashboardState(true)
-      )
-      .subscribe((status) => setIsConnected(status === "SUBSCRIBED"));
+  // Show loading skeleton
+  if (dashboardData.loading) {
+    return <DashboardSkeleton />;
+  }
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, supabase, fetchDashboardState]);
-
-  // Derived Values
-  const activeIssues =
-    dashboardData.stats.open + dashboardData.stats.inProgress;
-
-  if (dashboardData.loading) return <DashboardSkeleton />;
+  const { profile, stats, complaints, bills, notices, error } = dashboardData;
+  const activeReportsCount = stats.open + stats.inProgress;
 
   return (
-    <div className="min-h-screen bg-slate-50/40">
-      <div className="container mx-auto px-4 py-8 space-y-10 max-w-7xl pb-24 animate-in fade-in duration-700">
-        {/* --- HEADER SECTION --- */}
-        <header className="space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2 flex-1 min-w-0">
-              <motion.h1
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight"
-              >
-                Namaste,
-                {dashboardData.profile.name}
-              </motion.h1>
-
-              <div className="flex flex-wrap items-center gap-3 text-sm">
-                {/* DYNAMIC MESSAGE: Active Issues Status */}
-                <p className="font-bold text-blue-600 flex items-center gap-2">
-                  <Activity className="w-4 h-4" />
-                  You have {activeIssues} active issue
-                  {activeIssues !== 1 ? "s" : ""} being processed.
-                </p>
-
-                <Separator
-                  orientation="vertical"
-                  className="h-4 hidden sm:block bg-slate-200"
-                />
-
-                <span className="text-slate-500 font-medium uppercase tracking-widest text-[11px]">
-                  Pokhara Metro • Ward {dashboardData.profile.ward || "N/A"}
-                </span>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-gradient-to-b from-[rgb(var(--neutral-stone))]/20 via-white to-[rgb(var(--neutral-stone))]/10"
+    >
+      <Container size="wide" spacing="none" className="pt-3 pb-8">
+        <Section spacing="tight">
+          {/* Header */}
+          <PageHeader
+            title={`${greeting}, ${profile.name}`}
+            subtitle="Track municipal records and access essential services."
+            badge={
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant="outline"
+                  className="bg-gradient-to-r from-[rgb(var(--primary-brand))]/10 to-[rgb(var(--accent-nature))]/10 border-[rgb(var(--primary-brand))]/30 text-[rgb(var(--primary-brand))] font-bold px-3 py-1.5 rounded-full text-xs"
+                >
+                  <MapPin className="w-3 h-3 mr-1.5" />
+                  {profile.wardNumber
+                    ? `Ward ${profile.wardNumber} - ${profile.wardName}`
+                    : "Global Citizen"}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className="bg-white/80 backdrop-blur-sm border-border/30 text-muted-foreground font-medium px-3 py-1.5 rounded-full text-xs"
+                >
+                  <Calendar className="w-3 h-3 mr-1.5" />
+                  {format(currentTime, "MMM do, yyyy")}
+                </Badge>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {/* LIVE Badge */}
-              <Badge
-                variant="outline"
-                className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-2 px-4 py-2 shadow-sm rounded-2xl"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="font-black uppercase tracking-widest text-[10px]">
-                  Live
-                </span>
-              </Badge>
-
-              <Separator
-                orientation="vertical"
-                className="h-8 hidden sm:block bg-slate-100 mx-1"
-              />
-
-              {/* DYNAMIC CLOCK & SYNC BUTTON */}
-              <div className="flex items-center gap-3 bg-white rounded-2xl border-2 border-slate-100 px-4 py-2 shadow-sm">
-                <span className="text-sm font-black text-slate-900 tabular-nums">
-                  {format(currentTime, "HH:mm")}
-                </span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all"
-                        onClick={() => fetchDashboardState(true)}
-                        disabled={isRefreshing}
-                      >
-                        <RefreshCw
-                          className={cn(
-                            "h-4 w-4",
-                            isRefreshing && "animate-spin"
-                          )}
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="rounded-xl font-bold">
-                      Sync Registry
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+            }
+            actions={
+              <div className="flex items-center gap-3 bg-white backdrop-blur-md border border-border/50 px-4 py-2 rounded-xl shadow-sm">
+                <div className="flex flex-col items-end pr-3 border-r border-border/50">
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-muted-foreground/80">
+                    Pokhara
+                  </span>
+                  <span className="text-base font-black font-mono tabular-nums text-foreground">
+                    {format(currentTime, "HH:mm")}
+                  </span>
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => fetchDashboardState(true)}
+                  disabled={isRefreshing}
+                  className={cn(
+                    "h-8 w-8 rounded-lg transition-all hover:bg-[rgb(var(--primary-brand))]/10",
+                    isRefreshing && "animate-spin"
+                  )}
+                  aria-label="Refresh dashboard"
+                >
+                  <RefreshCw
+                    className={cn(
+                      "w-4 h-4",
+                      isRefreshing
+                        ? "text-[rgb(var(--primary-brand))]"
+                        : "text-muted-foreground"
+                    )}
+                  />
+                </Button>
               </div>
-            </div>
-          </div>
+            }
+            className="mb-6"
+          />
 
-          {/* Operational Highlight Banner */}
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {error}
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => fetchDashboardState(true)}
+                  className="ml-2 h-auto p-0 text-inherit underline"
+                >
+                  Retry
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Active Reports Banner */}
           <AnimatePresence>
-            {activeIssues > 0 && (
+            {activeReportsCount > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="mb-6"
               >
-                <Card className="border-0 shadow-2xl shadow-blue-900/10 bg-blue-600 rounded-[2.5rem] overflow-hidden text-white">
-                  <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-blue-100 text-[10px] font-black uppercase tracking-[0.2em] mb-2">
-                        <TrendingUp className="w-4 h-4" /> System Update
+                <Card className="border-none bg-gradient-to-br from-[rgb(var(--primary-brand))] via-[rgb(var(--primary-brand))]/95 to-[rgb(var(--accent-nature))] text-white shadow-xl rounded-2xl overflow-hidden relative">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20" />
+                  <CardContent className="relative p-5 lg:p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md ring-2 ring-white/30">
+                        <Activity className="w-5 h-5 animate-pulse" />
                       </div>
-                      <h3 className="text-2xl font-bold">
-                        Active Review in Progress
-                      </h3>
-                      <p className="text-blue-100/80 font-medium">
-                        Ward officials and department staff are currently
-                        reviewing your pending reports.
-                      </p>
+                      <div>
+                        <h3 className="font-black text-lg lg:text-xl tracking-tight mb-0.5">
+                          Active Reports
+                        </h3>
+                        <p className="opacity-95 text-xs lg:text-sm font-medium">
+                          Processing{" "}
+                          <span className="font-mono font-black text-base px-2 py-0.5 bg-white/20 rounded-lg">
+                            {activeReportsCount}
+                          </span>{" "}
+                          {activeReportsCount === 1 ? "request" : "requests"}
+                        </p>
+                      </div>
                     </div>
                     <Button
                       variant="secondary"
+                      className="font-bold rounded-xl h-10 px-6 text-sm shadow-lg hover:shadow-xl transition-all"
                       onClick={() => router.push("/citizen/complaints")}
-                      className="h-12 px-8 rounded-2xl bg-white text-blue-600 font-black hover:bg-blue-50 shadow-lg"
                     >
-                      Track Details <ArrowRight className="ml-2 h-4 w-4" />
+                      Track Progress
+                      <ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
                   </CardContent>
                 </Card>
               </motion.div>
             )}
           </AnimatePresence>
-        </header>
 
-        {/* --- STATS SECTION --- */}
-        <DashboardStats
-          totalComplaints={dashboardData.stats.total}
-          openCount={dashboardData.stats.open}
-          inProgressCount={dashboardData.stats.inProgress}
-          resolvedCount={dashboardData.stats.resolved}
-          onStatClick={(filter) =>
-            router.push(`/citizen/complaints?status=${filter}`)
-          }
-        />
-
-        {/* --- QUICK ACTIONS --- */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-600" />
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-              Direct Services
-            </h2>
-          </div>
-          <QuickActions
-            complaintsCount={dashboardData.stats.total}
-            pendingBillsCount={dashboardData.bills.length}
-            noticesCount={dashboardData.notices.length}
+          {/* Dashboard Statistics */}
+          <DashboardStats
+            totalComplaints={stats.total}
+            openCount={stats.open}
+            inProgressCount={stats.inProgress}
+            resolvedCount={stats.resolved}
           />
-        </section>
 
-        {/* --- CONTENT GRID --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Primary Activity Lists */}
-            <RecentComplaints complaints={dashboardData.complaints} />
-
-            <div className="space-y-4">
-              <PendingBills bills={dashboardData.bills} />
-              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                Payments processed via Secure Metropolitan Gateway
-              </div>
-            </div>
-          </div>
-
-          <aside className="space-y-8">
-            {/* Contextual Sidebar */}
-            <RecentNotices
-              notices={dashboardData.notices}
-              wardNumber={dashboardData.profile.ward}
-            />
-
-            {/* Premium Emergency Hotline Card */}
-            <Card className="border-0 shadow-2xl rounded-[3rem] bg-white overflow-hidden ring-1 ring-slate-900/5 group">
-              <CardHeader className="bg-red-600 text-white p-10 pb-6 transition-colors group-hover:bg-red-700">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
-                    <Signal className="w-6 h-6 animate-pulse" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black leading-none">
-                      Emergency
-                    </CardTitle>
-                    <CardDescription className="text-red-100 font-bold text-[10px] uppercase tracking-widest mt-2">
-                      Pokhara Response Hub
-                    </CardDescription>
-                  </div>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Services & Complaints */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Quick Actions */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2.5 px-1">
+                  <Sparkles className="w-5 h-5 text-[rgb(var(--accent-nature))]" />
+                  <h2 className="text-xl lg:text-2xl font-black uppercase tracking-tight text-foreground">
+                    Direct Services
+                  </h2>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0 divide-y divide-slate-50">
-                {[
-                  { label: "District Police", n: "100", i: "🚔" },
-                  { label: "City Ambulance", n: "102", i: "🚑" },
-                  { label: "Fire Services", n: "101", i: "🚒" },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="p-6 flex items-center justify-between hover:bg-red-50/50 transition-all"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="text-3xl">{item.i}</span>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">
-                          {item.label}
-                        </span>
-                        <span className="text-[10px] font-medium text-slate-400 uppercase">
-                          Available 24/7
-                        </span>
-                      </div>
-                    </div>
-                    <a
-                      href={`tel:${item.n}`}
-                      className="h-11 px-5 flex items-center justify-center rounded-2xl bg-red-50 text-red-600 font-black hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                    >
-                      {item.n}
-                    </a>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </aside>
-        </div>
-      </div>
-    </div>
+                <QuickActions
+                  complaintsCount={stats.total}
+                  pendingBillsCount={bills.length}
+                />
+              </section>
+
+              {/* Recent Complaints */}
+              <section className="bg-white/70 backdrop-blur-sm border border-border/40 rounded-2xl p-1 shadow-lg">
+                <RecentComplaints complaints={complaints} />
+              </section>
+            </div>
+
+            {/* Right Column - Notices & Emergency */}
+            <aside className="space-y-6">
+              {/* Recent Notices */}
+              <RecentNotices notices={notices} />
+
+              {/* Emergency Contacts */}
+              <Card className="border-none bg-gradient-to-br from-[rgb(var(--error-red))] to-[rgb(var(--error-red))]/90 text-white shadow-xl rounded-2xl overflow-hidden">
+                <div className="p-4 border-b border-white/20 flex justify-between items-center bg-black/10">
+                  <h3 className="text-lg font-black uppercase tracking-tight">
+                    Emergency
+                  </h3>
+                  <Activity className="w-5 h-5 opacity-70 animate-pulse" />
+                </div>
+                <div className="divide-y divide-white/10">
+                  <EmergencyItem icon="🚔" label="Police" phone="100" />
+                  <EmergencyItem icon="🚑" label="Ambulance" phone="102" />
+                  <EmergencyItem icon="🚒" label="Fire" phone="101" />
+                </div>
+              </Card>
+            </aside>
+          </div>
+        </Section>
+      </Container>
+    </motion.div>
   );
 }
 
-// --- LOADING SKELETON ---
+// Loading Skeleton Component
 function DashboardSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-10 space-y-10 animate-pulse">
-      <div className="space-y-4">
-        <Skeleton className="h-14 w-80 rounded-2xl" />
-        <Skeleton className="h-6 w-96 rounded-lg" />
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-32 rounded-[2rem]" />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Skeleton className="h-[400px] rounded-[3rem]" />
-          <Skeleton className="h-[300px] rounded-[3rem]" />
+    <Container size="wide" spacing="none" className="pt-3 pb-8">
+      <div className="space-y-6 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-28 rounded-full" />
+          <Skeleton className="h-12 w-80 rounded-xl" />
+          <Skeleton className="h-5 w-96 rounded-lg" />
         </div>
-        <Skeleton className="h-[700px] rounded-[3rem]" />
+
+        {/* Stats Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-28 rounded-2xl" />
+          ))}
+        </div>
+
+        {/* Content Grid Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-56 rounded-2xl" />
+            <Skeleton className="h-80 rounded-2xl" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-72 rounded-2xl" />
+            <Skeleton className="h-56 rounded-2xl" />
+          </div>
+        </div>
       </div>
-    </div>
+    </Container>
   );
 }

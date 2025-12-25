@@ -27,8 +27,8 @@ export default async function CitizenLayout({ children }: CitizenLayoutProps) {
 
   // Double check strict role protection
   if (!user.roles.includes("citizen") && !user.roles.includes("admin")) {
-     // Optional: Redirect staff to their own portal if they try to access citizen view
-     // redirect("/staff/dashboard"); 
+    // Optional: Redirect staff to their own portal if they try to access citizen view
+    // redirect("/staff/dashboard");
   }
 
   const supabase = await createClient();

@@ -24,28 +24,28 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils";
 
 interface Bill {
-  id: string
-  bill_number: string
-  bill_type: string
-  description?: string
-  total_amount: number
-  due_date: string
-  status: string
-  is_overdue: boolean
+  id: string;
+  bill_number: string;
+  bill_type: string;
+  description?: string;
+  total_amount: number;
+  due_date: string;
+  status: string;
+  is_overdue: boolean;
 }
 
 interface PendingBillsProps {
-  bills: Bill[]
-  totalPendingAmount?: number
-  loading?: boolean
+  bills: Bill[];
+  totalPendingAmount?: number;
+  loading?: boolean;
 }
 
 const BILL_TYPE_CONFIG: Record<
   string,
   {
-    label: string
-    icon: ComponentType<any>
-    color: string
+    label: string;
+    icon: ComponentType<any>;
+    color: string;
   }
 > = {
   property_tax: {
@@ -88,9 +88,13 @@ const BILL_TYPE_CONFIG: Record<
     icon: DollarSign,
     color: "bg-gray-500",
   },
-}
+};
 
-export default function PendingBills({ bills, totalPendingAmount, loading = false }: PendingBillsProps) {
+export default function PendingBills({
+  bills,
+  totalPendingAmount,
+  loading = false,
+}: PendingBillsProps) {
   const [selectedBill, setSelectedBill] = useState<string | null>(null);
 
   const formatCurrency = (amount: number) => {
@@ -227,7 +231,7 @@ export default function PendingBills({ bills, totalPendingAmount, loading = fals
                 variant="outline"
                 size="sm"
                 asChild
-                className="border-emerald-300 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 transition-colors"
+                className="border-emerald-300 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 transition-colors bg-transparent"
               >
                 <Link href="/citizen/payments">
                   View Payment History

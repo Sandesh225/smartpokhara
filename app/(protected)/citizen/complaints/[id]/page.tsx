@@ -5,32 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { format, formatDistanceToNow } from "date-fns";
 import {
-  AlertCircle,
   ArrowLeft,
   Building2,
   Check,
-  CheckCircle2,
   Clock,
-  Construction,
-  Copy,
-  Download,
-  Droplets,
   ExternalLink,
   FileText,
-  Lightbulb,
   MapPin,
   MessageSquare,
-  MoreHorizontal,
   Paperclip,
   Printer,
   RefreshCw,
-  Share2,
-  Shield,
-  ThumbsUp,
-  Trash2,
-  Trees,
-  User,
-  Volume2,
   ShieldCheck,
   Zap,
   Activity,
@@ -50,14 +35,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 
 // Custom Components
 import { CommentThread } from "@/components/citizen/complaints/CommentThread";
-import { FeedbackForm } from "@/components/citizen/complaints/FeedbackForm";
 
 // No-SSR Map Import
 const ComplaintMap = dynamic(() => import("@/components/map/ComplaintMap"), {
@@ -217,7 +199,7 @@ export default function ComplaintDetailPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-24">
       {/* STICKY HEADER */}
-      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b-2 border-slate-100">
+      <header className="top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b-2 border-slate-100">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-5">
             <Button
