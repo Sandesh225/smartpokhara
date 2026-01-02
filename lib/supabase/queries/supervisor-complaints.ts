@@ -93,11 +93,16 @@ export const supervisorComplaintsQueries = {
         assigned_user:users!complaints_assigned_staff_id_fkey(
           id, 
           profile:user_profiles!user_profiles_user_id_fkey(full_name, profile_photo_url), 
-          staff:staff_profiles!staff_profiles_user_id_fkey(*) 
+          staff:staff_profiles!staff_profiles_user_id_fkey(staff_code, staff_role) 
         ),
         history:complaint_status_history(*),
         updates:complaint_comments(
-          *,
+          id,
+          content,
+          created_at,
+          is_internal,
+          author_role,
+          author_id,
           author:users(profile:user_profiles!user_profiles_user_id_fkey(full_name, profile_photo_url))
         ),
         attachments:complaint_attachments(*)
@@ -110,10 +115,33 @@ export const supervisorComplaintsQueries = {
       console.error("Error in getComplaintById:", error);
       return { data: null, error };
     }
+    const staffCode =
+      data.assigned_user?.staff?.[0]?.staff_code ||
+      (data.assigned_user
+        ? `EMP-${data.assigned_user.id.substring(0, 4).toUpperCase()}`
+        : "UNASSIGNED");
+
+    // 2. Fix Comments Visibility: Flatten the nested author structure
+    const flattenedUpdates = (data.updates || [])
+      .map((u: any) => ({
+        id: u.id,
+        content: u.content,
+        created_at: u.created_at,
+        is_internal: u.is_internal,
+        author_role: u.author_role,
+        author_id: u.author_id, // Important for "Is Me" check
+        author_name: u.author?.profile?.full_name || "Unknown User",
+        author_avatar: u.author?.profile?.profile_photo_url,
+      }))
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
 
     return {
       data: {
         ...data,
+        updates: flattenedUpdates, // Return flattened messages
         citizen: data.citizen_user
           ? {
               id: data.citizen_user.id,
@@ -130,14 +158,13 @@ export const supervisorComplaintsQueries = {
               full_name:
                 data.assigned_user.profile?.full_name || "Staff Member",
               avatar_url: data.assigned_user.profile?.profile_photo_url,
-              staff_code: data.assigned_user.staff?.[0]?.staff_code,
+              staff_code: staffCode, // Use fixed code
             }
           : null,
       },
       error: null,
     };
   },
-
   /**
    * Fetch categorized attachments.
    * RESOLVED: Now exported correctly to fix Runtime TypeError.
@@ -292,7 +319,22 @@ export const supervisorComplaintsQueries = {
     if (error) throw error;
     return data || [];
   },
+  async addComment(
+    client: SupabaseClient,
+    complaintId: string,
+    content: string,
+    isInternal: boolean = false
+  ) {
+    // We use the RPC you created earlier to ensure roles are set correctly
+    const { error } = await client.rpc("rpc_add_complaint_comment", {
+      p_complaint_id: complaintId,
+      p_content: content,
+      p_is_internal: isInternal,
+    });
 
+    if (error) throw error;
+    return { success: true };
+  },
   /**
    * Add internal note
    */
