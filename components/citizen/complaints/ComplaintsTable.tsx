@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-  memo,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useState, memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   format,
@@ -49,14 +42,10 @@ import {
   MapPin,
   MoreVertical,
   Tag,
-  AlertCircle,
   CheckCircle2,
-  Clock,
-  XCircle,
-  RefreshCw,
   Copy,
   Printer,
-  Shield,
+  XCircle,
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
@@ -70,76 +59,11 @@ import type {
   ComplaintStatus,
 } from "@/lib/supabase/queries/complaints";
 
-// --- CONFIGURATIONS ---
-
-export const STATUS_CONFIG: Record<
-  ComplaintStatus,
-  { label: string; icon: ReactNode; pill: string }
-> = {
-  received: {
-    label: "Received",
-    icon: <Clock className="h-3 w-3" />,
-    pill: "bg-blue-50 text-blue-700 border-blue-200",
-  },
-  under_review: {
-    label: "Review",
-    icon: <AlertCircle className="h-3 w-3" />,
-    pill: "bg-purple-50 text-purple-700 border-purple-200",
-  },
-  assigned: {
-    label: "Assigned",
-    icon: <Shield className="h-3 w-3" />,
-    pill: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  },
-  in_progress: {
-    label: "Working",
-    icon: <RefreshCw className="h-3 w-3" />,
-    pill: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  resolved: {
-    label: "Resolved",
-    icon: <CheckCircle2 className="h-3 w-3" />,
-    pill: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  closed: {
-    label: "Closed",
-    icon: <CheckCircle2 className="h-3 w-3" />,
-    pill: "bg-slate-50 text-slate-600 border-slate-200",
-  },
-  rejected: {
-    label: "Rejected",
-    icon: <XCircle className="h-3 w-3" />,
-    pill: "bg-red-50 text-red-700 border-red-200",
-  },
-  reopened: {
-    label: "Reopened",
-    icon: <RefreshCw className="h-3 w-3" />,
-    pill: "bg-orange-50 text-orange-700 border-orange-200",
-  },
-};
-
-const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
-  critical: {
-    label: "Critical",
-    color: "text-red-600 bg-red-50 border-red-100",
-  },
-  high: {
-    label: "High",
-    color: "text-orange-600 bg-orange-50 border-orange-100",
-  },
-  medium: {
-    label: "Medium",
-    color: "text-blue-600 bg-blue-50 border-blue-100",
-  },
-  low: { label: "Low", color: "text-slate-600 bg-slate-50 border-slate-100" },
-};
+import { COMPLAINT_STATUS_CONFIG } from "@/components/shared/complaint";
+import { COMPLAINT_PRIORITY_CONFIG } from "@/components/shared/complaint";
 
 // --- SUB-COMPONENTS ---
 
-/**
- * LIVE SLA CELL
- * Shows real-time countdown and automated color shifting
- */
 const LiveSLACell = ({
   submittedAt,
   slaDueAt,
@@ -221,8 +145,8 @@ const ComplaintMobileCard = memo(
     complaint: Complaint;
     onClick: (c: Complaint) => void;
   }) => {
-    const status = STATUS_CONFIG[complaint.status];
-    const priority = PRIORITY_CONFIG[complaint.priority || "medium"];
+    const status = COMPLAINT_STATUS_CONFIG[complaint.status];
+    // const priority = COMPLAINT_PRIORITY_CONFIG[complaint.priority || "medium"];
 
     return (
       <motion.div
@@ -344,7 +268,7 @@ export function ComplaintsTable({
         header: "Priority",
         cell: ({ row }) => {
           const p = row.original.priority || "medium";
-          const config = PRIORITY_CONFIG[p];
+          const config = COMPLAINT_PRIORITY_CONFIG[p];
           return (
             <Badge
               className={cn(
@@ -361,7 +285,10 @@ export function ComplaintsTable({
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
-          const conf = STATUS_CONFIG[row.original.status];
+          const conf = COMPLAINT_STATUS_CONFIG[row.original.status];
+          // FIX: Assign the component to a capitalized variable
+          const StatusIcon = conf.icon;
+
           return (
             <Badge
               className={cn(
@@ -369,7 +296,8 @@ export function ComplaintsTable({
                 conf.pill
               )}
             >
-              {conf.icon}
+              {/* FIX: Render as an Element, not as an object/variable */}
+              {StatusIcon && <StatusIcon className="w-3.5 h-3.5" />}
               {conf.label}
             </Badge>
           );
@@ -550,7 +478,7 @@ export function ComplaintsTable({
             <ChevronLeft className="h-4 w-4 mr-1" /> Prev
           </Button>
           <div className="h-10 px-4 flex items-center justify-center bg-white border-2 border-slate-100 rounded-xl text-xs font-black">
-            {currentPage} / {Math.ceil(total / pageSize)}
+            {currentPage} / {Math.ceil(total / pageSize) || 1}
           </div>
           <Button
             variant="outline"

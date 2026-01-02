@@ -1,30 +1,19 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { format } from "date-fns";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { formatDistanceToNow } from "date-fns";
 import {
   Send,
   MessageSquare,
+  User,
+  Shield,
   Clock,
-  AlertCircle,
-  CheckCircle,
-  RefreshCw,
+  Smile,
+  Paperclip,
   X,
+  Check,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { complaintsService } from "@/lib/supabase/queries/complaints";
 import type { ComplaintComment } from "@/lib/supabase/queries/complaints";
@@ -36,82 +25,50 @@ interface CommentThreadProps {
   onNewComment?: (comment: ComplaintComment) => void;
 }
 
-const commentSchema = z.object({
-  content: z
-    .string()
-    .min(1, { message: "Comment cannot be empty" })
-    .max(2000, { message: "Comment is too long (max 2000 characters)" }),
-});
-
-type CommentFormData = z.infer<typeof commentSchema>;
-
 export function CommentThread({
   complaintId,
   comments,
   isSubscribed = false,
   onNewComment,
 }: CommentThreadProps) {
+  const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [characterCount, setCharacterCount] = useState(0);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    formState: { errors },
-  } = useForm<CommentFormData>({
-    resolver: zodResolver(commentSchema),
-    defaultValues: {
-      content: "",
-    },
-  });
-
-  const content = watch("content");
-  useEffect(() => {
-    setCharacterCount(content?.length || 0);
-  }, [content]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [comments.length]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const onSubmit = async (data: CommentFormData) => {
-    if (!complaintId) return;
+  useEffect(() => {
+    scrollToBottom();
+  }, [comments.length]);
+
+  const handleSubmit = async () => {
+    if (!newComment.trim()) return;
 
     setIsSubmitting(true);
     setError(null);
-    setSuccess(null);
 
     try {
       const result = await complaintsService.addComment(
         complaintId,
-        data.content,
+        newComment,
         false
       );
 
-      reset();
-      setReplyingTo(null);
-      setSuccess("Comment posted successfully");
+      setNewComment("");
+      setShowSuccess(true);
 
       if (onNewComment) {
-        // Use the ID returned from the server to prevent duplicates
-        // when the realtime subscription also picks it up.
         const mockComment: ComplaintComment = {
           id: result.comment_id,
           complaint_id: complaintId,
           author_id: "current-user",
           author_role: "citizen",
-          content: data.content,
+          content: newComment,
           is_internal: false,
           attachments: [],
           created_at: new Date().toISOString(),
@@ -126,7 +83,7 @@ export function CommentThread({
         onNewComment(mockComment);
       }
 
-      setTimeout(() => setSuccess(null), 3000);
+      setTimeout(() => setShowSuccess(false), 2000);
     } catch (err: any) {
       console.error("Error posting comment:", err);
       setError(err.message || "Failed to post comment. Please try again.");
@@ -135,271 +92,249 @@ export function CommentThread({
     }
   };
 
-  const formatTime = (date: string) => {
-    const commentDate = new Date(date);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - commentDate.getTime()) / (1000 * 60)
-    );
-
-    if (diffInMinutes < 1) return "Just now";
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return format(commentDate, "MMM dd, hh:mm a");
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
   return (
-    <Card className="border-2 border-[rgb(var(--neutral-stone-200))] stone-card">
-      <CardHeader className="card-padding border-b border-[rgb(var(--neutral-stone-200))]">
+    <div className="flex flex-col h-[600px] bg-white rounded-xl shadow-sm border relative">
+      {/* Header */}
+      <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-[rgb(var(--text-ink))] font-bold text-lg">
-              Comments
-            </CardTitle>
-            <CardDescription className="text-[rgb(var(--neutral-stone-500))] mt-1">
-              Public conversation about this complaint
-            </CardDescription>
-          </div>
-
           <div className="flex items-center gap-3">
-            <Badge
-              variant="outline"
-              className="gap-2 border-[rgb(var(--neutral-stone-300))] px-3 py-1.5 rounded-full"
-            >
-              <MessageSquare className="h-3.5 w-3.5 text-[rgb(var(--primary-brand))]" />
-              <span className="font-mono text-[rgb(var(--text-ink))] font-semibold">
-                {comments.length}
-              </span>
-            </Badge>
-
-            {isSubscribed && (
-              <Badge
-                variant="outline"
-                className="animate-pulse gap-2 text-[rgb(var(--success-green))] border-[rgb(var(--success-green))] bg-green-50 px-3 py-1.5 rounded-full"
-              >
-                <div className="h-2 w-2 rounded-full bg-[rgb(var(--success-green))]" />
-                <span className="font-semibold text-xs">Live</span>
-              </Badge>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="card-padding space-y-6">
-        <div
-          ref={containerRef}
-          className="space-y-6 max-h-[500px] overflow-y-auto pr-2 pb-4 scrollbar-hide"
-        >
-          {comments.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 rounded-full bg-[rgb(var(--neutral-stone-100))] flex items-center justify-center mb-4">
-                <MessageSquare className="h-8 w-8 text-[rgb(var(--neutral-stone-400))]" />
-              </div>
-              <h3 className="text-lg font-semibold text-[rgb(var(--text-ink))] mb-2">
-                Start the conversation
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Discussion
               </h3>
-              <p className="text-[rgb(var(--neutral-stone-500))] max-w-md mx-auto mb-6 leading-relaxed">
-                Be the first to comment on this complaint. Ask questions or
-                provide additional details.
+              <p className="text-sm text-gray-600">
+                {comments.length} messages
               </p>
             </div>
-          ) : (
-            comments.map((comment) => {
-              const isCitizen = comment.author_role === "citizen";
-              const isStaff =
-                comment.author_role === "staff" ||
-                comment.author_role === "admin";
+          </div>
+          {isSubscribed && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              Live
+            </div>
+          )}
+        </div>
+      </div>
 
-              return (
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+        {comments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+              <MessageSquare className="w-8 h-8 text-gray-400" />
+            </div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              No messages yet
+            </h4>
+            <p className="text-gray-500 max-w-sm">
+              Start the conversation by posting your first comment below
+            </p>
+          </div>
+        ) : (
+          comments.map((comment) => {
+            const isCitizen = comment.author_role === "citizen";
+            const isStaff =
+              comment.author_role === "staff" ||
+              comment.author_role === "admin";
+
+            return (
+              <div
+                key={comment.id}
+                className={`flex gap-3 ${isCitizen ? "flex-row-reverse" : ""}`}
+              >
+                {/* Avatar */}
                 <div
-                  key={comment.id}
-                  className={`flex gap-3 ${isCitizen ? "justify-end" : ""}`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0 ${
+                    isCitizen
+                      ? "bg-gradient-to-br from-blue-500 to-blue-600"
+                      : "bg-gradient-to-br from-purple-500 to-purple-600"
+                  }`}
                 >
-                  {isStaff && (
-                    <Avatar className="h-9 w-9 border-2 border-white shadow-sm mt-1 elevation-1">
-                      {comment.author?.profile_photo_url ? (
-                        <AvatarImage
-                          src={
-                            comment.author.profile_photo_url ||
-                            "/placeholder.svg"
-                          }
-                        />
-                      ) : (
-                        <AvatarFallback className="bg-[rgb(var(--primary-brand-light))] text-white text-xs font-semibold">
-                          {comment.author?.full_name
-                            ?.split(" ")
-                            .map((n) => n[0])
-                            .join("") || "ST"}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                  )}
-
-                  <div
-                    className={`flex-1 ${isCitizen ? "max-w-[85%]" : "max-w-[85%]"}`}
-                  >
-                    <div
-                      className={`rounded-2xl px-4 py-3 ${
-                        isCitizen
-                          ? "bg-[rgb(var(--primary-brand))] text-white rounded-br-none shadow-sm elevation-2"
-                          : "bg-[rgb(var(--neutral-stone-100))] text-[rgb(var(--text-ink))] rounded-bl-none border-2 border-[rgb(var(--neutral-stone-200))]"
-                      }`}
-                    >
-                      <div
-                        className={`flex items-center justify-between mb-1.5 ${isCitizen ? "text-white/80" : "text-[rgb(var(--neutral-stone-500))]"}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-xs">
-                            {comment.author?.full_name ||
-                              (isCitizen ? "You" : "Municipal Staff")}
-                          </span>
-                          {isStaff && (
-                            <Badge
-                              variant="secondary"
-                              className="h-4 px-1.5 text-[10px] bg-[rgb(var(--accent-nature-light))] text-[rgb(var(--text-ink))] border-0 font-semibold"
-                            >
-                              Staff
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-mono">
-                          <Clock className="h-3 w-3" />
-                          <span>{formatTime(comment.created_at)}</span>
-                        </div>
-                      </div>
-
-                      <div
-                        className={`whitespace-pre-line text-sm leading-relaxed ${isCitizen ? "text-white" : "text-[rgb(var(--text-ink))]"}`}
-                      >
-                        {comment.content}
-                      </div>
-                    </div>
-
-                    {isStaff && (
-                      <div className="mt-1 ml-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-xs text-[rgb(var(--neutral-stone-500))] hover:text-[rgb(var(--primary-brand))] hover:bg-[rgb(var(--neutral-stone-50))]"
-                          onClick={() => {
-                            setReplyingTo(comment.id);
-                            setTimeout(() => {
-                              document
-                                .getElementById("comment-textarea")
-                                ?.focus();
-                            }, 100);
-                          }}
-                        >
-                          Reply
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  {isCitizen && (
-                    <Avatar className="h-9 w-9 border-2 border-white shadow-sm mt-1 elevation-1">
-                      <AvatarFallback className="bg-[rgb(var(--accent-nature))] text-white text-xs font-semibold">
-                        You
-                      </AvatarFallback>
-                    </Avatar>
+                  {comment.author?.profile_photo_url ? (
+                    <img
+                      src={comment.author.profile_photo_url}
+                      alt=""
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : isCitizen ? (
+                    <User className="w-5 h-5" />
+                  ) : (
+                    <Shield className="w-5 h-5" />
                   )}
                 </div>
-              );
-            })
-          )}
 
-          <div ref={messagesEndRef} />
-        </div>
-
-        {replyingTo && (
-          <div className="flex items-center justify-between bg-[rgb(var(--accent-nature))]/10 p-3 px-4 rounded-xl border border-[rgb(var(--accent-nature))]/20 text-sm">
-            <div className="flex items-center gap-2 text-[rgb(var(--accent-nature-dark))]">
-              <MessageSquare className="h-4 w-4" />
-              <span className="font-semibold text-xs">
-                Replying to comment...
-              </span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setReplyingTo(null)}
-              className="h-6 w-6 text-[rgb(var(--neutral-stone-400))] hover:text-[rgb(var(--accent-nature))] hover:bg-[rgb(var(--accent-nature))]/10"
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        )}
-
-        {error && (
-          <Alert
-            variant="destructive"
-            className="animate-in slide-in-from-top-2 py-3 border-[rgb(var(--error-red))]"
-          >
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {success && (
-          <Alert
-            variant="default"
-            className="bg-green-50 border-[rgb(var(--success-green))]/30 text-[rgb(var(--success-green))] py-3 animate-in slide-in-from-top-2"
-          >
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs font-medium">
-              {success}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="pt-4 border-t border-[rgb(var(--neutral-stone-200))]">
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex gap-3 items-end"
-          >
-            <div className="flex-1 space-y-2">
-              <Textarea
-                id="comment-textarea"
-                placeholder="Type your comment..."
-                className={`min-h-[44px] max-h-[120px] resize-none py-3 text-sm border-2 rounded-xl ${
-                  errors.content
-                    ? "border-[rgb(var(--error-red))] focus-visible:ring-[rgb(var(--error-red))]/20"
-                    : "border-[rgb(var(--neutral-stone-200))] focus-visible:ring-[rgb(var(--primary-brand))]/20"
-                }`}
-                {...register("content")}
-                disabled={isSubmitting}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(onSubmit)();
-                  }
-                }}
-              />
-              <div className="flex justify-between items-center text-xs text-[rgb(var(--neutral-stone-400))] px-1">
-                <span>Press Enter to send</span>
-                <span
-                  className={`font-mono ${characterCount > 1800 ? "text-[rgb(var(--warning-amber))] font-semibold" : ""}`}
+                {/* Message Bubble */}
+                <div
+                  className={`flex-1 max-w-[70%] ${isCitizen ? "text-right" : ""}`}
                 >
-                  {characterCount}/2000
-                </span>
-              </div>
-            </div>
+                  <div
+                    className={`inline-block px-4 py-3 rounded-2xl ${
+                      isCitizen
+                        ? "bg-blue-500 text-white rounded-br-sm"
+                        : "bg-white text-gray-900 border shadow-sm rounded-bl-sm"
+                    }`}
+                  >
+                    {/* Author Info */}
+                    <div
+                      className={`flex items-center gap-2 mb-1 ${isCitizen ? "justify-end" : ""}`}
+                    >
+                      <span
+                        className={`text-xs font-semibold ${
+                          isCitizen ? "text-blue-100" : "text-gray-900"
+                        }`}
+                      >
+                        {comment.author?.full_name ||
+                          (isCitizen ? "You" : "Staff")}
+                      </span>
+                      {isStaff && (
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-full">
+                          STAFF
+                        </span>
+                      )}
+                    </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting || characterCount === 0}
-              size="icon"
-              className="h-11 w-11 shrink-0 rounded-full bg-[rgb(var(--primary-brand))] hover:bg-[rgb(var(--primary-brand-dark))] shadow-md elevation-2 mb-6"
-            >
-              {isSubmitting ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 ml-0.5" />
-              )}
-            </Button>
-          </form>
+                    {/* Message Content */}
+                    <p
+                      className={`text-sm leading-relaxed whitespace-pre-line ${
+                        isCitizen ? "text-white" : "text-gray-700"
+                      }`}
+                    >
+                      {comment.content}
+                    </p>
+
+                    {/* Timestamp */}
+                    <div
+                      className={`flex items-center gap-1 mt-2 text-xs ${
+                        isCitizen
+                          ? "text-blue-100 justify-end"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      <Clock className="w-3 h-3" />
+                      <span>
+                        {formatDistanceToNow(new Date(comment.created_at), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Success Toast */}
+      {showSuccess && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-in slide-in-from-top">
+          <Check className="w-4 h-4" />
+          <span className="text-sm font-medium">Comment posted!</span>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50 max-w-md">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span className="text-sm font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="ml-2">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div className="border-t bg-white p-4">
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message... (Press Enter to send)"
+              className="w-full px-4 py-3 pr-12 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              rows={1}
+              style={{
+                minHeight: "48px",
+                maxHeight: "120px",
+              }}
+              disabled={isSubmitting}
+            />
+            <div className="absolute right-3 bottom-3 flex items-center gap-1">
+              <button
+                type="button"
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Add emoji"
+                disabled={isSubmitting}
+              >
+                <Smile className="w-5 h-5 text-gray-400" />
+              </button>
+              <button
+                type="button"
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Attach file"
+                disabled={isSubmitting}
+              >
+                <Paperclip className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={!newComment.trim() || isSubmitting}
+            className={`px-6 h-12 rounded-xl font-medium text-white transition-all flex items-center gap-2 ${
+              !newComment.trim() || isSubmitting
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl"
+            }`}
+          >
+            {isSubmitting ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Sending</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                <span>Send</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between mt-2 px-1">
+          <p className="text-xs text-gray-500">
+            Press{" "}
+            <kbd className="px-2 py-0.5 bg-gray-100 rounded text-[10px] font-mono">
+              Enter
+            </kbd>{" "}
+            to send,{" "}
+            <kbd className="px-2 py-0.5 bg-gray-100 rounded text-[10px] font-mono">
+              Shift+Enter
+            </kbd>{" "}
+            for new line
+          </p>
+          <p
+            className={`text-xs font-mono ${newComment.length > 1800 ? "text-orange-500 font-semibold" : "text-gray-400"}`}
+          >
+            {newComment.length}/2000
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
