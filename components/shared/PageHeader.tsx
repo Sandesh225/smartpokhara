@@ -1,4 +1,3 @@
-// components/shared/PageHeader.tsx
 interface PageHeaderProps {
   title: string;
   description?: string;
@@ -6,7 +5,12 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
 }
 
-export function PageHeader({ title, description, badge, actions }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  badge,
+  actions,
+}: PageHeaderProps) {
   return (
     <div className="bg-white rounded-xl border shadow-sm p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

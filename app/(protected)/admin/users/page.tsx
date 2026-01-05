@@ -38,7 +38,6 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   const itemsPerPage = 20;
   const offset = (page - 1) * itemsPerPage;
 
-  // FIXED: Added !user_roles_user_id_fkey to disambiguate the relationship
   let query = supabase
     .from("users")
     .select(

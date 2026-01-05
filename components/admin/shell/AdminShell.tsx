@@ -1,7 +1,3 @@
-// ============================================================================
-// components/admin/shell/AdminShell.tsx
-// ============================================================================
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -32,6 +28,8 @@ import {
   Search,
   Moon,
   Sun,
+  Briefcase, // Added Briefcase icon for Staff/Citizens if needed
+  User, // Added User icon for Citizens
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +53,7 @@ type NavSection = {
   items: NavItem[];
 };
 
+// --- Updated Navigation Config with Citizens & Users ---
 const navigationConfig: NavSection[] = [
   {
     section: "Overview",
@@ -114,6 +113,29 @@ const navigationConfig: NavSection[] = [
     ],
   },
   {
+    section: "People", // New Section for People Management
+    items: [
+      {
+        name: "Staff Management",
+        icon: Briefcase,
+        href: "/admin/staff",
+        roles: ["admin", "dept_head"], // Dept heads might manage their own staff
+      },
+      {
+        name: "Citizens",
+        icon: User,
+        href: "/admin/citizens",
+        roles: ["admin", "dept_head", "ward_staff"], // Ward staff often interact with citizens
+      },
+      {
+        name: "All Users", // System Users (Admin view)
+        icon: Users,
+        href: "/admin/users",
+        roles: ["admin"],
+      },
+    ],
+  },
+  {
     section: "Communication",
     items: [
       {
@@ -131,7 +153,7 @@ const navigationConfig: NavSection[] = [
     ],
   },
   {
-    section: "",
+    section: "Finance", // Grouped Payments under Finance
     items: [
       {
         name: "Payments",
@@ -142,14 +164,8 @@ const navigationConfig: NavSection[] = [
     ],
   },
   {
-    section: "Administration",
+    section: "System", // Renamed Administration to System for clarity
     items: [
-      {
-        name: "Users & Staff",
-        icon: Users,
-        href: "/admin/staff",
-        roles: ["admin"],
-      },
       {
         name: "Settings",
         icon: Settings,

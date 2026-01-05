@@ -48,7 +48,9 @@ export default async function UserDetailPage({
     <div className="space-y-6">
       <PageHeader
         title="User Management"
-        description={`System details for ${user.user_profiles?.full_name || user.email}`}
+        description={`System details for ${
+          user.user_profiles?.full_name || user.email
+        }`}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -58,11 +60,7 @@ export default async function UserDetailPage({
         </div>
 
         <div className="space-y-6">
-          <UserRolesCard
-            user={user}
-            availableRoles={availableRoles}
-            // No departments/wards passed here anymore
-          />
+          <UserRolesCard user={user} availableRoles={availableRoles || []} />
         </div>
       </div>
     </div>
