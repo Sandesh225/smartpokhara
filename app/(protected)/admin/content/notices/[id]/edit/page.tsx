@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { NoticeForm } from "../../_components/NoticeForm";
+// FIX: Go up 3 levels to reach admin/content/_components
+import { NoticeForm } from "../../../_components/NoticeForm"; 
 import { useContentManagement } from "@/hooks/admin/useContentManagement";
 import { adminContentQueries } from "@/lib/supabase/queries/admin/content";
 import { createClient } from "@/lib/supabase/client";
@@ -22,24 +23,28 @@ export default function EditNoticePage() {
 
   useEffect(() => {
     const loadNotice = async () => {
-       try {
-         const data = await adminContentQueries.getNoticeById(supabase, id as string);
-         if (data) {
-            // Transform date for input field format (YYYY-MM-DDTHH:mm)
-            const formatted = {
-                ...data,
-                ward_id: data.ward_id || "all",
-                expires_at: data.expires_at ? new Date(data.expires_at).toISOString().slice(0, 16) : ""
-            };
-            setNoticeData(formatted);
-         }
-       } catch (e) {
-         toast.error("Failed to load notice");
-       } finally {
-         setLoading(false);
-       }
+      try {
+        // Guard against undefined id
+        if (!id) return;
+        
+        const data = await adminContentQueries.getNoticeById(supabase, id as string);
+        if (data) {
+          // Transform date for input field format (YYYY-MM-DDTHH:mm)
+          const formatted = {
+            ...data,
+            ward_id: data.ward_id || "all",
+            expires_at: data.expires_at ? new Date(data.expires_at).toISOString().slice(0, 16) : ""
+          };
+          setNoticeData(formatted);
+        }
+      } catch (e) {
+        toast.error("Failed to load notice");
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     };
-    if (id) loadNotice();
+    loadNotice();
   }, [id, supabase]);
 
   const handleUpdate = async (data: NoticeInput) => {
@@ -62,6 +67,7 @@ export default function EditNoticePage() {
              <Card>
                 <CardHeader><CardTitle>Notice Details</CardTitle></CardHeader>
                 <CardContent>
+                   {/* Pass noticeData to pre-fill the form */}
                    <NoticeForm initialData={noticeData} onSubmit={handleUpdate} />
                 </CardContent>
              </Card>

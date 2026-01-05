@@ -1,8 +1,8 @@
 "use client";
 
 import { useStaffManagement } from "@/hooks/admin/useStaffManagement";
-import { StaffTable } from "./_components/StaffTable";
-import { StaffWorkload } from "./_components/StaffWorkload";
+import { StaffTable } from "@/components/admin/StaffTable";
+import { StaffWorkload } from "@/components/admin/StaffWorkload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -204,7 +204,7 @@ export default function StaffDirectoryPage() {
         <div className="space-y-6">
           <StaffWorkload />
 
-          <Card className="bg-linear-to-br from-indigo-50 to-white border-indigo-100 shadow-sm">
+          <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-sm">
             <CardContent className="p-5">
               <h3 className="font-semibold text-indigo-900 mb-2">
                 Optimize Shifts
@@ -229,7 +229,6 @@ export default function StaffDirectoryPage() {
   );
 }
 
-// Simple Stat Card Component
 function StatusCard({ label, value, icon: Icon, color, bg }: any) {
   return (
     <Card className="border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
