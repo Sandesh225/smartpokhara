@@ -75,7 +75,6 @@ export const supervisorComplaintsQueries = {
 
   /**
    * Fetch a single complaint with flattened profiles and resolved relationship ambiguity.
-   * FIX: Added explicit relationship specifiers to resolve PGRST201 errors.
    */
   async getComplaintById(client: SupabaseClient, id: string) {
     const { data, error } = await client
@@ -121,7 +120,6 @@ export const supervisorComplaintsQueries = {
         ? `EMP-${data.assigned_user.id.substring(0, 4).toUpperCase()}`
         : "UNASSIGNED");
 
-    // 2. Fix Comments Visibility: Flatten the nested author structure
     const flattenedUpdates = (data.updates || [])
       .map((u: any) => ({
         id: u.id,
@@ -129,7 +127,7 @@ export const supervisorComplaintsQueries = {
         created_at: u.created_at,
         is_internal: u.is_internal,
         author_role: u.author_role,
-        author_id: u.author_id, // Important for "Is Me" check
+        author_id: u.author_id,
         author_name: u.author?.profile?.full_name || "Unknown User",
         author_avatar: u.author?.profile?.profile_photo_url,
       }))
@@ -141,7 +139,7 @@ export const supervisorComplaintsQueries = {
     return {
       data: {
         ...data,
-        updates: flattenedUpdates, // Return flattened messages
+        updates: flattenedUpdates,
         citizen: data.citizen_user
           ? {
               id: data.citizen_user.id,
@@ -158,17 +156,14 @@ export const supervisorComplaintsQueries = {
               full_name:
                 data.assigned_user.profile?.full_name || "Staff Member",
               avatar_url: data.assigned_user.profile?.profile_photo_url,
-              staff_code: staffCode, // Use fixed code
+              staff_code: staffCode,
             }
           : null,
       },
       error: null,
     };
   },
-  /**
-   * Fetch categorized attachments.
-   * RESOLVED: Now exported correctly to fix Runtime TypeError.
-   */
+
   async getComplaintAttachments(client: SupabaseClient, complaintId: string) {
     const { data, error } = await client
       .from("complaint_attachments")
@@ -218,7 +213,7 @@ export const supervisorComplaintsQueries = {
       throw new Error(updateError.message);
     }
 
-    // 2. Log to Assignment History (Triggers SQL Validation Trigger)
+    // 2. Log to Assignment History
     const { error: historyError } = await client
       .from("complaint_assignment_history")
       .insert({
@@ -244,6 +239,8 @@ export const supervisorComplaintsQueries = {
     note: string,
     supervisorId: string
   ) {
+    // Internally re-uses the assign logic which handles the DB update
+    // But prefixes the note with the reassignment reason
     return supervisorComplaintsQueries.assignComplaint(
       client,
       complaintId,
@@ -253,9 +250,6 @@ export const supervisorComplaintsQueries = {
     );
   },
 
-  /**
-   * Update Complaint Priority
-   */
   async updateComplaintPriority(
     client: SupabaseClient,
     complaintId: string,
@@ -283,9 +277,6 @@ export const supervisorComplaintsQueries = {
     return { success: true };
   },
 
-  /**
-   * Close/Resolve Complaint
-   */
   async closeComplaint(
     client: SupabaseClient,
     complaintId: string,
@@ -304,9 +295,6 @@ export const supervisorComplaintsQueries = {
     return { success: true };
   },
 
-  /**
-   * Fetch internal notes
-   */
   async getInternalNotes(client: SupabaseClient, complaintId: string) {
     const { data, error } = await client
       .from("internal_notes")
@@ -319,25 +307,7 @@ export const supervisorComplaintsQueries = {
     if (error) throw error;
     return data || [];
   },
-  async addComment(
-    client: SupabaseClient,
-    complaintId: string,
-    content: string,
-    isInternal: boolean = false
-  ) {
-    // We use the RPC you created earlier to ensure roles are set correctly
-    const { error } = await client.rpc("rpc_add_complaint_comment", {
-      p_complaint_id: complaintId,
-      p_content: content,
-      p_is_internal: isInternal,
-    });
 
-    if (error) throw error;
-    return { success: true };
-  },
-  /**
-   * Add internal note
-   */
   async addInternalNote(
     client: SupabaseClient,
     complaintId: string,
@@ -362,9 +332,6 @@ export const supervisorComplaintsQueries = {
     return { success: true };
   },
 
-  /**
-   * Add public/staff comment
-   */
   async addComment(
     client: SupabaseClient,
     complaintId: string,
@@ -381,9 +348,6 @@ export const supervisorComplaintsQueries = {
     return { success: true };
   },
 
-  /**
-   * Fetch complaints strictly unassigned within jurisdiction
-   */
   async getUnassignedComplaints(client: SupabaseClient) {
     const { data: scope } = await client
       .rpc("get_supervisor_jurisdiction")
@@ -419,9 +383,6 @@ export const supervisorComplaintsQueries = {
     return data || [];
   },
 
-  /**
-   * Fetch complaints for SLA tracking
-   */
   async getSLAComplaints(client: SupabaseClient, type: "at_risk" | "overdue") {
     const now = new Date().toISOString();
     let query = client
