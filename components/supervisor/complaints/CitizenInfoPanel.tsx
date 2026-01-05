@@ -5,132 +5,135 @@ import {
   Phone,
   Mail,
   Shield,
-  Info,
-  MapPin,
   MessageSquare,
+  Clock,
+  History,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface CitizenInfoPanelProps {
   citizen: any;
   isAnonymous?: boolean;
 }
 
-/**
- * Displays verified citizen information or anonymous status.
- */
 export function CitizenInfoPanel({
   citizen,
   isAnonymous,
 }: CitizenInfoPanelProps) {
   if (isAnonymous) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50/80 to-white">
-          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            <User className="w-4 h-4" />
-            Citizen Information
-          </h3>
-        </div>
-        <div className="p-6">
-          <div className="bg-linear-to-br from-slate-50 to-slate-100/50 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-4 border border-slate-200 border-dashed">
-            <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
-              <Shield className="w-8 h-8 text-slate-400" />
-            </div>
-            <div>
-              <p className="text-base font-bold text-slate-900 mb-1">
-                Anonymous Submission
-              </p>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                The citizen has requested privacy. Contact details are restricted.
-              </p>
-            </div>
+      <Card className="border-border/60 shadow-sm bg-muted/10">
+        <CardHeader className="bg-muted/30 px-4 py-3 border-b">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <User className="w-4 h-4 text-muted-foreground" />
+            Citizen Profile
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 text-center">
+          <div className="w-14 h-14 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 ring-4 ring-background">
+            <Shield className="w-6 h-6 text-muted-foreground" />
           </div>
-        </div>
-      </div>
+          <h4 className="font-bold text-foreground">Anonymous Report</h4>
+          <p className="text-xs text-muted-foreground mt-1 max-w-[200px] mx-auto">
+            The reporter has chosen to remain anonymous. No contact details are
+            available.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  const displayName = citizen?.full_name || "Citizen (Name Missing)";
-  const displayEmail = citizen?.email || "No email available";
-  const displayPhone = citizen?.phone || "No phone available";
-  const avatarUrl = citizen?.avatar_url;
+  const displayName = citizen?.full_name || "Unknown Citizen";
+  const displayEmail = citizen?.email || "No email";
+  const displayPhone = citizen?.phone || "No phone";
   const hasContact = !!(citizen?.email || citizen?.phone);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-in fade-in duration-500">
-      <div className="px-5 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50/80 to-white">
-        <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-          <User className="w-4 h-4" />
-          Citizen Information
-        </h3>
-      </div>
+    <Card className="border-border/60 shadow-sm overflow-hidden">
+      <CardHeader className="bg-muted/30 px-4 py-3 border-b">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <User className="w-4 h-4 text-muted-foreground" />
+          Citizen Profile
+        </CardTitle>
+      </CardHeader>
 
-      <div className="p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Avatar className="h-16 w-16 border-2 border-white shadow-md ring-2 ring-blue-50">
-            <AvatarImage src={avatarUrl} alt={displayName} />
-            <AvatarFallback className="bg-linear-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl">
-              {displayName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="flex-1 min-w-0">
-            <p className="font-extrabold text-gray-900 text-lg truncate leading-tight">
-              {displayName}
-            </p>
-            <div className="flex items-center gap-1.5 mt-2">
-               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase tracking-wider">
-                ✓ Verified Account
-              </span>
+      <CardContent className="p-0">
+        <div className="p-4 bg-gradient-to-b from-background to-muted/20">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
+              <AvatarImage src={citizen?.avatar_url} />
+              <AvatarFallback className="bg-blue-600 text-white font-bold">
+                {displayName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-foreground truncate text-sm">
+                {displayName}
+              </h4>
+              <Badge
+                variant="secondary"
+                className="mt-1 text-[10px] font-medium bg-green-50 text-green-700 border-green-200"
+              >
+                Verified Account
+              </Badge>
             </div>
           </div>
         </div>
 
-        <Separator className="my-4 opacity-50" />
+        <Separator />
 
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
-              <Mail className="w-4 h-4" />
+        <div className="p-4 space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 group">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                  Email
+                </p>
+                <p className="text-xs font-medium text-foreground truncate select-all">
+                  {displayEmail}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Email</p>
-              <p className="text-sm font-semibold text-slate-700 truncate">{displayEmail}</p>
+
+            <div className="flex items-center gap-3 group">
+              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600 group-hover:bg-green-100 transition-colors">
+                <Phone className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                  Phone
+                </p>
+                <p className="text-xs font-medium text-foreground select-all">
+                  {displayPhone}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
-              <Phone className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Phone</p>
-              <p className="text-sm font-semibold text-slate-700">{displayPhone}</p>
-            </div>
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full text-xs h-9 bg-blue-600 hover:bg-blue-700"
+              disabled={!hasContact}
+            >
+              <MessageSquare className="w-3.5 h-3.5 mr-2" />
+              Message
+            </Button>
+            <Button variant="outline" size="sm" className="w-full text-xs h-9">
+              <History className="w-3.5 h-3.5 mr-2" />
+              History
+            </Button>
           </div>
         </div>
-
-        <div className="mt-8 space-y-2">
-          <Button
-            variant="default"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11"
-            disabled={!hasContact}
-          >
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Send Private Message
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full border-slate-200 text-slate-600 font-bold h-11 hover:bg-slate-50"
-          >
-            <Info className="w-4 h-4 mr-2" />
-            Full History
-          </Button>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

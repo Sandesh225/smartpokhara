@@ -1,159 +1,123 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Menu, Search, HelpCircle, User, Loader2 } from "lucide-react";
-import type { CurrentUser } from "@/lib/types/auth";
-import { GlobalSearch } from "@/components/supervisor/shared/GlobalSearch";
-import { NotificationBell } from "@/components/supervisor/shared/NotificationBell";
-import { NotificationDropdown } from "@/components/supervisor/shared/NotificationDropdown";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { 
+  Menu, Search, Bell, User, HelpCircle, 
+  Settings, LogOut 
+} from "lucide-react";
+import type { CurrentUser } from "@/lib/types/auth";
+import { useSidebar } from "./SidebarContext";
+import { GlobalSearch } from "./GlobalSearch";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
-interface SupervisorHeaderProps {
+interface HeaderProps {
   user: CurrentUser;
   displayName: string;
   jurisdictionLabel: string;
-  toggleSidebar?: () => void;
-  badgeCounts: {
-    notifications: number;
-    messages: number;
-    unassigned: number;
-    overdue: number;
-  };
+  badgeCounts: { notifications: number };
 }
 
-export function SupervisorHeader({
-  user,
-  displayName,
-  jurisdictionLabel,
-  toggleSidebar,
-  badgeCounts,
-}: SupervisorHeaderProps) {
+export function SupervisorHeader({ user, displayName, jurisdictionLabel, badgeCounts }: HeaderProps) {
   const router = useRouter();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Fix for Hydration Mismatch: Only render complex interactive components on client
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Fallback initials
-  const initials = (displayName || user.email || "U").substring(0, 2).toUpperCase();
+  const { toggleMobile } = useSidebar();
+  const [showSearchMobile, setShowSearchMobile] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 transition-all duration-200">
-      <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* LEFT: Mobile Toggle + Search */}
+    <header className="sticky top-0 z-40 w-full glass h-16 transition-all duration-200">
+      <div className="flex h-full items-center justify-between px-4 sm:px-6">
+        
+        {/* LEFT: Mobile Toggle & Search */}
         <div className="flex items-center gap-4 flex-1">
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleSidebar}
-            className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Toggle sidebar"
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden" 
+            onClick={toggleMobile}
+            aria-label="Open menu"
           >
-            <Menu className="h-6 w-6" />
-          </button>
+            <Menu className="h-5 w-5" />
+          </Button>
 
-          {/* Global Search Component */}
+          {/* Desktop Search */}
           <div className="hidden md:block w-full max-w-md">
             <GlobalSearch userId={user.id} />
           </div>
+
+          {/* Mobile Search Toggle */}
+          <div className="md:hidden">
+             {showSearchMobile ? (
+               <div className="absolute inset-0 bg-background z-50 flex items-center px-4 animate-in fade-in slide-in-from-top-2">
+                 <GlobalSearch userId={user.id} autoFocus />
+                 <Button variant="ghost" size="sm" onClick={() => setShowSearchMobile(false)} className="ml-2">Cancel</Button>
+               </div>
+             ) : (
+               <Button variant="ghost" size="icon" onClick={() => setShowSearchMobile(true)}>
+                 <Search className="h-5 w-5 text-muted-foreground" />
+               </Button>
+             )}
+          </div>
         </div>
 
-        {/* RIGHT: Actions + Profile */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          {/* Jurisdiction Pill (Desktop Only) */}
+        {/* RIGHT: Actions & Profile */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          
+          {/* Jurisdiction Pill */}
           <div className="hidden xl:flex flex-col items-end mr-2">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Jurisdiction
             </span>
-            <span className="text-sm font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">
+            <Badge variant="outline" className="bg-muted/50 text-foreground border-border font-medium">
               {jurisdictionLabel}
-            </span>
+            </Badge>
           </div>
 
-          <div className="h-6 w-px bg-gray-200 hidden md:block" />
+          <div className="h-6 w-px bg-border hidden md:block" />
 
-          {/* Notification Bell */}
-          <div className="relative">
-            <NotificationBell
-              unreadCount={badgeCounts.notifications}
-              isOpen={notificationsOpen}
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-            />
-
-            {/* Notifications Dropdown */}
-            {isMounted && (
-              <NotificationDropdown
-                notifications={[]} // You'll populate this with real data later
-                isOpen={notificationsOpen}
-                onClose={() => setNotificationsOpen(false)}
-                onMarkAsRead={() => {}}
-                onMarkAllAsRead={() => {}}
-              />
+          {/* Notifications */}
+          <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
+            <Bell className="h-5 w-5" />
+            {badgeCounts.notifications > 0 && (
+              <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-destructive rounded-full border-2 border-background" />
             )}
-          </div>
+          </Button>
 
-          {/* Profile Dropdown - Mounted Check Required for Radix UI */}
-          {isMounted ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="group flex items-center gap-3 pl-2 focus:outline-none">
-                  <div className="hidden sm:block text-right">
-                    <p className="text-sm font-semibold text-gray-900 leading-none group-hover:text-blue-700 transition-colors">
-                      {displayName}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Supervisor</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white group-hover:ring-blue-100 transition-all">
-                    {user.profile?.profile_photo_url ? (
-                      <img
-                        src={user.profile.profile_photo_url}
-                        alt={displayName}
-                        className="h-full w-full rounded-full object-cover"
-                      />
-                    ) : (
-                      initials
-                    )}
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-2">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => router.push("/supervisor/profile")}
-                >
-                  <User className="mr-2 h-4 w-4" /> Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => router.push("/supervisor/settings")}
-                >
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/help")}>
-                  <HelpCircle className="mr-2 h-4 w-4" /> Help & Support
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            // Static Fallback for SSR to prevent layout shift
-            <div className="flex items-center gap-3 pl-2">
-              <div className="hidden sm:block text-right">
-                <div className="h-4 w-24 bg-gray-100 rounded mb-1 animate-pulse" />
-                <div className="h-3 w-16 bg-gray-100 rounded animate-pulse ml-auto" />
-              </div>
-              <div className="h-10 w-10 rounded-full bg-gray-100 animate-pulse" />
-            </div>
-          )}
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="pl-2 pr-1 h-10 rounded-full hover:bg-muted/50 gap-2">
+                <div className="hidden sm:block text-right mr-1">
+                  <p className="text-sm font-semibold leading-none">{displayName}</p>
+                  <p className="text-[10px] text-muted-foreground leading-none mt-1">Supervisor</p>
+                </div>
+                <Avatar className="h-8 w-8 border border-border">
+                  <AvatarImage src={user.profile?.profile_photo_url} />
+                  <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                    {displayName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/supervisor/profile")}>
+                <User className="mr-2 h-4 w-4" /> Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/supervisor/settings")}>
+                <Settings className="mr-2 h-4 w-4" /> Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/help")}>
+                <HelpCircle className="mr-2 h-4 w-4" /> Help & Support
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

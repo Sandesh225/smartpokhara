@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Plus, Users, FileText, Tag } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
-import { AddNoteModal } from "@/components/supervisor/modals/AddNoteModal";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
-import { createClient } from "@/lib/supabase/client";
+import { Lock, Plus, Users, Tag, FileText } from "lucide-react";
 import { toast } from "sonner";
+
+import { createClient } from "@/lib/supabase/client";
+import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { AddNoteModal } from "@/components/supervisor/modals/AddNoteModal"; // Assumed existing or generic modal
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +44,7 @@ export function InternalNotes({
   complaintId,
   initialNotes,
 }: InternalNotesProps) {
-  const [notes, setNotes] = useState(initialNotes);
+  const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const supabase = createClient();
 
@@ -58,9 +61,8 @@ export function InternalNotes({
         tags,
         visibility
       );
-      toast.success("Note added successfully");
-      // Optimistic update
-      const newNote = {
+
+      const newNote: Note = {
         id: Date.now().toString(),
         text,
         visibility,
@@ -68,7 +70,9 @@ export function InternalNotes({
         created_at: new Date().toISOString(),
         author: { profile: { full_name: "You" } },
       };
-      setNotes([newNote as any, ...notes]);
+
+      setNotes([newNote, ...notes]);
+      toast.success("Note added successfully");
     } catch (error) {
       toast.error("Failed to add note");
     }
@@ -76,116 +80,116 @@ export function InternalNotes({
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">
+      <Card className="border-border/60 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-muted/30 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-semibold">
               Internal Notes
             </CardTitle>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              size="sm"
-              className="gap-1"
-              aria-label="Add internal note"
+            <Badge
+              variant="secondary"
+              className="ml-2 text-xs font-normal bg-background"
             >
-              <Plus className="h-4 w-4" />
-              Add Note
-            </Button>
+              {notes.length}
+            </Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Private notes visible only to staff members
-          </p>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs hover:bg-background"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" /> Add Note
+          </Button>
         </CardHeader>
 
-        <ScrollArea className="h-[300px]">
-          <CardContent>
-            {notes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="mb-3 rounded-full bg-muted p-3">
-                  <FileText className="h-6 w-6 text-muted-foreground" />
+        <CardContent className="p-0">
+          <ScrollArea className="h-[320px]">
+            <div className="p-4 space-y-4">
+              {notes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                    <FileText className="w-5 h-5 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground">
+                    No notes yet
+                  </p>
+                  <p className="text-xs text-muted-foreground max-w-[200px]">
+                    Private notes are only visible to staff and supervisors.
+                  </p>
                 </div>
-                <h3 className="font-medium mb-1">No internal notes</h3>
-                <p className="text-sm text-muted-foreground max-w-xs">
-                  Add private notes to track important details about this case
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {notes.map((note) => (
+              ) : (
+                notes.map((note) => (
                   <div
                     key={note.id}
-                    className="rounded-lg border bg-card p-4 hover:bg-accent/50 transition-colors"
+                    className="group relative pl-4 border-l-2 border-border hover:border-primary/50 transition-colors"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-medium text-sm">
-                          {note.author?.profile?.full_name || "Supervisor"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={note.author?.profile?.avatar_url} />
+                          <AvatarFallback className="text-[9px]">
+                            {note.author?.profile?.full_name?.[0] || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-semibold text-foreground">
+                          {note.author?.profile?.full_name}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          •{" "}
                           {formatDistanceToNow(new Date(note.created_at), {
                             addSuffix: true,
                           })}
-                        </p>
+                        </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1">
-                                {note.visibility === "internal_only" ? (
-                                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                                ) : (
-                                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                )}
-                                <span className="text-xs text-muted-foreground">
-                                  {note.visibility === "internal_only"
-                                    ? "Private"
-                                    : "Shared"}
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {note.visibility === "internal_only"
-                                ? "Visible to staff only"
-                                : "Shared with team"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            {note.visibility === "internal_only" ? (
+                              <Lock className="w-3 h-3 text-amber-500" />
+                            ) : (
+                              <Users className="w-3 h-3 text-blue-500" />
+                            )}
+                          </TooltipTrigger>
+                          <TooltipContent side="left" className="text-xs">
+                            {note.visibility === "internal_only"
+                              ? "Private (Staff Only)"
+                              : "Shared Visibility"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
 
-                    <p className="text-sm whitespace-pre-wrap mb-3">
-                      {note.text}
-                    </p>
+                    <div className="bg-muted/30 p-3 rounded-lg rounded-tl-none">
+                      <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                        {note.text}
+                      </p>
 
-                    {note.tags && note.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {note.tags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="gap-1 text-xs"
-                          >
-                            <Tag className="h-2.5 w-2.5" />
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="text-xs text-muted-foreground mt-2">
-                      {format(
-                        new Date(note.created_at),
-                        "MMM d, yyyy 'at' h:mm a"
+                      {note.tags && note.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-border/50">
+                          {note.tags.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="outline"
+                              className="text-[10px] py-0 h-5 border-border/60 text-muted-foreground bg-background"
+                            >
+                              <Tag className="w-2.5 h-2.5 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                       )}
                     </div>
+
+                    <div className="absolute top-0 -left-[5px] w-2.5 h-2.5 rounded-full bg-border group-hover:bg-primary transition-colors ring-4 ring-background" />
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </ScrollArea>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
       </Card>
 
       <AddNoteModal

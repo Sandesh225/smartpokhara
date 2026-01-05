@@ -22,40 +22,37 @@ interface PageProps {
 export default async function ComplaintDetailPage({ params }: PageProps) {
   const { id } = await params;
   const user = await getCurrentUserWithRoles();
-
   if (!user) redirect("/login");
 
   const supabase = await createClient();
 
-  // 1. Fetch Main Complaint Data
-  const { data: complaint, error } =
-    await supervisorComplaintsQueries.getComplaintById(supabase, id);
-
-  if (error || !complaint) {
-    console.error(`Supervisor Complaint Detail Error [${id}]:`, error);
-    return notFound();
-  }
-
-  // 2. Fetch Ancillary Data Parallelly
-  // We use the specialized methods from our query service to ensure jurisdiction logic
-  const [internalNotes, attachments] = await Promise.all([
+  // 1. Fetch Main Data & Ancillary Data in Parallel for Performance
+  const [complaintResult, notesResult, attachmentsResult] = await Promise.all([
+    supervisorComplaintsQueries.getComplaintById(supabase, id),
     supervisorComplaintsQueries.getInternalNotes(supabase, id).catch(() => []),
     supervisorComplaintsQueries
       .getComplaintAttachments(supabase, id)
       .catch(() => ({ citizenUploads: [], staffUploads: [] })),
   ]);
 
+  const { data: complaint, error } = complaintResult;
+
+  if (error || !complaint) {
+    return notFound();
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-12">
+    <div className="min-h-screen bg-background pb-12">
+      {/* Glass Header */}
       <ComplaintDetailHeader complaint={complaint} userId={user.id} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT COLUMN (Main Info) */}
-          <div className="lg:col-span-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          {/* LEFT COLUMN (Story & Context) */}
+          <div className="xl:col-span-8 space-y-8">
             <AttachmentsSection
-              citizenUploads={attachments.citizenUploads}
-              staffUploads={attachments.staffUploads}
+              citizenUploads={attachmentsResult.citizenUploads}
+              staffUploads={attachmentsResult.staffUploads}
             />
 
             <CommunicationThread
@@ -66,14 +63,14 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
 
             <InternalNotes
               complaintId={complaint.id}
-              initialNotes={internalNotes}
+              initialNotes={notesResult}
             />
 
             <StatusTimeline history={complaint.history || []} />
           </div>
 
-          {/* RIGHT COLUMN (Management) */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* RIGHT COLUMN (Management & Metadata) */}
+          <div className="xl:col-span-4 space-y-6">
             <SLATracker
               deadline={complaint.sla_due_at}
               status={complaint.status}
@@ -96,7 +93,7 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
             />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

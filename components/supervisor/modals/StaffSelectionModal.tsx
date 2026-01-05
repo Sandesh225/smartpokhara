@@ -2,39 +2,47 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, Search, MapPin, Star, Briefcase, CheckCircle2, 
-  Clock, User, ArrowRightLeft, Building2, Mail, BadgeCheck
+import {
+  X,
+  Search,
+  Star,
+  Briefcase,
+  Building2,
+  Mail,
+  BadgeCheck,
+  ArrowRightLeft,
+  UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-// Ensure this import path matches your project structure
-import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner"; 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-// 1. Robust Staff Interface
-// This handles data coming from different queries (some might use 'role', some 'staff_role')
 export interface StaffMember {
   user_id: string;
   email?: string;
   full_name?: string;
-  
-  // Role fields (handle variations)
-  staff_role?: string; 
+  staff_role?: string;
   role?: string;
-  
   staff_code?: string;
   department_id?: string | null;
   department_name?: string | null;
-  
-  is_active?: boolean;
   availability_status?: string;
-  
   current_workload?: number;
   max_concurrent_assignments?: number;
-  
   performance_rating?: string | number;
-  
   avatar_url?: string;
-  distance_km?: number;
   recommendation_rank?: number;
 }
 
@@ -43,11 +51,12 @@ export type AssignmentMode = "assign" | "reassign";
 interface StaffSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /**
-   * Callback when assignment is confirmed.
-   * reason is only populated in 'reassign' mode.
-   */
-  onAssign: (staffId: string, note: string, options: any, reason?: string) => Promise<void>;
+  onAssign: (
+    staffId: string,
+    note: string,
+    options: any,
+    reason?: string
+  ) => Promise<void>;
   staffList: StaffMember[];
   complaintTitle: string;
   mode?: AssignmentMode;
@@ -64,42 +73,29 @@ export function StaffSelectionModal({
   staffList,
   complaintTitle,
   mode = "assign",
-  currentStaff
+  currentStaff,
 }: StaffSelectionModalProps) {
   const [search, setSearch] = useState("");
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Notification preferences
+
   const [notifyOptions, setNotifyOptions] = useState({
     sms: true,
     email: true,
-    inApp: true
+    inApp: true,
   });
 
-  // 2. Safe Filtering Logic
-  // Prevents "cannot read property of undefined" errors during search
   const filteredStaff = useMemo(() => {
     if (!staffList || !Array.isArray(staffList)) return [];
-    
-    return staffList.filter(s => {
+    return staffList.filter((s) => {
       const query = search.toLowerCase();
-      
-      const name = (s.full_name || "").toLowerCase();
-      // Check both field names for role
-      const role = (s.staff_role || s.role || "").toLowerCase();
-      const code = (s.staff_code || "").toLowerCase();
-      const email = (s.email || "").toLowerCase();
-      const dept = (s.department_name || "").toLowerCase();
-      
       return (
-        name.includes(query) || 
-        role.includes(query) || 
-        code.includes(query) || 
-        email.includes(query) || 
-        dept.includes(query)
+        (s.full_name || "").toLowerCase().includes(query) ||
+        (s.staff_role || s.role || "").toLowerCase().includes(query) ||
+        (s.staff_code || "").toLowerCase().includes(query) ||
+        (s.department_name || "").toLowerCase().includes(query)
       );
     });
   }, [staffList, search]);
@@ -111,121 +107,120 @@ export function StaffSelectionModal({
     setIsSubmitting(true);
     try {
       await onAssign(selectedStaffId, note, notifyOptions, reason);
-      // We expect parent to close modal on success, but we can reset submitting state
     } catch (error) {
-      console.error("Assignment failed in modal:", error);
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const REASSIGNMENT_REASONS = [
-    "Staff unavailable / On leave",
-    "Workload rebalancing",
-    "Skill mismatch",
-    "Staff request",
-    "Performance issue",
-    "Other"
-  ];
-
-  // Helper: Status Colors
-  const getStatusColor = (status?: string) => {
+  const getStatusBadge = (status?: string) => {
     switch (status?.toLowerCase()) {
-      case 'available': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'busy': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'offline': return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'on_leave': return 'bg-purple-100 text-purple-700 border-purple-200';
-      default: return 'bg-blue-100 text-blue-700 border-blue-200';
+      case "available":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-emerald-50 text-emerald-700 border-emerald-200"
+          >
+            Available
+          </Badge>
+        );
+      case "busy":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-amber-50 text-amber-700 border-amber-200"
+          >
+            Busy
+          </Badge>
+        );
+      case "on_leave":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
+            On Leave
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-slate-100 text-slate-600">
+            Unknown
+          </Badge>
+        );
     }
   };
 
-  // Helper: Safe Role Formatting
-  // Prevents crash if role is undefined
-  const formatRole = (role?: string) => {
-    if (!role) return "Staff";
-    return role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  // Helper: Safe Rating Formatting
-  const formatRating = (rating?: string | number) => {
-    if (rating === undefined || rating === null) return "-";
-    const num = Number(rating);
-    return isNaN(num) ? "-" : num.toFixed(1);
-  };
-
-  // Helper: Get selected object for preview
-  const selectedStaff = staffList.find(s => s.user_id === selectedStaffId);
+  const selectedStaff = staffList.find((s) => s.user_id === selectedStaffId);
 
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
-        {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         />
 
-        {/* Modal Container */}
         <motion.div
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          initial={{ scale: 0.95, opacity: 0, y: 10 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="relative w-full max-w-6xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden"
+          exit={{ scale: 0.95, opacity: 0, y: 10 }}
+          className="relative w-full max-w-5xl h-[85vh] bg-background rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-border"
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 shrink-0">
+          <div className="px-6 py-4 border-b bg-muted/20 flex justify-between items-center shrink-0">
             <div>
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 {mode === "reassign" ? (
                   <ArrowRightLeft className="h-5 w-5 text-orange-600" />
-                ) : null}
-                {mode === "reassign" ? "Reassign Staff" : "Assign Staff"}
+                ) : (
+                  <UserPlus className="h-5 w-5 text-blue-600" />
+                )}
+                {mode === "reassign" ? "Reassign Work" : "Assign Staff"}
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5 truncate max-w-md">
-                Task:{" "}
-                <span className="font-medium text-gray-700">
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                For:{" "}
+                <span className="font-medium text-foreground">
                   {complaintTitle}
                 </span>
               </p>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onClose}
-              className="p-2 text-gray-400 hover:bg-gray-200 rounded-full transition-colors"
+              className="rounded-full"
             >
               <X className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
 
-          <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-            {/* Left Panel: Staff List */}
-            <div className="flex-1 flex flex-col border-r border-gray-200 min-w-0 bg-gray-50/30">
-              {/* Search Bar */}
-              <div className="p-4 border-b border-gray-100 bg-white z-10 shrink-0">
+          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            {/* Staff List Panel */}
+            <div className="flex-1 flex flex-col min-w-0 bg-muted/10">
+              <div className="p-4 border-b bg-background">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search name, code, email..."
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search staff by name, code, or role..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
+                    className="pl-9 bg-muted/30"
                   />
                 </div>
               </div>
 
-              {/* Staff Grid */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {filteredStaff.length === 0 ? (
-                  <div className="h-40 flex flex-col items-center justify-center text-gray-500">
-                    <User className="h-10 w-10 mb-2 opacity-20" />
-                    <p className="text-sm">
-                      No staff members match your search.
-                    </p>
+                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-60">
+                    <Search className="h-10 w-10 mb-2" />
+                    <p>No staff found</p>
                   </div>
                 ) : (
                   filteredStaff.map((staff) => (
@@ -235,123 +230,79 @@ export function StaffSelectionModal({
                       className={cn(
                         "group relative p-4 rounded-xl border cursor-pointer transition-all duration-200",
                         selectedStaffId === staff.user_id
-                          ? "bg-blue-50/50 border-blue-500 ring-1 ring-blue-500 shadow-sm"
-                          : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-md"
+                          ? "bg-primary/5 border-primary ring-1 ring-primary"
+                          : "bg-card border-border hover:border-primary/50 hover:shadow-md"
                       )}
                     >
                       <div className="flex gap-4">
-                        {/* Avatar & Status */}
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="relative">
-                            {staff.avatar_url ? (
-                              <img
-                                src={staff.avatar_url}
-                                alt=""
-                                className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm"
-                              />
-                            ) : (
-                              <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm text-slate-500 font-bold text-xl">
-                                {(staff.full_name || "?")
-                                  .charAt(0)
-                                  .toUpperCase()}
-                              </div>
-                            )}
-                            <span
-                              className={cn(
-                                "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-white",
-                                staff.availability_status === "available"
-                                  ? "bg-emerald-500"
-                                  : staff.availability_status === "busy"
-                                    ? "bg-amber-500"
-                                    : staff.availability_status === "on_leave"
-                                      ? "bg-purple-500"
-                                      : "bg-gray-400"
-                              )}
-                            />
-                          </div>
-                          <span
-                            className={cn(
-                              "text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize",
-                              getStatusColor(staff.availability_status)
-                            )}
-                          >
-                            {staff.availability_status || "unknown"}
-                          </span>
-                        </div>
+                        <Avatar className="h-12 w-12 border-2 border-background">
+                          <AvatarImage src={staff.avatar_url} />
+                          <AvatarFallback className="font-bold text-lg">
+                            {staff.full_name?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
 
-                        {/* Details */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1 min-w-0 pr-2">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <h4 className="text-base font-bold text-gray-900 leading-tight truncate">
-                                  {staff.full_name || "Unknown Staff"}
-                                </h4>
+                          <div className="flex justify-between items-start mb-1">
+                            <div>
+                              <h4 className="font-bold text-foreground truncate">
+                                {staff.full_name}
+                              </h4>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                <BadgeCheck className="h-3.5 w-3.5 text-primary" />
+                                <span className="capitalize font-medium">
+                                  {(
+                                    staff.staff_role ||
+                                    staff.role ||
+                                    "Staff"
+                                  ).replace(/_/g, " ")}
+                                </span>
                                 {staff.staff_code && (
-                                  <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-                                    {staff.staff_code}
-                                  </span>
+                                  <>
+                                    <span>•</span>
+                                    <span className="font-mono">
+                                      {staff.staff_code}
+                                    </span>
+                                  </>
                                 )}
                               </div>
-                              <div className="flex flex-col gap-0.5">
-                                {/* Safe Role Display */}
-                                <p className="text-xs text-gray-500 flex items-center gap-1">
-                                  <BadgeCheck className="h-3 w-3 text-blue-500" />
-                                  {formatRole(staff.staff_role || staff.role)}
-                                </p>
-                              </div>
                             </div>
-
-                            {staff.recommendation_rank &&
-                            staff.recommendation_rank > 50 ? (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700 shrink-0 ml-2">
-                                <Star className="h-3 w-3 fill-current" /> Match
-                              </span>
-                            ) : null}
+                            {getStatusBadge(staff.availability_status)}
                           </div>
 
-                          {/* Email */}
-                          <div className="flex items-center gap-4 mt-2 mb-3 pb-3 border-b border-gray-100">
-                            <div className="flex items-center gap-1.5 text-xs text-gray-600 truncate w-full">
-                              <Mail className="h-3 w-3 text-gray-400" />
-                              {staff.email || "No email"}
-                            </div>
-                          </div>
+                          <Separator className="my-2.5 opacity-50" />
 
-                          {/* Metrics */}
-                          <div className="grid grid-cols-2 gap-3 max-w-[220px]">
-                            <div className="bg-gray-50 p-1.5 rounded-lg text-center border border-gray-100">
-                              <span className="block text-[10px] uppercase text-gray-400 font-semibold mb-0.5">
-                                Workload
+                          <div className="flex items-center gap-4 text-xs">
+                            <div
+                              className="flex items-center gap-1.5"
+                              title="Workload"
+                            >
+                              <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="font-medium">
+                                {staff.current_workload}/
+                                {staff.max_concurrent_assignments || 10}
                               </span>
-                              <div className="flex items-center justify-center gap-1 font-bold text-gray-800 text-sm">
-                                <Briefcase className="h-3 w-3 text-blue-500" />
-                                {staff.current_workload ?? 0}{" "}
-                                <span className="text-gray-400 text-xs font-normal">
-                                  / {staff.max_concurrent_assignments || 10}
+                            </div>
+                            <div
+                              className="flex items-center gap-1.5"
+                              title="Rating"
+                            >
+                              <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                              <span className="font-medium">
+                                {Number(staff.performance_rating || 0).toFixed(
+                                  1
+                                )}
+                              </span>
+                            </div>
+                            {staff.department_name && (
+                              <div className="flex items-center gap-1.5 ml-auto text-muted-foreground">
+                                <Building2 className="h-3.5 w-3.5" />
+                                <span className="truncate max-w-[120px]">
+                                  {staff.department_name}
                                 </span>
                               </div>
-                            </div>
-                            <div className="bg-gray-50 p-1.5 rounded-lg text-center border border-gray-100">
-                              <span className="block text-[10px] uppercase text-gray-400 font-semibold mb-0.5">
-                                Rating
-                              </span>
-                              <div className="flex items-center justify-center gap-1 font-bold text-gray-800 text-sm">
-                                <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                                {formatRating(staff.performance_rating)}
-                              </div>
-                            </div>
+                            )}
                           </div>
-
-                          {/* Department Display */}
-                          {staff.department_name && (
-                            <div className="mt-2 flex justify-end">
-                              <div className="text-xs font-medium text-gray-900 flex items-center justify-end gap-1 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
-                                <Building2 className="h-3 w-3 text-gray-500" />
-                                {staff.department_name}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -360,164 +311,162 @@ export function StaffSelectionModal({
               </div>
             </div>
 
-            {/* Right Panel: Assignment Form */}
-            <div className="w-full lg:w-[400px] bg-white p-6 flex flex-col border-t lg:border-t-0 lg:border-l border-gray-200 shadow-xl z-20 overflow-y-auto">
+            {/* Assignment Details Panel */}
+            <div className="w-full lg:w-[380px] bg-background border-l border-border p-6 flex flex-col h-full overflow-y-auto">
               {mode === "reassign" && currentStaff && (
-                <div className="mb-6 p-4 bg-orange-50 border border-orange-100 rounded-xl">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-bold text-orange-800 uppercase tracking-wide bg-orange-100 px-2 py-0.5 rounded">
-                      Replacing
-                    </span>
-                  </div>
+                <div className="mb-6 p-4 bg-orange-50/50 border border-orange-200 rounded-xl">
+                  <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-2 block">
+                    Replacing
+                  </span>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold">
-                      {(currentStaff.name || "?").charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">
-                        {currentStaff.name || "Unknown Staff"}
-                      </p>
-                      <p className="text-xs text-gray-500">Current Assignee</p>
-                    </div>
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={currentStaff.avatar} />
+                      <AvatarFallback className="bg-orange-100 text-orange-700 font-bold text-xs">
+                        {currentStaff.name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="text-sm font-bold text-foreground">
+                      {currentStaff.name}
+                    </p>
                   </div>
                 </div>
               )}
 
-              <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-                <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                Confirm Selection
-              </h3>
-
-              {/* Selected Staff Preview */}
-              <div className="mb-5">
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
-                  Assigning To
-                </label>
-                {selectedStaff ? (
-                  <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center gap-3 shadow-sm">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg">
-                      {(selectedStaff.full_name || "?").charAt(0).toUpperCase()}
+              <div className="space-y-6 flex-1">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs">
+                      1
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-gray-900 truncate">
-                        {selectedStaff.full_name}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <span className="font-mono text-blue-600">
-                          {selectedStaff.staff_code}
-                        </span>
-                        <span>•</span>
-                        <span className="truncate">
-                          {selectedStaff.department_name || "General"}
-                        </span>
+                    Select Staff
+                  </h3>
+                  {selectedStaff ? (
+                    <div className="p-3 bg-primary/5 rounded-lg border border-primary/20 flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={selectedStaff.avatar_url} />
+                        <AvatarFallback className="bg-background text-primary font-bold">
+                          {selectedStaff.full_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-foreground truncate">
+                          {selectedStaff.full_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {selectedStaff.email}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-lg border border-dashed text-center text-sm text-muted-foreground">
+                      Select a staff member from the list
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs">
+                      2
+                    </div>
+                    Details
+                  </h3>
+
+                  <div className="space-y-4">
+                    {mode === "reassign" && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium">
+                          Reassignment Reason
+                        </label>
+                        <Select value={reason} onValueChange={setReason}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select reason..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[
+                              "Staff unavailable / On leave",
+                              "Workload rebalancing",
+                              "Skill mismatch",
+                              "Staff request",
+                              "Performance issue",
+                              "Other",
+                            ].map((r) => (
+                              <SelectItem key={r} value={r}>
+                                {r}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium">
+                        Instructions
+                      </label>
+                      <Textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="Add instructions for the staff..."
+                        className="min-h-[100px] resize-none"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-xs font-medium">
+                        Notifications
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="inApp"
+                          checked={notifyOptions.inApp}
+                          onCheckedChange={(c) =>
+                            setNotifyOptions((p) => ({ ...p, inApp: !!c }))
+                          }
+                        />
+                        <label
+                          htmlFor="inApp"
+                          className="text-sm font-medium leading-none cursor-pointer"
+                        >
+                          In-App Notification
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="sms"
+                          checked={notifyOptions.sms}
+                          onCheckedChange={(c) =>
+                            setNotifyOptions((p) => ({ ...p, sms: !!c }))
+                          }
+                        />
+                        <label
+                          htmlFor="sms"
+                          className="text-sm font-medium leading-none cursor-pointer"
+                        >
+                          SMS Alert
+                        </label>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 border-dashed text-sm text-gray-400 italic text-center">
-                    Select a staff member from the list to proceed
-                  </div>
-                )}
-              </div>
-
-              {/* Form Inputs */}
-              <div className="space-y-4">
-                {mode === "reassign" && (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Reason for Reassignment{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                    >
-                      <option value="">Select a reason...</option>
-                      {REASSIGNMENT_REASONS.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Instructions
-                  </label>
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="Add specific instructions for this task..."
-                    rows={3}
-                    className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-2">
-                    Notification Channels
-                  </label>
-                  <div className="space-y-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={notifyOptions.inApp}
-                        onChange={(e) =>
-                          setNotifyOptions({
-                            ...notifyOptions,
-                            inApp: e.target.checked,
-                          })
-                        }
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700">
-                        In-App Notification
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={notifyOptions.sms}
-                        onChange={(e) =>
-                          setNotifyOptions({
-                            ...notifyOptions,
-                            sms: e.target.checked,
-                          })
-                        }
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-600">SMS Alert</span>
-                    </label>
-                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 mt-auto">
-                <button
+              <div className="pt-6 mt-6 border-t">
+                <Button
+                  className="w-full h-11 font-bold"
                   onClick={handleConfirm}
                   disabled={
                     !selectedStaffId ||
                     isSubmitting ||
                     (mode === "reassign" && !reason)
                   }
-                  className={cn(
-                    "w-full flex items-center justify-center gap-2 text-white py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed",
-                    mode === "reassign"
-                      ? "bg-linear-to-r from-orange-600 to-red-600"
-                      : "bg-linear-to-r from-blue-600 to-indigo-600"
-                  )}
                 >
-                  {isSubmitting ? (
-                    <LoadingSpinner size="sm" className="text-white" />
-                  ) : mode === "reassign" ? (
-                    "Confirm Reassignment"
-                  ) : (
-                    "Confirm Assignment"
-                  )}
-                </button>
+                  {isSubmitting
+                    ? "Processing..."
+                    : mode === "reassign"
+                      ? "Confirm Reassignment"
+                      : "Confirm Assignment"}
+                </Button>
               </div>
             </div>
           </div>
