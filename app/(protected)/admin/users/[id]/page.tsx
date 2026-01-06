@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/auth/role-helpers";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { UserDetailsCard } from "@/components/admin/UserDetailsCard";
-import { UserRolesCard } from "@/components/admin/UserRolesCard";
+import { UserRolesCard } from "@/components/admin/UserRolesCard"; // We will update this next
 import { UserActivityCard } from "@/components/admin/UserActivityCard";
 
 export default async function UserDetailPage({
@@ -19,6 +19,7 @@ export default async function UserDetailPage({
 
   const supabase = await createClient();
 
+  // 1. Fetch Target User
   const { data: user, error } = await supabase
     .from("users")
     .select(
@@ -27,7 +28,8 @@ export default async function UserDetailPage({
       user_profiles(*),
       user_roles!user_roles_user_id_fkey(
         id, role_id, assigned_by, assigned_at, role:roles(*)
-      )
+      ),
+      staff_profiles(*)
     `
     )
     .eq("id", id)
@@ -37,12 +39,16 @@ export default async function UserDetailPage({
     return <div className="p-8">User Not Found</div>;
   }
 
-  // Only generic roles needed here
-  const { data: availableRoles = [] } = await supabase
-    .from("roles")
-    .select("*")
-    .eq("is_active", true)
-    .order("role_type");
+  // 2. Fetch Reference Data for Dropdowns
+  const [rolesResult, deptsResult, wardsResult] = await Promise.all([
+    supabase.from("roles").select("*").eq("is_active", true).order("role_type"),
+    supabase.from("departments").select("id, name, code").eq("is_active", true),
+    supabase
+      .from("wards")
+      .select("id, ward_number, name")
+      .eq("is_active", true)
+      .order("ward_number"),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -60,7 +66,13 @@ export default async function UserDetailPage({
         </div>
 
         <div className="space-y-6">
-          <UserRolesCard user={user} availableRoles={availableRoles || []} />
+          {/* Pass all necessary data to the client component */}
+          <UserRolesCard
+            user={user}
+            availableRoles={rolesResult.data || []}
+            departments={deptsResult.data || []}
+            wards={wardsResult.data || []}
+          />
         </div>
       </div>
     </div>

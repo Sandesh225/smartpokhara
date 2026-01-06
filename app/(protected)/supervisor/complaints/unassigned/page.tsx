@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
-import { UnassignedQueue } from "@/components/supervisor/complaints/UnassignedQueue";
+import { UnassignedQueue } from "@/app/(protected)/supervisor/complaints/_components/UnassignedQueue";
 
 export const dynamic = "force-dynamic";
 

@@ -4,13 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
 import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
-import { QueueFilterTabs } from "@/components/staff/queue/QueueFilterTabs";
-import { QueueSearch } from "@/components/staff/queue/QueueSearch";
-import { QueueListView } from "@/components/staff/queue/QueueListView";
-import { QueueCardView } from "@/components/staff/queue/QueueCardView";
-import { QueueContextNavigation } from "@/components/staff/queue/QueueContextNavigation";
+
 import { EmptyState } from "@/components/staff/shared/EmptyState";
 import { ClipboardList } from "lucide-react";
+import { QueueContextNavigation } from "../_components/QueueContextNavigation";
+import { QueueSearch } from "../_components/QueueSearch";
+import { QueueFilterTabs } from "../_components/QueueFilterTabs";
+import { QueueCardView } from "../_components/QueueCardView";
 
 export default function MyTasksPage() {
   const [items, setItems] = useState<any[]>([]);

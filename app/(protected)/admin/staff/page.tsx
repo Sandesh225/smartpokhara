@@ -1,8 +1,7 @@
 "use client";
 
 import { useStaffManagement } from "@/hooks/admin/useStaffManagement";
-import { StaffTable } from "@/components/admin/StaffTable";
-import { StaffWorkload } from "@/components/admin/StaffWorkload";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +26,8 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { StaffTable } from "./_components/StaffTable";
+import { StaffWorkload } from "./_components/StaffWorkload";
 
 export default function StaffDirectoryPage() {
   const { staffList, loading, filters, setFilters, deactivateStaff } =

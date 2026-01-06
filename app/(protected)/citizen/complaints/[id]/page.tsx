@@ -42,20 +42,26 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { COMPLAINT_STATUS_CONFIG } from "@/components/shared/complaint";
-import { COMPLAINT_PRIORITY_CONFIG } from "@/components/shared/complaint";
+import { COMPLAINT_STATUS_CONFIG } from "@/app/(protected)/citizen/complaints/_components/form-steps/complaint";
+import { COMPLAINT_PRIORITY_CONFIG } from "@/app/(protected)/citizen/complaints/_components/form-steps/complaint";
 // Custom Components
-import { CommentThread } from "@/components/citizen/complaints/CommentThread";
+import { CommentThread } from "@/app/(protected)/citizen/complaints/_components/CommentThread";
 
 // No-SSR Map Import
-const ComplaintMap = dynamic(() => import("@/components/map/ComplaintMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-full w-full bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 text-xs font-medium">
-      Loading map...
-    </div>
-  ),
-});
+const ComplaintMap = dynamic(
+  () =>
+    import(
+      "@/app/(protected)/citizen/complaints/_components/form-steps/ComplaintMap"
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 text-xs font-medium">
+        Loading map...
+      </div>
+    ),
+  }
+);
 
 import { complaintsService } from "@/lib/supabase/queries/complaints";
 import type {

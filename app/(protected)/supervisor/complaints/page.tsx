@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
-import { ComplaintsFilters } from "@/components/supervisor/complaints/ComplaintsFilters";
-import { ComplaintsTableView } from "@/components/supervisor/complaints/ComplaintsTableView";
-import { BulkActionsBar } from "@/components/supervisor/complaints/BulkActionsBar";
+import { ComplaintsFilters } from "@/app/(protected)/supervisor/complaints/_components/ComplaintsFilters";
+import { ComplaintsTableView } from "@/app/(protected)/supervisor/complaints/_components/ComplaintsTableView";
+import { BulkActionsBar } from "@/app/(protected)/supervisor/complaints/_components/BulkActionsBar";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Loader2, AlertCircle } from "lucide-react";

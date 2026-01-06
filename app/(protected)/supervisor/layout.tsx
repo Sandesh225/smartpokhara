@@ -25,7 +25,7 @@ export default async function SupervisorLayout({
     redirect("/login?redirect=/supervisor/dashboard");
   }
 
-  // RBAC Check (keep behavior)
+  // RBAC Check
   if (!isSupervisor(user) && !isAdmin(user)) {
     console.warn(
       `⛔ Access Denied: User ${user.id} attempted to access Supervisor Portal`
@@ -35,12 +35,12 @@ export default async function SupervisorLayout({
 
   const supabase = await createClient();
 
-  // Parallel data fetching for UI badges (preserve queries)
+  // Parallel data fetching for UI badges
   const [
     unassignedRes,
     overdueRes,
     notificationsRes,
-    messagesRes,
+    messagesRes, // This now returns data from RPC
     jurisdictionRes,
   ] = await Promise.all([
     // 1. Unassigned Complaints
@@ -57,19 +57,15 @@ export default async function SupervisorLayout({
       .lt("sla_due_at", new Date().toISOString())
       .not("status", "in", '("resolved","closed")'),
 
-    // 3. Unread Notifications
+    // 3. Unread Notifications (Fixed: Points to public.notifications)
     supabase
-      .from("supervisor_notifications")
+      .from("notifications")
       .select("id", { count: "exact", head: true })
-      .eq("supervisor_id", user.id)
+      .eq("user_id", user.id) // Changed from supervisor_id to user_id
       .eq("is_read", false),
 
-    // 4. Unread Messages
-    supabase
-      .from("supervisor_staff_messages")
-      .select("id", { count: "exact", head: true })
-      .eq("receiver_id", user.id)
-      .eq("is_read", false),
+    // 4. Unread Messages (Fixed: Uses RPC)
+    supabase.rpc("rpc_get_unread_message_count", { p_user_id: user.id }),
 
     // 5. Jurisdiction Context
     supabase
@@ -79,33 +75,21 @@ export default async function SupervisorLayout({
       .maybeSingle(),
   ]);
 
-  // Optional logging (doesn't change contracts)
+  // Optional logging
   if (unassignedRes.error) {
-    console.error(
-      "Error fetching unassigned complaints count:",
-      unassignedRes.error
-    );
+    console.error("Error fetching unassigned count:", unassignedRes.error);
   }
   if (overdueRes.error) {
-    console.error("Error fetching overdue complaints count:", overdueRes.error);
+    console.error("Error fetching overdue count:", overdueRes.error);
   }
   if (notificationsRes.error) {
     console.error(
-      "Error fetching supervisor notifications count:",
+      "Error fetching notifications count:",
       notificationsRes.error
     );
   }
   if (messagesRes.error) {
-    console.error(
-      "Error fetching supervisor messages count:",
-      messagesRes.error
-    );
-  }
-  if (jurisdictionRes.error) {
-    console.error(
-      "Error fetching supervisor jurisdiction:",
-      jurisdictionRes.error
-    );
+    console.error("Error fetching messages count:", messagesRes.error);
   }
 
   const displayName = getUserDisplayName(user);
@@ -119,7 +103,6 @@ export default async function SupervisorLayout({
     if (supervisor_level === "senior") {
       jurisdictionLabel = "Senior Supervisor (City-wide)";
     } else if (assigned_departments && assigned_departments.length > 0) {
-      // In production, you'd map IDs to names. For now, assume generic label
       jurisdictionLabel = "Department Head";
     } else if (assigned_wards && assigned_wards.length > 0) {
       jurisdictionLabel = `Ward ${assigned_wards.join(", ")} Officer`;
@@ -135,7 +118,8 @@ export default async function SupervisorLayout({
         unassigned: unassignedRes.count ?? 0,
         overdue: overdueRes.count ?? 0,
         notifications: notificationsRes.count ?? 0,
-        messages: messagesRes.count ?? 0,
+        // RPC returns the count directly in `data` property
+        messages: (messagesRes.data as number) ?? 0,
       }}
     >
       {children}

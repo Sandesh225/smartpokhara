@@ -2,9 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
-import { TaskDetailHeader } from "@/components/supervisor/tasks/TaskDetailHeader";
-import { TaskInformation } from "@/components/supervisor/tasks/TaskInformation";
-import { TaskChecklist } from "@/components/supervisor/tasks/TaskChecklist";
+import { TaskDetailHeader } from "@/app/(protected)/supervisor/tasks/_components/tasks/TaskDetailHeader";
+import { TaskInformation } from "@/app/(protected)/supervisor/tasks/_components/tasks/TaskInformation";
+import { TaskChecklist } from "@/app/(protected)/supervisor/tasks/_components/tasks/TaskChecklist";
 
 export const dynamic = "force-dynamic";
 

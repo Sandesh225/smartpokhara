@@ -2,12 +2,12 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorAnalyticsQueries } from "@/lib/supabase/queries/supervisor-analytics";
 import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { DashboardMetrics } from "@/components/supervisor/dashboard/DashboardMetrics";
-import { RealTimeAlerts } from "@/components/supervisor/dashboard/RealTimeAlerts";
-import { ComplaintsOverview } from "@/components/supervisor/dashboard/ComplaintsOverview";
-import { ActivityFeed } from "@/components/supervisor/dashboard/ActivityFeed";
-import { TeamOverview } from "@/components/supervisor/dashboard/TeamOverview";
-import { QuickActions } from "@/components/supervisor/dashboard/QuickActions";
+import { DashboardMetrics } from "@/app/(protected)/supervisor/dashboard/_components/DashboardMetrics";
+import { RealTimeAlerts } from "@/app/(protected)/supervisor/dashboard/_components/RealTimeAlerts";
+import { ComplaintsOverview } from "@/app/(protected)/supervisor/dashboard/_components/ComplaintsOverview";
+import { ActivityFeed } from "@/app/(protected)/supervisor/dashboard/_components/ActivityFeed";
+import { TeamOverview } from "@/app/(protected)/supervisor/dashboard/_components/TeamOverview";
+import { QuickActions } from "@/app/(protected)/supervisor/dashboard/_components/QuickActions";
 import { createClient } from "@/lib/supabase/server";
 
 // Force dynamic rendering to ensure fresh data on every request

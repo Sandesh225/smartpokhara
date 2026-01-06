@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { ScheduleCalendar } from "@/components/supervisor/staff/ScheduleCalendar";
+import { ScheduleCalendar } from "@/app/(protected)/supervisor/staff/_components/ScheduleCalendar";
 
 export const dynamic = "force-dynamic";
 

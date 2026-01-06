@@ -5,8 +5,8 @@ import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff"
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
 import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
 import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
-import { WorkloadCards } from "@/components/supervisor/staff/WorkloadCards";
-import { WorkloadDistribution } from "@/components/supervisor/staff/WorkloadDistribution";
+import { WorkloadDistribution } from "../_components/WorkloadDistribution";
+import { WorkloadCards } from "../_components/WorkloadCards";
 
 export const dynamic = "force-dynamic";
 

@@ -27,11 +27,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Container, Section, PageHeader } from "@/lib/design-system/container";
 
 // Shared Components
-import DashboardStats from "@/components/citizen/dashboard/DashboardStats";
-import QuickActions from "@/components/citizen/dashboard/QuickActions";
-import RecentComplaints from "@/components/citizen/dashboard/RecentComplaints";
-import RecentNotices from "@/components/citizen/dashboard/RecentNotices";
+import DashboardStats from "@/app/(protected)/citizen/dashboard/_components/DashboardStats";
+
 import { cn } from "@/lib/utils";
+
+import QuickActions from "./_components/QuickActions";
+import RecentNotices from "./_components/RecentNotices";
+import RecentComplaints from "./_components/RecentComplaints";
+import PendingBills from "./_components/PendingBills";
 
 // Types
 interface Ward {

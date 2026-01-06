@@ -12,7 +12,10 @@ export function calculateResolutionTime(
     return acc + Math.max(0, end - start);
   }, 0);
 
-  return Math.round(totalMs / completedItems.length / (1000 * 60 * 60));
+  // Convert ms to hours and round to 1 decimal place
+  return (
+    Math.round((totalMs / completedItems.length / (1000 * 60 * 60)) * 10) / 10
+  );
 }
 
 /**

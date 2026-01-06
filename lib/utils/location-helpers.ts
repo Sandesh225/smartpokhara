@@ -10,22 +10,38 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
   return R * c;
 }
 
-export function formatDistance(km: number | null) {
+export function formatDistance(km: number | null | undefined) {
   if (km === null || km === undefined) return "--";
   if (km < 1) return `${Math.round(km * 1000)}m`;
   return `${km.toFixed(1)}km`;
 }
 
-export function getCurrentLocation(): Promise<{ lat: number; lng: number } | null> {
+export function getCurrentLocation(): Promise<{
+  lat: number;
+  lng: number;
+} | null> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
+      console.warn("Geolocation not supported");
       resolve(null);
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 5000 }
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        console.warn(
+          "Geolocation permission denied or timed out:",
+          err.message
+        );
+        resolve(null); // Resolve null instead of rejecting to prevent crash
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   });
 }

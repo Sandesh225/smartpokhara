@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { TaskCreationForm } from "@/components/supervisor/tasks/TaskCreationForm";
+import { TaskCreationForm } from "@/app/(protected)/supervisor/tasks/_components/tasks/TaskCreationForm";
 
 export const dynamic = "force-dynamic";
 

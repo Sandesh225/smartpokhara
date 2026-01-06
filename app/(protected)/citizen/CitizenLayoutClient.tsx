@@ -4,8 +4,9 @@ import { useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
-import Header from "@/components/shared/citizen/Header";
-import Sidebar from "@/components/shared/citizen/Sidebar";
+import Header from "./layout/Header";
+import Sidebar from "./layout/Sidebar";
+
 
 interface UserData {
   id: string;

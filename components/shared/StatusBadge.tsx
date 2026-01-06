@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { COMPLAINT_STATUS_CONFIG } from "./complaint";
+import { COMPLAINT_STATUS_CONFIG } from "../../app/(protected)/citizen/complaints/_components/form-steps/complaint";
 import { LucideIcon } from "lucide-react";
 
 interface StatusBadgeProps {

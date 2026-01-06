@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
-import { TasksListView } from "@/components/supervisor/tasks/TasksListView";
-import { TasksKanbanBoard } from "@/components/supervisor/tasks/TasksKanbanBoard";
+import { TasksListView } from "@/app/(protected)/supervisor/tasks/_components/tasks/TasksListView";
+import { TasksKanbanBoard } from "@/app/(protected)/supervisor/tasks/_components/tasks/TasksKanbanBoard";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 

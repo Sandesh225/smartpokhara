@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
 import { createClient } from "@/lib/supabase/server";
-import { ConversationsList } from "@/components/supervisor/messages/ConversationsList";
+import { ConversationsList } from "@/app/(protected)/supervisor/messages/_components/ConversationsList";
 import { MessageSquare } from "lucide-react";
 
 export const dynamic = "force-dynamic";

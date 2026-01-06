@@ -3,15 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
 
-import { ComplaintDetailHeader } from "@/components/supervisor/complaints/ComplaintDetailHeader";
-import { AssignmentPanel } from "@/components/supervisor/complaints/AssignmentPanel";
-import { StatusTimeline } from "@/components/supervisor/complaints/StatusTimeline";
-import { SLATracker } from "@/components/supervisor/complaints/SLATracker";
-import { CommunicationThread } from "@/components/supervisor/complaints/CommunicationThread";
-import { AttachmentsSection } from "@/components/supervisor/complaints/AttachmentsSection";
-import { InternalNotes } from "@/components/supervisor/complaints/InternalNotes";
-import { PriorityPanel } from "@/components/supervisor/complaints/PriorityPanel";
-import { CitizenInfoPanel } from "@/components/supervisor/complaints/CitizenInfoPanel";
+
+import { AssignmentPanel } from "@/app/(protected)/supervisor/complaints/_components/AssignmentPanel";
+
+import { SLATracker } from "@/app/(protected)/supervisor/complaints/_components/SLATracker";
+import { CommunicationThread } from "@/app/(protected)/supervisor/complaints/_components/CommunicationThread";
+import { AttachmentsSection } from "@/app/(protected)/supervisor/complaints/_components/AttachmentsSection";
+import { InternalNotes } from "@/app/(protected)/supervisor/complaints/_components/InternalNotes";
+import { PriorityPanel } from "@/app/(protected)/supervisor/complaints/_components/PriorityPanel";
+import { CitizenInfoPanel } from "@/app/(protected)/supervisor/complaints/_components/CitizenInfoPanel";
+import { ComplaintDetailHeader } from "../_components/ComplaintDetailHeader";
+import { StatusTimeline } from "../_components/StatusTimeline";
 
 export const dynamic = "force-dynamic";
 

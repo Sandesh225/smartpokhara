@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
 import { createClient } from "@/lib/supabase/server";
-import { ConversationsList } from "@/components/supervisor/messages/ConversationsList";
-import { MessageThread } from "@/components/supervisor/messages/MessageThread";
+import { ConversationsList } from "@/app/(protected)/supervisor/messages/_components/ConversationsList";
+import { MessageThread } from "@/app/(protected)/supervisor/messages/_components/MessageThread";
 
 export const dynamic = "force-dynamic";
 

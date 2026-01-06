@@ -7,40 +7,45 @@ import {
   Sparkles,
   TrendingUp,
   ShieldCheck,
+  Info,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { noticesService } from "@/lib/supabase/queries/notices";
-import NoticesList from "@/components/citizen/notices/NoticesList";
-import NoticeFilters from "@/components/citizen/notices/NoticeFilters";
-import { Card, CardContent } from "@/components/ui/card";
+import NoticesList from "./_components/NoticesList";
+import NoticeFilters from "./_components/NoticeFilters";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-function StatCard({ icon: Icon, label, value, gradient }: any) {
+// Custom Stat Card component matching Machhapuchhre Modern "Stone Card"
+function StatCard({ icon: Icon, label, value, colorVar }: any) {
   return (
-    <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.3 }}>
-      <Card className="relative overflow-hidden border-0 shadow-2xl shadow-slate-200/50 rounded-[2rem] bg-white ring-1 ring-slate-900/5 group">
+    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.3 }}>
+      <div className="stone-card p-6 relative overflow-hidden group">
         <div
-          className={cn(
-            "absolute inset-0 opacity-[0.03] bg-gradient-to-br transition-opacity group-hover:opacity-[0.07]",
-            gradient
-          )}
+          className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500"
+          style={{ background: `rgb(var(${colorVar}))` }}
         />
-        <CardContent className="p-7 relative flex items-center justify-between">
+        <div className="flex items-center justify-between relative z-10">
           <div className="space-y-1">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
               {label}
             </p>
-            <p className="text-3xl font-black text-slate-900 tracking-tight">
+            <p className="text-3xl font-mono font-bold text-foreground tracking-tight">
               {value.toLocaleString()}
             </p>
           </div>
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-slate-50 to-white shadow-xl shadow-blue-900/5 flex items-center justify-center border border-slate-100 transition-transform group-hover:scale-110">
-            <Icon className="h-7 w-7 text-blue-600" strokeWidth={2.5} />
+          <div
+            className="h-12 w-12 rounded-xl flex items-center justify-center shadow-sm border border-white/20"
+            style={{
+              background: `linear-gradient(135deg, rgb(var(${colorVar}) / 0.1), rgb(var(${colorVar}) / 0.2))`,
+              color: `rgb(var(${colorVar}))`,
+            }}
+          >
+            <Icon className="h-6 w-6" strokeWidth={2.5} />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -55,12 +60,12 @@ export default function NoticesPage() {
     search: undefined as string | undefined,
     ward: undefined as string | undefined,
     type: undefined as string | undefined,
-    dateFrom: undefined as string | undefined,
-    dateTo: undefined as string | undefined,
+    dateFrom: undefined as Date | undefined,
+    dateTo: undefined as Date | undefined,
     unreadOnly: false,
   });
 
-  const limit = 20;
+  const limit = 10;
   const offset = (page - 1) * limit;
 
   const fetchNotices = useCallback(
@@ -74,8 +79,8 @@ export default function NoticesPage() {
             search: filters.search,
             wardId: filters.ward,
             noticeType: filters.type,
-            dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
-            dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
+            dateFrom: filters.dateFrom,
+            dateTo: filters.dateTo,
             unreadOnly: filters.unreadOnly,
           }),
           noticesService.getUnreadNoticeCount(),
@@ -85,11 +90,11 @@ export default function NoticesPage() {
         setTotal(noticesData.total);
         setUnreadCount(unread);
       } catch (error: any) {
-        toast.error("Sync Error", {
-          description: "Notice board couldn't be updated.",
+        toast.error("Connection Error", {
+          description: "Unable to sync with Smart City servers.",
         });
       } finally {
-        setIsLoading(false);
+        if (!isSilent) setIsLoading(false);
       }
     },
     [page, filters, limit, offset]
@@ -101,42 +106,46 @@ export default function NoticesPage() {
 
   const handleRefresh = () => {
     toast.promise(fetchNotices(true), {
-      loading: "Refreshing board...",
-      success: "Board synchronized",
+      loading: "Syncing with municipal servers...",
+      success: "Notice board updated",
       error: "Sync failed",
     });
   };
 
   const handleFilterChange = (newFilters: any) => {
-    setFilters(newFilters);
-    setPage(1); // Reset to first page when filters change
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+    const safeFilters = {
+      ...newFilters,
+      dateFrom: newFilters.dateFrom ? new Date(newFilters.dateFrom) : undefined,
+      dateTo: newFilters.dateTo ? new Date(newFilters.dateTo) : undefined,
+    };
+    setFilters((prev) => ({ ...prev, ...safeFilters }));
+    setPage(1);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 relative overflow-hidden">
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[400px] h-[400px] bg-indigo-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+    <div className="min-h-screen bg-[rgb(var(--neutral-stone))] relative overflow-x-hidden font-sans">
+      {/* --- Ambient Background Effects (Phewa & Nature) --- */}
+      <div className="fixed top-[-20%] left-[-10%] w-[800px] h-[800px] rounded-full blur-[120px] opacity-40 bg-[rgb(var(--accent-nature)/0.3)] pointer-events-none" />
+      <div className="fixed bottom-[-20%] right-[-5%] w-[600px] h-[600px] rounded-full blur-[100px] opacity-30 bg-[rgb(var(--primary-brand)/0.2)] pointer-events-none" />
 
-      <div className="container mx-auto px-4 py-8 lg:py-12 max-w-7xl relative z-10">
-        <header className="mb-14 space-y-10">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 max-w-7xl">
+        {/* --- Header Section --- */}
+        <header className="mb-12 space-y-8">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-600/5 border border-blue-600/10 text-blue-700 text-[10px] font-black uppercase tracking-[0.2em]">
-                <ShieldCheck className="h-3.5 w-3.5" /> Citizen Portal
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 border border-white/40 backdrop-blur-sm text-[rgb(var(--primary-brand))] text-[10px] font-black uppercase tracking-widest shadow-sm">
+                <ShieldCheck className="h-3 w-3" />
+                Pokhara Metropolitan City
               </div>
-              <h1 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tight leading-none">
+              <h1 className="text-4xl md:text-6xl font-black text-[rgb(var(--text-ink))] tracking-tight">
                 Official{" "}
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="text-[rgb(var(--primary-brand))]">
                   Notices
                 </span>
               </h1>
-              <p className="text-slate-500 text-lg max-w-2xl font-medium leading-relaxed">
-                Critical updates and community announcements from Pokhara
-                Metropolitan City.
+              <p className="text-[rgb(var(--neutral-stone-600))] text-lg max-w-2xl leading-relaxed">
+                Stay informed with the latest municipal announcements, tenders,
+                and emergency alerts.
               </p>
             </div>
 
@@ -145,57 +154,59 @@ export default function NoticesPage() {
                 variant="outline"
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="h-12 px-6 rounded-2xl bg-white/80 backdrop-blur-sm border-slate-200 shadow-sm font-bold text-slate-700 hover:bg-white transition-all active:scale-95"
+                className="h-12 px-6 rounded-2xl bg-white/80 border-[rgb(var(--neutral-stone-200))] text-[rgb(var(--text-ink))] hover:bg-white shadow-sm hover:shadow-md transition-all font-bold"
               >
                 <RefreshCw
                   className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")}
                 />
-                Refresh
+                Sync
               </Button>
               {unreadCount > 0 && (
-                <div className="h-12 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/25 animate-in zoom-in">
-                  <Bell className="h-4 w-4" />
-                  {unreadCount} New Alerts
+                <div className="h-12 px-6 rounded-2xl bg-[rgb(var(--highlight-tech))] text-white flex items-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-orange-500/20 animate-in zoom-in">
+                  <Bell className="h-4 w-4 animate-[bell-swing_1s_ease-in-out_infinite]" />
+                  {unreadCount} New
                 </div>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* --- Stats Grid --- */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <StatCard
-              icon={Bell}
-              label="Total Board"
+              icon={Info}
+              label="Total Notices"
               value={total}
-              gradient="from-blue-600 to-indigo-700"
+              colorVar="--primary-brand"
             />
             <StatCard
               icon={Sparkles}
-              label="Unread"
+              label="Unread Alerts"
               value={unreadCount}
-              gradient="from-orange-500 to-red-600"
+              colorVar="--highlight-tech"
             />
             <StatCard
               icon={TrendingUp}
               label="This Month"
               value={notices.length}
-              gradient="from-emerald-500 to-teal-700"
+              colorVar="--accent-nature"
             />
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          <aside className="lg:col-span-3 lg:sticky lg:top-28">
+        {/* --- Main Content Layout --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <aside className="lg:col-span-3 lg:sticky lg:top-8 z-20">
             <NoticeFilters onFilterChange={handleFilterChange} />
           </aside>
 
-          <main className="lg:col-span-9">
+          <main className="lg:col-span-9 min-h-[500px]">
             <NoticesList
               notices={notices}
               isLoading={isLoading}
               total={total}
               page={page}
               limit={limit}
-              onPageChange={handlePageChange}
+              onPageChange={setPage}
             />
           </main>
         </div>

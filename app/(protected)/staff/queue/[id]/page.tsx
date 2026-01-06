@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
-import { TaskDetailHeader } from "@/components/staff/task-detail/TaskDetailHeader";
-import { TaskInfoCard } from "@/components/staff/task-detail/TaskInfoCard";
-import { CitizenInfoPanel } from "@/components/staff/task-detail/CitizenInfoPanel";
-import { WorkProgressTimeline } from "@/components/staff/task-detail/WorkProgressTimeline";
-import { TaskActionBar } from "@/components/staff/task-detail/TaskActionBar"; 
+import { TaskDetailHeader } from "../_components/TaskDetailHeader";
+import { TaskInfoCard } from "../_components/TaskInfoCard";
+import { CitizenInfoPanel } from "../_components/CitizenInfoPanel";
+import { WorkProgressTimeline } from "../_components/WorkProgressTimeline";
+import { TaskActionBar } from "../_components/TaskActionBar"; 
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 
 

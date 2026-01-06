@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { StaffGridView } from "@/components/supervisor/staff/StaffGridView";
+import { StaffGridView } from "@/app/(protected)/supervisor/staff/_components/StaffGridView";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 

@@ -3,7 +3,7 @@ import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorAnalyticsQueries } from "@/lib/supabase/queries/supervisor-analytics";
 import { HeatmapChart } from "@/components/shared/charts/HeatmapChart";
-import { CategoryDistribution } from "@/components/supervisor/analytics/CategoryDistribution";
+import { CategoryDistribution } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/CategoryDistribution";
 
 export const dynamic = "force-dynamic";
 

@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { CurrentUser } from "@/lib/types/auth";
-import { SupervisorLayoutShell } from "@/components/supervisor/shared/SupervisorLayoutShell";
+import { SupervisorLayoutShell } from "@/app/(protected)/supervisor/layout/SupervisorLayoutShell";
 import { toast } from "sonner";
 
 interface SupervisorLayoutClientProps {

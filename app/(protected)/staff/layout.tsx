@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { getCurrentUserWithRoles } from "@/lib/auth/session"
 import { isStaff } from "@/lib/auth/role-helpers"
-import { StaffShell } from "@/components/staff/StaffShell"
+import { StaffShell } from "@/app/(protected)/staff/_components/StaffShell";
 
 export const dynamic = "force-dynamic"
 

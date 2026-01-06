@@ -1,20 +1,32 @@
-// ui//skeleton.tsx
-import * as React from "react";
-import { cn } from "@/lib/utils"; // Assuming you have a utility function for Tailwind class merging
+"use client";
 
-/**
- * A reusable component to display a placeholder for content being loaded.
- * It mimics the shape of the final content with a pulsating animation.
- */
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  circle?: boolean;
+  rounded?: "sm" | "md" | "lg" | "xl";
+  width?: string;
+  height?: string;
+}
+
 function Skeleton({
+  circle,
+  rounded = "md",
+  width = "w-full",
+  height = "h-4",
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: SkeletonProps) {
+  const radius = circle ? "rounded-full" : `rounded-${rounded}`;
   return (
     <div
       className={cn(
-        "animate-pulse rounded-md bg-gray-200", // Base styling: rounded corners, gray color, and pulse animation
-        className // Allows overriding or extending styles via props
+        "animate-pulse bg-gray-200",
+        radius,
+        width,
+        height,
+        className
       )}
       {...props}
     />

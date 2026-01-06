@@ -5,14 +5,14 @@ import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
 
 // Reuse Supervisor components for efficiency where UI is identical
-import { ComplaintDetailHeader } from "@/components/supervisor/complaints/ComplaintDetailHeader";
-import { ComplaintInfoCard } from "@/components/supervisor/complaints/ComplaintInfoCard";
-import { StatusTimeline } from "@/components/supervisor/complaints/StatusTimeline";
-import { CitizenInfoPanel } from "@/components/supervisor/complaints/CitizenInfoPanel";
-import { InternalNotes } from "@/components/supervisor/complaints/InternalNotes";
-import { AttachmentsSection } from "@/components/supervisor/complaints/AttachmentsSection";
-import { SLATracker } from "@/components/supervisor/complaints/SLATracker";
-import { CommunicationThread } from "@/components/supervisor/complaints/CommunicationThread";
+import { ComplaintDetailHeader } from "@/app/(protected)/supervisor/complaints/_components/complaints/ComplaintDetailHeader";
+import { ComplaintInfoCard } from "@/app/(protected)/supervisor/complaints/_components/ComplaintInfoCard";
+import { StatusTimeline } from "@/app/(protected)/supervisor/complaints/_components/complaints/StatusTimeline";
+import { CitizenInfoPanel } from "@/app/(protected)/supervisor/complaints/_components/CitizenInfoPanel";
+import { InternalNotes } from "@/app/(protected)/supervisor/complaints/_components/InternalNotes";
+import { AttachmentsSection } from "@/app/(protected)/supervisor/complaints/_components/AttachmentsSection";
+import { SLATracker } from "@/app/(protected)/supervisor/complaints/_components/SLATracker";
+import { CommunicationThread } from "@/app/(protected)/supervisor/complaints/_components/CommunicationThread";
 
 export const dynamic = "force-dynamic";
 

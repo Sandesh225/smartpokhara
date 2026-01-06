@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorAnalyticsQueries } from "@/lib/supabase/queries/supervisor-analytics";
-import { AnalyticsOverview } from "@/components/supervisor/analytics/AnalyticsOverview";
-import { ComplaintsTrendChart } from "@/components/supervisor/analytics/ComplaintsTrendChart";
-import { CategoryDistribution } from "@/components/supervisor/analytics/CategoryDistribution";
+import { AnalyticsOverview } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/AnalyticsOverview";
+import { ComplaintsTrendChart } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/ComplaintsTrendChart";
+import { CategoryDistribution } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/CategoryDistribution";
 import { HeatmapChart } from "@/components/supervisor/charts/HeatmapChart";
-import { StaffPerformanceComparison } from "@/components/supervisor/analytics/StaffPerformanceComparison";
+import { StaffPerformanceComparison } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/StaffPerformanceComparison";
 
 export const dynamic = "force-dynamic";
 

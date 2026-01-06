@@ -13,10 +13,10 @@ import {
   Clock,
 } from "lucide-react";
 import { paymentsService } from "@/lib/supabase/queries/payments";
-import BillsList from "@/components/citizen/payments/BillsList";
-import PaymentHistoryTable from "@/components/citizen/payments/PaymentHistoryTable";
-import WalletCard from "@/components/citizen/payments/WalletCard";
-import PaymentFilters from "@/components/citizen/payments/PaymentFilters";
+import BillsList from "@/app/(protected)/citizen/payments/_components/BillsList";
+import PaymentHistoryTable from "@/app/(protected)/citizen/payments/_components/PaymentHistoryTable";
+import WalletCard from "@/app/(protected)/citizen/payments/_components/WalletCard";
+import PaymentFilters from "@/app/(protected)/citizen/payments/_components/PaymentFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

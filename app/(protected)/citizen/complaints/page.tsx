@@ -53,7 +53,7 @@ import {
 
 // Services & Components
 import { createClient } from "@/lib/supabase/client";
-import { ComplaintsTable } from "@/components/citizen/complaints/ComplaintsTable";
+import { ComplaintsTable } from "@/app/(protected)/citizen/complaints/_components/ComplaintsTable";
 import { complaintsService } from "@/lib/supabase/queries/complaints";
 import type {
   Complaint,

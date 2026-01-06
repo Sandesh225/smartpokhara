@@ -2,9 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { StaffProfileCard } from "@/components/supervisor/staff/StaffProfileCard";
-import { CurrentAssignments } from "@/components/supervisor/staff/CurrentAssignments";
-import { ActivityTimeline } from "@/components/supervisor/staff/ActivityTimeline";
+import { StaffProfileCard } from "@/app/(protected)/supervisor/staff/_components/StaffProfileCard";
+import { CurrentAssignments } from "@/app/(protected)/supervisor/staff/_components/CurrentAssignments";
+import { ActivityTimeline } from "@/app/(protected)/supervisor/staff/_components/ActivityTimeline";
 import Link from "next/link";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 

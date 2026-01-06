@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorAnalyticsQueries } from "@/lib/supabase/queries/supervisor-analytics";
-import { PerformanceLeaderboard } from "@/components/supervisor/analytics/PerformanceLeaderboard";
-import { StaffPerformanceComparison } from "@/components/supervisor/analytics/StaffPerformanceComparison";
+import { PerformanceLeaderboard } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/PerformanceLeaderboard";
+import { StaffPerformanceComparison } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/StaffPerformanceComparison";
 
 export const dynamic = "force-dynamic";
 

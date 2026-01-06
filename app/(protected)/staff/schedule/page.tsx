@@ -3,41 +3,53 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { staffScheduleQueries } from "@/lib/supabase/queries/staff-schedule";
-import { ScheduleHeader, ViewMode } from "@/components/staff/schedule/ScheduleHeader";
-import { ScheduleCalendar } from "@/components/staff/schedule/ScheduleCalendar";
-import { DayScheduleView } from "@/components/staff/schedule/DayScheduleView";
-import { UpcomingTasksList } from "@/components/staff/schedule/UpcomingTasksList";
+import {
+  ScheduleHeader,
+  ViewMode,
+} from "@/app/(protected)/staff/schedule/_components/ScheduleHeader";
+import { ScheduleCalendar } from "@/app/(protected)/staff/schedule/_components/ScheduleCalendar";
+import { DayScheduleView } from "@/app/(protected)/staff/schedule/_components/DayScheduleView";
+import { UpcomingTasksList } from "@/app/(protected)/staff/schedule/_components/UpcomingTasksList";
 import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 
 export default function SchedulePage() {
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [data, setData] = useState<{ shifts: any[], tasks: any[] }>({ shifts: [], tasks: [] });
+
+  // Data State
+  const [data, setData] = useState<{ shifts: any[]; tasks: any[] }>({
+    shifts: [],
+    tasks: [],
+  });
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
   const supabase = createClient();
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch range based on view (simplified to always fetch month for cache)
+      // Calculate fetch range based on current view date
       const start = startOfMonth(currentDate).toISOString();
       const end = endOfMonth(currentDate).toISOString();
 
       try {
-        const [res, upcomingTasks] = await Promise.all([
-           staffScheduleQueries.getFullSchedule(supabase, user.id, start, end),
-           staffScheduleQueries.getUpcomingTasks(supabase, user.id)
+        const [scheduleData, upcomingData] = await Promise.all([
+          // Calling the newly added function
+          staffScheduleQueries.getFullSchedule(supabase, user.id, start, end),
+          staffScheduleQueries.getUpcomingTasks(supabase, user.id),
         ]);
-        
-        setData(res);
-        setUpcoming(upcomingTasks);
+
+        setData(scheduleData);
+        setUpcoming(upcomingData);
       } catch (err) {
-        console.error(err);
+        console.error("Schedule Load Error:", err);
       } finally {
         setLoading(false);
       }
@@ -45,48 +57,58 @@ export default function SchedulePage() {
     load();
   }, [currentDate]);
 
-  // Combine items for calendar
-  const calendarItems = [
-    ...data.shifts,
-    ...data.tasks
-  ];
+  // Combine items for calendar display
+  const calendarItems = [...data.shifts, ...data.tasks];
 
-  // Filter for day view
-  const dayItems = calendarItems.filter(i => 
-    i.date === format(currentDate, 'yyyy-MM-dd')
-  ).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  // Filter items specifically for the Day View
+  const dayItems = calendarItems
+    .filter((i) => i.date === format(currentDate, "yyyy-MM-dd"))
+    .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
 
   return (
-    <div className="space-y-6 pb-20">
-      <ScheduleHeader 
+    <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+      {/* Header Section */}
+      <ScheduleHeader
         currentDate={currentDate}
         viewMode={viewMode}
         onViewChange={setViewMode}
         onDateChange={setCurrentDate}
-        todayShift="09:00 - 17:00" // Placeholder
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3">
-             {loading ? (
-               <div className="h-64 flex items-center justify-center"><LoadingSpinner /></div>
-             ) : (
-               viewMode === 'day' ? (
-                 <DayScheduleView date={currentDate} items={dayItems} />
-               ) : (
-                 <ScheduleCalendar 
-                   currentDate={currentDate}
-                   viewMode={viewMode as 'month' | 'week'}
-                   items={calendarItems}
-                 />
-               )
-             )}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Main Calendar Area */}
+        <div className="lg:col-span-3">
+          {loading ? (
+            <div className="h-96 w-full flex flex-col items-center justify-center bg-white rounded-2xl border border-gray-200">
+              <LoadingSpinner className="w-8 h-8 text-blue-600 mb-4" />
+              <p className="text-gray-400 text-sm animate-pulse">
+                Loading schedule...
+              </p>
+            </div>
+          ) : viewMode === "day" ? (
+            <DayScheduleView date={currentDate} items={dayItems} />
+          ) : (
+            <ScheduleCalendar
+              currentDate={currentDate}
+              viewMode={viewMode as "month" | "week"}
+              items={calendarItems}
+            />
+          )}
+        </div>
+
+        {/* Right Sidebar: Upcoming Tasks */}
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
+            <h3 className="font-bold text-lg mb-1">Quick Note</h3>
+            <p className="text-blue-100 text-sm leading-relaxed">
+              Shift timings are subject to change by ward supervisors. Check
+              daily.
+            </p>
           </div>
-          
-          <div className="space-y-6">
-             <UpcomingTasksList tasks={upcoming} />
-          </div>
-       </div>
+
+          <UpcomingTasksList tasks={upcoming} />
+        </div>
+      </div>
     </div>
   );
 }

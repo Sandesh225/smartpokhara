@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Download, History, Search, Filter, FileText, CreditCard } from "lucide-react";
 import { paymentsService } from "@/lib/supabase/queries/payments";
-import PaymentHistoryTable from "@/components/citizen/payments/PaymentHistoryTable";
-import PaymentFilters from "@/components/citizen/payments/PaymentFilters";
+import PaymentHistoryTable from "@/app/(protected)/citizen/payments/_components/PaymentHistoryTable";
+import PaymentFilters from "@/app/(protected)/citizen/payments/_components/PaymentFilters";
 import {
   Card,
   CardContent,
