@@ -6,14 +6,14 @@ import { createClient } from "@/lib/supabase/client";
 import { Bell, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-/ui/;
+;
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/ui/dropdown/ui/nu";
+} from "@/ui/dropdown";
 
 interface Notification {
   id: string;
