@@ -2,18 +2,12 @@
 
 import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  showSuccessToast,
-  showErrorToast,
-  showLoadingToast,
-  dismissToast,
-} from "@/lib/shared/toast-service";
+import { toast } from "sonner";
 import type { ComplaintAttachment } from "@/lib/types/complaints";
 import {
   Upload,
   FileText,
   Image as ImageIcon,
-  Download,
   Eye,
   Loader2,
 } from "lucide-react";
@@ -47,10 +41,12 @@ export function ComplaintAttachments({
       const file = event.target.files?.[0];
       if (!file) return;
 
-      const toastId = showLoadingToast(`Uploading ${file.name}...`);
+      const toastId = toast.loading(`Uploading ${file.name}...`);
 
       const fileExt = file.name.split(".").pop();
-      const fileName = `${complaintId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileName = `${complaintId}/${Math.random()
+        .toString(36)
+        .substring(2)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("complaint-attachments")
@@ -62,11 +58,15 @@ export function ComplaintAttachments({
         .from("complaint-attachments")
         .getPublicUrl(fileName);
 
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       const { error: insertError } = await supabase
         .from("complaint_attachments")
         .insert({
           complaint_id: complaintId,
-          uploaded_by_user_id: (await supabase.auth.getUser()).data.user?.id!,
+          uploaded_by_user_id: user?.id!,
           file_name: file.name,
           file_type: fileExt,
           mime_type: file.type,
@@ -78,12 +78,13 @@ export function ComplaintAttachments({
 
       if (insertError) throw insertError;
 
-      dismissToast(toastId);
-      showSuccessToast("File uploaded successfully");
+      toast.dismiss(toastId);
+      toast.success("File uploaded successfully");
+
       window.location.reload();
     } catch (error) {
       console.error("Error uploading file:", error);
-      showErrorToast("Upload failed", "Please try again");
+      toast.error("Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -101,6 +102,7 @@ export function ComplaintAttachments({
             disabled={uploading}
             accept="image/*,.pdf"
           />
+
           <label
             htmlFor="file-upload"
             className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all duration-300 group"
@@ -112,9 +114,11 @@ export function ComplaintAttachments({
                 <Upload className="w-8 h-8 text-white" />
               )}
             </div>
+
             <p className="text-base font-semibold text-slate-700 mb-1">
               {uploading ? "Uploading..." : "Upload Attachment"}
             </p>
+
             <p className="text-sm text-slate-500">
               Images and PDF files • Max 10MB
             </p>
@@ -167,7 +171,6 @@ function AttachmentCard({
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="flex items-start gap-3">
-        {/* Icon */}
         <div
           className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center shadow-md ${
             isImage
@@ -182,11 +185,11 @@ function AttachmentCard({
           )}
         </div>
 
-        {/* Details */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
             {attachment.file_name}
           </p>
+
           <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
             <span>{formatFileSize(attachment.file_size_bytes)}</span>
             <span>•</span>
@@ -194,7 +197,6 @@ function AttachmentCard({
           </div>
         </div>
 
-        {/* View Button */}
         <a
           href={attachment.file_url}
           target="_blank"
