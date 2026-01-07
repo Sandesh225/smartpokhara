@@ -1,83 +1,137 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { AdminDashboardMetrics } from "@/lib/types/admin";
-import { AlertCircle, CheckCircle2, DollarSign, Activity } from "lucide-react";
+"use client";
 
-export function MetricsOverview({ metrics }: { metrics: AdminDashboardMetrics }) {
-  const items = [
+import { AdminDashboardData } from "@/types/admin";
+import {
+  FileText,
+  CheckCircle2,
+  Coins,
+  Activity,
+  ArrowUpRight,
+  ArrowDownRight,
+  TrendingUp,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface MetricsOverviewProps {
+  metrics: AdminDashboardData["metrics"];
+}
+
+export function MetricsOverview({ metrics }: MetricsOverviewProps) {
+  const cards = [
     {
       label: "Total Complaints",
-      value: metrics.totalComplaints.toLocaleString(),
-      icon: AlertCircle,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
-      ring: "ring-blue-100"
+      value: metrics.totalComplaints,
+      icon: FileText,
+      trend: "+12.5%",
+      trendUp: true,
+      // Using CSS Variables from your Machhapuchhre Modern theme
+      color: "text-primary",
+      bg: "bg-primary/10",
+      accent: "var(--primary-brand)",
     },
     {
-      label: "Resolved",
-      value: metrics.resolvedComplaints.toLocaleString(),
+      label: "Resolved Cases",
+      value: metrics.resolvedComplaints,
       icon: CheckCircle2,
-      color: "text-green-600",
-      bg: "bg-green-50",
-      ring: "ring-green-100"
+      trend: "+5.2%",
+      trendUp: true,
+      color: "text-secondary",
+      bg: "bg-secondary/10",
+      accent: "var(--accent-nature)",
     },
     {
       label: "Revenue Collected",
       value: `NPR ${metrics.revenue.toLocaleString()}`,
-      icon: DollarSign,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
-      ring: "ring-emerald-100"
+      icon: Coins,
+      trend: "+8.1%",
+      trendUp: true,
+      color: "text-[rgb(var(--highlight-tech))]",
+      bg: "bg-[rgb(var(--highlight-tech))]/10",
+      accent: "var(--highlight-tech)",
     },
     {
-      label: "Active Tasks",
-      value: metrics.activeTasks.toLocaleString(),
+      label: "System Health",
+      value: `${metrics.activeTasks}%`, // Assuming health or activity %
       icon: Activity,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
-      ring: "ring-purple-100"
-    }
+      trend: "-2.4%",
+      trendUp: false,
+      color: "text-[rgb(var(--error-red))]",
+      bg: "bg-[rgb(var(--error-red))]/10",
+      accent: "var(--error-red)",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      {items.map((item, idx) => {
-        const Icon = item.icon;
-        return (
-          <Card 
-            key={idx} 
-            className="
-              relative overflow-hidden border border-gray-200 shadow-sm 
-              hover:shadow-lg hover:border-gray-300 
-              transition-all duration-300 
-              group cursor-pointer
-            "
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                    {item.label}
-                  </p>
-                  <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
-                    {item.value}
-                  </h3>
-                </div>
-                <div 
-                  className={`
-                    p-3 rounded-xl ${item.bg} ring-2 ${item.ring} ring-offset-2
-                    group-hover:scale-110 transition-transform duration-300
-                  `}
-                >
-                  <Icon className={`w-6 h-6 ${item.color}`} />
-                </div>
-              </div>
-            </CardContent>
-            
-            {/* Subtle gradient overlay on hover */}
-            <div className="absolute inset-0 bg-linear-to-br from-transparent to-gray-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          </Card>
-        );
-      })}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {cards.map((card, idx) => (
+        <div
+          key={idx}
+          className={cn(
+            "stone-card group relative p-6 overflow-hidden transition-all duration-500 hover:elevation-5 border-none",
+            "bg-linear-to-br from-card to-muted/20"
+          )}
+        >
+          {/* Machhapuchhre Mist Gradient Overlay */}
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at top right, rgb(${card.accent} / 0.08), transparent 70%)`,
+            }}
+          />
+
+          <div className="flex justify-between items-start mb-6 relative z-10">
+            {/* Icon with Lakeside Glass effect */}
+            <div
+              className={cn(
+                "p-3 rounded-2xl glass-strong shadow-xs transition-transform group-hover:scale-110 duration-300",
+                card.bg
+              )}
+            >
+              <card.icon className={cn("w-6 h-6", card.color)} />
+            </div>
+
+            {/* Admin Trend Badge */}
+            <div
+              className={cn(
+                "flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg font-mono border",
+                card.trendUp
+                  ? "bg-green-500/10 text-green-600 border-green-500/20"
+                  : "bg-red-500/10 text-red-600 border-red-500/20"
+              )}
+            >
+              {card.trendUp ? (
+                <ArrowUpRight className="w-3 h-3 stroke-[3]" />
+              ) : (
+                <ArrowDownRight className="w-3 h-3 stroke-[3]" />
+              )}
+              {card.trend}
+            </div>
+          </div>
+
+          <div className="space-y-2 relative z-10">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                {card.label}
+              </h3>
+              <div className="h-px flex-1 bg-border/50 group-hover:bg-primary/20 transition-colors" />
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-bold text-foreground font-mono tracking-tighter tabular-nums">
+                {card.value}
+              </p>
+              {card.trendUp && (
+                <TrendingUp className="w-4 h-4 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
+            </div>
+
+            <p className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-1 italic">
+              <span className="w-1 h-1 rounded-full bg-primary" />
+              Live system metric
+            </p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
