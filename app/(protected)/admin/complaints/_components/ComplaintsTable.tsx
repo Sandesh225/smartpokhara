@@ -1,14 +1,29 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, MoreHorizontal, Clock, UserCog, Trash2 } from "lucide-react";
+import {
+  Eye,
+  MoreHorizontal,
+  Clock,
+  UserCog,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { 
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator 
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface ComplaintsTableProps {
   data: any[];
@@ -24,41 +39,23 @@ interface ComplaintsTableProps {
   };
 }
 
-export function ComplaintsTable({ data, loading, selectedIds, onSelect, onSelectAll, pagination }: ComplaintsTableProps) {
+export function ComplaintsTable({
+  data,
+  loading,
+  selectedIds,
+  onSelect,
+  onSelectAll,
+  pagination,
+}: ComplaintsTableProps) {
   const allSelected = data.length > 0 && selectedIds.length === data.length;
-  
+
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 w-12"><Skeleton className="h-4 w-4" /></th>
-                <th className="px-6 py-4 text-left"><Skeleton className="h-4 w-24" /></th>
-                <th className="px-6 py-4 text-left"><Skeleton className="h-4 w-32" /></th>
-                <th className="px-6 py-4 text-left"><Skeleton className="h-4 w-28" /></th>
-                <th className="px-6 py-4 text-left"><Skeleton className="h-4 w-24" /></th>
-                <th className="px-6 py-4 text-left"><Skeleton className="h-4 w-20" /></th>
-                <th className="px-6 py-4 text-left"><Skeleton className="h-4 w-28" /></th>
-                <th className="px-6 py-4 text-right"><Skeleton className="h-4 w-16" /></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {[...Array(5)].map((_, i) => (
-                <tr key={i}>
-                  <td className="px-6 py-4"><Skeleton className="h-4 w-4" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-5 w-24" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-10 w-full" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-8 w-32" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-10 w-20" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-6 w-20" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-10 w-24" /></td>
-                  <td className="px-6 py-4"><Skeleton className="h-8 w-8 ml-auto" /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="p-4 space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full rounded-lg" />
+          ))}
         </div>
       </div>
     );
@@ -66,164 +63,177 @@ export function ComplaintsTable({ data, loading, selectedIds, onSelect, onSelect
 
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Eye className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No complaints found</h3>
-          <p className="text-sm text-gray-500 text-center max-w-sm">
-            Try adjusting your filters or search criteria to find what you're looking for.
-          </p>
+      <div className="bg-white rounded-2xl border border-dashed border-slate-300 py-20 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
+          <Eye className="w-6 h-6 text-slate-400" />
         </div>
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">
+          No Records Found
+        </h3>
+        <p className="text-xs text-slate-500 mt-1">
+          Adjust your filters to broaden your search.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-linear-to-b from-gray-50 to-gray-50/80 border-b border-gray-200">
+          <thead className="bg-slate-50/50 border-b border-slate-200">
             <tr>
-              <th className="px-6 py-4 w-12">
-                <Checkbox 
-                  checked={allSelected} 
+              <th className="px-4 py-3 w-10">
+                <Checkbox
+                  checked={allSelected}
                   onCheckedChange={(c) => onSelectAll(!!c)}
-                  aria-label="Select all complaints"
+                  className="rounded-md border-slate-300"
                 />
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 Tracking ID
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 Issue Details
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 Reporter
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Location
+              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                Ward
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 Status
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 Priority / SLA
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Actions
+              <th className="px-4 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                Manage
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {data.map((row) => (
-              <tr 
-                key={row.id} 
-                className={`group hover:bg-gray-50/80 transition-colors duration-150 ${
-                  selectedIds.includes(row.id) ? 'bg-blue-50/50' : ''
-                }`}
+              <tr
+                key={row.id}
+                className={cn(
+                  "group transition-colors duration-150",
+                  selectedIds.includes(row.id)
+                    ? "bg-primary/5"
+                    : "hover:bg-slate-50/50"
+                )}
               >
-                <td className="px-6 py-4">
-                  <Checkbox 
-                    checked={selectedIds.includes(row.id)} 
+                <td className="px-4 py-2.5">
+                  <Checkbox
+                    checked={selectedIds.includes(row.id)}
                     onCheckedChange={(c) => onSelect(row.id, !!c)}
-                    aria-label={`Select complaint ${row.tracking_code}`}
+                    className="rounded-md border-slate-300"
                   />
                 </td>
-                <td className="px-6 py-4">
-                  <Link 
-                    href={`/admin/complaints/${row.id}`} 
-                    className="font-mono text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                <td className="px-4 py-2.5">
+                  <Link
+                    href={`/admin/complaints/${row.id}`}
+                    className="font-mono text-[11px] font-bold text-primary hover:underline"
                   >
-                    {row.tracking_code}
+                    #{row.tracking_code}
                   </Link>
                 </td>
-                <td className="px-6 py-4 max-w-[280px]">
-                  <div className="space-y-1">
-                    <div className="font-medium text-gray-900 truncate leading-snug" title={row.title}>
+                <td className="px-4 py-2.5 max-w-[240px]">
+                  <div className="flex flex-col leading-tight">
+                    <span className="font-bold text-slate-900 truncate text-[13px]">
                       {row.title}
-                    </div>
-                    <div className="text-xs text-gray-500 truncate flex items-center gap-1.5">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-300" />
+                    </span>
+                    <span className="text-[11px] text-slate-500 truncate mt-0.5">
                       {row.category_name}
-                    </div>
+                    </span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8 ring-2 ring-gray-100">
+                <td className="px-4 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6 border border-white shadow-sm">
                       <AvatarImage src={row.citizen_avatar} />
-                      <AvatarFallback className="bg-linear-to-br from-blue-500 to-blue-600 text-white text-xs font-semibold">
-                        {row.citizen_name?.[0]?.toUpperCase()}
+                      <AvatarFallback className="bg-slate-200 text-slate-600 text-[10px] font-bold">
+                        {row.citizen_name?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="truncate max-w-[140px] font-medium text-gray-700">
+                    <span className="truncate text-xs font-medium text-slate-700">
                       {row.citizen_name}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="space-y-0.5">
-                    <div className="font-semibold text-gray-900 text-sm">
-                      Ward {row.ward_number}
-                    </div>
-                    <div className="text-xs text-gray-500 truncate max-w-[160px]" title={row.ward?.name}>
-                      {row.ward?.name}
-                    </div>
-                  </div>
+                <td className="px-4 py-2.5">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-black border-slate-200 bg-slate-50 text-slate-600"
+                  >
+                    WARD {row.ward_number}
+                  </Badge>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-2.5">
                   <BadgeStatus status={row.status} />
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-2">
+                <td className="px-4 py-2.5">
+                  <div className="flex flex-col gap-1">
                     <BadgePriority priority={row.priority} />
                     {row.sla_due_at && (
-                      <div className="flex items-center gap-1.5 text-xs">
-                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                      <div className="flex items-center gap-1 text-[10px] font-medium whitespace-nowrap">
+                        <Clock
+                          className={cn(
+                            "w-3 h-3",
+                            new Date(row.sla_due_at) < new Date()
+                              ? "text-red-500"
+                              : "text-slate-400"
+                          )}
+                        />
                         {new Date(row.sla_due_at) < new Date() ? (
-                          <span className="text-red-600 font-bold">Overdue</span>
+                          <span className="text-red-600 font-black uppercase tracking-tighter">
+                            Overdue
+                          </span>
                         ) : (
-                          <span className="text-gray-600">
-                            {formatDistanceToNow(new Date(row.sla_due_at))} left
+                          <span className="text-slate-500">
+                            {formatDistanceToNow(new Date(row.sla_due_at))}
                           </span>
                         )}
                       </div>
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-4 py-2.5 text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-9 w-9 opacity-0 group-hover:opacity-100 transition-opacity focus-visible:opacity-100"
-                        aria-label="Open actions menu"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-slate-900 rounded-lg"
                       >
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase">
-                        Actions
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-48 rounded-xl shadow-xl border-slate-200"
+                    >
+                      <DropdownMenuLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest py-2">
+                        Operation
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href={`/admin/complaints/${row.id}`} className="cursor-pointer">
-                          <Eye className="w-4 h-4 mr-2 text-gray-500" /> 
-                          View Details
+                        <Link
+                          href={`/admin/complaints/${row.id}`}
+                          className="cursor-pointer text-xs font-bold py-2.5"
+                        >
+                          <Eye className="w-4 h-4 mr-2 text-primary" /> View
+                          Details
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer">
-                        <UserCog className="w-4 h-4 mr-2 text-gray-500" /> 
+                      <DropdownMenuItem className="cursor-pointer text-xs font-bold py-2.5">
+                        <UserCog className="w-4 h-4 mr-2 text-slate-500" />{" "}
                         Assign Staff
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50">
-                        <Trash2 className="w-4 h-4 mr-2" /> 
-                        Delete
+                      <DropdownMenuItem className="text-red-600 cursor-pointer text-xs font-bold py-2.5 focus:bg-red-50 focus:text-red-600">
+                        <Trash2 className="w-4 h-4 mr-2" /> Mark as Spam
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -233,28 +243,30 @@ export function ComplaintsTable({ data, loading, selectedIds, onSelect, onSelect
           </tbody>
         </table>
       </div>
-      
-      {/* Pagination Footer */}
-      <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <span className="text-sm text-gray-600">
-          Showing <span className="font-semibold text-gray-900">{(pagination.pageIndex - 1) * pagination.pageSize + 1}</span> - <span className="font-semibold text-gray-900">{Math.min(pagination.pageIndex * pagination.pageSize, pagination.total)}</span> of <span className="font-semibold text-gray-900">{pagination.total}</span> complaints
-        </span>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+
+      {/* Footer: Compact Pagination */}
+      <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between">
+        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+          {pagination.total} Records Total
+        </p>
+        <div className="flex gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
             disabled={pagination.pageIndex === 1}
             onClick={() => pagination.onPageChange(pagination.pageIndex - 1)}
-            className="disabled:opacity-50"
+            className="h-8 text-[11px] font-bold rounded-lg border-slate-200"
           >
-            Previous
+            Prev
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            disabled={pagination.pageIndex * pagination.pageSize >= pagination.total}
+            disabled={
+              pagination.pageIndex * pagination.pageSize >= pagination.total
+            }
             onClick={() => pagination.onPageChange(pagination.pageIndex + 1)}
-            className="disabled:opacity-50"
+            className="h-8 text-[11px] font-bold rounded-lg border-slate-200"
           >
             Next
           </Button>
@@ -264,36 +276,56 @@ export function ComplaintsTable({ data, loading, selectedIds, onSelect, onSelect
   );
 }
 
-// Badge Components with Enhanced Styling
+// Optimized Badge Components
 function BadgeStatus({ status }: { status: string }) {
   const styles: any = {
-    received: "bg-gray-100 text-gray-700 border-gray-200",
-    assigned: "bg-blue-100 text-blue-700 border-blue-200",
-    in_progress: "bg-purple-100 text-purple-700 border-purple-200",
-    resolved: "bg-green-100 text-green-700 border-green-200",
-    closed: "bg-slate-100 text-slate-700 border-slate-200",
-    rejected: "bg-red-100 text-red-700 border-red-200"
+    received: "bg-slate-100 text-slate-700 border-slate-200",
+    assigned: "bg-blue-50 text-blue-700 border-blue-200",
+    in_progress: "bg-purple-50 text-purple-700 border-purple-200",
+    resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    closed: "bg-slate-200 text-slate-800 border-slate-300",
+    rejected: "bg-red-50 text-red-700 border-red-200",
   };
-  
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide border ${styles[status] || styles.received}`}>
-      {status?.replace('_', ' ')}
+    <span
+      className={cn(
+        "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-xs",
+        styles[status] || styles.received
+      )}
+    >
+      {status?.replace("_", " ")}
     </span>
   );
 }
 
 function BadgePriority({ priority }: { priority: string }) {
   const styles: any = {
-    low: "bg-slate-50 text-slate-600 border-slate-200",
-    medium: "bg-blue-50 text-blue-700 border-blue-200",
-    high: "bg-orange-50 text-orange-700 border-orange-200",
-    critical: "bg-red-50 text-red-700 border-red-200",
-    urgent: "bg-red-100 text-red-700 border-red-300"
+    low: "text-slate-500",
+    medium: "text-blue-600",
+    high: "text-orange-600 font-black",
+    critical: "text-red-600 font-black",
+    urgent: "text-red-700 font-black",
   };
-  
+
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-bold uppercase tracking-wide w-fit ${styles[priority] || styles.medium}`}>
-      {priority}
-    </span>
+    <div className="flex items-center gap-1.5">
+      <div
+        className={cn(
+          "w-1.5 h-1.5 rounded-full ring-2 ring-white",
+          priority === "high" || priority === "critical"
+            ? "bg-red-500 animate-pulse"
+            : "bg-slate-300"
+        )}
+      />
+      <span
+        className={cn(
+          "text-[10px] uppercase tracking-widest",
+          styles[priority] || styles.medium
+        )}
+      >
+        {priority}
+      </span>
+    </div>
   );
 }
