@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
-import { X, Search, Filter } from "lucide-react";
+import { X, Search, Filter, RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ComplaintFiltersProps {
   filters: ComplaintFiltersState;
@@ -19,7 +20,6 @@ interface ComplaintFiltersProps {
 export function ComplaintFilters({ 
   filters, 
   onFilterChange, 
-  categories = [], 
   wards = [],
   onClear
 }: ComplaintFiltersProps) {
@@ -30,11 +30,6 @@ export function ComplaintFilters({
     onFilterChange({ ...filters, [key]: value });
   };
 
-  const searchValue = filters.search || "";
-  const statusValue = (filters.status && filters.status.length > 0) ? filters.status[0] : "all";
-  const priorityValue = (filters.priority && filters.priority.length > 0) ? filters.priority[0] : "all";
-  const wardValue = filters.ward_id || "all";
-
   const activeFilterCount = [
     filters.search,
     filters.status?.length,
@@ -43,116 +38,92 @@ export function ComplaintFilters({
   ].filter(Boolean).length;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50 to-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <h3 className="text-sm font-semibold text-gray-700">Filters</h3>
-            {activeFilterCount > 0 && (
-              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-blue-600 bg-blue-100 rounded-full">
-                {activeFilterCount}
-              </span>
-            )}
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
+      {/* Integrated Header/Toolbar */}
+      <div className="flex flex-wrap items-center gap-4 p-3">
+        
+        {/* Search - Flexible Width */}
+        <div className="flex-1 min-w-[240px] relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <Input 
+            placeholder="Search by ID, title, or citizen..." 
+            value={filters.search || ""} 
+            onChange={(e) => updateFilter("search", e.target.value)}
+            className="pl-9 h-9 bg-slate-50 border-slate-200 focus:bg-white text-xs rounded-xl transition-all"
+          />
+        </div>
+
+        {/* Vertical Separator */}
+        <div className="hidden lg:block w-px h-6 bg-slate-200" />
+
+        {/* Filter Group */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Status Select */}
+          <div className="w-[130px]">
+            <Select 
+              value={filters.status?.[0] || "all"} 
+              onValueChange={(val) => updateFilter("status", val === "all" ? [] : [val])}
+            >
+              <SelectTrigger className="h-9 text-[11px] font-bold uppercase tracking-wider bg-slate-50 border-slate-200 rounded-xl">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="received">Received</SelectItem>
+                <SelectItem value="in_progress">Active</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Priority Select */}
+          <div className="w-[130px]">
+            <Select 
+              value={filters.priority?.[0] || "all"} 
+              onValueChange={(val) => updateFilter("priority", val === "all" ? [] : [val])}
+            >
+              <SelectTrigger className="h-9 text-[11px] font-bold uppercase tracking-wider bg-slate-50 border-slate-200 rounded-xl">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all">All Priority</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Ward Select */}
+          <div className="w-[130px]">
+            <Select 
+              value={filters.ward_id || "all"} 
+              onValueChange={(val) => updateFilter("ward_id", val === "all" ? null : val)}
+            >
+              <SelectTrigger className="h-9 text-[11px] font-bold uppercase tracking-wider bg-slate-50 border-slate-200 rounded-xl">
+                <SelectValue placeholder="Ward" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all">All Wards</SelectItem>
+                {wards.map((w: any) => (
+                  <SelectItem key={w.id} value={w.id.toString()}>Ward {w.ward_number}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Reset Button */}
           {activeFilterCount > 0 && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={onClear}
-              className="text-gray-500 hover:text-gray-700 h-8 text-xs"
+              className="h-9 px-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
             >
-              Clear all
+              <RotateCcw className="w-3.5 h-3.5 mr-2" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Reset</span>
             </Button>
           )}
-        </div>
-      </div>
-
-      <div className="p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Search */}
-          <div className="lg:col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Search
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input 
-                placeholder="ID, title, citizen name..." 
-                value={searchValue} 
-                onChange={(e) => updateFilter("search", e.target.value)}
-                className="pl-9 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <Select 
-              value={statusValue} 
-              onValueChange={(val) => updateFilter("status", val === "all" ? [] : [val])}
-            >
-              <SelectTrigger className="bg-gray-50 border-gray-200 focus:bg-white transition-colors">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="received">Received</SelectItem>
-                <SelectItem value="assigned">Assigned</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Priority */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Priority
-            </label>
-            <Select 
-              value={priorityValue} 
-              onValueChange={(val) => updateFilter("priority", val === "all" ? [] : [val])}
-            >
-              <SelectTrigger className="bg-gray-50 border-gray-200 focus:bg-white transition-colors">
-                <SelectValue placeholder="All Priorities" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Ward */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Ward
-            </label>
-            <Select 
-              value={wardValue} 
-              onValueChange={(val) => updateFilter("ward_id", val === "all" ? null : val)}
-            >
-              <SelectTrigger className="bg-gray-50 border-gray-200 focus:bg-white transition-colors">
-                <SelectValue placeholder="All Wards" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Wards</SelectItem>
-                {wards.map((w: any) => (
-                  <SelectItem key={w.id} value={w.id.toString()}>
-                    Ward {w.ward_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </div>
     </div>
