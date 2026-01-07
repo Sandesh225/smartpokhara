@@ -1,123 +1,129 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, FileBarChart, Megaphone, Settings, UserPlus, Zap } from "lucide-react";
+import {
+  Plus,
+  Users,
+  FileBarChart,
+  Megaphone,
+  Settings,
+  UserPlus,
+  Zap,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export function QuickActionsPanel() {
   const actions = [
-    { 
-      label: "New Notice", 
-      icon: Megaphone, 
-      href: "/admin/content/notices/create", 
-      colorClasses: {
-        icon: "text-orange-600",
-        bg: "bg-orange-50",
-        hover: "hover:bg-orange-100",
-        border: "hover:border-orange-300"
-      }
+    {
+      label: "New Notice",
+      icon: Megaphone,
+      href: "/admin/content/notices/create",
+      theme:
+        "text-[rgb(var(--highlight-tech))] bg-[rgb(var(--highlight-tech))]/10",
+      description: "Broadcast to citizens",
     },
-    { 
-      label: "Add Staff", 
-      icon: UserPlus, 
-      href: "/admin/staff/create", 
-      colorClasses: {
-        icon: "text-blue-600",
-        bg: "bg-blue-50",
-        hover: "hover:bg-blue-100",
-        border: "hover:border-blue-300"
-      }
+    {
+      label: "Add Staff",
+      icon: UserPlus,
+      href: "/admin/staff/create",
+      theme: "text-primary bg-primary/10",
+      description: "Onboard new unit",
     },
-    { 
-      label: "Assign Task", 
-      icon: Plus, 
-      href: "/admin/complaints/assign", 
-      colorClasses: {
-        icon: "text-green-600",
-        bg: "bg-green-50",
-        hover: "hover:bg-green-100",
-        border: "hover:border-green-300"
-      }
+    {
+      label: "Assign Task",
+      icon: Plus,
+      href: "/admin/complaints/assign",
+      theme: "text-secondary bg-secondary/10",
+      description: "Dispatch response",
     },
-    { 
-      label: "Reports", 
-      icon: FileBarChart, 
-      href: "/admin/reports", 
-      colorClasses: {
-        icon: "text-purple-600",
-        bg: "bg-purple-50",
-        hover: "hover:bg-purple-100",
-        border: "hover:border-purple-300"
-      }
+    {
+      label: "Reports",
+      icon: FileBarChart,
+      href: "/admin/reports",
+      theme: "text-purple-600 bg-purple-50",
+      description: "Data analytics",
     },
-    { 
-      label: "Manage Roles", 
-      icon: Users, 
-      href: "/admin/staff/roles", 
-      colorClasses: {
-        icon: "text-indigo-600",
-        bg: "bg-indigo-50",
-        hover: "hover:bg-indigo-100",
-        border: "hover:border-indigo-300"
-      }
+    {
+      label: "Manage Roles",
+      icon: Users,
+      href: "/admin/staff/roles",
+      theme: "text-indigo-600 bg-indigo-50",
+      description: "Permission logic",
     },
-    { 
-      label: "Settings", 
-      icon: Settings, 
-      href: "/admin/settings", 
-      colorClasses: {
-        icon: "text-gray-600",
-        bg: "bg-gray-50",
-        hover: "hover:bg-gray-100",
-        border: "hover:border-gray-300"
-      }
+    {
+      label: "Settings",
+      icon: Settings,
+      href: "/admin/settings",
+      theme: "text-muted-foreground bg-muted",
+      description: "System config",
     },
   ];
 
   return (
-    <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <Card className="stone-card  border-none transition-all duration-300 hover:elevation-4 overflow-hidden">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-amber-50">
-            <Zap className="w-5 h-5 text-amber-600" />
-          </div>
-          Quick Actions
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[rgb(var(--warning-amber))]/10 shadow-sm">
+              <Zap className="w-5 h-5 text-[rgb(var(--warning-amber))]" />
+            </div>
+            Quick Ops
+          </CardTitle>
+          <span className="text-[10px] font-mono font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
+            CMD + K
+          </span>
+        </div>
       </CardHeader>
+
       <CardContent>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-2.5">
           {actions.map((action, idx) => {
             const Icon = action.icon;
             return (
               <Button
                 key={idx}
-                variant="outline"
-                className={`
-                  h-auto py-4 flex flex-col gap-2.5 items-center justify-center 
-                  border-2 border-gray-100 ${action.colorClasses.border}
-                  shadow-sm hover:shadow-md
-                  transition-all duration-200
-                  active:scale-95
-                  group
-                `}
+                variant="ghost"
+                className={cn(
+                  "group h-auto p-3 flex items-center justify-start gap-4",
+                  "border border-border/40 bg-card/50 hover:bg-white hover:elevation-2",
+                  "rounded-2xl transition-all duration-300 active:scale-[0.98]"
+                )}
                 asChild
               >
                 <Link href={action.href}>
-                  <div 
-                    className={`
-                      p-2.5 rounded-xl ${action.colorClasses.bg} ${action.colorClasses.hover}
-                      ring-2 ring-transparent group-hover:ring-current group-hover:ring-opacity-20
-                      transition-all duration-200
-                    `}
+                  <div
+                    className={cn(
+                      "p-2.5 rounded-xl transition-all duration-300 group-hover:scale-110 shadow-xs",
+                      action.theme
+                    )}
                   >
-                    <Icon className={`w-5 h-5 ${action.colorClasses.icon}`} />
+                    <Icon className="w-5 h-5 stroke-[2.5px]" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">
-                    {action.label}
-                  </span>
+
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-bold text-foreground leading-none mb-1">
+                      {action.label}
+                    </p>
+                    <p className="text-[10px] font-medium text-muted-foreground truncate opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {action.description}
+                    </p>
+                  </div>
+
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                 </Link>
               </Button>
             );
           })}
+        </div>
+
+        {/* Decorative footer footer */}
+        <div className="mt-6 pt-4 border-t border-dashed border-border flex justify-center">
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
+            Smart City Governance Portal
+          </p>
         </div>
       </CardContent>
     </Card>
