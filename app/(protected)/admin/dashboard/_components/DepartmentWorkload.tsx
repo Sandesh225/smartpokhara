@@ -1,103 +1,133 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DepartmentWorkload as DeptType } from "@/lib/types/admin";
-import { Building2, AlertTriangle } from "lucide-react";
+import { Building2, AlertTriangle, ChevronRight, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+/**
+ * Enhanced Admin Workload Component
+ * Focused on high-density data and Pokhara-inspired "Stone & Glass" aesthetic.
+ */
 export function DepartmentWorkload({ data }: { data: DeptType[] }) {
   return (
-    <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300">
-      <CardHeader className="pb-4">
+    <Card className="stone-card border-none transition-all duration-300 hover:elevation-4">
+      <CardHeader className="pb-6">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-indigo-50">
-              <Building2 className="w-5 h-5 text-indigo-600" />
-            </div>
-            Department Workload
-          </CardTitle>
-          <Badge variant="outline" className="text-xs font-medium">
-            {data.length} Departments
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10 shadow-sm">
+                <Building2 className="w-5 h-5 text-primary" />
+              </div>
+              Workload Analysis
+            </CardTitle>
+            <p className="text-xs text-muted-foreground font-medium ml-12">
+              Cross-departmental performance metrics
+            </p>
+          </div>
+          <Badge
+            variant="secondary"
+            className="glass px-3 py-1 text-xs font-mono font-bold border-primary/10"
+          >
+            {data.length} UNITS
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
+
+      <CardContent className="space-y-4">
         {data.map((dept) => {
           const total = dept.active_count + dept.overdue_count;
           const activePct = total > 0 ? (dept.active_count / total) * 100 : 0;
           const overduePct = total > 0 ? (dept.overdue_count / total) * 100 : 0;
-          const hasOverdue = dept.overdue_count > 0;
-          
+          const isCritical = dept.overdue_count > 5; // Admin threshold
+
           return (
-            <div 
-              key={dept.id} 
-              className="
-                space-y-3 p-4 rounded-xl border border-gray-100 
-                bg-linear-to-br from-white to-gray-50/30
-                hover:border-gray-200 hover:shadow-sm
-                transition-all duration-300
-              "
+            <div
+              key={dept.id}
+              className="group relative p-5 rounded-2xl border border-border bg-card hover:bg-muted/30 transition-all duration-300 cursor-pointer"
             >
-              {/* Department Header */}
-              <div className="flex justify-between items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm text-gray-900 truncate">
-                    {dept.name}
-                  </h4>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {total} total {total === 1 ? 'complaint' : 'complaints'}
-                  </p>
+              {/* Layout: Info Top, Progress Middle, Meta Bottom */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex gap-3">
+                  <div
+                    className={`p-2 rounded-lg ${
+                      isCritical
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-accent/10 text-accent"
+                    }`}
+                  >
+                    <Activity className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">
+                      {dept.name}
+                    </h4>
+                    <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">
+                      ID: {dept.id.toString().slice(0, 8)}
+                    </span>
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-2 text-xs shrink-0">
-                  <span className="px-2 py-1 bg-blue-50 text-blue-700 font-semibold rounded-md">
-                    {dept.active_count} Active
+
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-end">
+                    <span className="text-lg font-mono font-bold leading-none">
+                      {total}
+                    </span>
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase">
+                      Total
+                    </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+
+              {/* Stacked Progress Bar (Admin Style) */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-end mb-1">
+                  <span className="text-[10px] font-bold text-primary tracking-wide">
+                    ACTIVE: {dept.active_count}
                   </span>
-                  {hasOverdue && (
-                    <span className="px-2 py-1 bg-red-50 text-red-700 font-semibold rounded-md flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" />
-                      {dept.overdue_count} Overdue
+                  {dept.overdue_count > 0 && (
+                    <span className="text-[10px] font-bold text-destructive flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> OVERDUE:{" "}
+                      {dept.overdue_count}
                     </span>
                   )}
                 </div>
-              </div>
-              
-              {/* Progress Bar */}
-              <div className="relative">
-                <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full flex">
-                    {/* Active Bar */}
-                    <div 
-                      style={{ width: `${activePct}%` }} 
-                      className="bg-linear-to-r from-blue-500 to-blue-600 h-full transition-all duration-500 ease-out"
-                      aria-label={`${dept.active_count} active complaints`}
-                    />
-                    {/* Overdue Bar */}
-                    {hasOverdue && (
-                      <div 
-                        style={{ width: `${overduePct}%` }} 
-                        className="bg-linear-to-r from-red-500 to-red-600 h-full transition-all duration-500 ease-out"
-                        aria-label={`${dept.overdue_count} overdue complaints`}
-                      />
-                    )}
+
+                <div className="h-3 w-full bg-muted rounded-full overflow-hidden flex shadow-inner border border-border/50">
+                  <div
+                    style={{ width: `${activePct}%` }}
+                    className="bg-primary transition-all duration-700 ease-in-out relative group/bar"
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse opacity-0 group-hover/bar:opacity-100" />
+                  </div>
+                  <div
+                    style={{ width: `${overduePct}%` }}
+                    className="bg-destructive transition-all duration-700 ease-in-out relative"
+                  >
+                    <div className="absolute inset-0 bg-black/10 shadow-[inset_1px_0_4px_rgba(0,0,0,0.1)]" />
                   </div>
                 </div>
-                
-                {/* Percentage Labels (optional, shows on hover) */}
-                {total > 0 && (
-                  <div className="absolute -top-6 left-0 right-0 flex justify-between text-[10px] font-medium text-gray-400 opacity-0 hover:opacity-100 transition-opacity">
-                    <span>{activePct.toFixed(0)}%</span>
-                    {hasOverdue && <span>{overduePct.toFixed(0)}%</span>}
-                  </div>
-                )}
+              </div>
+
+              {/* Quick Admin Footer Info */}
+              <div className="mt-4 pt-3 border-t border-border/50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="text-[10px] text-muted-foreground italic">
+                  Last updated: Just now
+                </p>
+                <button className="text-[10px] font-bold text-primary uppercase hover:underline">
+                  View Detail Report
+                </button>
               </div>
             </div>
           );
         })}
-        
+
         {data.length === 0 && (
-          <div className="text-center py-12">
-            <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm font-medium text-gray-500">No department data available</p>
-            <p className="text-xs text-gray-400 mt-1">Data will appear here once departments are active</p>
+          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-muted rounded-3xl">
+            <Building2 className="w-12 h-12 text-muted/30 mb-4" />
+            <p className="text-sm font-bold text-muted-foreground">
+              No Units Registered
+            </p>
           </div>
         )}
       </CardContent>
