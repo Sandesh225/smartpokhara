@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNavigation />
-      <main className="pl-64 pt-16">
+      <main className="pl-60 pt-6">
         <div className="p-6">{children}</div>
       </main>
     </div>
