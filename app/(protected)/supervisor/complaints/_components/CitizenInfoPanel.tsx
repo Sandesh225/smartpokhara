@@ -6,14 +6,11 @@ import {
   Mail,
   Shield,
   MessageSquare,
-  Clock,
   History,
+  Fingerprint,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 interface CitizenInfoPanelProps {
   citizen: any;
@@ -24,26 +21,22 @@ export function CitizenInfoPanel({
   citizen,
   isAnonymous,
 }: CitizenInfoPanelProps) {
+  /* ═══════════════════════════════════════════════════════════
+     ANONYMOUS STATE (Glass Context)
+     ═══════════════════════════════════════════════════════════ */
   if (isAnonymous) {
     return (
-      <Card className="border-border/60 shadow-sm bg-muted/10">
-        <CardHeader className="bg-muted/30 px-4 py-3 border-b">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" />
-            Citizen Profile
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 text-center">
-          <div className="w-14 h-14 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 ring-4 ring-background">
-            <Shield className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <h4 className="font-bold text-foreground">Anonymous Report</h4>
-          <p className="text-xs text-muted-foreground mt-1 max-w-[200px] mx-auto">
-            The reporter has chosen to remain anonymous. No contact details are
-            available.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="glass-strong border-white/40 p-8 text-center rounded-[var(--radius)] elevation-2">
+        <div className="w-16 h-16 bg-white/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white shadow-inner">
+          <Fingerprint className="w-8 h-8 text-highlight-tech" />
+        </div>
+        <h4 className="font-sans font-bold text-text-ink tracking-tight text-lg">
+          Identity Redacted
+        </h4>
+        <p className="text-xs text-neutral-stone-600 mt-2 leading-relaxed max-w-[220px] mx-auto">
+          The reporter has chosen to remain anonymous for this case. Contact details and profile data are restricted.
+        </p>
+      </div>
     );
   }
 
@@ -52,88 +45,95 @@ export function CitizenInfoPanel({
   const displayPhone = citizen?.phone || "No phone";
   const hasContact = !!(citizen?.email || citizen?.phone);
 
+  /* ═══════════════════════════════════════════════════════════
+     VERIFIED STATE (Stone Foundation)
+     ═══════════════════════════════════════════════════════════ */
   return (
-    <Card className="border-border/60 shadow-sm overflow-hidden">
-      <CardHeader className="bg-muted/30 px-4 py-3 border-b">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <User className="w-4 h-4 text-muted-foreground" />
-          Citizen Profile
-        </CardTitle>
-      </CardHeader>
+    <div className="stone-card overflow-hidden transition-all duration-300 hover:border-primary-brand/30">
+      {/* Header Section */}
+      <div className="px-6 py-4 bg-neutral-stone-50 border-b border-neutral-stone-200 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-primary-brand" />
+          <span className="text-[11px] font-black uppercase tracking-widest text-neutral-stone-600">
+            Citizen Profile
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-success-green/10 text-success-green rounded-full border border-success-green/20">
+          <Shield className="w-3 h-3" />
+          <span className="text-[9px] font-bold uppercase">Verified</span>
+        </div>
+      </div>
 
-      <CardContent className="p-0">
-        <div className="p-4 bg-gradient-to-b from-background to-muted/20">
-          <div className="flex items-start gap-4">
-            <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
-              <AvatarImage src={citizen?.avatar_url} />
-              <AvatarFallback className="bg-blue-600 text-white font-bold">
-                {displayName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+      {/* Profile Bio */}
+      <div className="p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Avatar className="h-14 w-14 border-2 border-white shadow-md elevation-2">
+            <AvatarImage src={citizen?.avatar_url} />
+            <AvatarFallback className="bg-primary-brand text-white font-bold text-lg">
+              {displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-sans font-bold text-text-ink truncate text-base tracking-tight">
+              {displayName}
+            </h4>
+            <p className="text-[10px] text-neutral-stone-500 font-medium">
+              ID: POKR-CIT-{Math.floor(1000 + Math.random() * 9000)}
+            </p>
+          </div>
+        </div>
+
+        {/* Contact Information (Stone Panel Style) */}
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-3 p-3 bg-neutral-stone-50 rounded-xl border border-neutral-stone-200/60 group hover:bg-white hover:border-accent-nature transition-all">
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary-brand border border-neutral-stone-200 group-hover:text-accent-nature">
+              <Mail className="w-4 h-4" />
+            </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-foreground truncate text-sm">
-                {displayName}
-              </h4>
-              <Badge
-                variant="secondary"
-                className="mt-1 text-[10px] font-medium bg-green-50 text-green-700 border-green-200"
-              >
-                Verified Account
-              </Badge>
+              <p className="text-[9px] text-neutral-stone-400 font-black uppercase tracking-tighter">
+                Primary Email
+              </p>
+              <p className="text-xs font-semibold text-text-ink truncate">
+                {displayEmail}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-3 bg-neutral-stone-50 rounded-xl border border-neutral-stone-200/60 group hover:bg-white hover:border-accent-nature transition-all">
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary-brand border border-neutral-stone-200 group-hover:text-accent-nature">
+              <Phone className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[9px] text-neutral-stone-400 font-black uppercase tracking-tighter">
+                Contact Number
+              </p>
+              <p className="text-xs font-semibold text-text-ink">
+                {displayPhone}
+              </p>
             </div>
           </div>
         </div>
 
-        <Separator />
-
-        <div className="p-4 space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 group">
-              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
-                <Mail className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                  Email
-                </p>
-                <p className="text-xs font-medium text-foreground truncate select-all">
-                  {displayEmail}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 group">
-              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600 group-hover:bg-green-100 transition-colors">
-                <Phone className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                  Phone
-                </p>
-                <p className="text-xs font-medium text-foreground select-all">
-                  {displayPhone}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <Button
-              variant="default"
-              size="sm"
-              className="w-full text-xs h-9 bg-blue-600 hover:bg-blue-700"
-              disabled={!hasContact}
-            >
-              <MessageSquare className="w-3.5 h-3.5 mr-2" />
-              Message
-            </Button>
-            <Button variant="outline" size="sm" className="w-full text-xs h-9">
-              <History className="w-3.5 h-3.5 mr-2" />
-              History
-            </Button>
-          </div>
+        {/* Action Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            size="sm"
+            className="w-full text-[11px] font-bold h-10 bg-primary-brand hover:bg-primary-brand-light text-white rounded-xl elevation-2 transition-transform active:scale-95"
+            disabled={!hasContact}
+          >
+            <MessageSquare className="w-3.5 h-3.5 mr-2" />
+            Direct Msg
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full text-[11px] font-bold h-10 border-neutral-stone-200 text-neutral-stone-600 hover:bg-neutral-stone-100 rounded-xl transition-all"
+          >
+            <History className="w-3.5 h-3.5 mr-2" />
+            Logs
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
