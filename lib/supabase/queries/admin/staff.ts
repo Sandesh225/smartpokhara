@@ -5,42 +5,38 @@ export const adminStaffQueries = {
   /**
    * Fetch all staff using the RPC for optimized joining
    */
-  async getAllStaff(client: SupabaseClient) {
-    const { data, error } = await client
+  async getAllStaff(client: SupabaseClient, filters: StaffFiltersState) {
+    let query = client
       .from("staff_profiles")
       .select(
         `
-        *,
-        user:users!staff_profiles_user_id_fkey (
-          email,
-          profile:user_profiles (
-            full_name,
-            profile_photo_url
-          )
-        ),
-        department:departments (
-          name
-        ),
-        ward:wards (
-          ward_number
-        )
-      `
+      *,
+      user:users!staff_profiles_user_id_fkey (email, profile:user_profiles (full_name, profile_photo_url)),
+      department:departments (name),
+      ward:wards (ward_number)
+    `
       )
-      .eq("is_active", true);
+      .eq("is_active", filters.status === "active");
 
-    if (error) {
-      // FIX: Standardize error throwing so UI receives a string, not {}
-      console.error("Staff Fetch Error:", error);
-      throw new Error(error.message || "Failed to load staff data");
+    // SERVER-SIDE FILTERING (Critical for Security & Performance)
+    if (filters.department_id) {
+      query = query.eq("department_id", filters.department_id);
+    }
+    if (filters.ward_id) {
+      query = query.eq("ward_id", filters.ward_id);
+    }
+    if (filters.role && filters.role !== "all") {
+      query = query.eq("staff_role", filters.role);
     }
 
-    // NORMALIZE: Flatten the Supabase array-nested joins
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+
     return (data || []).map((staff: any) => {
       const user = staff.user;
       const profile = Array.isArray(user?.profile)
         ? user.profile[0]
         : user?.profile;
-
       return {
         ...staff,
         full_name: profile?.full_name || user?.email || "Unknown Staff",

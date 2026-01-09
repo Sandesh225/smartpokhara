@@ -3,82 +3,122 @@
 import { useState, useCallback, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { adminStaffQueries } from "@/lib/supabase/queries/admin/staff";
-import { subscribeToStaffActivity } from "@/lib/supabase/realtime/admin/staff-activity";
-import { AdminStaffListItem, StaffFiltersState, CreateStaffInput } from "@/types/admin-staff";
+import {
+  AdminStaffListItem,
+  StaffFiltersState,
+  CreateStaffInput,
+} from "@/types/admin-staff";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export function useStaffManagement() {
+/**
+ * Hook to manage staff data with role-based scoping and real-time updates.
+ * @param currentUser - The currently logged-in user profile (includes role and dept/ward info)
+ */
+export function useStaffManagement(currentUser: any) {
+  const router = useRouter();
+  const supabase = createClient();
+
   const [staffList, setStaffList] = useState<AdminStaffListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<StaffFiltersState>({
+
+  // 1. Initialize filters.
+  // If the user is a Dept Head or Ward Staff, we hard-code the IDs to prevent viewing other scopes.
+  const [filters, setFilters] = useState<StaffFiltersState>(() => ({
     search: "",
     role: "all",
-    department_id: null,
-    ward_id: null,
-    status: "active"
-  });
+    status: "active",
+    department_id:
+      currentUser?.staff_role === "dept_head"
+        ? currentUser.department_id
+        : null,
+    ward_id:
+      currentUser?.staff_role === "ward_staff" ? currentUser.ward_id : null,
+  }));
 
-  const supabase = createClient();
-  const router = useRouter();
-
+  // 2. Fetch Data (Memoized to prevent infinite loops)
   const fetchStaff = useCallback(async () => {
     setLoading(true);
     try {
       const data = await adminStaffQueries.getAllStaff(supabase, filters);
-      
-      let filtered = data;
+
+      // Secondary client-side search for ultra-responsive UI
+      let processedData = data;
       if (filters.search) {
         const term = filters.search.toLowerCase();
-        filtered = data.filter(s => 
-           s.full_name?.toLowerCase().includes(term) || 
-           s.email?.toLowerCase().includes(term) ||
-           s.staff_code?.toLowerCase().includes(term)
+        processedData = data.filter(
+          (s) =>
+            s.full_name?.toLowerCase().includes(term) ||
+            s.email?.toLowerCase().includes(term) ||
+            s.staff_code?.toLowerCase().includes(term)
         );
       }
-      
-      setStaffList(filtered);
-    } catch (error) {
+      setStaffList(processedData);
+    } catch (error: any) {
       console.error("Fetch Staff Error:", error);
-      toast.error("Failed to load staff list");
+      toast.error("Failed to load staff directory");
     } finally {
       setLoading(false);
     }
   }, [filters, supabase]);
 
+  // 3. Realtime Subscription
+  // Listens for any changes in the staff_profiles table and refreshes the list
+  useEffect(() => {
+    const channel = supabase
+      .channel("staff-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "staff_profiles" },
+        () => {
+          fetchStaff(); // Refresh whenever a record is created/updated/deleted
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, fetchStaff]);
+
+  // 4. Initial fetch and fetch on filter change
   useEffect(() => {
     fetchStaff();
-    const channel = subscribeToStaffActivity(supabase, fetchStaff);
-    return () => { supabase.removeChannel(channel); };
-  }, [fetchStaff, supabase]);
+  }, [fetchStaff]);
 
+  // 5. Action: Create Staff
   const createStaff = async (input: CreateStaffInput) => {
     try {
-        const result = await adminStaffQueries.createStaff(supabase, input);
-        
-        if (result.requires_invitation) {
-            toast.info("User needs to sign up first", {
-                description: `Email ${input.email} is not in the system yet.`
-            });
-        } else {
-            toast.success("Staff member registered successfully");
-            router.push("/admin/staff");
-        }
+      const result = await adminStaffQueries.createStaff(supabase, input);
+
+      if (result.requires_invitation) {
+        toast.info("User needs to sign up first", {
+          description: `Email ${input.email} is not in the system. They must register as a citizen first.`,
+        });
+        return result;
+      }
+
+      toast.success("Staff member registered successfully");
+      router.push("/admin/staff");
+      return result;
     } catch (error: any) {
-        console.error("Create Staff Error:", error);
-        toast.error(error.message || "Failed to create staff");
+      toast.error(error.message || "Failed to create staff");
+      throw error;
     }
   };
 
+  // 6. Action: Deactivate Staff
   const deactivateStaff = async (id: string) => {
-      if(!confirm("Are you sure you want to deactivate this staff member?")) return;
-      try {
-          await adminStaffQueries.updateStaff(supabase, id, { is_active: false });
-          toast.success("Staff deactivated");
-          fetchStaff();
-      } catch(e) {
-          toast.error("Action failed");
-      }
+    if (!confirm("Are you sure you want to deactivate this staff member?"))
+      return;
+
+    try {
+      await adminStaffQueries.updateStaff(supabase, id, { is_active: false });
+      toast.success("Staff member deactivated");
+      // fetchStaff() is triggered automatically by the Realtime subscription
+    } catch (e: any) {
+      toast.error(e.message || "Deactivation failed");
+    }
   };
 
   return {
@@ -88,6 +128,6 @@ export function useStaffManagement() {
     setFilters,
     refresh: fetchStaff,
     createStaff,
-    deactivateStaff
+    deactivateStaff,
   };
 }
