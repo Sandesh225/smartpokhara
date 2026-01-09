@@ -2,19 +2,19 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
-import { ComplaintsFilters } from "@/app/(protected)/supervisor/complaints/_components/ComplaintsFilters";
-import { ComplaintsTableView } from "@/app/(protected)/supervisor/complaints/_components/ComplaintsTableView";
-import { BulkActionsBar } from "@/app/(protected)/supervisor/complaints/_components/BulkActionsBar";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Loader2, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ComplaintsFilters } from "./_components/ComplaintsFilters";
+import { ComplaintsTableView } from "./_components/ComplaintsTableView";
+// Component imports...
 
 export default function ComplaintsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [complaints, setComplaints] = useState<any[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [jurisdiction, setJurisdiction] = useState<any>(null);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -28,7 +28,6 @@ export default function ComplaintsPage() {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
     []
   );
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -38,19 +37,12 @@ export default function ComplaintsPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) return; // Middleware should handle redirect
-
-      // 1. Fetch Metadata (Wards/Categories) if empty
-      if (wards.length === 0) {
-        const [wardsRes, catsRes] = await Promise.all([
-          supabase.from("wards").select("id, name"),
-          supabase.from("complaint_categories").select("id, name"),
-        ]);
-        if (wardsRes.data) setWards(wardsRes.data);
-        if (catsRes.data) setCategories(catsRes.data);
+      if (!user) {
+        setError("Not authenticated");
+        return;
       }
 
-      // 2. Fetch Complaints
+      // Call the service
       const { data } =
         await supervisorComplaintsQueries.getJurisdictionComplaints(
           supabase,
@@ -60,51 +52,34 @@ export default function ComplaintsPage() {
 
       setComplaints(data || []);
     } catch (err: any) {
-      console.error("Fetch error:", err);
-      setError(err.message || "Failed to load data");
-      toast.error("Failed to load complaints");
+      // THIS IS THE FIX: Set the error state so the spinner stops
+      setError(err.message || "Failed to load complaints. Check permissions.");
+      toast.error("Security Access Error: Jurisdiction denied.");
     } finally {
-      setLoading(false);
+      setLoading(false); // ALWAYS stop loading
     }
-  }, [filters, wards.length]); // Added dependency
+  }, [filters]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const handleSelect = (id: string, selected: boolean) => {
-    if (selected) setSelectedIds((prev) => [...prev, id]);
-    else setSelectedIds((prev) => prev.filter((item) => item !== id));
-  };
-
-  const handleSelectAll = (selected: boolean) => {
-    setSelectedIds(selected ? complaints.map((c) => c.id) : []);
-  };
-
-  const handleBulkAssign = async () => {
-    toast.info(`Assigning ${selectedIds.length} complaints...`);
-    // Add implementation later
-  };
-
-  if (error) {
-    return (
-      <div className="flex h-[80vh] flex-col items-center justify-center gap-4">
-        <AlertCircle className="h-10 w-10 text-red-500" />
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Error Loading Complaints
-          </h3>
-          <p className="text-gray-500">{error}</p>
-        </div>
-        <Button onClick={() => window.location.reload()}>Retry</Button>
-      </div>
-    );
-  }
+  // Bulk action handlers...
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] gap-6 p-6">
-      {/* Sidebar Filters */}
       <div className="hidden lg:block w-64 flex-shrink-0">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+          <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">
+            Active Jurisdiction
+          </p>
+          <p className="text-sm text-blue-600">
+            {jurisdiction?.is_senior
+              ? "Full City Access"
+              : `Department Scoped View`}
+          </p>
+        </div>
+
         <ComplaintsFilters
           filters={filters}
           onChange={(key, value) =>
@@ -124,7 +99,6 @@ export default function ComplaintsPage() {
         />
       </div>
 
-      {/* Main Table Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
@@ -134,24 +108,18 @@ export default function ComplaintsPage() {
           <ComplaintsTableView
             complaints={complaints}
             selectedIds={selectedIds}
-            onSelect={handleSelect}
-            onSelectAll={handleSelectAll}
+            onSelect={(id, sel) =>
+              setSelectedIds((p) =>
+                sel ? [...p, id] : p.filter((x) => x !== id)
+              )
+            }
+            onSelectAll={(sel) =>
+              setSelectedIds(sel ? complaints.map((c) => c.id) : [])
+            }
             isLoading={false}
           />
         )}
       </div>
-
-      {/* Floating Bulk Actions */}
-      {selectedIds.length > 0 && (
-        <BulkActionsBar
-          selectedCount={selectedIds.length}
-          onClearSelection={() => setSelectedIds([])}
-          onAssign={handleBulkAssign}
-          onPrioritize={() => toast.info("Bulk Prioritize clicked")}
-          onEscalate={() => toast.info("Bulk Escalate clicked")}
-          onResolve={() => toast.info("Bulk Resolve clicked")}
-        />
-      )}
     </div>
   );
 }

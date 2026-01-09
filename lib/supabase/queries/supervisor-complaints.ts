@@ -5,9 +5,6 @@ import { SupabaseClient } from "@supabase/supabase-js";
  * Aligned with Smart City Pokhara Schema v4.0
  */
 export const supervisorComplaintsQueries = {
-  /**
-   * Fetch complaints that the current supervisor has jurisdiction over.
-   */
   async getJurisdictionComplaints(
     client: SupabaseClient,
     supervisorId: string,
@@ -18,61 +15,95 @@ export const supervisorComplaintsQueries = {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const { data: scope } = await client
-      .rpc("get_supervisor_jurisdiction")
-      .single();
+    try {
+      // 1. Get the supervisor's specific scope from the RPC
+      // FIX: Check for error immediately and handle null scope
+      const { data: scope, error: scopeError } = await client
+        .rpc("get_supervisor_jurisdiction")
+        .single();
 
-    let query = client.from("complaints").select(
-      `
-        *,
-        ward:wards(id, name, ward_number),
-        category:complaint_categories(id, name),
-        assigned_user:users!complaints_assigned_staff_id_fkey(
-          id,
-          profile:user_profiles!user_profiles_user_id_fkey(full_name)
-        )
-      `,
-      { count: "exact" }
-    );
-
-    if (scope && !scope.is_senior) {
-      const parts = [];
-      if (scope.assigned_wards?.length)
-        parts.push(`ward_id.in.(${scope.assigned_wards.join(",")})`);
-      if (scope.assigned_departments?.length)
-        parts.push(
-          `assigned_department_id.in.(${scope.assigned_departments.join(",")})`
+      if (scopeError) {
+        console.error("Jurisdiction RPC Error:", scopeError);
+        throw new Error(
+          "Security Access Denied: Jurisdiction could not be verified."
         );
-      parts.push(`assigned_staff_id.eq.${supervisorId}`);
-      query = query.or(parts.join(","));
+      }
+
+      if (!scope) return { data: [], count: 0 };
+
+      // 2. Build Query
+      let query = client.from("complaints").select(
+        `
+          *,
+          ward:wards(id, name, ward_number),
+          category:complaint_categories(id, name),
+          assigned_user:user_profiles!complaints_assigned_staff_id_fkey(
+            full_name
+          )
+        `,
+        { count: "exact" }
+      );
+
+      // 3. APPLY JURISDICTIONAL LOCK
+      if (!scope.is_senior) {
+        const parts = [];
+
+        // Ensure arrays exist before filtering to avoid "Loading" hang
+        if (scope.assigned_departments?.length > 0) {
+          parts.push(
+            `assigned_department_id.in.(${scope.assigned_departments.join(
+              ","
+            )})`
+          );
+        }
+        if (scope.assigned_wards?.length > 0) {
+          parts.push(`ward_id.in.(${scope.assigned_wards.join(",")})`);
+        }
+
+        if (parts.length > 0) {
+          query = query.or(parts.join(","));
+        } else {
+          // If NOT senior and NO assignments, return empty to prevent illegal access
+          return { data: [], count: 0 };
+        }
+      }
+
+      // 4. Apply Filters
+      if (filters) {
+        if (filters.status?.length) query = query.in("status", filters.status);
+        if (filters.priority?.length)
+          query = query.in("priority", filters.priority);
+        if (filters.category?.length)
+          query = query.in("category_id", filters.category);
+        if (filters.ward_id?.length)
+          query = query.in("ward_id", filters.ward_id);
+        if (filters.search) {
+          query = query.or(
+            `title.ilike.%${filters.search}%,tracking_code.ilike.%${filters.search}%`
+          );
+        }
+      }
+
+      const { data, error, count } = await query
+        .order("submitted_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      return {
+        data: (data || []).map((c: any) => ({
+          ...c,
+          assigned_staff: c.assigned_user
+            ? { full_name: c.assigned_user.full_name }
+            : null,
+        })),
+        count: count || 0,
+      };
+    } catch (err) {
+      console.error("Data Fetch Error:", err);
+      throw err; // Re-throw to be caught by the UI error state
     }
-
-    if (filters) {
-      if (filters.status?.length) query = query.in("status", filters.status);
-      if (filters.priority?.length)
-        query = query.in("priority", filters.priority);
-      if (filters.category?.length)
-        query = query.in("category_id", filters.category);
-      if (filters.search) query = query.ilike("title", `%${filters.search}%`);
-    }
-
-    const { data, error, count } = await query
-      .order("submitted_at", { ascending: false })
-      .range(from, to);
-
-    if (error) throw error;
-
-    return {
-      data: (data || []).map((c: any) => ({
-        ...c,
-        assigned_staff: c.assigned_user
-          ? { full_name: c.assigned_user.profile?.full_name }
-          : null,
-      })),
-      count: count || 0,
-    };
   },
-
   /**
    * Fetch a single complaint with flattened profiles and resolved relationship ambiguity.
    */
