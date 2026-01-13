@@ -1,32 +1,33 @@
 @import "tailwindcss";
-
-
-@custom-variant dark (&:is(.dark *));
+@source "../.flowbite-react/class-list.json";
+@import "flowbite-react/plugin/tailwindcss";
+/* Ensure this points to the correct path in your node_modules if auto-detection fails */
+@source "../node_modules/flowbite-react/dist/**/*.js";
 
 /* ═══════════════════════════════════════════════════════════
    SMART CITY POKHARA — "MACHHAPUCHHRE MODERN" DESIGN SYSTEM
-   "Lakeside & Stone" Palette + Glass & Stone Aesthetic
+   Flowbite React + Tailwind CSS v4 Integration
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-  /* --- MACHHAPUCHHRE MODERN: LAKESIDE & STONE PALETTE --- */
-
+  /* --- 1. BASE PALETTE: LAKESIDE & STONE --- */
+  
   /* Primary Brand - Phewa Deep Blue #2B5F75 */
-  --primary-brand: 43 95 117; /* #2B5F75 in RGB */
+  --primary-brand: 43 95 117;
   --primary-brand-light: 67 119 141;
   --primary-brand-dark: 27 47 59;
 
   /* Accent Nature - Lakeside Teal #5F9EA0 */
-  --accent-nature: 95 158 160; /* #5F9EA0 in RGB */
+  --accent-nature: 95 158 160;
   --accent-nature-light: 119 182 184;
   --accent-nature-dark: 71 134 136;
 
-  /* Neutral Stone - Riverbed Grey #F4F5F7 */
-  --neutral-stone: 244 245 247; /* #F4F5F7 in RGB */
-  --neutral-stone-50: 249 250 251;
-  --neutral-stone-100: 244 245 247;
-  --neutral-stone-200: 229 231 235;
-  --neutral-stone-300: 209 213 219;
+  /* Neutral Stone - Soft Blue-Tinted White */
+  --neutral-stone: 250 251 253;
+  --neutral-stone-50: 252 253 255;
+  --neutral-stone-100: 247 249 252;
+  --neutral-stone-200: 237 241 247;
+  --neutral-stone-300: 218 225 237;
   --neutral-stone-400: 156 163 175;
   --neutral-stone-500: 107 114 128;
   --neutral-stone-600: 75 85 99;
@@ -34,16 +35,11 @@
   --neutral-stone-800: 31 41 55;
   --neutral-stone-900: 17 24 39;
 
-  /* Surface Glass - Morning Mist rgba(255, 255, 255, 0.7) */
-  --surface-glass: 255 255 255; /* RGB, alpha applied separately */
-
   /* Text Ink - Slate #1A202C */
-  --text-ink: 26 32 44; /* #1A202C in RGB */
+  --text-ink: 26 32 44;
 
   /* Highlight Tech - Marigold (Sayapatri) #E5793F */
-  --highlight-tech: 229 121 63; /* #E5793F in RGB */
-  --highlight-tech-light: 242 154 110;
-  --highlight-tech-dark: 216 94 38;
+  --highlight-tech: 229 121 63;
 
   /* Status Colors */
   --success-green: 16 185 129;
@@ -51,270 +47,395 @@
   --error-red: 239 68 68;
   --info-blue: 59 130 246;
 
-  /* --- SEMANTIC DESIGN TOKENS --- */
-  --background: rgb(var(--neutral-stone));
+  /* Light Mode Blue Backgrounds */
+  --light-sky-bg: 237 245 251;
+  --light-sky-surface: 245 250 254;
+  
+  /* --- 2. SEMANTIC TOKENS (LIGHT MODE) --- */
+  
+  /* Backgrounds & Text */
+  --background: rgb(var(--light-sky-bg));
   --foreground: rgb(var(--text-ink));
 
-  --card: rgb(255 255 255);
+  /* Cards & Surfaces */
+  --card: rgb(var(--light-sky-surface));
   --card-foreground: rgb(var(--text-ink));
-
-  --popover: rgb(255 255 255);
+  --popover: rgb(var(--light-sky-surface));
   --popover-foreground: rgb(var(--text-ink));
 
+  /* Primary -> Phewa Deep Blue */
   --primary: rgb(var(--primary-brand));
   --primary-foreground: rgb(255 255 255);
 
+  /* Secondary -> Lakeside Teal */
   --secondary: rgb(var(--accent-nature));
   --secondary-foreground: rgb(255 255 255);
 
+  /* UI Elements */
   --muted: rgb(var(--neutral-stone-100));
   --muted-foreground: rgb(var(--neutral-stone-500));
-
   --accent: rgb(var(--accent-nature));
   --accent-foreground: rgb(var(--text-ink));
-
   --destructive: rgb(var(--error-red));
   --destructive-foreground: rgb(255 255 255);
-
+  
+  /* Forms & Borders */
   --border: rgb(var(--neutral-stone-200));
   --input: rgb(var(--neutral-stone-200));
   --ring: rgb(var(--primary-brand));
 
-  /* Chart Colors - Pokhara Nature Inspired */
+  /* Charts */
   --chart-1: rgb(var(--primary-brand));
   --chart-2: rgb(var(--accent-nature));
   --chart-3: rgb(var(--success-green));
   --chart-4: rgb(var(--warning-amber));
   --chart-5: rgb(var(--highlight-tech));
 
-  /* Border Radius - Soft & Modern */
+  /* Modern Radius */
   --radius: 1rem;
-
-  /* Sidebar Tokens */
-  --sidebar: rgb(255 255 255);
-  --sidebar-foreground: rgb(var(--text-ink));
-  --sidebar-primary: rgb(var(--primary-brand));
-  --sidebar-primary-foreground: rgb(255 255 255);
-  --sidebar-accent: rgb(var(--neutral-stone-50));
-  --sidebar-accent-foreground: rgb(var(--text-ink));
-  --sidebar-border: rgb(var(--neutral-stone-200));
-  --sidebar-ring: rgb(var(--primary-brand));
 }
 
+/* --- 3. DARK MODE OVERRIDES — COMPLETELY REFACTORED --- */
 .dark {
-  --background: rgb(var(--text-ink));
-  --foreground: rgb(var(--neutral-stone-50));
+  /* Dark Mode Palette - Night Sky & Mountain Shadows */
+  
+  /* Base - Deep Midnight Blue (#0A0E14 → #0F1419) */
+  --dark-midnight: 15 20 25;
+  --dark-midnight-lighter: 20 26 33;
+  
+  /* Surface - Slate Shadow (#1A1F2E) */
+  --dark-surface: 26 31 46;
+  --dark-surface-elevated: 32 38 54;
+  
+  /* Accent - Aurora Cyan (#4FD1C5) */
+  --dark-accent-cyan: 79 209 197;
+  --dark-accent-cyan-muted: 56 178 172;
+  
+  /* Accent - Himalayan Gold (#F6AD55) */
+  --dark-accent-gold: 246 173 85;
+  
+  /* Text - Moon Glow */
+  --dark-text-primary: 248 250 252;
+  --dark-text-secondary: 203 213 225;
+  --dark-text-tertiary: 148 163 184;
+  
+  /* Borders - Subtle Steel */
+  --dark-border-primary: 45 55 72;
+  --dark-border-secondary: 30 41 59;
+  
+  /* --- SEMANTIC TOKENS (DARK MODE) --- */
+  
+  /* Backgrounds - Deep night with subtle warmth */
+  --background: rgb(var(--dark-midnight));
+  --foreground: rgb(var(--dark-text-primary));
 
-  --card: rgb(var(--neutral-stone-800));
-  --card-foreground: rgb(var(--neutral-stone-50));
+  /* Cards & Surfaces - Elevated with depth */
+  --card: rgb(var(--dark-surface));
+  --card-foreground: rgb(var(--dark-text-primary));
+  
+  --popover: rgb(var(--dark-surface-elevated));
+  --popover-foreground: rgb(var(--dark-text-primary));
 
-  --popover: rgb(var(--neutral-stone-800));
-  --popover-foreground: rgb(var(--neutral-stone-50));
+  /* Primary - Vibrant Aurora Cyan */
+  --primary: rgb(var(--dark-accent-cyan));
+  --primary-foreground: rgb(var(--dark-midnight));
 
-  --primary: rgb(var(--primary-brand-light));
-  --primary-foreground: rgb(255 255 255);
+  /* Secondary - Warm Himalayan Gold */
+  --secondary: rgb(var(--dark-accent-gold));
+  --secondary-foreground: rgb(var(--dark-midnight));
 
-  --secondary: rgb(var(--accent-nature-light));
-  --secondary-foreground: rgb(var(--text-ink));
+  /* UI Elements - Refined contrast */
+  --muted: rgb(var(--dark-surface));
+  --muted-foreground: rgb(var(--dark-text-tertiary));
+  
+  --accent: rgb(var(--dark-accent-cyan));
+  --accent-foreground: rgb(var(--dark-midnight));
+  
+  --destructive: rgb(248 113 113);
+  --destructive-foreground: rgb(255 255 255);
 
-  --muted: rgb(var(--neutral-stone-700));
-  --muted-foreground: rgb(var(--neutral-stone-400));
+  /* Forms & Borders - Clear but subtle */
+  --border: rgb(var(--dark-border-primary));
+  --input: rgb(var(--dark-border-primary));
+  --ring: rgb(var(--dark-accent-cyan));
 
-  --accent: rgb(var(--accent-nature-light));
-  --accent-foreground: rgb(var(--text-ink));
+  /* Charts - Vibrant dark mode palette */
+  --chart-1: rgb(var(--dark-accent-cyan));
+  --chart-2: rgb(var(--dark-accent-gold));
+  --chart-3: rgb(52 211 153);
+  --chart-4: rgb(251 146 60);
+  --chart-5: rgb(167 139 250);
 
-  --border: rgb(var(--neutral-stone-700));
-  --input: rgb(var(--neutral-stone-700));
-  --ring: rgb(var(--accent-nature));
-
-  --sidebar: rgb(var(--neutral-stone-900));
-  --sidebar-foreground: rgb(var(--neutral-stone-50));
-  --sidebar-primary: rgb(var(--primary-brand-light));
-  --sidebar-primary-foreground: rgb(255 255 255);
-  --sidebar-accent: rgb(var(--neutral-stone-800));
-  --sidebar-accent-foreground: rgb(var(--neutral-stone-50));
-  --sidebar-border: rgb(var(--neutral-stone-700));
-  --sidebar-ring: rgb(var(--accent-nature));
+  /* Glass effect - Ethereal mountain mist */
+  --glass-bg: rgba(26, 31, 46, 0.75);
+  --glass-border: rgba(79, 209, 197, 0.1);
+  --glass-glow: rgba(79, 209, 197, 0.05);
 }
 
+/* --- 4. TAILWIND V4 THEME CONFIG --- */
 @theme inline {
+  /* Fonts */
   --font-sans: "Inter", "Inter Fallback", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", "Courier New", monospace;
 
+  /* Color Mapping */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Flowbite Brand Aliases (Ensures library components use your colors) */
+  --color-brand-50: rgb(var(--neutral-stone-50));
+  --color-brand-100: rgb(var(--accent-nature-light));
+  --color-brand-500: var(--primary);
+  --color-brand-600: rgb(var(--primary-brand));
+  --color-brand-700: rgb(var(--primary-brand-dark));
+  --color-brand-900: rgb(var(--neutral-stone-900));
+
+  /* Chart Colors */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
+  /* Spacing & Radius */
   --radius-sm: calc(var(--radius) - 0.5rem);
   --radius-md: calc(var(--radius) - 0.25rem);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 0.5rem);
   --radius-2xl: calc(var(--radius) + 1rem);
   --radius-3xl: calc(var(--radius) + 1.5rem);
-
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* --- 5. BASE STYLES & RESETS --- */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* Typography Scale - Machhapuchhre Modern */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
     @apply font-sans font-bold tracking-tight text-balance;
     color: rgb(var(--text-ink));
   }
 
-  p,
-  li,
-  span {
-    @apply leading-relaxed text-pretty;
+  /* Dark Mode Headings - Refined glow effect */
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: rgb(var(--dark-text-primary));
+    text-shadow: 0 0 20px rgba(79, 209, 197, 0.1);
   }
 
-  /* Data Display - Monospace for Numbers & IDs */
+  /* Monospace for Data */
   .tabular-nums,
   .font-mono {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   GLASS & STONE UTILITY CLASSES
-   Stone (Trust): Official records, forms, permanent data
-   Glass (Context): Navigation, overlays, transient UI
-   ═══════════════════════════════════════════════════════════ */
-
+/* --- 6. UTILITIES: GLASS & STONE --- */
 @layer utilities {
-  /* Glass Effects - Morning Mist for Navigation & Overlays */
+  
+  /* Glass Effect - Morning Lake Mist (Light Mode) */
   .glass {
-    background: rgba(var(--surface-glass), 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border: 1px solid rgba(43, 95, 117, 0.12);
+    box-shadow: 0 4px 12px rgba(43, 95, 117, 0.08);
   }
 
-  .glass-strong {
-    background: rgba(var(--surface-glass), 0.85);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Glass Effect - Ethereal Night Mist (Dark Mode) */
+  .dark .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(79, 209, 197, 0.1);
   }
 
-  /* Stone Cards - Solid Trust Elements */
+  /* Glass Glow Effect - Premium dark mode enhancement */
+  .dark .glass-glow {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 60px var(--glass-glow),
+      inset 0 1px 0 rgba(79, 209, 197, 0.15);
+  }
+
+  /* Stone Card - Solid Trust Elements (Light Mode) */
   .stone-card {
-    background: rgb(255 255 255);
-    border: 2px solid rgb(var(--neutral-stone-200));
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(43, 95, 117, 0.15);
     border-radius: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.03), 0 2px 4px -2px rgb(0 0 0 / 0.02);
+    box-shadow: 0 4px 6px -1px rgb(43 95 117 / 0.05);
+    backdrop-filter: blur(10px);
   }
 
-  .stone-panel {
-    background: rgb(255 255 255);
-    border: 1px solid rgb(var(--neutral-stone-200));
-    border-radius: 1rem;
+  /* Stone Card - Dark Mode with depth */
+  .dark .stone-card {
+    background: rgb(var(--dark-surface));
+    border: 1px solid rgb(var(--dark-border-primary));
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 10px 15px -3px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(79, 209, 197, 0.05);
   }
 
-  /* Premium Elevation System (5 Levels) */
-  .elevation-1 {
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  /* Elevated Card - Extra depth for dark mode */
+  .dark .stone-card-elevated {
+    background: rgb(var(--dark-surface-elevated));
+    border: 1px solid rgb(var(--dark-border-primary));
+    box-shadow: 
+      0 10px 15px -3px rgba(0, 0, 0, 0.4),
+      0 20px 25px -5px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(79, 209, 197, 0.08);
   }
 
-  .elevation-2 {
-    box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.06), 0 2px 4px -1px rgb(0 0 0 / 0.04);
+  /* Elevations - Enhanced for dark mode */
+  .elevation-1 { 
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); 
+  }
+  
+  .dark .elevation-1 {
+    box-shadow: 
+      0 1px 3px 0 rgba(0, 0, 0, 0.4),
+      0 0 15px rgba(79, 209, 197, 0.03);
   }
 
-  .elevation-3 {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  .elevation-2 { 
+    box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.06); 
+  }
+  
+  .dark .elevation-2 {
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(79, 209, 197, 0.05);
   }
 
-  .elevation-4 {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  .elevation-3 { 
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08); 
+  }
+  
+  .dark .elevation-3 {
+    box-shadow: 
+      0 10px 15px -3px rgba(0, 0, 0, 0.4),
+      0 20px 25px -5px rgba(0, 0, 0, 0.3),
+      0 0 30px rgba(79, 209, 197, 0.07);
   }
 
-  .elevation-5 {
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  /* Accent Glow - Highlight interactive elements */
+  .dark .accent-glow {
+    box-shadow: 0 0 20px rgba(79, 209, 197, 0.3);
   }
 
-  /* Consistent Spacing System */
-  .section-spacing {
-    @apply py-6 lg:py-8;
+  .dark .accent-glow-strong {
+    box-shadow: 0 0 30px rgba(79, 209, 197, 0.5);
   }
 
-  .container-padding {
-    @apply px-4 sm:px-6 lg:px-8;
+  /* Text Glow - Subtle luminescence for important text */
+  .dark .text-glow {
+    text-shadow: 0 0 20px rgba(79, 209, 197, 0.2);
   }
 
-  .card-padding {
-    @apply p-6 lg:p-8;
+  /* Gradient Backgrounds - Premium dark mode gradients */
+  .dark .gradient-dark-radial {
+    background: radial-gradient(
+      circle at 50% 0%,
+      rgba(79, 209, 197, 0.08) 0%,
+      transparent 50%
+    );
   }
-}
 
-/* ═══════════════════════════════════════════════════════════
-   ANIMATIONS
-   ═══════════════════════════════════════════════════════════ */
-@keyframes bell-swing {
-  0%,
-  100% {
-    transform: rotate(0deg);
+  .dark .gradient-dark-mesh {
+    background: 
+      radial-gradient(at 0% 0%, rgba(79, 209, 197, 0.1) 0%, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(246, 173, 85, 0.08) 0%, transparent 50%);
   }
-  10%,
-  30% {
-    transform: rotate(14deg);
+  
+  /* Scrollbar Styling - Beautiful dark mode scrollbars */
+  .dark .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
-  20%,
-  40% {
-    transform: rotate(-14deg);
-  }
-  50% {
-    transform: rotate(0deg);
-  }
-}
 
-/* Scrollbar Styling */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+  .dark .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgb(var(--dark-surface));
+  }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(var(--dark-border-primary));
+    border-radius: 4px;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--dark-accent-cyan-muted));
+  }
+
+  /* Scrollbar Hiding (Useful for horizontal scroll containers) */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Smooth Transitions */
+  .transition-colors-smooth {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Interactive States - Enhanced for dark mode */
+  .dark .interactive-card {
+    transition: all 0.3s ease;
+  }
+
+  .dark .interactive-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 20px 25px -5px rgba(0, 0, 0, 0.4),
+      0 0 40px rgba(79, 209, 197, 0.15);
+    border-color: rgba(79, 209, 197, 0.3);
+  }
 }

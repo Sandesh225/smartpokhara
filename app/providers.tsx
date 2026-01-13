@@ -1,10 +1,10 @@
-// app/providers.tsx
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
-import { Toaster } from "sonner"; // Swapped from local UI toaster
+import { Toaster } from "sonner";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { ThemeProvider } from "flowbite-react";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -23,17 +23,19 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={300}>
-        {children}
-        {/* Premium Sonner configuration */}
-        <Toaster
-          position="top-right"
-          richColors
-          expand={false}
-          closeButton
-          theme="light"
-        />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider delayDuration={300}>
+          {children}
+          <Toaster
+            position="top-right"
+            richColors
+            expand={false}
+            closeButton
+            theme="system"
+            className="font-sans"
+          />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
