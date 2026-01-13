@@ -111,7 +111,7 @@ function EmergencyItem({ icon, label, phone }: EmergencyContact) {
         </span>
         <span className="font-bold text-sm lg:text-base">{label}</span>
       </div>
-      <span className="bg-white text-[rgb(var(--error-red))] font-black px-3 py-2 rounded-xl font-mono tabular-nums text-xs lg:text-sm shadow-md group-hover:shadow-lg transition-shadow">
+      <span className="bg-white text-destructive font-black px-3 py-2 rounded-xl font-mono tabular-nums text-xs lg:text-sm shadow-md group-hover:shadow-lg transition-shadow">
         {phone}
       </span>
     </motion.a>
@@ -286,7 +286,7 @@ export default function CitizenDashboard() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-to-b from-[rgb(var(--neutral-stone))]/20 via-white to-[rgb(var(--neutral-stone))]/10"
+      className="min-h-screen"
     >
       <Container size="wide" spacing="none" className="pt-3 pb-8">
         <Section spacing="tight">
@@ -298,7 +298,7 @@ export default function CitizenDashboard() {
               <div className="flex flex-wrap gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-gradient-to-r from-[rgb(var(--primary-brand))]/10 to-[rgb(var(--accent-nature))]/10 border-[rgb(var(--primary-brand))]/30 text-[rgb(var(--primary-brand))] font-bold px-3 py-1.5 rounded-full text-xs"
+                  className="glass border-primary/30 text-primary font-bold px-3 py-1.5 rounded-full text-xs"
                 >
                   <MapPin className="w-3 h-3 mr-1.5" />
                   {profile.wardNumber
@@ -307,7 +307,7 @@ export default function CitizenDashboard() {
                 </Badge>
                 <Badge
                   variant="outline"
-                  className="bg-white/80 backdrop-blur-sm border-border/30 text-muted-foreground font-medium px-3 py-1.5 rounded-full text-xs"
+                  className="glass border-border/30 text-muted-foreground font-medium px-3 py-1.5 rounded-full text-xs"
                 >
                   <Calendar className="w-3 h-3 mr-1.5" />
                   {format(currentTime, "MMM do, yyyy")}
@@ -315,7 +315,7 @@ export default function CitizenDashboard() {
               </div>
             }
             actions={
-              <div className="flex items-center gap-3 bg-white backdrop-blur-md border border-border/50 px-4 py-2 rounded-xl shadow-sm">
+              <div className="glass flex items-center gap-3 px-4 py-2 rounded-xl shadow-sm">
                 <div className="flex flex-col items-end pr-3 border-r border-border/50">
                   <span className="text-[9px] font-extrabold uppercase tracking-wider text-muted-foreground/80">
                     Pokhara
@@ -330,7 +330,7 @@ export default function CitizenDashboard() {
                   onClick={() => fetchDashboardState(true)}
                   disabled={isRefreshing}
                   className={cn(
-                    "h-8 w-8 rounded-lg transition-all hover:bg-[rgb(var(--primary-brand))]/10",
+                    "h-8 w-8 rounded-lg transition-all hover:bg-primary/10",
                     isRefreshing && "animate-spin"
                   )}
                   aria-label="Refresh dashboard"
@@ -338,9 +338,7 @@ export default function CitizenDashboard() {
                   <RefreshCw
                     className={cn(
                       "w-4 h-4",
-                      isRefreshing
-                        ? "text-[rgb(var(--primary-brand))]"
-                        : "text-muted-foreground"
+                      isRefreshing ? "text-primary" : "text-muted-foreground"
                     )}
                   />
                 </Button>
@@ -351,7 +349,7 @@ export default function CitizenDashboard() {
 
           {/* Error Alert */}
           {error && (
-            <Alert variant="destructive" className="mb-6">
+            <Alert variant="destructive" className="mb-6 glass-glow">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {error}
@@ -377,7 +375,7 @@ export default function CitizenDashboard() {
                 transition={{ duration: 0.4 }}
                 className="mb-6"
               >
-                <Card className="border-none bg-gradient-to-br from-[rgb(var(--primary-brand))] via-[rgb(var(--primary-brand))]/95 to-[rgb(var(--accent-nature))] text-white shadow-xl rounded-2xl overflow-hidden relative">
+                <Card className="border-none bg-gradient-to-br from-primary via-primary/95 to-secondary text-white shadow-xl rounded-2xl overflow-hidden relative elevation-3">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20" />
                   <CardContent className="relative p-5 lg:p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -426,7 +424,7 @@ export default function CitizenDashboard() {
               {/* Quick Actions */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2.5 px-1">
-                  <Sparkles className="w-5 h-5 text-[rgb(var(--accent-nature))]" />
+                  <Sparkles className="w-5 h-5 text-secondary" />
                   <h2 className="text-xl lg:text-2xl font-black uppercase tracking-tight text-foreground">
                     Direct Services
                   </h2>
@@ -438,7 +436,7 @@ export default function CitizenDashboard() {
               </section>
 
               {/* Recent Complaints */}
-              <section className="bg-white/70 backdrop-blur-sm border border-border/40 rounded-2xl p-1 shadow-lg">
+              <section className="stone-card p-1">
                 <RecentComplaints complaints={complaints} />
               </section>
             </div>
@@ -449,7 +447,7 @@ export default function CitizenDashboard() {
               <RecentNotices notices={notices} />
 
               {/* Emergency Contacts */}
-              <Card className="border-none bg-gradient-to-br from-[rgb(var(--error-red))] to-[rgb(var(--error-red))]/90 text-white shadow-xl rounded-2xl overflow-hidden">
+              <Card className="border-none bg-gradient-to-br from-destructive to-destructive/90 text-white shadow-xl rounded-2xl overflow-hidden elevation-3">
                 <div className="p-4 border-b border-white/20 flex justify-between items-center bg-black/10">
                   <h3 className="text-lg font-black uppercase tracking-tight">
                     Emergency

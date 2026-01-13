@@ -12,6 +12,7 @@ import { QueueSearch } from "./_components/QueueSearch";
 import { QueueFilterTabs } from "./_components/QueueFilterTabs";
 import { QueueCardView } from "./_components/QueueCardView";
 import { QueueListView } from "./_components/QueueListView";
+import { ViewToggle } from "./_components/ViewToggle";
 
 export default function MyQueuePage() {
   const [items, setItems] = useState<any[]>([]);

@@ -11,14 +11,15 @@ import {
   Settings,
   LogOut,
   User,
+  Moon,
+  Sun,
 } from "lucide-react";
-
+import { useThemeMode } from "flowbite-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-
 import NotificationDropdown from "./NotificationDropdown";
 
 interface HeaderProps {
@@ -37,8 +38,16 @@ export default function Header({
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  // Use Flowbite's hook for state-managed theme toggling
+  const { mode, toggleMode } = useThemeMode();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Listen for real-time notifications
   useEffect(() => {
@@ -61,23 +70,6 @@ export default function Header({
     };
   }, [user.id, notificationCount, onCountUpdate, supabase]);
 
-  // Close user menu on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target as Node)
-      ) {
-        setUserMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const profilePhotoUrl =
-    user?.profile?.profile_photo_url ?? user?.avatar_url ?? null;
-
   const handleSignOut = async () => {
     toast.promise(
       async () => {
@@ -93,59 +85,71 @@ export default function Header({
     );
   };
 
+  const profilePhotoUrl =
+    user?.profile?.profile_photo_url ?? user?.avatar_url ?? null;
+
   return (
-    <header className="sticky top-0 z-30 h-20 shrink-0 border-b border-[rgb(229,231,235)] glass-strong">
+    <header className="sticky top-0 z-30 h-20 shrink-0 border-b border-border glass-strong transition-colors duration-300">
       <div className="flex h-full items-center justify-between gap-4 px-6 lg:px-8">
-        {/* Left: Mobile Menu + Search */}
+        {/* Search Section */}
         <div className="flex flex-1 items-center gap-4">
           <button
-            type="button"
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-[rgb(229,231,235)] text-[rgb(107,114,128)] hover:text-[rgb(26,32,44)] hover:bg-[rgb(249,250,251)] transition-colors shadow-sm"
-            aria-label="Open sidebar"
+            className="lg:hidden h-10 w-10 flex items-center justify-center rounded-xl bg-card border border-border text-muted-foreground hover:bg-accent/10 transition-colors"
           >
             <Menu className="h-5 w-5" />
           </button>
-
           <div className="hidden w-full max-w-md lg:block">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[rgb(156,163,175)] group-focus-within:text-[rgb(43,95,117)] transition-colors" />
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
-                placeholder="Search services, complaints, bills..."
-                className="w-full h-11 rounded-xl border border-[rgb(229,231,235)] bg-white py-2 pl-11 pr-4 text-sm font-medium outline-none transition-all placeholder:text-[rgb(156,163,175)] focus:border-[rgb(43,95,117)] focus:ring-2 focus:ring-[rgb(43,95,117)]/10"
+                placeholder="Search services..."
+                className="w-full h-11 rounded-xl border border-input bg-card py-2 pl-11 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-4">
-          {/* Notifications Bell */}
+        {/* Action Section */}
+        <div className="flex items-center gap-3 md:gap-4">
+          {/* THEME TOGGLE */}
+          <button
+            onClick={toggleMode}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-accent transition-all"
+          >
+            {!mounted ? (
+              <div className="h-5 w-5 animate-pulse rounded-full bg-muted" />
+            ) : mode === "dark" ? (
+              <Sun className="h-5 w-5 text-yellow-400" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </button>
+
+          {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setNotificationOpen(!notificationOpen)}
               className={cn(
-                "relative h-10 w-10 flex items-center justify-center rounded-xl border transition-all",
+                "h-10 w-10 flex items-center justify-center rounded-xl border transition-all",
                 notificationOpen
-                  ? "border-[rgb(43,95,117)] bg-[rgb(43,95,117)]/5 text-[rgb(43,95,117)] shadow-md"
-                  : "border-[rgb(229,231,235)] bg-white text-[rgb(107,114,128)] hover:border-[rgb(209,213,219)] hover:bg-[rgb(249,250,251)]"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card"
               )}
-              aria-label={`Notifications: ${notificationCount} unread`}
             >
               <Bell
                 className={cn(
                   "h-5 w-5",
-                  notificationCount > 0 && "animate-[bell-swing_2s_infinite]"
+                  notificationCount > 0 && "animate-bounce"
                 )}
               />
               {notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full bg-[rgb(43,95,117)] text-[10px] font-mono font-bold text-white ring-2 ring-white tabular-nums">
-                  {notificationCount > 99 ? "99+" : notificationCount}
+                <span className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full bg-primary text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-card">
+                  {notificationCount}
                 </span>
               )}
             </button>
-
             <AnimatePresence>
               {notificationOpen && (
                 <NotificationDropdown
@@ -157,37 +161,29 @@ export default function Header({
             </AnimatePresence>
           </div>
 
-          <div className="h-6 w-px bg-[rgb(229,231,235)] hidden sm:block" />
-
-          {/* User Profile Menu */}
+          {/* User Profile */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 hover:bg-[rgb(249,250,251)] hover:border-[rgb(229,231,235)] transition-all"
-              aria-label="User menu"
-              aria-expanded={userMenuOpen}
+              className="flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 hover:bg-accent/50 transition-all"
             >
-              <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-[rgb(229,231,235)]">
-                <AvatarImage
-                  src={profilePhotoUrl || ""}
-                  alt={user.displayName}
-                />
-                <AvatarFallback className="bg-[rgb(43,95,117)] text-white font-bold text-sm">
-                  {user.displayName?.charAt(0) || "U"}
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={profilePhotoUrl || ""} />
+                <AvatarFallback className="bg-primary text-white font-bold">
+                  {user.displayName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-
-              <div className="hidden flex-col items-start lg:flex text-left">
-                <span className="text-sm font-bold text-[rgb(26,32,44)] leading-tight truncate max-w-[140px]">
+              <div className="hidden flex-col items-start lg:flex">
+                <span className="text-sm font-bold text-foreground truncate max-w-[120px]">
                   {user.displayName}
                 </span>
-                <span className="text-[10px] font-medium text-[rgb(107,114,128)] mt-0.5 uppercase tracking-wide">
-                  {user.roleName || "Citizen"}
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">
+                  {user.roleName}
                 </span>
               </div>
               <ChevronDown
                 className={cn(
-                  "hidden h-4 w-4 text-[rgb(156,163,175)] transition-transform lg:block",
+                  "h-4 w-4 transition-transform",
                   userMenuOpen && "rotate-180"
                 )}
               />
@@ -196,45 +192,28 @@ export default function Header({
             <AnimatePresence>
               {userMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-[rgb(229,231,235)] bg-white p-2 shadow-xl z-50 elevation-4"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-border bg-card p-2 shadow-xl z-50"
                 >
-                  {/* User Info */}
-                  <div className="px-4 py-3 bg-[rgb(249,250,251)] rounded-xl mb-2">
-                    <p className="text-sm font-bold text-[rgb(26,32,44)] truncate leading-tight">
+                  <div className="px-4 py-3 bg-muted/50 rounded-xl mb-2">
+                    <p className="text-sm font-bold truncate">
                       {user.displayName}
                     </p>
-                    <p className="text-xs font-medium text-[rgb(107,114,128)] truncate mt-1">
+                    <p className="text-xs text-muted-foreground truncate">
                       {user.email}
                     </p>
                   </div>
-
-                  {/* Menu Items */}
-                  <div className="space-y-0.5">
-                    <Link
-                      href="/citizen/profile"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[rgb(75,85,99)] hover:bg-[rgb(249,250,251)] hover:text-[rgb(43,95,117)] transition-all"
-                    >
-                      <User className="h-4 w-4" /> My Profile
-                    </Link>
-                    <Link
-                      href="/citizen/settings"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[rgb(75,85,99)] hover:bg-[rgb(249,250,251)] hover:text-[rgb(43,95,117)] transition-all"
-                    >
-                      <Settings className="h-4 w-4" /> Settings
-                    </Link>
-                  </div>
-
-                  <div className="my-2 border-t border-[rgb(229,231,235)]" />
-
+                  <Link
+                    href="/citizen/profile"
+                    className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent rounded-lg transition-colors"
+                  >
+                    <User className="h-4 w-4" /> My Profile
+                  </Link>
                   <button
                     onClick={handleSignOut}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-[rgb(239,68,68)] hover:bg-[rgb(239,68,68)]/5 transition-all"
+                    className="flex w-full items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors font-bold mt-2 pt-2 border-t border-border"
                   >
                     <LogOut className="h-4 w-4" /> Sign Out
                   </button>
