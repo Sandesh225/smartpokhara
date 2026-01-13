@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,13 +16,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Trash2, ShieldCheck, Plus, Briefcase, MapPin } from "lucide-react";
-import { toast } from "sonner"; // Assuming you use sonner, otherwise use alert
+import { toast } from "sonner";
 
 // --- Types ---
 interface Role {
   id: string;
   name: string;
-  role_type: string; // 'admin' | 'dept_head' | 'dept_staff' | 'ward_staff' | 'field_staff'
+  role_type: string;
 }
 
 interface Department {
@@ -78,15 +78,12 @@ export function UserRolesCard({
   const router = useRouter();
   const supabase = createClient();
 
-  // --- Derived State for Conditional UI ---
   const selectedRole = availableRoles.find((r) => r.id === selectedRoleId);
 
-  // Logic: Department Head OR Dept Staff needs a Department
   const requiresDepartment =
     selectedRole?.role_type === "dept_head" ||
     selectedRole?.role_type === "dept_staff";
 
-  // Logic: Ward Staff needs a Ward
   const requiresWard = selectedRole?.role_type === "ward_staff";
 
   const handleAddRole = async () => {
@@ -107,52 +104,116 @@ export function UserRolesCard({
       const { data: authData } = await supabase.auth.getUser();
       const assignedBy = authData.user?.id ?? null;
 
-      // 1. Assign the Role in user_roles table
+      // ============================================
+      // STEP 1: ASSIGN ROLE IN user_roles TABLE
+      // ============================================
       const { error: roleError } = await supabase.from("user_roles").insert({
         user_id: user.id,
         role_id: selectedRoleId,
-        is_primary: true, // Mark new assignments as primary to force portal switch
+        is_primary: true,
         assigned_by: assignedBy,
       });
 
       if (roleError) throw roleError;
 
-      // 2. Upsert Staff Profile (This links them to the Dept/Ward Portal Data)
-      // We only do this for staff-type roles
-      if (
-        [
-          "dept_head",
-          "dept_staff",
-          "ward_staff",
-          "field_staff",
-          "admin",
-        ].includes(selectedRole?.role_type || "")
-      ) {
-        // Generate a temp staff code if needed
+      // ============================================
+      // STEP 2: CREATE/UPDATE staff_profiles
+      // ============================================
+      const isStaffRole = [
+        "dept_head",
+        "dept_staff",
+        "ward_staff",
+        "field_staff",
+        "admin",
+      ].includes(selectedRole?.role_type || "");
+
+      if (isStaffRole) {
         const staffCode = `STF-${Math.floor(1000 + Math.random() * 9000)}`;
 
         const profileData: any = {
           user_id: user.id,
           staff_role: selectedRole?.role_type,
           is_active: true,
-          // Determine Supervisor Status
           is_supervisor:
             selectedRole?.role_type === "dept_head" ||
             selectedRole?.role_type === "admin",
-          // Link Jurisdiction
           department_id: requiresDepartment ? selectedDeptId : null,
           ward_id: requiresWard ? selectedWardId : null,
+          staff_code: staffCode,
         };
 
-        // We use upsert to create or update existing staff profile
         const { error: profileError } = await supabase
           .from("staff_profiles")
           .upsert(profileData, { onConflict: "user_id" });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Staff Profile Error:", profileError);
+          throw new Error(
+            `Failed to create staff profile: ${profileError.message}`
+          );
+        }
       }
 
-      toast.success("Role and Jurisdiction assigned successfully");
+      // ============================================
+      // STEP 3: CREATE supervisor_profiles (CRITICAL FIX)
+      // This is what was missing!
+      // ============================================
+      const isSupervisorRole =
+        selectedRole?.role_type === "dept_head" ||
+        selectedRole?.role_type === "admin";
+
+      if (isSupervisorRole) {
+        // Determine supervisor level
+        let supervisorLevel: "department" | "ward" | "senior" = "department";
+        if (selectedRole?.role_type === "admin") {
+          supervisorLevel = "senior";
+        } else if (requiresWard) {
+          supervisorLevel = "ward";
+        }
+
+        // Build jurisdiction arrays
+        const assignedDepartments =
+          requiresDepartment && selectedDeptId ? [selectedDeptId] : [];
+        const assignedWards =
+          requiresWard && selectedWardId ? [selectedWardId] : [];
+
+        const supervisorData = {
+          user_id: user.id,
+          supervisor_level: supervisorLevel,
+          assigned_departments: assignedDepartments,
+          assigned_wards: assignedWards,
+          can_assign_staff: true,
+          can_escalate: true,
+          can_close_complaints: true,
+          can_create_tasks: true,
+          can_approve_leave: isSupervisorRole,
+          can_generate_reports: true,
+        };
+
+        const { error: supervisorError } = await supabase
+          .from("supervisor_profiles")
+          .upsert(supervisorData, { onConflict: "user_id" });
+
+        if (supervisorError) {
+          console.error("Supervisor Profile Error:", supervisorError);
+          throw new Error(
+            `Failed to create supervisor profile: ${supervisorError.message}`
+          );
+        }
+
+        console.log("✅ Supervisor profile created:", {
+          user_id: user.id,
+          level: supervisorLevel,
+          departments: assignedDepartments,
+          wards: assignedWards,
+        });
+      }
+
+      toast.success(
+        isSupervisorRole
+          ? "Supervisor role and jurisdiction assigned successfully!"
+          : "Role assigned successfully"
+      );
 
       // Reset form
       setSelectedRoleId("");
@@ -169,24 +230,51 @@ export function UserRolesCard({
   };
 
   const handleRemoveRole = async (roleId: string) => {
-    if (!confirm("Are you sure? This may revoke their portal access.")) return;
+    if (!confirm("Are you sure? This will revoke their portal access.")) return;
 
+    setLoading(true);
     try {
-      const { error } = await supabase
+      // Get the role being removed
+      const roleToRemove = user.user_roles?.find((ur) => ur.role_id === roleId);
+      const isSupervisor =
+        roleToRemove?.role?.role_type === "dept_head" ||
+        roleToRemove?.role?.role_type === "admin";
+
+      // Remove from user_roles
+      const { error: roleError } = await supabase
         .from("user_roles")
         .delete()
         .eq("user_id", user.id)
         .eq("role_id", roleId);
 
-      if (error) throw error;
+      if (roleError) throw roleError;
 
-      // Optional: We don't delete the staff_profile immediately to preserve history,
-      // but we could set is_active = false if needed.
+      // If removing a supervisor role, also remove supervisor_profiles entry
+      if (isSupervisor) {
+        const { error: supervisorError } = await supabase
+          .from("supervisor_profiles")
+          .delete()
+          .eq("user_id", user.id);
+
+        if (supervisorError) {
+          console.warn("Could not remove supervisor profile:", supervisorError);
+          // Don't throw - supervisor profile might not exist
+        }
+      }
+
+      // Optionally deactivate staff_profiles (preserves history)
+      await supabase
+        .from("staff_profiles")
+        .update({ is_active: false })
+        .eq("user_id", user.id);
 
       router.refresh();
-      toast.success("Role removed");
-    } catch (error) {
-      toast.error("Failed to remove role");
+      toast.success("Role removed successfully");
+    } catch (error: any) {
+      console.error("Failed to remove role:", error);
+      toast.error(error.message || "Failed to remove role");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -213,9 +301,9 @@ export function UserRolesCard({
       </CardHeader>
 
       <CardContent className="space-y-6 pt-6">
-        {/* --- Current Context Display --- */}
+        {/* Current Context Display */}
         {currentStaffDetails && (
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm flex gap-4">
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm flex gap-4 flex-wrap">
             {currentDepartment && (
               <div className="flex items-center gap-2 text-blue-700">
                 <Briefcase className="h-4 w-4" />
@@ -238,7 +326,7 @@ export function UserRolesCard({
           </div>
         )}
 
-        {/* --- Active Roles List --- */}
+        {/* Active Roles List */}
         <div className="space-y-3">
           <Label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
             Active Roles
@@ -250,7 +338,7 @@ export function UserRolesCard({
                 className="flex items-center justify-between rounded-lg border border-slate-200 p-3 bg-white hover:bg-slate-50 transition-colors"
               >
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-slate-900">
                       {ur.role?.name ?? "Unknown role"}
                     </span>
@@ -258,7 +346,7 @@ export function UserRolesCard({
                       <Badge className="bg-slate-900">Admin</Badge>
                     )}
                     {ur.role?.role_type === "dept_head" && (
-                      <Badge className="bg-purple-600">Head</Badge>
+                      <Badge className="bg-purple-600">Supervisor</Badge>
                     )}
                     {ur.role?.role_type === "ward_staff" && (
                       <Badge className="bg-green-600">Ward</Badge>
@@ -277,6 +365,7 @@ export function UserRolesCard({
                   size="sm"
                   className="text-red-500 hover:bg-red-50 hover:text-red-700 h-8 w-8 p-0"
                   onClick={() => handleRemoveRole(ur.role_id)}
+                  disabled={loading}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -291,7 +380,7 @@ export function UserRolesCard({
 
         <div className="border-t border-slate-100 my-4" />
 
-        {/* --- Add New Role Form --- */}
+        {/* Add New Role Form */}
         <div className="space-y-4">
           <Label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
             Assign New Role
@@ -307,12 +396,18 @@ export function UserRolesCard({
                 {unassignedRoles.map((role) => (
                   <SelectItem key={role.id} value={role.id}>
                     {role.name}
+                    {(role.role_type === "dept_head" ||
+                      role.role_type === "admin") && (
+                      <Badge className="ml-2 text-[10px]" variant="secondary">
+                        Supervisor
+                      </Badge>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* 2. Conditional: Select Department (For Heads/Staff) */}
+            {/* 2. Conditional: Select Department */}
             {requiresDepartment && (
               <div className="animate-in fade-in slide-in-from-top-2">
                 <Select
@@ -336,7 +431,7 @@ export function UserRolesCard({
               </div>
             )}
 
-            {/* 3. Conditional: Select Ward (For Ward Staff) */}
+            {/* 3. Conditional: Select Ward */}
             {requiresWard && (
               <div className="animate-in fade-in slide-in-from-top-2">
                 <Select
@@ -369,11 +464,19 @@ export function UserRolesCard({
                 "Assigning..."
               ) : (
                 <>
-                  <Plus className="h-4 w-4 mr-2" /> Assign Role & Access
+                  <Plus className="h-4 w-4 mr-2" /> Assign Role & Jurisdiction
                 </>
               )}
             </Button>
           </div>
+
+          {/* Help Text */}
+          {selectedRole?.role_type === "dept_head" && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+              <strong>Note:</strong> Assigning Department Head will create a
+              supervisor profile with full department access.
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
