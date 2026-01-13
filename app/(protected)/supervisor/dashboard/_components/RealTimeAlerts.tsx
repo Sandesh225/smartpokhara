@@ -21,17 +21,25 @@ interface Alert {
   link: string;
 }
 
+// Refactored to use semantic theme variables
 const alertConfig = {
   unassigned: {
     icon: AlertCircle,
-    color: "text-orange-600",
-    bg: "bg-orange-100",
+    color: "text-orange-500",
+    bg: "bg-orange-500/15",
+    border: "border-orange-500/20",
   },
-  overdue: { icon: AlertTriangle, color: "text-red-600", bg: "bg-red-100" },
+  overdue: { 
+    icon: AlertTriangle, 
+    color: "text-destructive", 
+    bg: "bg-destructive/15",
+    border: "border-destructive/20",
+  },
   escalation: {
     icon: AlertTriangle,
-    color: "text-purple-600",
-    bg: "bg-purple-100",
+    color: "text-purple-500",
+    bg: "bg-purple-500/15",
+    border: "border-purple-500/20",
   },
 };
 
@@ -74,7 +82,6 @@ export function RealTimeAlerts({
 
     return () => {
       if (subPromise) {
-        // Wait for the promise to resolve before unsubscribing
         subPromise.then((channel: any) => {
           supervisorComplaintsSubscription.unsubscribe(channel);
         });
@@ -91,26 +98,34 @@ export function RealTimeAlerts({
 
   if (visibleAlerts.length === 0) {
     return (
-      <div className="bg-green-50 rounded-2xl border border-green-200 p-8 h-full flex flex-col items-center justify-center text-center">
-        <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-          <CheckCircle2 className="h-8 w-8 text-green-600" />
+      <div className="stone-card p-8 h-full flex flex-col items-center justify-center text-center border-emerald-500/20 bg-emerald-500/5">
+        <div className="h-16 w-16 bg-emerald-500/15 border border-emerald-500/20 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-2">All Clear!</h3>
-        <p className="text-sm text-gray-600">
-          No urgent alerts for your department.
+        <h3 className="text-lg font-bold text-foreground mb-1">Queue Synchronized</h3>
+        <p className="text-xs text-muted-foreground max-w-[200px] leading-relaxed">
+          No urgent attention items in the department buffer.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm h-full flex flex-col overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-red-50">
-        <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-red-600" /> Action Required
-        </h3>
+    <div className="stone-card h-full flex flex-col overflow-hidden border-destructive/20">
+      {/* Header with Danger Pulse */}
+      <div className="px-6 py-4 border-b border-border/50 bg-linear-to-b from-destructive/10 to-transparent">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-destructive animate-pulse" /> 
+            Immediate Attention
+          </h3>
+          <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-destructive/15 text-destructive rounded-full">
+            {visibleAlerts.length} Active
+          </span>
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto">
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {visibleAlerts.map((alert) => {
           const config = alertConfig[alert.type];
           const Icon = config.icon;
@@ -118,39 +133,51 @@ export function RealTimeAlerts({
             <Link
               key={alert.id}
               href={alert.link}
-              className="block px-6 py-4 border-b border-gray-50 hover:bg-gray-50 transition-all group relative"
+              className="block px-6 py-4 border-b border-border/30 hover:bg-muted/40 transition-all group relative"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 <div
                   className={cn(
-                    "mt-1 h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                    "mt-1 h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-transform group-hover:scale-105",
                     config.bg,
-                    config.color
+                    config.color,
+                    config.border
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-5 w-5" />
                 </div>
+                
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
                     {alert.message}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-[10px] font-medium text-muted-foreground mt-1">
                     {formatDistanceToNow(new Date(alert.timestamp), {
                       addSuffix: true,
                     })}
                   </p>
                 </div>
-                <button
-                  onClick={(e) => handleDismiss(alert.id, e)}
-                  className="p-1 hover:bg-gray-200 rounded text-gray-400 opacity-0 group-hover:opacity-100"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <button
+                    onClick={(e) => handleDismiss(alert.id, e)}
+                    className="p-1.5 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-1 group-hover:text-primary transition-all" />
+                </div>
               </div>
             </Link>
           );
         })}
+      </div>
+      
+      {/* Dynamic Footer */}
+      <div className="px-6 py-3 border-t border-border/50 bg-muted/20">
+        <p className="text-[10px] text-center font-bold text-muted-foreground uppercase tracking-widest">
+          Subscription Active: Monitoring Real-time Queue
+        </p>
       </div>
     </div>
   );

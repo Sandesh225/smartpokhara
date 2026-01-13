@@ -31,13 +31,14 @@ const activityIcons: Record<string, React.ElementType> = {
   default: Activity,
 };
 
-const activityColors: Record<string, string> = {
-  assignment: "from-blue-100 to-indigo-100 text-blue-600",
-  resolution: "from-green-100 to-emerald-100 text-green-600",
-  comment: "from-purple-100 to-pink-100 text-purple-600",
-  escalation: "from-red-100 to-orange-100 text-red-600",
-  update: "from-gray-100 to-gray-200 text-gray-600",
-  default: "from-blue-100 to-indigo-100 text-blue-600",
+// Refactored to use semantic theme variables
+const activityTheme: Record<string, { bg: string, text: string }> = {
+  assignment: { bg: "bg-blue-500/15", text: "text-blue-500" },
+  resolution: { bg: "bg-emerald-500/15", text: "text-emerald-500" },
+  comment: { bg: "bg-purple-500/15", text: "text-purple-500" },
+  escalation: { bg: "bg-destructive/15", text: "text-destructive" },
+  update: { bg: "bg-muted/50", text: "text-muted-foreground" },
+  default: { bg: "bg-primary/15", text: "text-primary" },
 };
 
 export function ActivityFeed({ initialActivity }: { initialActivity: ActivityItem[] }) {
@@ -48,93 +49,95 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
   const handleRefresh = async () => {
     setIsRefreshing(true);
     setError(null);
-
     try {
-      // TODO: Replace with real API
+      // API call logic would go here
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (err) {
-      setError("Failed to refresh activity feed");
-      console.error(err);
+      setError("Sync failed");
     } finally {
       setIsRefreshing(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm h-full flex flex-col overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-blue-50 to-indigo-50">
+    <div className="stone-card h-full flex flex-col overflow-hidden shadow-xl border-border/40">
+      {/* Header Section */}
+      <div className="px-6 py-5 border-b border-border/50 bg-linear-to-b from-muted/30 to-transparent">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-blue-600" />
-            Recent Activity
-          </h3>
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+              <Activity className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Live Activity</h3>
+              <p className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">Real-time system logs</p>
+            </div>
+          </div>
 
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded px-2 py-1"
+            className="h-8 px-3 rounded-lg bg-secondary/10 hover:bg-secondary/20 text-secondary text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
           >
-            <RefreshCw
-              className={cn("h-3 w-3", isRefreshing && "animate-spin")}
-            />
-            Refresh
+            <RefreshCw className={cn("h-3 w-3", isRefreshing && "animate-spin")} />
+            {isRefreshing ? "Syncing..." : "Refresh"}
           </button>
         </div>
 
         {error && (
-          <p className="text-xs text-red-600 mt-2 flex items-center gap-1">
+          <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-destructive bg-destructive/10 p-2 rounded-lg">
             <AlertTriangle className="h-3 w-3" />
             {error}
-          </p>
+          </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-card/30">
         {activities.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="h-16 w-16 bg-linear-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Activity className="h-8 w-8 text-blue-600" />
+          <div className="p-12 text-center">
+            <div className="h-16 w-16 bg-muted/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-border/50">
+              <Activity className="h-8 w-8 text-muted-foreground/40" />
             </div>
-            <p className="text-sm font-medium text-gray-900 mb-1">
-              No Recent Activity
-            </p>
-            <p className="text-xs text-gray-500 max-w-[200px] mx-auto">
-              Activity will appear here as your team works on complaints.
+            <p className="text-sm font-bold text-foreground">Quiet in here...</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-[200px] mx-auto">
+              New activity from your department will appear here automatically.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-border/30">
             {activities.map((item) => {
-              const IconComponent =
-                activityIcons[item.type] || activityIcons.default;
-              const colorClass =
-                activityColors[item.type] || activityColors.default;
+              const IconComponent = activityIcons[item.type] || activityIcons.default;
+              const theme = activityTheme[item.type] || activityTheme.default;
 
               return (
                 <Link
                   key={item.id}
                   href={item.link}
-                  className="block px-6 py-4 hover:bg-gray-50 transition-colors group"
+                  className="block px-6 py-4 hover:bg-muted/40 transition-all group"
                 >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={cn(
-                        "mt-1 h-8 w-8 rounded-full bg-linear-to-br flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform",
-                        colorClass
-                      )}
-                    >
-                      <IconComponent className="h-4 w-4" />
+                  <div className="flex items-start gap-4">
+                    <div className={cn(
+                      "mt-0.5 h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110 group-hover:rotate-3 shadow-sm",
+                      theme.bg,
+                      theme.text
+                    )}>
+                      <IconComponent className="h-5 w-5" />
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      <p className="text-sm font-medium text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                         {item.description}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {formatDistanceToNow(new Date(item.timestamp), {
-                          addSuffix: true,
-                        })}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-[10px] font-bold text-muted-foreground/60">
+                          {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                        </span>
+                        <span className="h-1 w-1 rounded-full bg-border" />
+                        <span className={cn("text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded bg-muted border border-border/50", theme.text)}>
+                          {item.type}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -144,10 +147,11 @@ export function ActivityFeed({ initialActivity }: { initialActivity: ActivityIte
         )}
       </div>
 
+      {/* Footer Load More */}
       {activities.length > 0 && (
-        <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
-          <button className="text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors w-full text-center">
-            Load more activity
+        <div className="p-3 border-t border-border/50 bg-muted/20">
+          <button className="w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+            View All Department Activity
           </button>
         </div>
       )}
