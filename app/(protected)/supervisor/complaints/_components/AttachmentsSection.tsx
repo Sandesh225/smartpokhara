@@ -8,12 +8,15 @@ import {
   Maximize2,
   Download,
   ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface Attachment {
   id: string;
@@ -29,10 +32,6 @@ interface AttachmentsSectionProps {
   staffUploads: Attachment[];
 }
 
-/**
- * Visualizes evidence files attached to a complaint.
- * Robustly handles direct Supabase Storage URLs and relative paths.
- */
 export function AttachmentsSection({
   citizenUploads = [],
   staffUploads = [],
@@ -45,7 +44,7 @@ export function AttachmentsSection({
 
   if (!mounted) {
     return (
-      <Card className="shadow-sm border-gray-200 overflow-hidden h-[300px] animate-pulse bg-gray-50" />
+      <div className="stone-card h-[350px] animate-pulse bg-primary/5 border-none" />
     );
   }
 
@@ -53,63 +52,79 @@ export function AttachmentsSection({
     (citizenUploads?.length || 0) + (staffUploads?.length || 0);
 
   return (
-    <Card className="shadow-sm border-gray-200 overflow-hidden animate-in fade-in duration-500">
-      <CardHeader className="bg-white border-b border-gray-100 py-4">
+    <div className="stone-card dark:stone-card-elevated overflow-hidden transition-colors-smooth border-none shadow-2xl">
+      <CardHeader className="bg-primary/5 dark:bg-dark-surface/40 border-b border-primary/10 py-5">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
-            <Paperclip className="h-4 w-4 text-blue-600" />
-            Evidence & Files
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg border border-primary/20">
+              <Paperclip className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-glow">
+                Evidence Repository
+              </span>
+              <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-0.5">
+                Digital Assets & Verifications
+              </p>
+            </div>
           </CardTitle>
           <Badge
-            variant="secondary"
-            className="bg-slate-100 text-slate-700 font-bold px-2.5"
+            variant="outline"
+            className="border-primary/20 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-tighter px-3"
           >
-            Files Found: {totalCount}
+            Verified Items: {totalCount}
           </Badge>
         </div>
       </CardHeader>
+
       <CardContent className="p-0">
         <Tabs defaultValue="citizen" className="w-full">
-          <div className="bg-slate-50/50 border-b border-gray-100 px-4">
-            <TabsList className="bg-transparent h-12 gap-6">
+          <div className="bg-muted/30 dark:bg-dark-midnight/40 border-b border-primary/5 px-6">
+            <TabsList className="bg-transparent h-14 gap-8">
               <TabsTrigger
                 value="citizen"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-700 data-[state=active]:shadow-none rounded-none px-2 font-bold text-sm transition-all"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none px-0 font-black text-[10px] uppercase tracking-widest transition-all h-14"
               >
-                Citizen Uploads
-                <span className="ml-2 bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-md text-[10px]">
+                Citizen Intake
+                <Badge className="ml-2 bg-primary/10 text-primary border-none text-[9px] h-4">
                   {citizenUploads?.length || 0}
-                </span>
+                </Badge>
               </TabsTrigger>
               <TabsTrigger
                 value="staff"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-700 data-[state=active]:shadow-none rounded-none px-2 font-bold text-sm transition-all"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none px-0 font-black text-[10px] uppercase tracking-widest transition-all h-14"
               >
-                Internal Proof
-                <span className="ml-2 bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-md text-[10px]">
+                Field Reports
+                <Badge className="ml-2 bg-primary/10 text-primary border-none text-[9px] h-4">
                   {staffUploads?.length || 0}
-                </span>
+                </Badge>
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <div className="p-6 bg-white min-h-[240px]">
-            <TabsContent value="citizen" className="mt-0 outline-none">
+          <div className="p-8 bg-transparent min-h-[300px]">
+            <TabsContent
+              value="citizen"
+              className="mt-0 outline-none animate-in fade-in slide-in-from-left-4 duration-500"
+            >
               <GalleryGrid
                 files={citizenUploads}
-                emptyMessage="No evidence was submitted by the citizen for this complaint."
+                emptyMessage="Diagnostic: No primary evidence submitted by the reporting citizen."
               />
             </TabsContent>
-            <TabsContent value="staff" className="mt-0 outline-none">
+            <TabsContent
+              value="staff"
+              className="mt-0 outline-none animate-in fade-in slide-in-from-right-4 duration-500"
+            >
               <GalleryGrid
                 files={staffUploads}
-                emptyMessage="No resolution photos or field reports uploaded by staff yet."
+                emptyMessage="Diagnostic: Field verification pending. No internal media recorded."
               />
             </TabsContent>
           </div>
         </Tabs>
       </CardContent>
-    </Card>
+    </div>
   );
 }
 
@@ -122,9 +137,9 @@ function GalleryGrid({
 }) {
   if (!files || files.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-50/30 rounded-xl border border-dashed border-slate-200">
-        <ImageIcon className="h-10 w-10 mb-3 text-slate-300 opacity-50" />
-        <p className="text-sm font-medium text-slate-500 max-w-[200px]">
+      <div className="flex flex-col items-center justify-center py-16 text-center glass border-2 border-dashed border-primary/10 rounded-3xl">
+        <ImageIcon className="h-12 w-12 mb-4 text-primary/20" />
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[250px] leading-relaxed">
           {emptyMessage}
         </p>
       </div>
@@ -132,9 +147,8 @@ function GalleryGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
       {files.map((file) => {
-        // Safe URL handler for both absolute paths and relative Supabase keys
         const fileUrl = file.file_path.startsWith("http")
           ? file.file_path
           : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/complaint-attachments/${file.file_path}`;
@@ -146,84 +160,87 @@ function GalleryGrid({
         return (
           <Dialog key={file.id}>
             <DialogTrigger asChild>
-              <div className="group relative aspect-square bg-slate-100 rounded-xl border border-slate-200 overflow-hidden cursor-pointer shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300">
+              <div className="group relative aspect-square glass dark:bg-dark-surface/50 rounded-2xl border border-primary/10 overflow-hidden cursor-pointer shadow-xl hover:border-primary/40 transition-all duration-500">
                 {isImage ? (
                   <img
                     src={fileUrl}
                     alt={file.file_name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
-                        "https://placehold.co/400x400?text=Preview+Unavailable";
+                        "https://placehold.co/400x400?text=System+Error";
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-slate-100">
-                    <FileIcon className="h-10 w-10 mb-2 text-slate-400" />
-                    <span className="text-[10px] font-bold text-slate-500 text-center truncate w-full px-2 uppercase tracking-tighter">
-                      {file.file_name.split(".").pop()} FILE
+                  <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-transparent">
+                    <FileIcon className="h-12 w-12 mb-3 text-primary/40" />
+                    <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">
+                      .{file.file_name.split(".").pop()} Protocol
                     </span>
                   </div>
                 )}
 
-                <div className="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="bg-white/90 p-2 rounded-full scale-50 group-hover:scale-100 transition-transform duration-300 shadow-xl">
-                    <Maximize2 className="h-5 w-5 text-blue-700" />
+                {/* Aurora Overlay */}
+                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-all duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[2px]">
+                  <div className="bg-background/90 dark:bg-dark-midnight/90 p-3 rounded-2xl scale-50 group-hover:scale-100 transition-all duration-500 shadow-2xl border border-primary/20">
+                    <Maximize2 className="h-5 w-5 text-primary" />
                   </div>
                 </div>
               </div>
             </DialogTrigger>
 
-            <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-transparent border-none shadow-2xl">
-              <div className="relative bg-white rounded-2xl flex flex-col max-h-[85vh]">
-                <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
+            <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-transparent border-none shadow-[0_0_50px_-12px_rgba(var(--primary-brand),0.5)]">
+              <div className="relative glass dark:bg-dark-midnight rounded-3xl flex flex-col max-h-[90vh] border border-primary/20">
+                <div className="flex justify-between items-center px-8 py-5 border-b border-primary/10 backdrop-blur-xl">
                   <div className="min-w-0">
-                    <h3 className="font-bold text-slate-900 truncate flex items-center gap-2 pr-4">
+                    <h3 className="text-sm font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
                       {file.file_name}
                     </h3>
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">
-                      File ID: {file.id.substring(0, 8)} •{" "}
-                      {new Date(file.created_at).toLocaleDateString()}
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">
+                      Evidence Hash: {file.id.substring(0, 12)} •{" "}
+                      {format(new Date(file.created_at), "PPP")}
                     </p>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-3">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 font-bold text-slate-600 hidden sm:flex"
+                      className="h-10 px-4 rounded-xl border-primary/20 font-black uppercase tracking-widest text-[10px] hover:bg-primary/5"
                       asChild
                     >
                       <a href={fileUrl} target="_blank" rel="noreferrer">
-                        <ExternalLink className="w-4 h-4 mr-2" /> Open
+                        <ExternalLink className="w-3.5 h-3.5 mr-2" /> Open
+                        Source
                       </a>
                     </Button>
                     <Button
                       size="sm"
-                      className="h-9 font-bold bg-blue-600 hover:bg-blue-700"
+                      className="h-10 px-4 rounded-xl bg-primary hover:bg-primary-brand-light font-black uppercase tracking-widest text-[10px] shadow-lg accent-glow"
                       asChild
                     >
                       <a href={fileUrl} download={file.file_name}>
-                        <Download className="w-4 h-4 mr-2" /> Download
+                        <Download className="w-3.5 h-3.5 mr-2" /> Extract File
                       </a>
                     </Button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-auto bg-slate-50 flex items-center justify-center p-8">
+                <div className="flex-1 overflow-auto bg-primary/5 dark:bg-dark-midnight/20 flex items-center justify-center p-10">
                   {isImage ? (
                     <img
                       src={fileUrl}
                       alt={file.file_name}
-                      className="max-w-full max-h-[60vh] object-contain shadow-2xl rounded-lg"
+                      className="max-w-full max-h-[65vh] object-contain shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl border border-primary/10 transition-colors-smooth"
                     />
                   ) : (
-                    <div className="text-center p-12 bg-white rounded-2xl shadow-sm border border-slate-100 max-w-sm">
-                      <FileIcon className="h-24 w-24 mx-auto text-slate-100 mb-6" />
-                      <p className="text-slate-700 font-bold">
-                        Preview Unsupported
+                    <div className="text-center p-16 glass dark:bg-dark-surface-elevated rounded-[40px] border border-primary/10 max-w-sm shadow-2xl">
+                      <FileIcon className="h-24 w-24 mx-auto text-primary/10 mb-8" />
+                      <p className="text-foreground font-black uppercase tracking-widest text-xs">
+                        Binary Data Preview
                       </p>
-                      <p className="text-slate-400 text-sm mt-2 leading-relaxed">
-                        This file format cannot be rendered in the dashboard.
-                        Please download the file to view its contents.
+                      <p className="text-muted-foreground text-[10px] mt-4 leading-relaxed font-bold uppercase tracking-tighter">
+                        Preview generation is not supported for this protocol.
+                        Please extract the asset to local storage for analysis.
                       </p>
                     </div>
                   )}
