@@ -4,27 +4,23 @@ import { useState, useEffect } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
-
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 
 import { complaintsService } from "@/lib/supabase/queries/complaints";
 import { getCategoryIcon, formatCategoryName } from "./category-helpers";
 
-type Category = { id: string; name: string; };
-type CategoryStepProps = { categories: Category[]; };
+type Category = { id: string; name: string };
+type CategoryStepProps = { categories: Category[] };
 
 export function CategoryStep({ categories }: CategoryStepProps) {
-  const { control, watch, setValue, formState: { errors } } = useFormContext();
+  const {
+    control,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
   const [subcategories, setSubcategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
   const watchedCategory = watch("category_id");
 
   useEffect(() => {
@@ -32,30 +28,51 @@ export function CategoryStep({ categories }: CategoryStepProps) {
       setSubcategories([]);
       return;
     }
+
     const loadSubs = async () => {
+      setLoading(true);
+      const loadingToast = toast.loading("Loading subcategories...");
       try {
         const subs = await complaintsService.getSubcategories(watchedCategory);
         setSubcategories(subs || []);
+        if (subs && subs.length > 0) {
+          toast.success(`Found ${subs.length} subcategories`, {
+            id: loadingToast,
+          });
+        } else {
+          toast.dismiss(loadingToast);
+        }
       } catch (err) {
-        toast.error("Failed to load subcategories");
+        toast.error("Failed to load subcategories", { id: loadingToast });
+      } finally {
+        setLoading(false);
       }
     };
     loadSubs();
   }, [watchedCategory]);
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Category Selection */}
-      <div className="space-y-6">
-        <Label required variant="stone" className="text-xl font-black text-[rgb(var(--text-ink))]">
-          What type of issue are you reporting?
-        </Label>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-1">
+          Select Issue Category
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Choose the category that best describes your complaint
+        </p>
+      </div>
+
+      {/* Category Grid */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-3">
+          Category <span className="text-destructive">*</span>
+        </label>
 
         <Controller
           name="category_id"
           control={control}
           render={({ field }) => (
-            <div role="radiogroup" className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {categories.map((category) => {
                 const isSelected = field.value === category.id;
                 return (
@@ -65,33 +82,30 @@ export function CategoryStep({ categories }: CategoryStepProps) {
                     onClick={() => {
                       field.onChange(category.id);
                       setValue("subcategory_id", "");
+                      toast.success(
+                        `Selected: ${formatCategoryName(category.name)}`
+                      );
                     }}
-                    className={`group relative flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-300 outline-none ring-offset-2 focus:ring-2 focus:ring-[rgb(var(--primary-brand))] ${
+                    className={`relative p-4 rounded-lg border-2 transition-all ${
                       isSelected
-                        ? "bg-[rgb(var(--primary-brand))]/5 border-2 border-[rgb(var(--primary-brand))] elevation-3 scale-[1.02]"
-                        : "bg-white border-2 border-[rgb(var(--neutral-stone-200))] hover:border-[rgb(var(--primary-brand))]/30 elevation-1"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50 bg-card"
                     }`}
                   >
                     {isSelected && (
-                      <motion.div 
-                        layoutId="activeCheck"
-                        className="absolute top-3 right-3 text-[rgb(var(--primary-brand))]"
+                      <motion.div
+                        layoutId="categoryCheck"
+                        className="absolute top-2 right-2"
                       >
-                        <CheckCircle2 className="h-6 w-6 fill-current text-white stroke-[rgb(var(--primary-brand))]" />
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
                       </motion.div>
                     )}
-                    
-                    <div className={`mb-4 p-4 rounded-xl transition-all duration-300 ${
-                      isSelected ? "bg-white elevation-2" : "bg-[rgb(var(--neutral-stone-50))] group-hover:scale-110"
-                    }`}>
-                      <div className={isSelected ? "text-[rgb(var(--primary-brand))]" : "text-[rgb(var(--neutral-stone-500))]"}>
-                        {getCategoryIcon(category.name)}
-                      </div>
+
+                    <div className="mb-2 text-2xl">
+                      {getCategoryIcon(category.name)}
                     </div>
 
-                    <span className={`font-bold text-sm text-center leading-tight tracking-tight uppercase ${
-                      isSelected ? "text-[rgb(var(--primary-brand))]" : "text-[rgb(var(--neutral-stone-600))]"
-                    }`}>
+                    <span className="font-medium text-sm text-foreground block text-left">
                       {formatCategoryName(category.name)}
                     </span>
                   </button>
@@ -100,58 +114,87 @@ export function CategoryStep({ categories }: CategoryStepProps) {
             </div>
           )}
         />
+
         {errors.category_id && (
-          <p className="text-sm text-[rgb(var(--error-red))] flex items-center gap-1.5 mt-2 font-medium">
-            <AlertCircle className="h-4 w-4" /> {errors.category_id.message as string}
-          </p>
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mt-2 flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md"
+          >
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>{errors.category_id.message as string}</span>
+          </motion.div>
         )}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      {/* Subcategory & Title Row */}
+      <div className="grid md:grid-cols-2 gap-4">
         {/* Subcategory */}
         {subcategories.length > 0 && (
-          <div className="space-y-3 animate-in fade-in slide-in-from-left-2">
-            <Label variant="stone" className="font-bold">Specific Issue Type</Label>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Specific Type
+            </label>
             <Controller
               name="subcategory_id"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value || ""}>
-                  <SelectTrigger className="h-12 bg-white border-[rgb(var(--neutral-stone-200))] rounded-xl elevation-1">
-                    <SelectValue placeholder="Select specific detail..." />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl elevation-4 border-[rgb(var(--neutral-stone-200))]">
-                    {subcategories.map((sub) => (
-                      <SelectItem key={sub.id} value={sub.id} className="focus:bg-[rgb(var(--primary-brand))]/5">
-                        {sub.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  {...field}
+                  value={field.value || ""}
+                  disabled={loading}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    if (e.target.value) {
+                      const subName = subcategories.find(
+                        (s) => s.id === e.target.value
+                      )?.name;
+                      toast.success(`Selected: ${subName}`);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+                >
+                  <option value="">Choose type...</option>
+                  {subcategories.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
               )}
             />
-          </div>
+          </motion.div>
         )}
 
         {/* Title */}
-        <div className="space-y-3">
-          <Label required variant="stone" className="font-bold">Report Title</Label>
+        <div className={subcategories.length === 0 ? "md:col-span-2" : ""}>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Brief Title <span className="text-destructive">*</span>
+          </label>
           <Controller
             name="title"
             control={control}
             render={({ field }) => (
-              <Input
+              <input
                 {...field}
-                variant="stone"
-                placeholder="e.g. Broken Streetlight on Main St."
-                className="h-12 font-medium"
+                type="text"
+                placeholder="e.g., Broken streetlight on Main Road"
+                className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             )}
           />
           {errors.title && (
-            <p className="text-sm text-[rgb(var(--error-red))] flex items-center gap-1.5 mt-1">
-              <AlertCircle className="h-4 w-4" /> {errors.title.message as string}
-            </p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-1.5 flex items-center gap-1.5 text-xs text-destructive"
+            >
+              <AlertCircle className="h-3 w-3" />
+              {errors.title.message as string}
+            </motion.p>
           )}
         </div>
       </div>

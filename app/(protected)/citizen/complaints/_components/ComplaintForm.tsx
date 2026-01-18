@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Loader2, CheckCircle2 } from "lucide-react";
+import { ChevronRight, ChevronLeft, Send, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Schema and Types
@@ -17,10 +15,10 @@ import type {
 } from "@/lib/supabase/queries/complaints";
 
 // Step Components
+import { CategoryStep } from "./form-steps/CategoryStep";
 import { LocationStep } from "./form-steps/LocationStep";
 import { DetailsStep } from "./form-steps/DetailsStep";
 import { ReviewStep } from "./form-steps/ReviewStep";
-import { CategoryStep } from "./form-steps/CategoryStep";
 
 interface ComplaintFormProps {
   categories: ComplaintCategory[];
@@ -29,10 +27,10 @@ interface ComplaintFormProps {
 }
 
 const STEPS = [
-  { id: 1, title: "Category", description: "Nature of issue" },
-  { id: 2, title: "Location", description: "Where it happened" },
-  { id: 3, title: "Details", description: "Evidence & context" },
-  { id: 4, title: "Review", description: "Final check" },
+  { id: 0, label: "Category", desc: "Type of issue" },
+  { id: 1, label: "Location", desc: "Where is it" },
+  { id: 2, label: "Details", desc: "More info" },
+  { id: 3, label: "Review", desc: "Final check" }
 ];
 
 export default function ComplaintForm({
@@ -40,7 +38,7 @@ export default function ComplaintForm({
   wards,
   onSubmit,
 }: ComplaintFormProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -62,37 +60,50 @@ export default function ComplaintForm({
 
   const nextStep = async () => {
     let fields: any = [];
-    if (currentStep === 1) fields = ["category_id", "title"];
-    if (currentStep === 2) fields = ["ward_id", "address_text"];
-    if (currentStep === 3) fields = ["description"];
+    if (currentStep === 0) fields = ["category_id", "title"];
+    if (currentStep === 1) fields = ["ward_id", "address_text"];
+    if (currentStep === 2) fields = ["description"];
 
     const isValid = await methods.trigger(fields);
 
     if (isValid) {
-      setCurrentStep((prev) => Math.min(prev + 1, 4));
+      setCurrentStep((prev) => Math.min(prev + 1, 3));
       window.scrollTo({ top: 0, behavior: "smooth" });
+      toast.success(`Step ${currentStep + 1} completed`);
     } else {
-      toast.error("Required fields missing", {
-        description: "Please complete the current section to proceed.",
-      });
+      toast.error("Please fill all required fields");
     }
   };
 
   const prevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const jumpToStep = (step: number) => {
-    if (step < currentStep) setCurrentStep(step);
+    if (step < currentStep) {
+      setCurrentStep(step);
+      toast.info(`Jumped to ${STEPS[step].label}`);
+    }
   };
 
-  const handleFormSubmit = async (data: FormData) => {
+  const handleFormSubmit = async () => {
+    const isValid = await methods.trigger();
+    if (!isValid) {
+      toast.error("Please complete all required fields");
+      return;
+    }
+
+    const data = methods.getValues();
     setIsSubmitting(true);
+    
+    const submitToast = toast.loading("Submitting your report...");
+    
     try {
       await onSubmit({ ...data, source: "web" }, attachments);
+      toast.success("Report submitted successfully!", { id: submitToast });
     } catch (e: any) {
-      toast.error("Submission failed", { description: e.message });
+      toast.error(e.message || "Submission failed", { id: submitToast });
     } finally {
       setIsSubmitting(false);
     }
@@ -100,159 +111,167 @@ export default function ComplaintForm({
 
   return (
     <FormProvider {...methods}>
-      <form
-        onSubmit={methods.handleSubmit(handleFormSubmit)}
-        className="w-full"
-      >
-        {/* Progress Stepper - Machhapuchhre Modern Style */}
-        <div className="mb-12 hidden md:flex justify-between relative px-10">
-          <div className="absolute top-[18px] left-10 right-10 h-1 bg-[rgb(var(--neutral-stone-200))] -z-10 rounded-full" />
-          <motion.div
-            className="absolute top-[18px] left-10 h-1 bg-[rgb(var(--primary-brand))] -z-10 rounded-full"
-            initial={false}
-            animate={{ width: `calc(${((currentStep - 1) / 3) * 100}% - 20px)` }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          />
+      <div className="min-h-screen bg-background py-8 px-4">
+        <div className="max-w-5xl mx-auto">
           
-          {STEPS.map((step) => {
-            const isActive = currentStep >= step.id;
-            const isCurrent = currentStep === step.id;
-            return (
-              <div key={step.id} className="flex flex-col items-center group cursor-default">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+              Submit Complaint
+            </h1>
+            <p className="text-muted-foreground">
+              Report civic issues to your local government
+            </p>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="mb-10">
+            <div className="flex items-center justify-between relative max-w-2xl mx-auto">
+              {/* Progress Line */}
+              <div className="absolute top-5 left-0 right-0 h-0.5 bg-border -z-10" />
+              <motion.div 
+                className="absolute top-5 left-0 h-0.5 bg-primary -z-10"
+                initial={false}
+                animate={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+              />
+              
+              {STEPS.map((step, index) => {
+                const isActive = index <= currentStep;
+                const isCurrent = index === currentStep;
+                
+                return (
+                  <div key={step.id} className="flex flex-col items-center">
+                    <motion.div
+                      initial={false}
+                      animate={{ 
+                        scale: isCurrent ? 1.1 : 1,
+                        backgroundColor: isActive 
+                          ? "hsl(var(--primary))" 
+                          : "hsl(var(--background))"
+                      }}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
+                        isActive 
+                          ? "border-primary shadow-md" 
+                          : "border-border"
+                      }`}
+                    >
+                      {isActive && !isCurrent ? (
+                        <Check className="w-5 h-5 text-primary-foreground" />
+                      ) : (
+                        <span className={`font-semibold text-sm ${
+                          isActive ? "text-primary-foreground" : "text-muted-foreground"
+                        }`}>
+                          {index + 1}
+                        </span>
+                      )}
+                    </motion.div>
+                    <div className="mt-2 text-center hidden sm:block">
+                      <p className={`text-xs font-semibold ${
+                        isActive ? "text-foreground" : "text-muted-foreground"
+                      }`}>
+                        {step.label}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {step.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Main Card */}
+          <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
+            
+            {/* Content Area */}
+            <div className="p-6 md:p-8 min-h-[500px]">
+              <AnimatePresence mode="wait">
                 <motion.div
-                  initial={false}
-                  animate={{
-                    backgroundColor: isActive ? "rgb(var(--primary-brand))" : "rgb(255, 255, 255)",
-                    borderColor: isActive ? "rgb(var(--primary-brand))" : "rgb(var(--neutral-stone-300))",
-                    scale: isCurrent ? 1.2 : 1,
-                  }}
-                  className={`h-10 w-10 rounded-xl border-2 flex items-center justify-center font-bold text-sm transition-all elevation-${isCurrent ? '3' : '1'}`}
+                  key={currentStep}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  {isActive && !isCurrent ? (
-                    <CheckCircle2 className="h-6 w-6 text-white" />
-                  ) : (
-                    <span className={isActive ? "text-white" : "text-[rgb(var(--neutral-stone-400))]"}>
-                      {step.id}
-                    </span>
+                  {currentStep === 0 && <CategoryStep categories={categories} />}
+                  {currentStep === 1 && <LocationStep wards={wards} />}
+                  {currentStep === 2 && (
+                    <DetailsStep
+                      attachments={attachments}
+                      setAttachments={setAttachments}
+                      previews={previews}
+                      setPreviews={setPreviews}
+                    />
+                  )}
+                  {currentStep === 3 && (
+                    <ReviewStep
+                      categories={categories}
+                      wards={wards}
+                      previews={previews}
+                      jumpToStep={jumpToStep}
+                      attachments={attachments}
+                    />
                   )}
                 </motion.div>
-                <div className="mt-3 text-center">
-                  <p className={`text-[10px] font-bold uppercase tracking-tighter ${isActive ? "text-[rgb(var(--primary-brand))]" : "text-[rgb(var(--neutral-stone-400))]"}`}>
-                    {step.title}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Form Container - Stone Card */}
-        <div className="stone-card elevation-4 bg-white overflow-hidden border-none">
-          <CardHeader className="card-padding border-b border-[rgb(var(--neutral-stone-100))] bg-[rgb(var(--neutral-stone-50))]/50">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <CardTitle className="text-3xl font-black text-[rgb(var(--text-ink))]">
-                  {STEPS[currentStep - 1].title}
-                </CardTitle>
-                <p className="text-[rgb(var(--neutral-stone-500))] font-medium">
-                  {currentStep === 1 && "Select a category and provide a brief title."}
-                  {currentStep === 2 && "Pin the location or select your ward."}
-                  {currentStep === 3 && "Add a description and upload supporting photos."}
-                  {currentStep === 4 && "Check everything before sending to city hall."}
-                </p>
-              </div>
-              <div className="glass px-4 py-2 rounded-xl border-[rgb(var(--primary-brand))]/10">
-                <span className="text-sm font-bold text-[rgb(var(--primary-brand))]">
-                  Step {currentStep} of 4
-                </span>
-              </div>
+              </AnimatePresence>
             </div>
-          </CardHeader>
 
-          <CardContent className="card-padding min-h-[450px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.3 }}
+            {/* Footer Navigation */}
+            <div className="bg-muted/30 border-t border-border px-6 md:px-8 py-4 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={prevStep}
+                disabled={currentStep === 0 || isSubmitting}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent hover:text-accent-foreground"
               >
-                {currentStep === 1 && <CategoryStep categories={categories} />}
-                {currentStep === 2 && <LocationStep wards={wards} />}
-                {currentStep === 3 && (
-                  <DetailsStep
-                    attachments={attachments}
-                    setAttachments={setAttachments}
-                    previews={previews}
-                    setPreviews={setPreviews}
-                  />
-                )}
-                {currentStep === 4 && (
-                  <ReviewStep
-                    categories={categories}
-                    wards={wards}
-                    previews={previews}
-                    jumpToStep={jumpToStep}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </CardContent>
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Previous</span>
+              </button>
 
-          {/* Footer Navigation */}
-          <div className="card-padding border-t border-[rgb(var(--neutral-stone-100))] flex justify-between items-center bg-[rgb(var(--neutral-stone-50))]/30">
-            <div>
-              {currentStep > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={prevStep}
-                  disabled={isSubmitting}
-                  className="h-12 px-6 rounded-xl font-bold text-[rgb(var(--neutral-stone-600))] hover:bg-[rgb(var(--neutral-stone-100))]"
-                >
-                  <ChevronLeft className="mr-2 h-5 w-5" /> Previous
-                </Button>
-              )}
-            </div>
+              <div className="text-xs text-muted-foreground sm:hidden">
+                Step {currentStep + 1} of {STEPS.length}
+              </div>
 
-            <div className="flex gap-3">
-              {currentStep < 4 ? (
-                <Button
+              {currentStep < 3 ? (
+                <button
                   type="button"
                   onClick={nextStep}
-                  className="h-12 px-8 rounded-xl bg-[rgb(var(--primary-brand))] hover:bg-[rgb(var(--primary-brand-light))] text-white font-bold elevation-2 transition-all hover:elevation-3"
+                  className="inline-flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
                 >
-                  Next Step <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
+                  <span>Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               ) : (
-                <Button
-                  type="submit"
+                <button
+                  type="button"
+                  onClick={handleFormSubmit}
                   disabled={isSubmitting}
-                  className="h-12 px-10 rounded-xl bg-[rgb(var(--success-green))] hover:bg-[rgb(var(--success-green))]/90 text-white font-bold elevation-3 transition-all hover:scale-[1.02]"
+                  className="inline-flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Submitting...</span>
                     </>
                   ) : (
                     <>
-                      Submit Report <CheckCircle2 className="ml-2 h-5 w-5" />
+                      <Send className="w-4 h-4" />
+                      <span>Submit</span>
                     </>
                   )}
-                </Button>
+                </button>
               )}
             </div>
           </div>
+
+          {/* Footer Info */}
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            🔒 Your information is secure and will be reviewed by government officials
+          </p>
         </div>
-        
-        {/* Support Note */}
-        <div className="mt-6 flex items-center justify-center gap-2 text-[rgb(var(--neutral-stone-400))] text-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--accent-nature))]" />
-          Your IP and location are secured with end-to-end encryption.
-        </div>
-      </form>
+      </div>
     </FormProvider>
   );
 }
