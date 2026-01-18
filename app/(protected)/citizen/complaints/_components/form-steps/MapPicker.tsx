@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -12,14 +12,18 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 // Fix for missing default Leaflet marker icons in Next.js
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+const createIcon = () => {
+  if (typeof window === "undefined") return null;
+
+  return L.icon({
+    iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+    iconRetinaUrl:
+      "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+  });
+};
 
 // Accurate Center Points for Pokhara Metropolitan City Wards (1-33)
 const POKHARA_WARD_CENTERS: Record<number, [number, number]> = {
@@ -74,7 +78,7 @@ function MapController({
       const [lat, lng] = POKHARA_WARD_CENTERS[selectedWard];
       // Fly to the specific Ward coordinates with high zoom for precision
       map.flyTo([lat, lng], 16, {
-        duration: 2.0, // Smooth 2-second flight
+        duration: 2.0,
         easeLinearity: 0.25,
       });
     }
@@ -105,6 +109,17 @@ export default function MapPicker({
     lat: number;
     lng: number;
   } | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const [icon, setIcon] = useState<L.Icon | null>(null);
+
+  // Ensure component is mounted on client side
+  useEffect(() => {
+    setIsMounted(true);
+    const newIcon = createIcon();
+    if (newIcon) {
+      setIcon(newIcon);
+    }
+  }, []);
 
   const handleSelect = (loc: { lat: number; lng: number }) => {
     setMarkerPos(loc);
@@ -114,12 +129,22 @@ export default function MapPicker({
   // Initial Center: Pokhara Core Area
   const defaultCenter: [number, number] = [28.2096, 83.9856];
 
+  // Don't render until mounted on client
+  if (!isMounted || !icon) {
+    return (
+      <div className="h-full w-full bg-muted animate-pulse rounded-md flex items-center justify-center">
+        <span className="text-sm text-muted-foreground">Loading map...</span>
+      </div>
+    );
+  }
+
   return (
     <MapContainer
       center={defaultCenter}
       zoom={13}
       style={{ height: "100%", width: "100%" }}
-      scrollWheelZoom={true} // Allow zooming for precision
+      scrollWheelZoom={true}
+      className="z-0"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
