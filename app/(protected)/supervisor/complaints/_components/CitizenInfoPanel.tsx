@@ -9,9 +9,13 @@ import {
   MessageSquare,
   History,
   Fingerprint,
+  Copy,
+  CheckCircle2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface CitizenInfoPanelProps {
   citizen: any;
@@ -22,28 +26,36 @@ export function CitizenInfoPanel({
   citizen,
   isAnonymous,
 }: CitizenInfoPanelProps) {
-  // 1. Fix Hydration: State to track if component is mounted
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+  };
+
+  if (!mounted) return <div className="stone-card h-[380px] animate-pulse bg-neutral-stone-100" />;
+
   /* ═══════════════════════════════════════════════════════════
-     ANONYMOUS STATE (Glass Context)
+      ANONYMOUS STATE (Glass Context)
      ═══════════════════════════════════════════════════════════ */
   if (isAnonymous) {
     return (
-      <div className="glass-strong border-white/40 p-8 text-center rounded-[var(--radius)] elevation-2">
-        <div className="w-16 h-16 bg-white/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white shadow-inner">
-          <Fingerprint className="w-8 h-8 text-highlight-tech" />
+      <div className="glass-strong border-white/40 p-10 text-center rounded-3xl elevation-3 relative overflow-hidden group">
+        {/* Subtle background tech pattern */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
+        
+        <div className="w-20 h-20 bg-white/60 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white shadow-xl transition-transform group-hover:scale-110 duration-500">
+          <Fingerprint className="w-10 h-10 text-highlight-tech" />
         </div>
-        <h4 className="font-sans font-bold text-text-ink tracking-tight text-lg">
+        <h4 className="font-sans font-black text-text-ink tracking-tight text-xl uppercase">
           Identity Redacted
         </h4>
-        <p className="text-xs text-neutral-stone-600 mt-2 leading-relaxed max-w-[220px] mx-auto">
-          The reporter has chosen to remain anonymous for this case. Contact
-          details and profile data are restricted.
+        <p className="text-[11px] text-neutral-stone-500 mt-3 leading-relaxed max-w-[240px] mx-auto font-medium">
+          PROTOCOL 403: The reporter has opted for anonymity. Personal identifiers and metadata are locked by the security layer.
         </p>
       </div>
     );
@@ -54,98 +66,100 @@ export function CitizenInfoPanel({
   const displayPhone = citizen?.phone || "No phone";
   const hasContact = !!(citizen?.email || citizen?.phone);
 
-  // 2. Fix Hydration: Derive a STABLE ID from citizen data instead of Math.random()
   const citizenShortId = citizen?.id
     ? citizen.id.toString().substring(0, 6).toUpperCase()
-    : "STABLE-ID";
+    : "GUEST";
 
   /* ═══════════════════════════════════════════════════════════
-     VERIFIED STATE (Stone Foundation)
+      VERIFIED STATE (Stone Foundation)
      ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="stone-card overflow-hidden transition-all duration-300 hover:border-primary-brand/30">
-      {/* Header Section */}
-      <div className="px-6 py-4 bg-neutral-stone-50 border-b border-neutral-stone-200 flex items-center justify-between">
+    <div className="stone-card overflow-hidden border-none shadow-xl transition-all duration-500 hover:shadow-2xl ring-1 ring-black/5">
+      {/* Header with Integrated Verification */}
+      <div className="px-6 py-4 bg-neutral-stone-50/80 backdrop-blur-md border-b border-neutral-stone-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-primary-brand" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-neutral-stone-600">
-            Citizen Profile
+          <div className="w-2 h-2 rounded-full bg-success-green animate-pulse" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-stone-500">
+            Citizen Node
           </span>
         </div>
-        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-success-green/10 text-success-green rounded-full border border-success-green/20">
-          <Shield className="w-3 h-3" />
-          <span className="text-[9px] font-bold uppercase">Verified</span>
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-success-green/10 text-success-green rounded-full border border-success-green/20 shadow-sm">
+          <CheckCircle2 className="w-3 h-3" />
+          <span className="text-[9px] font-black uppercase tracking-tighter">Verified Identity</span>
         </div>
       </div>
 
-      {/* Profile Bio */}
-      <div className="p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Avatar className="h-14 w-14 border-2 border-white shadow-md elevation-2">
-            <AvatarImage src={citizen?.avatar_url} />
-            <AvatarFallback className="bg-primary-brand text-white font-bold text-lg">
-              {displayName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+      <div className="p-7">
+        {/* Profile Card */}
+        <div className="flex items-center gap-5 mb-8">
+          <div className="relative group">
+            <Avatar className="h-16 w-16 border-4 border-white shadow-xl transition-transform group-hover:scale-105 duration-300">
+              <AvatarImage src={citizen?.avatar_url} />
+              <AvatarFallback className="bg-primary-brand text-white font-black text-2xl">
+                {displayName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md border border-neutral-stone-100">
+              <Shield className="w-3.5 h-3.5 text-primary-brand" />
+            </div>
+          </div>
+          
           <div className="flex-1 min-w-0">
-            <h4 className="font-sans font-bold text-text-ink truncate text-base tracking-tight">
+            <h4 className="font-sans font-black text-text-ink truncate text-lg tracking-tight leading-none mb-1">
               {displayName}
             </h4>
-            {/* 3. Fix Hydration: Use the stable derived ID */}
-            <p className="text-[10px] text-neutral-stone-500 font-mono font-bold uppercase tracking-tighter">
-              ID: POKR-{citizenShortId}
-            </p>
+            <div className="flex items-center gap-2">
+                <span className="text-[9px] bg-neutral-stone-100 px-2 py-0.5 rounded font-mono font-bold text-neutral-stone-500">
+                    POKR-{citizenShortId}
+                </span>
+            </div>
           </div>
         </div>
 
-        {/* Contact Information */}
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center gap-3 p-3 bg-neutral-stone-50 rounded-xl border border-neutral-stone-200/60 group hover:bg-white hover:border-accent-nature transition-all">
-            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary-brand border border-neutral-stone-200 group-hover:text-accent-nature">
-              <Mail className="w-4 h-4" />
+        {/* Contact Information with Copy Actions */}
+        <div className="space-y-3 mb-8">
+          {[
+            { icon: Mail, label: "Primary Email", value: displayEmail, key: "Email" },
+            { icon: Phone, label: "Contact Number", value: displayPhone, key: "Phone" }
+          ].map((item) => (
+            <div 
+              key={item.key}
+              onClick={() => copyToClipboard(item.value, item.key)}
+              className="flex items-center gap-4 p-4 bg-neutral-stone-50 rounded-2xl border border-neutral-stone-200/50 cursor-pointer hover:bg-white hover:border-primary-brand/30 hover:shadow-md transition-all group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-neutral-stone-400 border border-neutral-stone-200 group-hover:text-primary-brand transition-colors">
+                <item.icon className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[9px] text-neutral-stone-400 font-black uppercase tracking-widest mb-0.5">
+                  {item.label}
+                </p>
+                <p className="text-xs font-bold text-text-ink truncate">
+                  {item.value}
+                </p>
+              </div>
+              <Copy className="w-3.5 h-3.5 text-neutral-stone-300 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[9px] text-neutral-stone-400 font-black uppercase tracking-tighter">
-                Primary Email
-              </p>
-              <p className="text-xs font-semibold text-text-ink truncate">
-                {displayEmail}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 bg-neutral-stone-50 rounded-xl border border-neutral-stone-200/60 group hover:bg-white hover:border-accent-nature transition-all">
-            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary-brand border border-neutral-stone-200 group-hover:text-accent-nature">
-              <Phone className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[9px] text-neutral-stone-400 font-black uppercase tracking-tighter">
-                Contact Number
-              </p>
-              <p className="text-xs font-semibold text-text-ink">
-                {displayPhone}
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Action Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Button
-            size="sm"
-            className="w-full text-[11px] font-bold h-10 bg-primary-brand hover:bg-primary-brand-light text-white rounded-xl elevation-2 transition-transform active:scale-95"
+            size="lg"
+            className="w-full text-[11px] font-black uppercase tracking-widest h-12 bg-primary-brand hover:bg-primary-brand-light text-white rounded-2xl shadow-lg transition-all active:scale-95 disabled:opacity-50"
             disabled={!hasContact}
           >
-            <MessageSquare className="w-3.5 h-3.5 mr-2" />
-            Direct Msg
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Message
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            className="w-full text-[11px] font-bold h-10 border-neutral-stone-200 text-neutral-stone-600 hover:bg-neutral-stone-100 rounded-xl transition-all"
+            size="lg"
+            className="w-full text-[11px] font-black uppercase tracking-widest h-12 border-neutral-stone-200 text-neutral-stone-600 hover:bg-neutral-stone-50 rounded-2xl transition-all"
           >
-            <History className="w-3.5 h-3.5 mr-2" />
-            Logs
+            <History className="w-4 h-4 mr-2" />
+            History
           </Button>
         </div>
       </div>
