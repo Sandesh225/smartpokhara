@@ -102,10 +102,10 @@ export const supervisorComplaintsQueries = {
 
         if (jurisdictionParts.length === 0) {
           console.warn("Supervisor has no assigned jurisdiction");
-          return { 
-            data: [], 
+          return {
+            data: [],
             count: 0,
-            message: "No jurisdiction assigned. Contact administrator."
+            message: "No jurisdiction assigned. Contact administrator.",
           };
         }
 
@@ -152,9 +152,9 @@ export const supervisorComplaintsQueries = {
           ...c,
           // Flatten assigned_staff for easier access
           assigned_staff: c.assigned_staff?.profile
-            ? { 
+            ? {
                 id: c.assigned_staff.id,
-                full_name: c.assigned_staff.profile.full_name 
+                full_name: c.assigned_staff.profile.full_name,
               }
             : null,
         })),
@@ -253,7 +253,8 @@ export const supervisorComplaintsQueries = {
         assigned_staff: data.assigned_staff_user?.profile
           ? {
               id: data.assigned_staff_user.id,
-              full_name: data.assigned_staff_user.profile.full_name || "Staff Member",
+              full_name:
+                data.assigned_staff_user.profile.full_name || "Staff Member",
               avatar_url: data.assigned_staff_user.profile.profile_photo_url,
               staff_code: staffCode,
             }
@@ -388,7 +389,6 @@ export const supervisorComplaintsQueries = {
     if (error) throw error;
     return { success: true };
   },
-
   async getInternalNotes(client: SupabaseClient, complaintId: string) {
     const { data, error } = await client
       .from("internal_notes")
@@ -396,7 +396,7 @@ export const supervisorComplaintsQueries = {
         `
         *,
         author:users!internal_notes_supervisor_id_fkey(
-          profile:user_profiles(full_name)
+          profile:user_profiles(full_name, avatar_url)
         )
       `
       )
@@ -404,9 +404,18 @@ export const supervisorComplaintsQueries = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
-  },
 
+    // Transform to match the 'Note' interface in your component
+    return (data || []).map((note) => ({
+      ...note,
+      author: {
+        profile: {
+          full_name: note.author?.profile?.full_name || "Unknown Supervisor",
+          avatar_url: note.author?.profile?.avatar_url,
+        },
+      },
+    }));
+  },
   async addInternalNote(
     client: SupabaseClient,
     complaintId: string,
@@ -419,18 +428,41 @@ export const supervisorComplaintsQueries = {
     } = await client.auth.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const { error } = await client.from("internal_notes").insert({
-      complaint_id: complaintId,
-      supervisor_id: user.id,
-      content: text,
-      visibility,
-      tags,
-    });
+    const { data, error } = await client
+      .from("internal_notes")
+      .insert({
+        complaint_id: complaintId,
+        supervisor_id: user.id,
+        content: text, // Maps frontend 'text' to backend 'content'
+        visibility: visibility,
+        tags: tags,
+      })
+      .select(
+        `
+      *,
+      author:users!internal_notes_supervisor_id_fkey (
+        profile:user_profiles (
+          full_name,
+          profile_photo_url
+        )
+      )
+    `
+      )
+      .single();
 
-    if (error) throw error;
-    return { success: true };
+    if (error) {
+      console.error("Detailed Supabase Error:", error.message);
+      throw error;
+    }
+
+    // Transform to match your UI's expected 'Note' interface
+    return {
+      ...data,
+      text: data.content, // Ensure the UI gets 'text'
+      author_name: data.author?.profile?.full_name || "Unknown Supervisor",
+      author_avatar: data.author?.profile?.profile_photo_url,
+    };
   },
-
   async addComment(
     client: SupabaseClient,
     complaintId: string,
@@ -470,7 +502,7 @@ export const supervisorComplaintsQueries = {
         parts.push(
           `assigned_department_id.in.(${scope.assigned_departments.join(",")})`
         );
-      
+
       if (parts.length > 0) {
         query = query.or(parts.join(","));
       } else {
