@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { Lock, Plus, Users, Tag, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
-import { AddNoteModal } from "@/components/supervisor/modals/AddNoteModal"; // Assumed existing or generic modal
+import { AddNoteModal } from "@/components/supervisor/modals/AddNoteModal";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,14 +47,13 @@ export function InternalNotes({
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const supabase = createClient();
-
   const handleAddNote = async (
     text: string,
     tags: string[],
     visibility: string
   ) => {
     try {
-      await supervisorComplaintsQueries.addInternalNote(
+      const result = await supervisorComplaintsQueries.addInternalNote(
         supabase,
         complaintId,
         text,
@@ -62,82 +61,83 @@ export function InternalNotes({
         visibility
       );
 
-      const newNote: Note = {
-        id: Date.now().toString(),
-        text,
-        visibility,
-        tags,
-        created_at: new Date().toISOString(),
-        author: { profile: { full_name: "You" } },
+      // Transform result to match the Note interface exactly
+      const newNote = {
+        ...result,
+        text: result.content, // Map 'content' from DB to 'text' for UI
+        author: {
+          profile: {
+            full_name: result.author?.profile?.full_name || "Supervisor",
+            avatar_url: result.author?.profile?.profile_photo_url,
+          },
+        },
       };
 
-      setNotes([newNote, ...notes]);
-      toast.success("Note added successfully");
+      setNotes((prev) => [newNote, ...prev]);
+      toast.success("Note added to ledger");
     } catch (error) {
-      toast.error("Failed to add note");
+      console.error(error);
+      toast.error("Failed to sync with database");
     }
   };
-
   return (
     <>
-      <Card className="border-border/60 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-muted/30 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-muted-foreground" />
-            <CardTitle className="text-sm font-semibold">
-              Internal Notes
-            </CardTitle>
-            <Badge
-              variant="secondary"
-              className="ml-2 text-xs font-normal bg-background"
-            >
-              {notes.length}
-            </Badge>
+      <Card className="stone-card dark:stone-card-elevated border-none shadow-xl overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 bg-primary/5 dark:bg-dark-surface/40 px-6 py-4 border-b border-primary/10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+              <Lock className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground">
+                Internal Ledger
+              </CardTitle>
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-tighter">
+                Supervisory Observations
+              </p>
+            </div>
           </div>
           <Button
             onClick={() => setIsModalOpen(true)}
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="h-7 text-xs hover:bg-background"
+            className="h-9 text-xs font-bold uppercase tracking-wider border-primary/20 hover:bg-primary hover:text-white transition-all shadow-sm"
           >
-            <Plus className="w-3.5 h-3.5 mr-1" /> Add Note
+            <Plus className="w-3.5 h-3.5 mr-2" /> New Note
           </Button>
         </CardHeader>
 
         <CardContent className="p-0">
-          <ScrollArea className="h-[320px]">
-            <div className="p-4 space-y-4">
+          <ScrollArea className="h-[400px] custom-scrollbar">
+            <div className="p-6 space-y-6">
               {notes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
-                    <FileText className="w-5 h-5 text-muted-foreground/50" />
-                  </div>
-                  <p className="text-sm font-medium text-foreground">
-                    No notes yet
-                  </p>
-                  <p className="text-xs text-muted-foreground max-w-[200px]">
-                    Private notes are only visible to staff and supervisors.
+                <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
+                  <FileText className="w-12 h-12 text-primary/30 mb-4" />
+                  <p className="text-sm font-black uppercase tracking-widest text-foreground">
+                    No records found
                   </p>
                 </div>
               ) : (
                 notes.map((note) => (
                   <div
                     key={note.id}
-                    className="group relative pl-4 border-l-2 border-border hover:border-primary/50 transition-colors"
+                    className="group relative pl-6 border-l-2 border-border hover:border-primary transition-all"
                   >
-                    <div className="flex items-center justify-between mb-1.5">
+                    {/* Timeline Node */}
+                    <div className="absolute top-0 -left-[7px] w-3 h-3 rounded-full bg-border group-hover:bg-primary transition-colors ring-4 ring-background" />
+
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <Avatar className="h-5 w-5">
+                        <Avatar className="h-6 w-6 border border-background shadow-sm">
                           <AvatarImage src={note.author?.profile?.avatar_url} />
-                          <AvatarFallback className="text-[9px]">
+                          <AvatarFallback className="text-[10px] font-black bg-primary/10 text-primary">
                             {note.author?.profile?.full_name?.[0] || "?"}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs font-semibold text-foreground">
+                        <span className="text-xs font-black text-foreground/80 uppercase tracking-wide">
                           {note.author?.profile?.full_name}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          •{" "}
+                        <span className="text-[11px] font-bold text-muted-foreground/50">
                           {formatDistanceToNow(new Date(note.created_at), {
                             addSuffix: true,
                           })}
@@ -146,44 +146,48 @@ export function InternalNotes({
 
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger>
+                          <TooltipTrigger className="cursor-help">
                             {note.visibility === "internal_only" ? (
-                              <Lock className="w-3 h-3 text-amber-500" />
+                              <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px] uppercase font-black">
+                                <Lock className="w-2.5 h-2.5 mr-1" /> Private
+                              </Badge>
                             ) : (
-                              <Users className="w-3 h-3 text-blue-500" />
+                              <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px] uppercase font-black">
+                                <Users className="w-2.5 h-2.5 mr-1" /> Shared
+                              </Badge>
                             )}
                           </TooltipTrigger>
-                          <TooltipContent side="left" className="text-xs">
+                          <TooltipContent
+                            side="top"
+                            className="glass text-[10px] font-bold uppercase tracking-widest"
+                          >
                             {note.visibility === "internal_only"
-                              ? "Private (Staff Only)"
-                              : "Shared Visibility"}
+                              ? "Staff-Only Protocol"
+                              : "Department-Wide View"}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
 
-                    <div className="bg-muted/30 p-3 rounded-lg rounded-tl-none">
-                      <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                    <div className="glass dark:bg-dark-surface-elevated p-4 rounded-xl rounded-tl-none border border-primary/5 shadow-sm group-hover:shadow-md transition-all">
+                      <p className="text-sm text-foreground/90 font-medium leading-relaxed">
                         {note.text}
                       </p>
 
                       {note.tags && note.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-border/50">
+                        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-primary/5">
                           {note.tags.map((tag) => (
                             <Badge
                               key={tag}
                               variant="outline"
-                              className="text-[10px] py-0 h-5 border-border/60 text-muted-foreground bg-background"
+                              className="text-[10px] font-black uppercase py-0.5 border-primary/10 text-muted-foreground bg-background/50"
                             >
-                              <Tag className="w-2.5 h-2.5 mr-1" />
-                              {tag}
+                              <Tag className="w-2.5 h-2.5 mr-1" /> {tag}
                             </Badge>
                           ))}
                         </div>
                       )}
                     </div>
-
-                    <div className="absolute top-0 -left-[5px] w-2.5 h-2.5 rounded-full bg-border group-hover:bg-primary transition-colors ring-4 ring-background" />
                   </div>
                 ))
               )}
