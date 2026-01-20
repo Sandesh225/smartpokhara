@@ -1,4 +1,4 @@
-// app/(protected)/admin/layout.tsx - UPDATED
+// app/(protected)/admin/layout.tsx
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
@@ -24,10 +24,16 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <AdminNavigation />
-      <main className="pl-60 pt-6">
-        <div className="p-6">{children}</div>
+      {/* 
+        Responsive layout:
+        - Mobile: pt-14 (below mobile header), no left padding
+        - md: md:pl-56 (sidebar width)
+        - lg: lg:pl-64 (larger sidebar width)
+      */}
+      <main className="pt-14 md:pt-0 md:pl-56 lg:pl-64 min-h-screen">
+        <div className="w-full max-w-[1600px] mx-auto">{children}</div>
       </main>
     </div>
   );
