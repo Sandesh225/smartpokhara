@@ -1,7 +1,10 @@
+// ═══════════════════════════════════════════════════════════
+// STAFF DIRECTORY PAGE - Main List
+// ═══════════════════════════════════════════════════════════
+
 "use client";
 
 import { useStaffManagement } from "@/hooks/admin/useStaffManagement";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,7 +37,6 @@ export default function StaffDirectoryPage() {
     useStaffManagement();
   const router = useRouter();
 
-  // Instant Client-Side Stats
   const stats = useMemo(
     () => ({
       total: staffList.length,
@@ -49,121 +51,132 @@ export default function StaffDirectoryPage() {
   );
 
   return (
-    <div className="space-y-8 pb-10">
-      {/* 1. Header & Quick Actions */}
+    <div className="space-y-4 md:space-y-6 lg:space-y-8 pb-8 md:pb-10 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-foreground">
             Staff Management
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Monitor real-time status, manage assignments, and oversee municipal
-            workforce.
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+            Monitor real-time status and oversee municipal workforce
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" asChild className="border-slate-300">
+
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          <Button variant="outline" asChild size="sm" className="h-9">
             <Link href="/admin/staff/roles">
-              <Shield className="mr-2 h-4 w-4" /> Manage Roles
+              <Shield className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Manage Roles</span>
+              <span className="sm:hidden">Roles</span>
             </Link>
           </Button>
-          <Button
-            asChild
-            className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20"
-          >
+          <Button asChild size="sm" className="h-9 shadow-sm">
             <Link href="/admin/staff/create">
-              <UserPlus className="mr-2 h-4 w-4" /> Add Staff Member
+              <UserPlus className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Add Staff</span>
+              <span className="sm:hidden">Add</span>
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* 2. Navigation Tabs */}
-      <div className="border-b border-slate-200">
-        <Tabs defaultValue="directory" className="w-full">
-          <TabsList className="bg-transparent p-0 h-auto space-x-8">
+      {/* TABS - Horizontal scroll on mobile */}
+      <div className="border-b border-border overflow-x-auto scrollbar-hide">
+        <Tabs defaultValue="directory" className="w-full min-w-max md:min-w-0">
+          <TabsList className="bg-transparent p-0 h-auto space-x-4 md:space-x-8">
             <TabsTrigger
               value="directory"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:shadow-none rounded-none px-1 py-3 bg-transparent font-medium"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-1 py-3 bg-transparent text-sm font-bold"
             >
-              <Users className="w-4 h-4 mr-2" /> Directory
+              <Users className="w-4 h-4 mr-2" />
+              <span>Directory</span>
             </TabsTrigger>
             <TabsTrigger
               value="performance"
               onClick={() => router.push("/admin/staff/performance")}
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-1 py-3 bg-transparent text-slate-500 hover:text-slate-900"
+              className="rounded-none px-1 py-3 bg-transparent text-muted-foreground hover:text-foreground text-sm font-bold"
             >
-              <BarChart3 className="w-4 h-4 mr-2" /> Performance
+              <BarChart3 className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Performance</span>
+              <span className="sm:hidden">Perf</span>
             </TabsTrigger>
             <TabsTrigger
               value="roles"
               onClick={() => router.push("/admin/staff/roles")}
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none px-1 py-3 bg-transparent text-slate-500 hover:text-slate-900"
+              className="rounded-none px-1 py-3 bg-transparent text-muted-foreground hover:text-foreground text-sm font-bold"
             >
-              <Shield className="w-4 h-4 mr-2" /> Permissions
+              <Shield className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Permissions</span>
+              <span className="sm:hidden">Perms</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      {/* 3. Live Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* STATS GRID */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatusCard
           label="Total Staff"
           value={stats.total}
           icon={Users}
-          color="text-blue-600"
-          bg="bg-blue-50"
+          color="text-primary"
+          bg="bg-primary/10"
         />
         <StatusCard
           label="Currently Active"
           value={stats.active}
           icon={Activity}
-          color="text-emerald-600"
-          bg="bg-emerald-50"
+          color="text-success-green"
+          bg="bg-success-green/10"
         />
         <StatusCard
           label="On Break"
           value={stats.onBreak}
           icon={Briefcase}
-          color="text-amber-600"
-          bg="bg-amber-50"
+          color="text-warning-amber"
+          bg="bg-warning-amber/10"
         />
         <StatusCard
           label="High Workload"
           value={stats.highLoad}
           icon={BarChart3}
-          color="text-red-600"
-          bg="bg-red-50"
+          color="text-error-red"
+          bg="bg-error-red/10"
         />
       </div>
 
-      {/* 4. Main Workspace */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Left: Filters & Table */}
+      {/* MAIN WORKSPACE */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 md:gap-6">
+        {/* FILTERS & TABLE */}
         <div className="xl:col-span-3 space-y-4">
-          <Card className="border border-slate-200 shadow-sm">
-            <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center">
+          {/* SEARCH & FILTERS */}
+          <Card className="stone-card">
+            <CardContent className="p-3 md:p-4 flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-center">
+              {/* Search */}
               <div className="relative flex-1 w-full">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search staff..."
-                  className="pl-9 bg-slate-50/50 border-slate-200 focus:bg-white transition-all"
-                  value={filters.search}
+                  className="pl-10"
+                  value={filters.search || ""}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, search: e.target.value }))
                   }
                 />
               </div>
+
+              {/* Filters */}
               <div className="flex w-full md:w-auto gap-2 items-center">
-                <Filter className="w-4 h-4 text-slate-400 hidden md:block" />
+                <Filter className="w-4 h-4 text-muted-foreground hidden md:block flex-shrink-0" />
+
                 <Select
-                  value={filters.role}
+                  value={filters.role || "all"}
                   onValueChange={(v: any) =>
                     setFilters((prev) => ({ ...prev, role: v }))
                   }
                 >
-                  <SelectTrigger className="w-full md:w-[160px] bg-white">
+                  <SelectTrigger className="w-full md:w-[140px] text-xs">
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -176,12 +189,12 @@ export default function StaffDirectoryPage() {
                 </Select>
 
                 <Select
-                  value={filters.status}
+                  value={filters.status || "active"}
                   onValueChange={(v: any) =>
                     setFilters((prev) => ({ ...prev, status: v }))
                   }
                 >
-                  <SelectTrigger className="w-full md:w-[130px] bg-white">
+                  <SelectTrigger className="w-full md:w-[120px] text-xs">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -194,6 +207,7 @@ export default function StaffDirectoryPage() {
             </CardContent>
           </Card>
 
+          {/* TABLE */}
           <StaffTable
             data={staffList}
             loading={loading}
@@ -201,23 +215,22 @@ export default function StaffDirectoryPage() {
           />
         </div>
 
-        {/* Right: Sidebar Widgets */}
-        <div className="space-y-6">
+        {/* SIDEBAR */}
+        <div className="space-y-4 md:space-y-6">
           <StaffWorkload />
 
-          <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-sm">
-            <CardContent className="p-5">
-              <h3 className="font-semibold text-indigo-900 mb-2">
+          <Card className="stone-card bg-gradient-to-br from-primary/5 to-background border-primary/20">
+            <CardContent className="p-4 md:p-5">
+              <h3 className="font-bold text-sm md:text-base text-foreground mb-2">
                 Optimize Shifts
               </h3>
-              <p className="text-xs text-indigo-600/80 mb-4 leading-relaxed">
-                View detailed performance analytics to balance workload
-                distribution effectively.
+              <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                View performance analytics to balance workload distribution
               </p>
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800"
+                className="w-full border-primary/30 text-primary hover:bg-primary/10"
                 asChild
               >
                 <Link href="/admin/staff/performance">View Analytics</Link>
@@ -232,16 +245,20 @@ export default function StaffDirectoryPage() {
 
 function StatusCard({ label, value, icon: Icon, color, bg }: any) {
   return (
-    <Card className="border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+    <Card className="stone-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
       <CardContent className="p-4 flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+          <p className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             {label}
           </p>
-          <p className="text-2xl font-bold text-slate-900 mt-0.5">{value}</p>
+          <p className="text-xl md:text-2xl font-black text-foreground mt-0.5">
+            {value}
+          </p>
         </div>
-        <div className={`p-2.5 rounded-xl ${bg}`}>
-          <Icon className={`w-5 h-5 ${color}`} />
+        <div
+          className={`p-2 md:p-2.5 rounded-lg md:rounded-xl ${bg} group-hover:scale-110 transition-transform`}
+        >
+          <Icon className={`w-4 h-4 md:w-5 md:h-5 ${color}`} />
         </div>
       </CardContent>
     </Card>
