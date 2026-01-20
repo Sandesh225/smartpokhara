@@ -7,7 +7,15 @@ import { ComplaintFilters } from "./_components/ComplaintFilters";
 import { BatchActionsToolbar } from "./_components/BatchActionsToolbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Map, Plus, Download, RefreshCw, BarChart3 } from "lucide-react";
+import {
+  Map,
+  Download,
+  RefreshCw,
+  BarChart3,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+} from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -49,114 +57,141 @@ export default function AdminComplaintsPage() {
     setSelectedIds(checked ? complaints.map((c) => c.id) : []);
   };
 
+  // Calculate stats
+  const pendingCount = complaints.filter(
+    (c) => c.status === "received" || c.status === "assigned"
+  ).length;
+  const inProgressCount = complaints.filter(
+    (c) => c.status === "in_progress"
+  ).length;
+  const resolvedCount = complaints.filter(
+    (c) => c.status === "resolved"
+  ).length;
+
   return (
-    <div className="space-y-6 pb-24">
-      {/* Enhanced Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+    <div className="space-y-4 md:space-y-6 pb-20 md:pb-24 px-2 sm:px-4 lg:px-6">
+      {/* RESPONSIVE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 pt-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tighter">
             Complaints Management
           </h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Track, manage, and resolve citizen complaints across all wards
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={refresh}
             disabled={loading}
-            className="h-9"
+            className="h-9 text-xs"
           >
             <RefreshCw
-              className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 ${loading ? "animate-spin" : ""}`}
             />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Button variant="outline" size="sm" asChild className="h-9">
+          <Button variant="outline" size="sm" asChild className="h-9 text-xs">
             <Link href="/admin/complaints/map">
-              <Map className="h-4 w-4 mr-2" />
-              Map View
+              <Map className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Map View</span>
             </Link>
           </Button>
-          <Button variant="outline" size="sm" className="h-9">
-            <Download className="h-4 w-4 mr-2" />
-            Export
+          <Button variant="outline" size="sm" className="h-9 text-xs">
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-5 bg-linear-to-br from-blue-50 to-white border-blue-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Total Complaints
-              </p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {totalCount}
-              </p>
+      {/* RESPONSIVE STATS GRID */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        {/* Total Complaints */}
+        <Card className="stone-card p-4 md:p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 md:p-2.5 bg-primary/10 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
+              <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             </div>
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
+            <div className="text-xs md:text-sm font-bold text-success-green">
+              +12%
             </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Total
+            </p>
+            <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+              {totalCount}
+            </p>
           </div>
         </Card>
 
-        <Card className="p-5 bg-linear-to-br from-amber-50 to-white border-amber-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {
-                  complaints.filter(
-                    (c) => c.status === "received" || c.status === "assigned"
-                  ).length
-                }
-              </p>
+        {/* Pending */}
+        <Card className="stone-card p-4 md:p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 md:p-2.5 bg-warning-amber/10 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
+              <Clock className="w-4 h-4 md:w-5 md:h-5 text-warning-amber" />
             </div>
-            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-              <RefreshCw className="w-6 h-6 text-amber-600" />
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-amber opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-warning-amber"></span>
             </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Pending
+            </p>
+            <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+              {pendingCount}
+            </p>
           </div>
         </Card>
 
-        <Card className="p-5 bg-linear-to-br from-purple-50 to-white border-purple-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">In Progress</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {complaints.filter((c) => c.status === "in_progress").length}
-              </p>
+        {/* In Progress */}
+        <Card className="stone-card p-4 md:p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 md:p-2.5 bg-info-blue/10 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
+              <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-info-blue" />
             </div>
-            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-              <RefreshCw
-                className="w-6 h-6 text-purple-600 animate-spin"
-                style={{ animationDuration: "3s" }}
-              />
+            <div className="text-xs md:text-sm font-bold text-info-blue">
+              Active
             </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              In Progress
+            </p>
+            <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+              {inProgressCount}
+            </p>
           </div>
         </Card>
 
-        <Card className="p-5 bg-linear-to-br from-green-50 to-white border-green-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Resolved</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {complaints.filter((c) => c.status === "resolved").length}
-              </p>
+        {/* Resolved */}
+        <Card className="stone-card p-4 md:p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 md:p-2.5 bg-success-green/10 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
+              <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-success-green" />
             </div>
-            <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-green-600" />
+            <div className="text-xs md:text-sm font-bold text-success-green">
+              +24%
             </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Resolved
+            </p>
+            <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+              {resolvedCount}
+            </p>
           </div>
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* FILTERS */}
       <ComplaintFilters
         filters={filters}
         onFilterChange={setFilters}
@@ -173,7 +208,7 @@ export default function AdminComplaintsPage() {
         }
       />
 
-      {/* Data Table */}
+      {/* DATA TABLE */}
       <ComplaintsTable
         data={complaints}
         loading={loading}
@@ -188,7 +223,7 @@ export default function AdminComplaintsPage() {
         }}
       />
 
-      {/* Bulk Actions Toolbar */}
+      {/* BATCH ACTIONS TOOLBAR */}
       {selectedIds.length > 0 && (
         <BatchActionsToolbar
           selectedCount={selectedIds.length}
