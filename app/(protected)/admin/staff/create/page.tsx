@@ -1,134 +1,127 @@
+// ═══════════════════════════════════════════════════════════
+// app/admin/staff/create/page.tsx - CREATE STAFF PAGE
+// ═══════════════════════════════════════════════════════════
+
 "use client";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { StaffForm } from "../_components/StaffForm";
-import { useStaffManagement } from "@/hooks/admin/useStaffManagement";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, UserPlus, ShieldAlert } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
+import { StaffForm } from "../_components/StaffForm";
 
 export default function CreateStaffPage() {
-  const { createStaff } = useStaffManagement();
+  const router = useRouter();
+  const supabase = createClient();
   const [departments, setDepartments] = useState([]);
   const [wards, setWards] = useState([]);
-  const [loadingResources, setLoadingResources] = useState(true);
-  const supabase = createClient();
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
-  // Load dependency data (Departments & Wards)
   useEffect(() => {
-     const loadData = async () => {
-         try {
-             const [d, w] = await Promise.all([
-                 supabase.from("departments").select("id, name").order("name"),
-                 supabase.from("wards").select("id, ward_number, name").order("ward_number")
-             ]);
-             if(d.data) setDepartments(d.data as any);
-             if(w.data) setWards(w.data as any);
-         } catch (error) {
-             console.error("Failed to load resources", error);
-             toast.error("Failed to load departments or wards");
-         } finally {
-             setLoadingResources(false);
-         }
-     };
-     loadData();
+    async function loadData() {
+      try {
+        const [deptResult, wardResult] = await Promise.all([
+          supabase.from("departments").select("id, name").order("name"),
+          supabase
+            .from("wards")
+            .select("id, ward_number, name")
+            .order("ward_number"),
+        ]);
+
+        if (deptResult.data) setDepartments(deptResult.data);
+        if (wardResult.data) setWards(wardResult.data);
+      } catch (err) {
+        console.error("Error loading data:", err);
+        toast.error("Failed to load form data");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
   }, []);
 
-  // Wrapper to handle redirection after successful creation
-  const handleCreate = async (data: any) => {
+  const handleSubmit = async (data: any) => {
     try {
-        // Assume createStaff returns the new staff object or ID. 
-        // If your hook currently returns void, you may need to update it to return 'data'.
-        const newStaff = await createStaff(data);
-        
-        // If the hook returns the object (Supabase RPC usually returns the created row)
-        if (newStaff && newStaff.user_id) {
-            toast.success("Staff profile created successfully");
-            router.push(`/admin/staff/${newStaff.user_id}`); // Navigate to Details
+      // Get current user ID
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Call the updated RPC function with creator ID
+      const { data: result, error } = await supabase.rpc("rpc_register_staff", {
+        p_email: data.email,
+        p_full_name: data.full_name,
+        p_staff_role: data.staff_role,
+        p_phone: data.phone || null,
+        p_department_id: data.department_id || null,
+        p_ward_id: data.ward_id || null,
+        p_is_supervisor: data.is_supervisor,
+        p_specializations: data.specializations || null,
+        p_employment_date: null,
+        p_created_by: user?.id || null, // Add this line
+      });
+
+      if (error) throw error;
+
+      // Handle the response
+      if (result && !result.success) {
+        // User doesn't exist yet
+        if (result.requires_invitation) {
+          toast.warning(
+            `User ${data.email} needs to sign up first. They should create an account at /auth/signup, then you can assign their staff role.`,
+            { duration: 8000 }
+          );
         } else {
-            // Fallback if no ID is returned
-            router.push("/admin/staff");
+          throw new Error(result.message || "Registration failed");
         }
-    } catch (error) {
-        // Error handling is likely done in the hook, but safety net here
-        console.error("Creation failed", error);
+      } else {
+        toast.success("Staff member registered successfully!");
+        router.push("/admin/staff");
+      }
+    } catch (err: any) {
+      console.error("Staff creation error:", err);
+      toast.error(err.message || "Failed to create staff member");
     }
   };
-
   return (
-    <div className="max-w-3xl mx-auto py-8 space-y-6">
-       {/* Header */}
-       <div className="flex items-center justify-between">
-         <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-white border shadow-sm hover:bg-slate-50" asChild>
-                <Link href="/admin/staff"><ArrowLeft className="h-4 w-4 text-slate-600"/></Link>
-            </Button>
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Onboard New Staff</h1>
-                <p className="text-sm text-slate-500">Register a new employee and assign system permissions.</p>
-            </div>
-         </div>
-       </div>
-       
-       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Context Sidebar (Help text) */}
-          <div className="md:col-span-4 space-y-4">
-             <Card className="bg-blue-50/50 border-blue-100 shadow-sm">
-                <CardContent className="p-4">
-                   <div className="flex items-start gap-3">
-                      <ShieldAlert className="w-5 h-5 text-blue-600 mt-0.5" />
-                      <div>
-                         <h3 className="font-semibold text-blue-900 text-sm">Access Control</h3>
-                         <p className="text-xs text-blue-700/80 mt-1 leading-relaxed">
-                            <strong>Ward Staff</strong> can only see data within their assigned ward. <br/><br/>
-                            <strong>Department Heads</strong> have broader visibility over their specific sector.
-                         </p>
-                      </div>
-                   </div>
-                </CardContent>
-             </Card>
-             <Card className="border-slate-200 shadow-sm">
-                 <CardContent className="p-4 text-sm text-slate-500">
-                    <p>Ensure the email address is correct. An invitation will be sent to the user to set their password.</p>
-                 </CardContent>
-             </Card>
-          </div>
+    <div className="max-w-3xl mx-auto px-2 sm:px-4 lg:px-6 py-4 md:py-8">
+      {/* BACK BUTTON */}
+      <Button variant="ghost" asChild size="sm" className="mb-4 md:mb-6">
+        <Link href="/admin/staff">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Staff Directory
+        </Link>
+      </Button>
 
-          {/* Main Form */}
-          <div className="md:col-span-8">
-            <Card className="border-slate-200 shadow-sm overflow-hidden">
-                <div className="h-1.5 w-full bg-linear-to-r from-blue-600 to-indigo-600" />
-                <CardHeader>
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 bg-slate-100 rounded-lg">
-                            <UserPlus className="w-5 h-5 text-slate-600" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-lg">Staff Details</CardTitle>
-                            <CardDescription>Fill in the required information below.</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {!loadingResources ? (
-                        <StaffForm 
-                            departments={departments} 
-                            wards={wards} 
-                            onSubmit={handleCreate} 
-                        />
-                    ) : (
-                        <div className="py-10 text-center text-slate-400">
-                            Loading form resources...
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-          </div>
-       </div>
+      {/* FORM CARD */}
+      <Card className="stone-card">
+        <CardHeader className="p-4 md:p-6 border-b border-border bg-muted/30">
+          <CardTitle className="text-lg md:text-xl font-black">
+            Register New Staff Member
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Add a new staff member to the municipal system
+          </p>
+        </CardHeader>
+        <CardContent className="p-4 md:p-6">
+          {loading ? (
+            <div className="py-12 text-center">
+              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground">Loading form...</p>
+            </div>
+          ) : (
+            <StaffForm
+              departments={departments}
+              wards={wards}
+              onSubmit={handleSubmit}
+            />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
