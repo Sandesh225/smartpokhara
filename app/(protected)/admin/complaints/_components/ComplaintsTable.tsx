@@ -6,22 +6,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Eye,
-  MoreHorizontal,
-  Clock,
-  UserCog,
-  Trash2,
-  AlertTriangle,
+  Eye, MoreHorizontal, Clock, UserCog, Trash2, FileText, AlertCircle
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -51,10 +42,10 @@ export function ComplaintsTable({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="p-4 space-y-4">
+      <div className="stone-card overflow-hidden p-4">
+        <div className="space-y-3 md:space-y-4">
           {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            <Skeleton key={i} className="h-16 md:h-20 w-full rounded-lg" />
           ))}
         </div>
       </div>
@@ -63,14 +54,14 @@ export function ComplaintsTable({
 
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-dashed border-slate-300 py-20 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
-          <Eye className="w-6 h-6 text-slate-400" />
+      <div className="stone-card border-2 border-dashed py-12 md:py-20 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 md:w-16 md:h-16 bg-muted rounded-xl md:rounded-2xl flex items-center justify-center mb-4 border border-border">
+          <FileText className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />
         </div>
-        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest">
+        <h3 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider">
           No Records Found
         </h3>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs md:text-sm text-muted-foreground mt-2">
           Adjust your filters to broaden your search.
         </p>
       </div>
@@ -78,187 +69,204 @@ export function ComplaintsTable({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50/50 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-3 w-10">
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={(c) => onSelectAll(!!c)}
-                  className="rounded-md border-slate-300"
-                />
-              </th>
-              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Tracking ID
-              </th>
-              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Issue Details
-              </th>
-              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Reporter
-              </th>
-              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Ward
-              </th>
-              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Status
-              </th>
-              <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Priority / SLA
-              </th>
-              <th className="px-4 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Manage
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {data.map((row) => (
-              <tr
-                key={row.id}
-                className={cn(
-                  "group transition-colors duration-150",
-                  selectedIds.includes(row.id)
-                    ? "bg-primary/5"
-                    : "hover:bg-slate-50/50"
-                )}
-              >
-                <td className="px-4 py-2.5">
+    <>
+      {/* DESKTOP TABLE VIEW - Hidden on mobile */}
+      <div className="hidden lg:block stone-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 border-b border-border">
+              <tr>
+                <th className="px-4 py-3 w-10">
                   <Checkbox
-                    checked={selectedIds.includes(row.id)}
-                    onCheckedChange={(c) => onSelect(row.id, !!c)}
-                    className="rounded-md border-slate-300"
+                    checked={allSelected}
+                    onCheckedChange={(c) => onSelectAll(!!c)}
+                    className="rounded-md"
                   />
-                </td>
-                <td className="px-4 py-2.5">
+                </th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Tracking ID
+                </th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Issue Details
+                </th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Reporter
+                </th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Ward
+                </th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Priority / SLA
+                </th>
+                <th className="px-4 py-3 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {data.map((row) => (
+                <tr
+                  key={row.id}
+                  className={cn(
+                    "group transition-colors duration-150",
+                    selectedIds.includes(row.id)
+                      ? "bg-primary/5"
+                      : "hover:bg-muted/30"
+                  )}
+                >
+                  <td className="px-4 py-3">
+                    <Checkbox
+                      checked={selectedIds.includes(row.id)}
+                      onCheckedChange={(c) => onSelect(row.id, !!c)}
+                      className="rounded-md"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/complaints/${row.id}`}
+                      className="font-mono text-xs font-bold text-primary hover:underline"
+                    >
+                      #{row.tracking_code}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 max-w-[240px]">
+                    <div className="flex flex-col leading-tight">
+                      <span className="font-bold text-foreground truncate text-sm">
+                        {row.title}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate mt-0.5">
+                        {row.category_name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-7 w-7 border border-border">
+                        <AvatarImage src={row.citizen_avatar} />
+                        <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
+                          {row.citizen_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="truncate text-xs font-medium text-foreground">
+                        {row.citizen_name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant="outline" className="text-[10px] font-bold">
+                      WARD {row.ward_number}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <BadgeStatus status={row.status} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-1.5">
+                      <BadgePriority priority={row.priority} />
+                      {row.sla_due_at && (
+                        <SLAIndicator dueDate={row.sla_due_at} />
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <ActionsMenu complaintId={row.id} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* MOBILE CARD VIEW - Visible only on mobile */}
+      <div className="lg:hidden space-y-3">
+        {data.map((row) => (
+          <div
+            key={row.id}
+            className={cn(
+              "stone-card p-4 space-y-3 transition-all",
+              selectedIds.includes(row.id) && "ring-2 ring-primary"
+            )}
+          >
+            {/* Header Row */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <Checkbox
+                  checked={selectedIds.includes(row.id)}
+                  onCheckedChange={(c) => onSelect(row.id, !!c)}
+                  className="mt-1"
+                />
+                <div className="flex-1 min-w-0">
                   <Link
                     href={`/admin/complaints/${row.id}`}
-                    className="font-mono text-[11px] font-bold text-primary hover:underline"
+                    className="font-mono text-xs font-bold text-primary block mb-1"
                   >
                     #{row.tracking_code}
                   </Link>
-                </td>
-                <td className="px-4 py-2.5 max-w-[240px]">
-                  <div className="flex flex-col leading-tight">
-                    <span className="font-bold text-slate-900 truncate text-[13px]">
-                      {row.title}
-                    </span>
-                    <span className="text-[11px] text-slate-500 truncate mt-0.5">
-                      {row.category_name}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6 border border-white shadow-sm">
-                      <AvatarImage src={row.citizen_avatar} />
-                      <AvatarFallback className="bg-slate-200 text-slate-600 text-[10px] font-bold">
-                        {row.citizen_name?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="truncate text-xs font-medium text-slate-700">
-                      {row.citizen_name}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2.5">
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] font-black border-slate-200 bg-slate-50 text-slate-600"
-                  >
-                    WARD {row.ward_number}
-                  </Badge>
-                </td>
-                <td className="px-4 py-2.5">
-                  <BadgeStatus status={row.status} />
-                </td>
-                <td className="px-4 py-2.5">
-                  <div className="flex flex-col gap-1">
-                    <BadgePriority priority={row.priority} />
-                    {row.sla_due_at && (
-                      <div className="flex items-center gap-1 text-[10px] font-medium whitespace-nowrap">
-                        <Clock
-                          className={cn(
-                            "w-3 h-3",
-                            new Date(row.sla_due_at) < new Date()
-                              ? "text-red-500"
-                              : "text-slate-400"
-                          )}
-                        />
-                        {new Date(row.sla_due_at) < new Date() ? (
-                          <span className="text-red-600 font-black uppercase tracking-tighter">
-                            Overdue
-                          </span>
-                        ) : (
-                          <span className="text-slate-500">
-                            {formatDistanceToNow(new Date(row.sla_due_at))}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-2.5 text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-slate-900 rounded-lg"
-                      >
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-48 rounded-xl shadow-xl border-slate-200"
-                    >
-                      <DropdownMenuLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest py-2">
-                        Operation
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href={`/admin/complaints/${row.id}`}
-                          className="cursor-pointer text-xs font-bold py-2.5"
-                        >
-                          <Eye className="w-4 h-4 mr-2 text-primary" /> View
-                          Details
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer text-xs font-bold py-2.5">
-                        <UserCog className="w-4 h-4 mr-2 text-slate-500" />{" "}
-                        Assign Staff
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600 cursor-pointer text-xs font-bold py-2.5 focus:bg-red-50 focus:text-red-600">
-                        <Trash2 className="w-4 h-4 mr-2" /> Mark as Spam
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <h3 className="font-bold text-sm text-foreground line-clamp-2">
+                    {row.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {row.category_name}
+                  </p>
+                </div>
+              </div>
+              <ActionsMenu complaintId={row.id} />
+            </div>
+
+            {/* Status & Priority Row */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <BadgeStatus status={row.status} />
+              <BadgePriority priority={row.priority} />
+              <Badge variant="outline" className="text-[9px] font-bold">
+                WARD {row.ward_number}
+              </Badge>
+            </div>
+
+            {/* Reporter & SLA Row */}
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-border">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-6 w-6 border border-border">
+                  <AvatarImage src={row.citizen_avatar} />
+                  <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
+                    {row.citizen_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs font-medium text-foreground truncate">
+                  {row.citizen_name}
+                </span>
+              </div>
+              {row.sla_due_at && (
+                <SLAIndicator dueDate={row.sla_due_at} />
+              )}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Footer: Compact Pagination */}
-      <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between">
-        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+      {/* PAGINATION FOOTER */}
+      <div className="stone-card px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
           {pagination.total} Records Total
         </p>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
             disabled={pagination.pageIndex === 1}
             onClick={() => pagination.onPageChange(pagination.pageIndex - 1)}
-            className="h-8 text-[11px] font-bold rounded-lg border-slate-200"
+            className="h-8 md:h-9 text-xs font-bold"
           >
-            Prev
+            Previous
           </Button>
+          <div className="flex items-center px-3 py-1 bg-muted rounded-lg">
+            <span className="text-xs font-bold text-foreground">
+              Page {pagination.pageIndex}
+            </span>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -266,32 +274,32 @@ export function ComplaintsTable({
               pagination.pageIndex * pagination.pageSize >= pagination.total
             }
             onClick={() => pagination.onPageChange(pagination.pageIndex + 1)}
-            className="h-8 text-[11px] font-bold rounded-lg border-slate-200"
+            className="h-8 md:h-9 text-xs font-bold"
           >
             Next
           </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-// Optimized Badge Components
+// SUB-COMPONENTS
 function BadgeStatus({ status }: { status: string }) {
-  const styles: any = {
-    received: "bg-slate-100 text-slate-700 border-slate-200",
-    assigned: "bg-blue-50 text-blue-700 border-blue-200",
-    in_progress: "bg-purple-50 text-purple-700 border-purple-200",
-    resolved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    closed: "bg-slate-200 text-slate-800 border-slate-300",
-    rejected: "bg-red-50 text-red-700 border-red-200",
+  const config: Record<string, string> = {
+    received: "bg-muted text-foreground border-border",
+    assigned: "bg-info-blue/10 text-info-blue border-info-blue/20",
+    in_progress: "bg-secondary/10 text-secondary border-secondary/20",
+    resolved: "bg-success-green/10 text-success-green border-success-green/20",
+    closed: "bg-muted text-muted-foreground border-border",
+    rejected: "bg-error-red/10 text-error-red border-error-red/20",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-xs",
-        styles[status] || styles.received
+        "inline-flex items-center px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-wider border",
+        config[status] || config.received
       )}
     >
       {status?.replace("_", " ")}
@@ -300,32 +308,99 @@ function BadgeStatus({ status }: { status: string }) {
 }
 
 function BadgePriority({ priority }: { priority: string }) {
-  const styles: any = {
-    low: "text-slate-500",
-    medium: "text-blue-600",
-    high: "text-orange-600 font-black",
-    critical: "text-red-600 font-black",
-    urgent: "text-red-700 font-black",
+  const config: Record<string, string> = {
+    low: "text-muted-foreground",
+    medium: "text-info-blue",
+    high: "text-warning-amber",
+    critical: "text-error-red",
+    urgent: "text-error-red",
   };
+
+  const isUrgent = priority === "high" || priority === "critical" || priority === "urgent";
 
   return (
     <div className="flex items-center gap-1.5">
       <div
         className={cn(
-          "w-1.5 h-1.5 rounded-full ring-2 ring-white",
-          priority === "high" || priority === "critical"
-            ? "bg-red-500 animate-pulse"
-            : "bg-slate-300"
+          "w-1.5 h-1.5 rounded-full ring-2 ring-background",
+          isUrgent ? "bg-error-red animate-pulse" : "bg-muted-foreground"
         )}
       />
       <span
         className={cn(
-          "text-[10px] uppercase tracking-widest",
-          styles[priority] || styles.medium
+          "text-[9px] md:text-[10px] font-bold uppercase tracking-wider",
+          config[priority] || config.medium
         )}
       >
         {priority}
       </span>
     </div>
+  );
+}
+
+function SLAIndicator({ dueDate }: { dueDate: string }) {
+  const isOverdue = new Date(dueDate) < new Date();
+  
+  return (
+    <div className="flex items-center gap-1 text-[10px] md:text-xs font-medium whitespace-nowrap">
+      <Clock
+        className={cn(
+          "w-3 h-3",
+          isOverdue ? "text-error-red" : "text-muted-foreground"
+        )}
+      />
+      {isOverdue ? (
+        <span className="text-error-red font-black uppercase">
+          Overdue
+        </span>
+      ) : (
+        <span className="text-muted-foreground">
+          {formatDistanceToNow(new Date(dueDate))}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ActionsMenu({ complaintId }: { complaintId: string }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg"
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-48 rounded-xl shadow-xl border-border"
+      >
+        <DropdownMenuLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+          Actions
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            href={`/admin/complaints/${complaintId}`}
+            className="cursor-pointer text-xs font-bold"
+          >
+            <Eye className="w-4 h-4 mr-2 text-primary" />
+            View Details
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer text-xs font-bold">
+          <UserCog className="w-4 h-4 mr-2 text-secondary" />
+          Assign Staff
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="text-error-red cursor-pointer text-xs font-bold focus:bg-error-red/10 focus:text-error-red">
+          <Trash2 className="w-4 h-4 mr-2" />
+          Mark as Spam
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
