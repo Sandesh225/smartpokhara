@@ -30,44 +30,46 @@ interface CitizenLayoutClientProps {
 
 function CitizenFooter() {
   const year = useMemo(() => new Date().getFullYear(), []);
-  
-  return (
-    <footer className="shrink-0 border-t border-border bg-card/50 backdrop-blur-sm px-6 py-6 mt-auto transition-colors-smooth">
-      <div className="mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-        {/* Brand & Version Info */}
-        <div className="text-muted-foreground space-y-1">
-          <p className="font-medium">
-            © {year}{" "}
-            <strong className="font-bold text-foreground dark:text-glow">
-              Pokhara Metropolitan City
-            </strong>
-          </p>
-          <p className="text-xs font-medium opacity-80">
-            Digital Services Portal{" "}
-            <span className="inline-flex items-center rounded-full bg-primary/10 dark:bg-primary/20 px-2 py-0.5 text-xs font-semibold text-primary dark:text-primary">
-              v2.0
-            </span>
-          </p>
-        </div>
 
-        {/* Footer Links */}
-        <nav className="flex gap-6 text-muted-foreground font-medium text-sm">
-          {[
-            { label: "Privacy Policy", href: "/privacy" },
-            { label: "Terms of Service", href: "/terms" },
-            { label: "Help Center", href: "/help" },
-            { label: "Accessibility", href: "/accessibility" },
-          ].map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="hover:text-primary dark:hover:text-primary transition-colors duration-200 relative group"
-            >
-              {item.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary dark:bg-primary transition-all duration-200 group-hover:w-full" />
-            </Link>
-          ))}
-        </nav>
+  return (
+    <footer className="shrink-0 border-t border-border bg-card/40 dark:bg-card/60 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-6 mt-auto transition-all duration-300">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-6 text-sm">
+          {/* Brand & Version Info */}
+          <div className="text-muted-foreground space-y-2 text-center lg:text-left">
+            <p className="font-semibold text-base">
+              © {year}{" "}
+              <strong className="font-bold text-foreground bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Pokhara Metropolitan City
+              </strong>
+            </p>
+            <p className="text-sm font-medium opacity-90 flex items-center justify-center lg:justify-start gap-2">
+              Digital Services Portal{" "}
+              <span className="inline-flex items-center rounded-full bg-primary/15 dark:bg-primary/25 px-3 py-1 text-xs font-bold text-primary border border-primary/20">
+                v2.0
+              </span>
+            </p>
+          </div>
+
+          {/* Footer Links */}
+          <nav className="flex flex-wrap gap-4 lg:gap-6 text-muted-foreground font-medium text-sm justify-center">
+            {[
+              { label: "Privacy Policy", href: "/privacy" },
+              { label: "Terms of Service", href: "/terms" },
+              { label: "Help Center", href: "/help" },
+              { label: "Accessibility", href: "/accessibility" },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="hover:text-primary transition-colors duration-200 relative group"
+              >
+                {item.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
     </footer>
   );
@@ -80,19 +82,17 @@ function Breadcrumbs() {
   if (pathname === "/citizen/dashboard") return null;
 
   return (
-    <nav
-      aria-label="Breadcrumb"
-      className="mb-6 hidden sm:block"
-    >
-      <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
+    <nav aria-label="Breadcrumb" className="mb-6 hidden sm:block">
+      <ol className="flex items-center flex-wrap gap-2 text-sm text-muted-foreground">
         {/* Home Link */}
         <li>
           <Link
             href="/citizen/dashboard"
-            className="hover:text-primary dark:hover:text-primary flex items-center gap-1.5 transition-colors duration-200 font-medium group"
+            className="hover:text-primary flex items-center gap-2 transition-all duration-200 font-medium group px-3 py-2 rounded-lg hover:bg-accent"
+            aria-label="Dashboard"
           >
             <Home className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-            <span className="sr-only">Home</span>
+            <span className="hidden sm:inline">Dashboard</span>
           </Link>
         </li>
 
@@ -101,15 +101,16 @@ function Breadcrumbs() {
           const isLast = index === paths.length - 2;
           const href = `/citizen/${paths.slice(1, index + 2).join("/")}`;
           const label = path
-            .charAt(0)
-            .toUpperCase() + path.slice(1).replace(/-/g, " ");
+            .split("-")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
 
           return (
             <li key={path} className="flex items-center">
-              <ChevronRight className="h-4 w-4 text-muted-foreground/50 dark:text-muted-foreground/30 mx-1" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground/50 mx-1" />
               {isLast ? (
                 <span
-                  className="font-semibold text-foreground dark:text-foreground"
+                  className="font-bold text-foreground px-3 py-2 bg-primary/10 dark:bg-primary/20 rounded-lg"
                   aria-current="page"
                 >
                   {label}
@@ -117,7 +118,7 @@ function Breadcrumbs() {
               ) : (
                 <Link
                   href={href}
-                  className="hover:text-primary dark:hover:text-primary transition-colors duration-200 font-medium"
+                  className="hover:text-primary transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-accent"
                 >
                   {label}
                 </Link>
@@ -139,14 +140,18 @@ export default function CitizenLayoutClient({
   const [counts, setCounts] = useState(initialCounts);
 
   return (
-    <div className="flex h-screen min-h-screen overflow-hidden bg-background text-foreground transition-colors-smooth">
-      {/* Gradient Background - Dark Mode Enhancement */}
-      <div className="fixed inset-0 -z-10 dark:gradient-dark-mesh pointer-events-none" />
+    <div className="flex h-screen min-h-screen overflow-hidden bg-background text-foreground">
+      {/* Enhanced Gradient Background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-background via-background to-muted/30 dark:from-[rgb(15,20,25)] dark:via-[rgb(15,20,25)] dark:to-[rgb(26,31,46)]/40 pointer-events-none" />
+
+      {/* Decorative Elements */}
+      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-secondary/5 dark:bg-secondary/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
       {/* Accessibility Skip Link */}
       <a
         href="#citizen-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-card focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:shadow-xl focus:ring-2 focus:ring-primary focus:text-primary focus:border focus:border-border dark:focus:accent-glow transition-all duration-200"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-6 focus:z-[100] focus:rounded-xl focus:bg-card focus:px-6 focus:py-4 focus:text-base focus:font-bold focus:shadow-2xl focus:ring-4 focus:ring-primary focus:text-primary focus:border-2 focus:border-primary transition-all duration-200"
       >
         Skip to main content
       </a>
@@ -160,7 +165,7 @@ export default function CitizenLayoutClient({
       />
 
       {/* Main Content Area */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden lg:ml-72 transition-all duration-300">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden lg:ml-80 transition-all duration-300">
         {/* Header */}
         <Header
           user={user}
@@ -174,15 +179,13 @@ export default function CitizenLayoutClient({
         {/* Main Content */}
         <main
           id="citizen-main"
-          className="flex-1 overflow-y-auto scroll-smooth section-spacing container-padding custom-scrollbar"
+          className="flex-1 overflow-y-auto scroll-smooth px-4 sm:px-6 lg:px-8 py-1 custom-scrollbar"
         >
-          <div className="mx-auto max-w-7xl space-y-6 pb-6">
+          <div className="mx-auto max-w-7xl pb-6">
             <Breadcrumbs />
-            
-            {/* Content Wrapper with subtle elevation */}
-            <div className="relative">
-              {children}
-            </div>
+
+            {/* Content Wrapper with Animation */}
+            <div className="relative">{children}</div>
           </div>
         </main>
 
@@ -193,7 +196,7 @@ export default function CitizenLayoutClient({
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 z-30 bg-background/80 dark:bg-background/90 backdrop-blur-md lg:hidden transition-all duration-300 animate-in fade-in"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
