@@ -255,10 +255,25 @@ export default function ComplaintDetailPage() {
     );
   }
 
-  const statusConfig =
-    COMPLAINT_STATUS_CONFIG[complaint.status as keyof typeof COMPLAINT_STATUS_CONFIG];
-  const priorityConfig =
-    COMPLAINT_PRIORITY_CONFIG[complaint.priority as keyof typeof COMPLAINT_PRIORITY_CONFIG];
+  const statusConfig = COMPLAINT_STATUS_CONFIG[
+    complaint.status as keyof typeof COMPLAINT_STATUS_CONFIG
+  ] || {
+    label: complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1),
+    icon: AlertCircle,
+    color: "bg-gray-600",
+    textColor: "text-gray-700",
+    borderColor: "border-gray-200",
+  };
+  const priorityConfig = COMPLAINT_PRIORITY_CONFIG[
+    complaint.priority as keyof typeof COMPLAINT_PRIORITY_CONFIG
+  ] || {
+    label:
+      complaint.priority.charAt(0).toUpperCase() +
+      complaint.priority.slice(1) +
+      " Priority",
+    color: "bg-gray-100 text-gray-700 border-gray-300",
+    icon: AlertCircle,
+  };
   const StatusIcon = statusConfig?.icon || AlertCircle;
 
   return (
@@ -275,7 +290,8 @@ export default function ComplaintDetailPage() {
                 </span>
                 <span className="h-1 w-1 rounded-full bg-muted-foreground/30"></span>
                 <span className="text-xs text-muted-foreground font-medium">
-                  Updated {formatDistanceToNow(new Date(complaint.updated_at))} ago
+                  Updated {formatDistanceToNow(new Date(complaint.updated_at))}{" "}
+                  ago
                 </span>
               </div>
             }
@@ -370,10 +386,12 @@ export default function ComplaintDetailPage() {
                         {item.label}
                       </p>
                       <h3 className="mt-2 text-xl font-black text-foreground">
-                        {item.value}
+                        {item.value || "N/A"}
                       </h3>
                     </div>
-                    <div className={cn("p-3 rounded-2xl elevation-1", item.color)}>
+                    <div
+                      className={cn("p-3 rounded-2xl elevation-1", item.color)}
+                    >
                       <item.icon className="w-5 h-5 text-white" />
                     </div>
                   </div>
@@ -386,7 +404,11 @@ export default function ComplaintDetailPage() {
             {[
               { id: "overview", label: "Overview", icon: FileText },
               { id: "timeline", label: "Timeline", icon: Clock },
-              { id: "communication", label: "Communication", icon: MessageSquare },
+              {
+                id: "communication",
+                label: "Communication",
+                icon: MessageSquare,
+              },
             ].map((view) => (
               <Button
                 key={view.id}
@@ -446,22 +468,24 @@ export default function ComplaintDetailPage() {
                       </CardHeader>
                       <CardContent className="p-6">
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                          {complaint.attachments.map((file: any, idx: number) => (
-                            <div
-                              key={file.id}
-                              className="group relative aspect-square rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all duration-300 elevation-1 hover:elevation-2 cursor-pointer"
-                              onClick={() => setSelectedImage(file.file_path)}
-                            >
-                              <img
-                                src={file.file_path}
-                                alt={`Evidence ${idx + 1}`}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              />
-                              <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                <Eye className="w-8 h-8 text-primary" />
+                          {complaint.attachments.map(
+                            (file: any, idx: number) => (
+                              <div
+                                key={file.id}
+                                className="group relative aspect-square rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all duration-300 elevation-1 hover:elevation-2 cursor-pointer"
+                                onClick={() => setSelectedImage(file.file_path)}
+                              >
+                                <img
+                                  src={file.file_path}
+                                  alt={`Evidence ${idx + 1}`}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                  <Eye className="w-8 h-8 text-primary" />
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -480,22 +504,26 @@ export default function ComplaintDetailPage() {
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Due Date</span>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Due Date
+                        </span>
                         <span className="font-black text-foreground">
                           {format(computed!.due, "MMM dd, yyyy")}
                         </span>
                       </div>
                       {!computed?.isResolved && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-muted-foreground">Time Remaining</span>
+                          <span className="text-sm font-medium text-muted-foreground">
+                            Time Remaining
+                          </span>
                           <span
                             className={cn(
                               "font-black",
                               computed?.isOverdue
                                 ? "text-destructive"
                                 : computed!.daysRemaining <= 2
-                                ? "text-amber-600"
-                                : "text-secondary"
+                                  ? "text-amber-600"
+                                  : "text-secondary"
                             )}
                           >
                             {computed?.isOverdue
@@ -522,17 +550,26 @@ export default function ComplaintDetailPage() {
                       <div className="p-3 rounded-2xl elevation-1 bg-muted">
                         <Clock className="w-5 h-5 text-foreground" />
                       </div>
-                      <h2 className="text-xl font-black text-foreground">Status History</h2>
+                      <h2 className="text-xl font-black text-foreground">
+                        Status History
+                      </h2>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-8">
                       {statusHistory.map((h, i) => {
                         const isLast = i === statusHistory.length - 1;
-                        const config =
-                          COMPLAINT_STATUS_CONFIG[
-                            h.new_status as keyof typeof COMPLAINT_STATUS_CONFIG
-                          ];
+                        const config = COMPLAINT_STATUS_CONFIG[
+                          h.new_status as keyof typeof COMPLAINT_STATUS_CONFIG
+                        ] || {
+                          label:
+                            h.new_status.charAt(0).toUpperCase() +
+                            h.new_status.slice(1),
+                          icon: AlertCircle,
+                          color: "bg-gray-600",
+                          textColor: "text-gray-700",
+                          borderColor: "border-gray-200",
+                        };
                         const Icon = config?.icon || Activity;
                         return (
                           <div key={i} className="relative flex gap-5">
@@ -553,7 +590,10 @@ export default function ComplaintDetailPage() {
                                     <h3 className="text-lg font-black text-foreground capitalize">
                                       {h.new_status.replace("_", " ")}
                                     </h3>
-                                    <Badge variant="outline" className="border-2 border-border text-xs font-mono">
+                                    <Badge
+                                      variant="outline"
+                                      className="border-2 border-border text-xs font-mono"
+                                    >
                                       <Calendar className="h-3 w-3 mr-1" />
                                       {format(new Date(h.created_at), "PPp")}
                                     </Badge>
@@ -622,7 +662,9 @@ export default function ComplaintDetailPage() {
                       <p className="font-black text-foreground text-lg truncate">
                         {complaint.citizen?.profile?.full_name || "Citizen"}
                       </p>
-                      <p className="text-sm text-muted-foreground font-medium">Complainant</p>
+                      <p className="text-sm text-muted-foreground font-medium">
+                        Complainant
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -658,7 +700,9 @@ export default function ComplaintDetailPage() {
                         <CheckCircle2 className="h-8 w-8 text-secondary" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-black text-foreground text-lg">Resolved</p>
+                        <p className="font-black text-foreground text-lg">
+                          Resolved
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           By {complaint.department?.name}
                         </p>
@@ -670,8 +714,12 @@ export default function ComplaintDetailPage() {
                         <Clock className="h-8 w-8 text-amber-600 animate-pulse" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-black text-foreground text-lg">Pending</p>
-                        <p className="text-sm text-muted-foreground">Awaiting assignment</p>
+                        <p className="font-black text-foreground text-lg">
+                          Pending
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Awaiting assignment
+                        </p>
                       </div>
                     </div>
                   )}
