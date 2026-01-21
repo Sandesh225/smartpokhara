@@ -11,11 +11,9 @@ import {
   ChevronRight,
   MapPin,
   Calendar,
-  AlertCircle,
   Bell,
-  Clock,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { format } from "date-fns";
 
 // UI Components
@@ -23,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Container, Section, PageHeader } from "@/lib/design-system/container";
 import DashboardStats from "@/app/(protected)/citizen/dashboard/_components/DashboardStats";
 import { cn } from "@/lib/utils";
@@ -73,100 +70,163 @@ export default function CitizenDashboard() {
     return { text: "Subha Sandhya", icon: "🌙" };
   }, [currentTime]);
 
-  const fetchDashboardState = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setIsRefreshing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/login"); return; }
+  const fetchDashboardState = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setIsRefreshing(true);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/login");
+          return;
+        }
 
-      const [profileRes, complaintsRes, billsRes, noticesRes] = await Promise.all([
-        supabase.from("user_profiles").select("full_name, ward:wards(ward_number, name)").eq("user_id", user.id).maybeSingle(),
-        supabase.from("complaints").select("*").eq("citizen_id", user.id).order("submitted_at", { ascending: false }),
-        supabase.from("bills").select("*").eq("citizen_id", user.id).eq("status", "pending"),
-        supabase.from("notices").select("*").order("published_at", { ascending: false }).limit(5),
-      ]);
+        const [profileRes, complaintsRes, billsRes, noticesRes] =
+          await Promise.all([
+            supabase
+              .from("user_profiles")
+              .select("full_name, ward:wards(ward_number, name)")
+              .eq("user_id", user.id)
+              .maybeSingle(),
+            supabase
+              .from("complaints")
+              .select("*")
+              .eq("citizen_id", user.id)
+              .order("submitted_at", { ascending: false }),
+            supabase
+              .from("bills")
+              .select("*")
+              .eq("citizen_id", user.id)
+              .eq("status", "pending"),
+            supabase
+              .from("notices")
+              .select("*")
+              .order("published_at", { ascending: false })
+              .limit(5),
+          ]);
 
-      const complaintsList = complaintsRes.data || [];
-      const openCount = complaintsList.filter(c => ["received", "under_review", "assigned"].includes(c.status)).length;
-      const inProgressCount = complaintsList.filter(c => c.status === "in_progress").length;
+        const complaintsList = complaintsRes.data || [];
+        const openCount = complaintsList.filter((c) =>
+          ["received", "under_review", "assigned"].includes(c.status)
+        ).length;
+        const inProgressCount = complaintsList.filter(
+          (c) => c.status === "in_progress"
+        ).length;
 
-      setDashboardData({
-        profile: {
-          name: profileRes.data?.full_name?.split(" ")[0] || "Citizen",
-          wardNumber: profileRes.data?.ward?.ward_number ?? null,
-          wardName: profileRes.data?.ward?.name || "",
-        },
-        complaints: complaintsList.slice(0, 5),
-        bills: billsRes.data || [],
-        notices: noticesRes.data || [],
-        stats: {
-          total: complaintsList.length,
-          open: openCount,
-          inProgress: inProgressCount,
-          resolved: complaintsList.filter(c => ["resolved", "closed"].includes(c.status)).length,
-        },
-        loading: false,
-        error: null,
-      });
-      if (isRefresh) toast.success("City Registry Synced");
-    } catch (err: any) {
-      setDashboardData(prev => ({ ...prev, loading: false, error: err.message }));
-    } finally { setIsRefreshing(false); }
-  }, [router, supabase]);
+        setDashboardData({
+          profile: {
+            name: profileRes.data?.full_name?.split(" ")[0] || "Citizen",
+            wardNumber: profileRes.data?.ward?.ward_number ?? null,
+            wardName: profileRes.data?.ward?.name || "",
+          },
+          complaints: complaintsList.slice(0, 5),
+          bills: billsRes.data || [],
+          notices: noticesRes.data || [],
+          stats: {
+            total: complaintsList.length,
+            open: openCount,
+            inProgress: inProgressCount,
+            resolved: complaintsList.filter((c) =>
+              ["resolved", "closed"].includes(c.status)
+            ).length,
+          },
+          loading: false,
+          error: null,
+        });
+        if (isRefresh) toast.success("Dashboard refreshed successfully");
+      } catch (err: any) {
+        setDashboardData((prev) => ({
+          ...prev,
+          loading: false,
+          error: err.message,
+        }));
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [router, supabase]
+  );
 
-  useEffect(() => { fetchDashboardState(); }, [fetchDashboardState]);
+  useEffect(() => {
+    fetchDashboardState();
+  }, [fetchDashboardState]);
 
   if (dashboardData.loading) return <DashboardSkeleton />;
 
-  const activeReportsCount = dashboardData.stats.open + dashboardData.stats.inProgress;
+  const activeReportsCount =
+    dashboardData.stats.open + dashboardData.stats.inProgress;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }} 
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen bg-background transition-colors duration-500 pb-12"
+      transition={{ duration: 0.4 }}
+      className="min-h-screen pb-12"
     >
       {/* Background Decorative Element */}
-      <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-primary/5 to-transparent -z-10 dark:from-primary/10" />
+      <div className="absolute top-0 left-0 w-full h-72 bg-gradient-to-b from-primary/10 dark:from-primary/15 to-transparent -z-10" />
 
-      <Container size="wide" className="p-6">
+      <Container size="wide" className="px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <div>
-            <motion.div 
-              initial={{ x: -20 }} animate={{ x: 0 }}
-              className="flex items-center gap-2 mb-2"
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-6">
+          <div className="space-y-3">
+            <motion.div
+              initial={{ x: -20 }}
+              animate={{ x: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-wrap items-center gap-3"
             >
-              <Badge variant="outline" className="glass dark:border-primary/20 text-primary font-bold px-3 py-1">
-                <MapPin className="w-3 h-3 mr-1" />
-                {dashboardData.profile.wardNumber ? `Ward ${dashboardData.profile.wardNumber}` : "Pokhara Metro"}
+              <Badge
+                variant="outline"
+                className="glass border-2 border-primary/30 text-primary font-black px-5 py-2.5 text-sm elevation-1"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                {dashboardData.profile.wardNumber
+                  ? `Ward ${dashboardData.profile.wardNumber}`
+                  : "Pokhara Metro"}
               </Badge>
-              <Badge variant="outline" className="glass text-muted-foreground font-medium px-3 py-1">
-                <Calendar className="w-3 h-3 mr-1" />
-                {format(currentTime, "MMMM do")}
+              <Badge
+                variant="outline"
+                className="glass border-2 border-border text-muted-foreground font-bold px-5 py-2.5 text-sm elevation-1"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                {format(currentTime, "MMMM do, yyyy")}
               </Badge>
             </motion.div>
-            <h1 className="text-4xl lg:text-5xl font-black tracking-tighter text-foreground">
-              {greeting.text}, <span className="text-primary dark:text-primary">{dashboardData.profile.name}</span> {greeting.icon}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
+              {greeting.text},{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                {dashboardData.profile.name}
+              </span>{" "}
+              <span className="inline-block">{greeting.icon}</span>
             </h1>
-            <p className="text-muted-foreground mt-2 text-lg font-medium">
+            <p className="text-muted-foreground text-sm sm:text-base font-semibold max-w-2xl">
               Welcome to your digital municipal command center.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="glass px-4 py-2 rounded-2xl flex items-center gap-4 dark:glass-glow">
+          <div className="flex items-center gap-4">
+            <div className="glass px-5 py-3 rounded-2xl flex items-center gap-4 border-2 border-border elevation-2">
               <div className="text-right">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Local Time</p>
-                <p className="text-xl font-black font-mono leading-none">{format(currentTime, "HH:mm")}</p>
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                  Local Time
+                </p>
+                <p className="text-2xl font-black font-mono leading-none text-foreground mt-1">
+                  {format(currentTime, "HH:mm")}
+                </p>
               </div>
               <Button
-                size="icon" variant="ghost"
+                size="icon"
+                variant="ghost"
                 onClick={() => fetchDashboardState(true)}
                 disabled={isRefreshing}
-                className={cn("rounded-xl hover:bg-primary/10 transition-all", isRefreshing && "animate-spin")}
+                className={cn(
+                  "rounded-xl hover:bg-primary/15 transition-all h-11 w-11",
+                  isRefreshing && "animate-spin"
+                )}
               >
-                <RefreshCw className="w-5 h-5" />
+                <RefreshCw className="w-5 h-5 text-primary" />
               </Button>
             </div>
           </div>
@@ -174,25 +234,35 @@ export default function CitizenDashboard() {
 
         {/* Dynamic Alerts */}
         {activeReportsCount > 0 && (
-          <motion.div 
-            layoutId="active-banner"
-            className="mb-8 relative group"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
           >
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
-            <Card className="relative border-none bg-primary dark:bg-card text-white dark:text-foreground overflow-hidden rounded-3xl shadow-2xl">
-              <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/15 to-secondary/15 overflow-hidden rounded-2xl elevation-3">
+              <CardContent className="p-6 sm:p-7 flex flex-col md:flex-row items-center justify-between gap-5">
                 <div className="flex items-center gap-5">
-                  <div className="h-14 w-14 rounded-2xl bg-white/20 dark:bg-primary/20 flex items-center justify-center backdrop-blur-xl">
-                    <Activity className="w-7 h-7 animate-pulse text-white dark:text-primary" />
+                  <div className="h-14 w-14 rounded-2xl bg-primary/20 border-2 border-primary/40 flex items-center justify-center backdrop-blur-sm elevation-2">
+                    <Activity className="w-7 h-7 animate-pulse text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black dark:text-glow">Active Inquiries</h3>
-                    <p className="opacity-80 font-medium">You have <span className="font-bold underline">{activeReportsCount}</span> requests currently being processed by ward officials.</p>
+                    <h3 className="text-lg sm:text-xl font-black text-foreground mb-1.5">
+                      Active Inquiries
+                    </h3>
+                    <p className="text-sm text-muted-foreground font-semibold">
+                      You have{" "}
+                      <span className="font-black text-primary">
+                        {activeReportsCount}
+                      </span>{" "}
+                      {activeReportsCount === 1 ? "request" : "requests"}{" "}
+                      currently being processed.
+                    </p>
                   </div>
                 </div>
-                <Button 
+                <Button
                   size="lg"
-                  className="bg-white text-primary hover:bg-neutral-100 dark:bg-primary dark:text-primary-foreground font-bold rounded-2xl px-8"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-xl px-7 py-6 text-sm sm:text-base elevation-2 hover:elevation-3 transition-all"
                   onClick={() => router.push("/citizen/complaints")}
                 >
                   View Details <ChevronRight className="ml-2 w-5 h-5" />
@@ -202,9 +272,9 @@ export default function CitizenDashboard() {
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="xl:col-span-2 space-y-6">
             <section>
               <DashboardStats
                 totalComplaints={dashboardData.stats.total}
@@ -216,56 +286,66 @@ export default function CitizenDashboard() {
 
             <section className="space-y-4">
               <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                   <Sparkles className="w-6 h-6 text-secondary" />
-                  <h2 className="text-2xl font-black uppercase tracking-tight">Services</h2>
+                  <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground">
+                    Services
+                  </h2>
                 </div>
               </div>
-              <QuickActions 
-                complaintsCount={dashboardData.stats.total} 
-                pendingBillsCount={dashboardData.bills.length} 
+              <QuickActions
+                complaintsCount={dashboardData.stats.total}
+                pendingBillsCount={dashboardData.bills.length}
               />
             </section>
 
-            <section className="stone-card dark:stone-card-elevated overflow-hidden">
-               <RecentComplaints complaints={dashboardData.complaints} />
+            <section>
+              <RecentComplaints complaints={dashboardData.complaints} />
             </section>
           </div>
 
           {/* Sidebar */}
-          <aside className="space-y-8">
+          <aside className="space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center gap-2 px-2">
-                <Bell className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-black uppercase tracking-tight">Bulletin</h2>
+              <div className="flex items-center gap-4 px-2">
+                <Bell className="w-6 h-6 text-primary" />
+                <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight text-foreground">
+                  Bulletin
+                </h2>
               </div>
-              <RecentNotices notices={dashboardData.notices} />
+              <RecentNotices
+                notices={dashboardData.notices}
+                wardNumber={dashboardData.profile.wardNumber}
+              />
             </div>
 
-            <Card className="border-none bg-gradient-to-br from-destructive to-red-700 text-white rounded-3xl shadow-xl overflow-hidden elevation-3">
-              <div className="p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 bg-white rounded-full animate-ping" />
-                  <h3 className="font-black uppercase tracking-widest text-sm">Emergency Hotlines</h3>
+            <Card className="border-2 border-destructive/40 bg-gradient-to-br from-destructive to-red-700 text-white rounded-2xl elevation-3 overflow-hidden">
+              <div className="p-6 border-b-2 border-white/20 flex justify-between items-center bg-black/20">
+                <div className="flex items-center gap-4">
+                  <div className="h-3 w-3 bg-white rounded-full animate-ping" />
+                  <h3 className="font-black uppercase tracking-widest text-sm">
+                    Emergency Hotlines
+                  </h3>
                 </div>
               </div>
-              <div className="p-2">
+              <div className="p-4">
                 {[
                   { icon: "🚔", label: "Police", phone: "100" },
                   { icon: "🚑", label: "Ambulance", phone: "102" },
-                  { icon: "🚒", label: "Fire", phone: "101" }
+                  { icon: "🚒", label: "Fire", phone: "101" },
                 ].map((item, idx) => (
                   <motion.a
                     key={idx}
                     href={`tel:${item.phone}`}
                     whileHover={{ scale: 1.02, x: 5 }}
-                    className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/10 transition-colors group"
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center justify-between p-5 rounded-xl hover:bg-white/20 transition-all group"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span className="font-bold">{item.label}</span>
+                    <div className="flex items-center gap-5">
+                      <span className="text-3xl">{item.icon}</span>
+                      <span className="font-black text-base">{item.label}</span>
                     </div>
-                    <span className="bg-white text-destructive px-4 py-1.5 rounded-xl font-mono font-black text-sm shadow-lg group-hover:shadow-white/20">
+                    <span className="bg-white text-destructive px-6 py-2.5 rounded-xl font-mono font-black text-sm elevation-2 group-hover:elevation-3 transition-all">
                       {item.phone}
                     </span>
                   </motion.a>
@@ -282,20 +362,22 @@ export default function CitizenDashboard() {
 // Optimized Skeleton
 function DashboardSkeleton() {
   return (
-    <Container size="wide" className="pt-12 space-y-12">
-      <div className="space-y-4">
-        <Skeleton className="h-4 w-32 rounded-full" />
-        <Skeleton className="h-16 w-full max-w-2xl rounded-2xl" />
+    <Container size="wide" className="pt-12 space-y-12 px-4 sm:px-6 lg:px-8">
+      <div className="space-y-5">
+        <Skeleton className="h-7 w-48 rounded-full" />
+        <Skeleton className="h-24 w-full max-w-3xl rounded-2xl" />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-3xl" />)}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-44 rounded-2xl" />
+        ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Skeleton className="h-64 rounded-3xl" />
-          <Skeleton className="h-96 rounded-3xl" />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2 space-y-8">
+          <Skeleton className="h-80 rounded-2xl" />
+          <Skeleton className="h-96 rounded-2xl" />
         </div>
-        <Skeleton className="h-full min-h-[500px] rounded-3xl" />
+        <Skeleton className="h-full min-h-[600px] rounded-2xl" />
       </div>
     </Container>
   );

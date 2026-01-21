@@ -64,38 +64,38 @@ const NOTICE_TYPE_CONFIG: Record<
   announcement: {
     label: "Announcement",
     icon: Bell,
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
+    color: "text-blue-700",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
   },
   maintenance: {
     label: "Maintenance",
     icon: Building,
-    color: "text-amber-600",
-    bgColor: "bg-amber-100",
+    color: "text-amber-700",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
   },
   alert: {
     label: "Alert",
     icon: AlertTriangle,
-    color: "text-rose-600",
-    bgColor: "bg-rose-100",
+    color: "text-rose-700",
+    bgColor: "bg-rose-100 dark:bg-rose-900/30",
   },
   event: {
     label: "Event",
     icon: Calendar,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-100",
+    color: "text-emerald-700",
+    bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
   },
   payment: {
     label: "Payment",
     icon: Bell,
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
+    color: "text-purple-700",
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
   },
   public_service: {
     label: "Public Service",
     icon: Globe,
-    color: "text-cyan-600",
-    bgColor: "bg-cyan-100",
+    color: "text-cyan-700",
+    bgColor: "bg-cyan-100 dark:bg-cyan-900/30",
   },
 };
 
@@ -123,8 +123,8 @@ export default function RecentNotices({
       NOTICE_TYPE_CONFIG[noticeType] || {
         label: noticeType,
         icon: Newspaper,
-        color: "text-gray-600",
-        bgColor: "bg-gray-100",
+        color: "text-gray-700",
+        bgColor: "bg-gray-100 dark:bg-gray-900/30",
       }
     );
   };
@@ -162,15 +162,15 @@ export default function RecentNotices({
 
   if (loading) {
     return (
-      <Card className="border-2 border-border shadow-sm">
-        <CardHeader className="pb-3">
-          <Skeleton className="h-6 w-36" />
-          <Skeleton className="h-4 w-48 mt-2" />
+      <Card className="border-2 border-border shadow-md elevation-2">
+        <CardHeader className="pb-4">
+          <Skeleton className="h-7 w-36 rounded-full" />
+          <Skeleton className="h-5 w-48 mt-3 rounded-full" />
         </CardHeader>
         <CardContent className="p-0">
-          <div className="space-y-4 p-4">
+          <div className="space-y-5 p-5">
             {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full rounded-xl" />
+              <Skeleton key={i} className="h-32 w-full rounded-xl" />
             ))}
           </div>
         </CardContent>
@@ -185,29 +185,29 @@ export default function RecentNotices({
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
       <Card
-        className="border-2 border-border shadow-md hover:shadow-lg transition-shadow duration-300"
+        className="border-2 border-border shadow-md hover:shadow-lg transition-all duration-300 elevation-2 hover:elevation-3"
         role="region"
         aria-label="Recent notices from municipality"
       >
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-xl sm:text-2xl flex items-center gap-2.5">
-                <div className="p-2 bg-purple-100 rounded-lg">
+            <div className="space-y-2">
+              <CardTitle className="text-xl sm:text-2xl flex items-center gap-3">
+                <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-xl elevation-1">
                   <Newspaper
-                    className="h-5 w-5 text-purple-700"
+                    className="h-5 w-5 text-purple-700 dark:text-purple-400"
                     aria-hidden="true"
                   />
                 </div>
-                <span>Recent Notices</span>
+                <span className="font-black">Recent Notices</span>
               </CardTitle>
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm text-muted-foreground">
+              <div className="flex items-center gap-3 flex-wrap">
+                <p className="text-sm text-muted-foreground font-semibold">
                   Updates for {wardNumber ? `Ward ${wardNumber}` : "your area"}
                 </p>
                 <Badge
                   variant="outline"
-                  className="gap-1.5 text-xs font-semibold px-2.5 py-0.5"
+                  className="gap-2 text-xs font-black px-3 py-1 border-2 elevation-1"
                 >
                   <Eye className="h-3 w-3" aria-hidden="true" />
                   Live
@@ -218,7 +218,7 @@ export default function RecentNotices({
         </CardHeader>
 
         <CardContent className="p-0">
-          <ScrollArea className="h-[320px]">
+          <ScrollArea className="h-[340px]">
             <AnimatePresence mode="wait">
               {notices.length === 0 ? (
                 <motion.div
@@ -226,24 +226,24 @@ export default function RecentNotices({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
-                  className="flex flex-col items-center justify-center py-12 px-4 text-center"
+                  className="flex flex-col items-center justify-center py-16 px-5 text-center"
                 >
-                  <div className="p-5 bg-muted rounded-2xl mb-4 shadow-sm">
+                  <div className="p-6 bg-muted rounded-2xl mb-5 shadow-sm elevation-1">
                     <Newspaper
                       className="h-12 w-12 text-muted-foreground/60"
                       aria-hidden="true"
                     />
                   </div>
-                  <h3 className="font-bold text-lg mb-1">
+                  <h3 className="font-black text-lg mb-2">
                     No notices available
                   </h3>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm font-medium">
                     Check back later for updates from your municipality
                   </p>
                 </motion.div>
               ) : (
                 <div
-                  className="divide-y"
+                  className="divide-y-2 divide-border"
                   role="list"
                   aria-label="List of recent notices"
                 >
@@ -266,11 +266,11 @@ export default function RecentNotices({
                           delay: index * 0.05,
                           ease: "easeOut",
                         }}
-                        className="p-4 hover:bg-muted/50 transition-colors duration-200"
+                        className="p-5 hover:bg-muted/60 dark:hover:bg-muted/40 transition-all duration-300"
                         role="listitem"
                       >
                         <div
-                          className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg -m-1 p-1"
+                          className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl -m-2 p-2"
                           onClick={() =>
                             setExpandedNotice(isExpanded ? null : notice.id)
                           }
@@ -285,18 +285,18 @@ export default function RecentNotices({
                           aria-expanded={isExpanded}
                           aria-label={`${notice.title}. Click to ${isExpanded ? "collapse" : "expand"}`}
                         >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="space-y-1.5 flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="space-y-2 flex-1 min-w-0">
+                              <div className="flex items-center gap-2.5 mb-2.5 flex-wrap">
                                 <Badge
                                   className={cn(
                                     noticeTypeConfig.bgColor,
                                     noticeTypeConfig.color,
-                                    "border-0 font-medium shadow-sm"
+                                    "border-0 font-bold shadow-sm px-3 py-1.5"
                                   )}
                                 >
                                   <NoticeTypeIcon
-                                    className="h-3 w-3 mr-1"
+                                    className="h-3 w-3 mr-1.5"
                                     aria-hidden="true"
                                   />
                                   {noticeTypeConfig.label}
@@ -304,7 +304,7 @@ export default function RecentNotices({
                                 {notice.is_urgent && (
                                   <Badge
                                     variant="destructive"
-                                    className="text-xs font-bold animate-pulse shadow-sm"
+                                    className="text-xs font-black animate-pulse shadow-sm px-3 py-1.5"
                                   >
                                     Urgent
                                   </Badge>
@@ -312,7 +312,7 @@ export default function RecentNotices({
                                 {!notice.ward_id && notice.is_public && (
                                   <Badge
                                     variant="outline"
-                                    className="text-xs gap-1 font-medium"
+                                    className="text-xs gap-1.5 font-bold border-2 px-3 py-1"
                                   >
                                     <Globe
                                       className="h-3 w-3"
@@ -324,7 +324,7 @@ export default function RecentNotices({
                                 {notice.ward_id && wardNumber && (
                                   <Badge
                                     variant="outline"
-                                    className="text-xs gap-1 font-medium"
+                                    className="text-xs gap-1.5 font-bold border-2 px-3 py-1"
                                   >
                                     <Pin
                                       className="h-3 w-3"
@@ -334,7 +334,7 @@ export default function RecentNotices({
                                   </Badge>
                                 )}
                               </div>
-                              <h4 className="font-semibold text-sm sm:text-base hover:text-primary transition-colors leading-snug">
+                              <h4 className="font-black text-sm sm:text-base hover:text-primary transition-colors leading-snug">
                                 {notice.title}
                               </h4>
                               <AnimatePresence mode="wait">
@@ -345,7 +345,7 @@ export default function RecentNotices({
                                     animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
                                     transition={{ duration: 0.2 }}
-                                    className="text-sm text-muted-foreground mt-2 leading-relaxed"
+                                    className="text-sm text-muted-foreground mt-2.5 leading-relaxed font-medium"
                                   >
                                     {notice.content.substring(0, 200)}...
                                   </motion.p>
@@ -356,7 +356,7 @@ export default function RecentNotices({
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.2 }}
-                                    className="text-sm text-muted-foreground line-clamp-2 leading-relaxed"
+                                    className="text-sm text-muted-foreground line-clamp-2 leading-relaxed font-medium"
                                   >
                                     {notice.excerpt ||
                                       notice.content.substring(0, 100)}
@@ -365,21 +365,21 @@ export default function RecentNotices({
                                 )}
                               </AnimatePresence>
                             </div>
-                            <div className="flex flex-col items-end gap-2 ml-4 flex-shrink-0">
-                              <div className="flex items-center gap-1.5">
+                            <div className="flex flex-col items-end gap-2.5 ml-5 flex-shrink-0">
+                              <div className="flex items-center gap-2">
                                 <Calendar
                                   className="h-3 w-3 text-muted-foreground"
                                   aria-hidden="true"
                                 />
-                                <span className="text-xs text-muted-foreground whitespace-nowrap font-medium">
+                                <span className="text-xs text-muted-foreground whitespace-nowrap font-bold">
                                   {formatDate(notice.published_at)}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1.5">
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-7 w-7 hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-500 transition-colors"
+                                  className="h-8 w-8 hover:bg-amber-100 dark:hover:bg-amber-900/30 focus-visible:ring-2 focus-visible:ring-amber-500 transition-all rounded-xl"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleBookmark(notice.id);
@@ -392,7 +392,7 @@ export default function RecentNotices({
                                 >
                                   <Bookmark
                                     className={cn(
-                                      "h-3.5 w-3.5 transition-all duration-200",
+                                      "h-4 w-4 transition-all duration-300",
                                       isBookmarked
                                         ? "fill-current text-amber-500"
                                         : "text-muted-foreground"
@@ -402,32 +402,32 @@ export default function RecentNotices({
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-7 w-7 hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"
+                                  className="h-8 w-8 hover:bg-blue-100 dark:hover:bg-blue-900/30 focus-visible:ring-2 focus-visible:ring-blue-500 transition-all rounded-xl"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleShare(notice);
                                   }}
                                   aria-label="Share notice"
                                 >
-                                  <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <Share2 className="h-4 w-4 text-muted-foreground" />
                                 </Button>
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t gap-2">
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t-2 border-border gap-3">
                           <Button
                             variant="ghost"
                             size="sm"
                             asChild
                             onClick={(e) => e.stopPropagation()}
-                            className="hover:text-primary transition-colors font-medium"
+                            className="hover:text-primary transition-colors font-bold"
                           >
                             <Link href={`/citizen/notices/${notice.id}`}>
                               Read Full Notice
                               <ChevronRight
-                                className="ml-1 h-3 w-3"
+                                className="ml-1.5 h-4 w-4"
                                 aria-hidden="true"
                               />
                             </Link>
@@ -439,7 +439,7 @@ export default function RecentNotices({
                               e.stopPropagation();
                               setExpandedNotice(isExpanded ? null : notice.id);
                             }}
-                            className="font-medium"
+                            className="font-bold border-2"
                           >
                             {isExpanded ? "Show Less" : "Read More"}
                           </Button>
@@ -454,12 +454,11 @@ export default function RecentNotices({
         </CardContent>
 
         {notices.length > 0 && (
-          <CardFooter className="border-t px-4 py-3">
+          <CardFooter className="border-t-2 border-border px-5 py-4">
             <Button
               variant="outline"
-              className="w-full bg-transparent hover:bg-primary/5 transition-colors font-semibold"
-              asChild
-            >
+              className="w-full bg-transparent hover:bg-primary/10 transition-all font-black border-2"
+              asChild>
               <Link href="/citizen/notices">
                 View All Notices
                 <Newspaper className="ml-2 h-4 w-4" aria-hidden="true" />
