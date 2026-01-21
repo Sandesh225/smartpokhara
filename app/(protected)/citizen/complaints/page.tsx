@@ -12,10 +12,8 @@ import {
   FileText,
   Activity,
   X,
-  SlidersHorizontal,
   ShieldCheck,
   Wifi,
-  SearchX,
   Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -23,24 +21,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import {
   Container,
@@ -73,17 +54,19 @@ function RegistryStat({
   colorClass: string;
 }) {
   return (
-    <Card className="stone-card elevation-2 transition-all hover:elevation-3">
+    <Card className="stone-card border-2 border-border elevation-2 transition-all hover:elevation-3">
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
               {label}
             </p>
-            <h3 className="mt-2 text-4xl font-black tabular-nums">{value}</h3>
+            <h3 className="mt-2 text-4xl font-black tabular-nums text-foreground">
+              {value}
+            </h3>
           </div>
           <div className={cn("p-3 rounded-2xl elevation-1", colorClass)}>
-            <Icon className="w-5 h-5 text-primary-foreground" />
+            <Icon className="w-5 h-5 text-white" />
           </div>
         </div>
       </CardContent>
@@ -168,7 +151,7 @@ export default function ComplaintsPage() {
   }, [fetchData]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen -mt-12">
       <Container size="wide">
         <Section>
           <PageHeader
@@ -176,20 +159,20 @@ export default function ComplaintsPage() {
             subtitle="Track and manage your municipal issues."
             badge={
               <>
-                <Badge className="glass text-primary text-[10px] font-black uppercase">
-                  <ShieldCheck className="w-3 h-3 mr-1" />
+                <Badge className="glass text-primary text-xs font-black uppercase border-2 border-primary/20 px-3 py-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
                   Official
                 </Badge>
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-[10px] font-black uppercase",
+                    "text-xs font-black uppercase border-2 px-3 py-1.5",
                     isConnected
-                      ? "text-secondary border-secondary"
-                      : "text-destructive border-destructive"
+                      ? "text-secondary border-secondary/30 bg-secondary/10"
+                      : "text-destructive border-destructive/30 bg-destructive/10"
                   )}
                 >
-                  <Wifi className="w-3 h-3 mr-1" />
+                  <Wifi className="w-3.5 h-3.5 mr-1.5" />
                   {isConnected ? "Live" : "Offline"}
                 </Badge>
               </>
@@ -199,7 +182,7 @@ export default function ComplaintsPage() {
                 <Button
                   variant="outline"
                   onClick={() => fetchData(true)}
-                  className="stone-card h-12 rounded-2xl"
+                  className="stone-card h-11 rounded-xl border-2 font-bold"
                 >
                   <RefreshCw
                     className={cn(
@@ -211,7 +194,7 @@ export default function ComplaintsPage() {
                 </Button>
                 <Button
                   onClick={() => router.push("/citizen/complaints/new")}
-                  className="h-12 rounded-2xl bg-primary text-primary-foreground font-black elevation-3"
+                  className="h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black elevation-2 px-6"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   New Report
@@ -220,7 +203,7 @@ export default function ComplaintsPage() {
             }
           />
 
-          <Grid cols={4}>
+          <Grid cols={4} className="mb-6">
             <RegistryStat
               label="Total"
               value={stats.total}
@@ -231,7 +214,7 @@ export default function ComplaintsPage() {
               label="Open"
               value={stats.open}
               icon={Clock}
-              colorClass="bg-[rgb(var(--warning-amber))]"
+              colorClass="bg-amber-500"
             />
             <RegistryStat
               label="Active"
@@ -247,20 +230,20 @@ export default function ComplaintsPage() {
             />
           </Grid>
 
-          <Card className="stone-card mt-8">
-            <CardHeader className="border-b border-border">
-              <div className="relative max-w-lg">
+          <Card className="stone-card border-2 border-border elevation-2">
+            <CardHeader className="border-b-2 border-border p-6">
+              <div className="relative max-w-xl">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search complaints..."
-                  className="h-14 pl-12 rounded-2xl bg-card border-border"
+                  placeholder="Search by title, tracking code, or category..."
+                  className="h-12 pl-12 pr-12 rounded-xl bg-background border-2 border-border focus:border-primary text-sm font-medium"
                 />
                 {search && (
                   <button
                     onClick={() => handleSearch("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 hover:bg-accent rounded-lg p-1 transition-colors"
                   >
                     <X className="w-4 h-4 text-muted-foreground" />
                   </button>
@@ -268,7 +251,7 @@ export default function ComplaintsPage() {
               </div>
             </CardHeader>
 
-            <CardContent className="min-h-[400px]">
+            <CardContent className="min-h-[400px] p-6">
               <AnimatePresence mode="wait">
                 {isLoading ? (
                   <div className="flex h-64 items-center justify-center">
@@ -276,8 +259,17 @@ export default function ComplaintsPage() {
                   </div>
                 ) : complaints.length === 0 ? (
                   <div className="py-24 text-center">
-                    <Inbox className="mx-auto mb-4 w-12 h-12 text-muted-foreground" />
-                    <h3 className="text-xl font-black">No Complaints Found</h3>
+                    <div className="p-6 bg-muted rounded-2xl inline-flex items-center justify-center mb-5 border-2 border-border">
+                      <Inbox className="w-12 h-12 text-muted-foreground/60" />
+                    </div>
+                    <h3 className="text-xl font-black text-foreground mb-2">
+                      No Complaints Found
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {search
+                        ? "Try adjusting your search terms"
+                        : "Your submitted complaints will appear here"}
+                    </p>
                   </div>
                 ) : (
                   <ComplaintsTable

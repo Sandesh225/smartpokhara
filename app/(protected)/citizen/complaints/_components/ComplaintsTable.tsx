@@ -81,13 +81,13 @@ const LiveSLACell = ({
   }, []);
 
   if (!slaDueAt)
-    return <span className="text-slate-400 text-xs italic">Not Set</span>;
+    return <span className="text-muted-foreground text-xs italic font-medium">Not Set</span>;
 
   const isResolved = ["resolved", "closed", "rejected"].includes(status);
 
   if (isResolved) {
     return (
-      <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs">
+      <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
         <CheckCircle2 className="h-3.5 w-3.5" />
         SLA Met
       </div>
@@ -112,22 +112,22 @@ const LiveSLACell = ({
   }
 
   return (
-    <div className="w-[140px] space-y-1">
-      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
-        <span className={isOverdue ? "text-red-600" : "text-slate-500"}>
+    <div className="w-[140px] space-y-1.5">
+      <div className="flex justify-between items-center text-xs font-black uppercase tracking-wider">
+        <span className={isOverdue ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}>
           {timeLabel}
         </span>
-        <span className="text-slate-400">{Math.round(progress)}%</span>
+        <span className="text-muted-foreground">{Math.round(progress)}%</span>
       </div>
       <Progress
         value={progress}
         className={cn(
-          "h-1.5 rounded-full bg-slate-100",
+          "h-2 rounded-full bg-muted",
           isOverdue
             ? "[&>div]:bg-red-500"
             : progress > 80
               ? "[&>div]:bg-orange-500"
-              : "[&>div]:bg-blue-600"
+              : "[&>div]:bg-blue-600 dark:[&>div]:bg-blue-500"
         )}
       />
     </div>
@@ -146,7 +146,6 @@ const ComplaintMobileCard = memo(
     onClick: (c: Complaint) => void;
   }) => {
     const status = COMPLAINT_STATUS_CONFIG[complaint.status];
-    // const priority = COMPLAINT_PRIORITY_CONFIG[complaint.priority || "medium"];
 
     return (
       <motion.div
@@ -156,15 +155,15 @@ const ComplaintMobileCard = memo(
         exit={{ opacity: 0, scale: 0.95 }}
         whileTap={{ scale: 0.98 }}
         onClick={() => onClick(complaint)}
-        className="bg-white border-2 border-slate-100 rounded-2xl p-4 shadow-sm active:border-blue-300 transition-all space-y-3"
+        className="bg-card border-2 border-border hover:border-primary/40 rounded-2xl p-5 elevation-1 hover:elevation-2 active:elevation-1 transition-all space-y-3"
       >
-        <div className="flex justify-between items-start">
-          <code className="bg-slate-100 text-slate-900 px-2 py-1 rounded-lg font-mono text-[10px] font-bold">
+        <div className="flex justify-between items-start gap-3">
+          <code className="bg-muted text-foreground px-3 py-1.5 rounded-lg font-mono text-xs font-bold border-2 border-border">
             {complaint.tracking_code}
           </code>
           <Badge
             className={cn(
-              "px-2 py-0.5 text-[10px] uppercase font-black border-0",
+              "px-3 py-1 text-xs uppercase font-black border-0",
               status.pill
             )}
           >
@@ -173,23 +172,29 @@ const ComplaintMobileCard = memo(
         </div>
 
         <div>
-          <h4 className="font-bold text-slate-900 leading-snug line-clamp-2">
+          <h4 className="font-bold text-foreground leading-snug line-clamp-2 mb-2">
             {complaint.title}
           </h4>
-          <div className="flex items-center gap-2 mt-1 text-slate-500 text-[11px] font-medium">
-            <MapPin className="h-3 w-3" /> Ward {complaint.ward?.ward_number}
-            <span>•</span>
-            <Tag className="h-3 w-3" /> {complaint.category?.name}
+          <div className="flex items-center gap-2 text-muted-foreground text-xs font-semibold flex-wrap">
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5" />
+              Ward {complaint.ward?.ward_number}
+            </div>
+            <span className="text-border">•</span>
+            <div className="flex items-center gap-1">
+              <Tag className="h-3.5 w-3.5" />
+              {complaint.category?.name}
+            </div>
           </div>
         </div>
 
-        <div className="pt-2 border-t border-slate-50 flex justify-between items-center">
+        <div className="pt-3 border-t-2 border-border flex justify-between items-center">
           <LiveSLACell
             submittedAt={complaint.submitted_at}
             slaDueAt={complaint.sla_due_at}
             status={complaint.status}
           />
-          <ChevronRight className="h-4 w-4 text-slate-300" />
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </div>
       </motion.div>
     );
@@ -230,20 +235,20 @@ export function ComplaintsTable({
         header: "Tracking ID",
         cell: ({ row }) => (
           <div className="flex items-center gap-2 group/copy">
-            <code className="text-xs font-black text-slate-900 bg-slate-100 px-2 py-1 rounded-md tracking-tighter">
+            <code className="text-xs font-black text-foreground bg-muted px-3 py-1.5 rounded-lg tracking-tight border border-border">
               {row.original.tracking_code}
             </code>
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 opacity-0 group-hover/copy:opacity-100 transition-opacity"
+              className="h-7 w-7 opacity-0 group-hover/copy:opacity-100 transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
                 navigator.clipboard.writeText(row.original.tracking_code);
                 toast.success("ID Copied");
               }}
             >
-              <Copy className="h-3 w-3" />
+              <Copy className="h-3.5 w-3.5" />
             </Button>
           </div>
         ),
@@ -252,12 +257,12 @@ export function ComplaintsTable({
         accessorKey: "title",
         header: "Complaint Summary",
         cell: ({ row }) => (
-          <div className="max-w-[300px] space-y-1">
-            <p className="font-bold text-slate-900 truncate leading-tight">
+          <div className="max-w-[300px] space-y-1.5">
+            <p className="font-bold text-foreground truncate leading-tight">
               {row.original.title}
             </p>
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              <Building2 className="h-3 w-3" />
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <Building2 className="h-3.5 w-3.5" />
               {row.original.category?.name}
             </div>
           </div>
@@ -272,7 +277,7 @@ export function ComplaintsTable({
           return (
             <Badge
               className={cn(
-                "rounded-lg px-2 py-0.5 text-[10px] font-black uppercase border shadow-none",
+                "rounded-lg px-3 py-1 text-xs font-black uppercase border-2 shadow-none",
                 config.color
               )}
             >
@@ -286,17 +291,15 @@ export function ComplaintsTable({
         header: "Status",
         cell: ({ row }) => {
           const conf = COMPLAINT_STATUS_CONFIG[row.original.status];
-          // FIX: Assign the component to a capitalized variable
           const StatusIcon = conf.icon;
 
           return (
             <Badge
               className={cn(
-                "gap-1.5 border-2 font-black text-[10px] uppercase shadow-sm",
+                "gap-1.5 border-2 font-black text-xs uppercase shadow-sm px-3 py-1",
                 conf.pill
               )}
             >
-              {/* FIX: Render as an Element, not as an object/variable */}
               {StatusIcon && <StatusIcon className="w-3.5 h-3.5" />}
               {conf.label}
             </Badge>
@@ -327,13 +330,13 @@ export function ComplaintsTable({
             }
             className="font-bold p-0 hover:bg-transparent"
           >
-            Submitted <ArrowUpDown className="ml-2 h-3 w-3" />
+            Submitted <ArrowUpDown className="ml-2 h-3.5 w-3.5" />
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="text-xs font-bold text-slate-600">
+          <div className="text-sm font-bold text-foreground">
             {format(new Date(row.original.submitted_at), "MMM d, yyyy")}
-            <span className="block text-[10px] font-medium text-slate-400">
+            <span className="block text-xs font-medium text-muted-foreground mt-0.5">
               {formatDistanceToNow(new Date(row.original.submitted_at))} ago
             </span>
           </div>
@@ -346,20 +349,20 @@ export function ComplaintsTable({
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button
                 variant="ghost"
-                className="h-8 w-8 rounded-full hover:bg-slate-100"
+                className="h-9 w-9 rounded-xl hover:bg-accent"
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl w-48">
-              <DropdownMenuItem onClick={() => handleRowClick(row.original)}>
+            <DropdownMenuContent align="end" className="rounded-xl w-52 border-2">
+              <DropdownMenuItem onClick={() => handleRowClick(row.original)} className="font-semibold">
                 <Eye className="mr-2 h-4 w-4" /> Open Details
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.print()}>
+              <DropdownMenuItem onClick={() => window.print()} className="font-semibold">
                 <Printer className="mr-2 h-4 w-4" /> Print Document
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem className="text-destructive font-bold">
                 <XCircle className="mr-2 h-4 w-4" /> Cancel Request
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -383,18 +386,18 @@ export function ComplaintsTable({
     <div className="space-y-6">
       {/* Desktop View */}
       <div className="hidden md:block">
-        <div className="rounded-[2rem] border-2 border-slate-100 overflow-hidden bg-white shadow-xl shadow-slate-200/50">
+        <div className="rounded-2xl border-2 border-border overflow-hidden bg-card elevation-1">
           <Table>
-            <TableHeader className="bg-slate-50/50">
+            <TableHeader className="bg-muted/40">
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
-                  className="hover:bg-transparent border-b-2 border-slate-100"
+                  className="hover:bg-transparent border-b-2 border-border"
                 >
                   {hg.headers.map((h) => (
                     <TableHead
                       key={h.id}
-                      className="h-14 px-6 text-[11px] font-black uppercase tracking-widest text-slate-400"
+                      className="h-14 px-6 text-xs font-black uppercase tracking-widest text-muted-foreground"
                     >
                       {flexRender(h.column.columnDef.header, h.getContext())}
                     </TableHead>
@@ -410,9 +413,9 @@ export function ComplaintsTable({
                       colSpan={columns.length}
                       className="h-64 text-center"
                     >
-                      <div className="flex flex-col items-center gap-2 opacity-50">
-                        <AlertTriangle className="h-10 w-10 text-slate-300" />
-                        <p className="font-bold text-slate-900">
+                      <div className="flex flex-col items-center gap-3 opacity-60">
+                        <AlertTriangle className="h-12 w-12 text-muted-foreground" />
+                        <p className="font-bold text-foreground text-lg">
                           No Registry Records Found
                         </p>
                       </div>
@@ -423,7 +426,7 @@ export function ComplaintsTable({
                     <TableRow
                       key={row.id}
                       onClick={() => handleRowClick(row.original)}
-                      className="group cursor-pointer hover:bg-blue-50/30 transition-colors border-b border-slate-50"
+                      className="group cursor-pointer hover:bg-accent/50 transition-colors border-b border-border"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="px-6 py-4">
@@ -455,16 +458,16 @@ export function ComplaintsTable({
 
       {/* Improved Pagination Footer */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
           Showing{" "}
-          <span className="text-slate-900">
+          <span className="text-foreground">
             {(currentPage - 1) * pageSize + 1}
           </span>{" "}
           to{" "}
-          <span className="text-slate-900">
+          <span className="text-foreground">
             {Math.min(currentPage * pageSize, total)}
           </span>{" "}
-          of <span className="text-slate-900">{total}</span> Registry Entries
+          of <span className="text-foreground">{total}</span> Records
         </p>
 
         <div className="flex items-center gap-2">
@@ -477,7 +480,7 @@ export function ComplaintsTable({
           >
             <ChevronLeft className="h-4 w-4 mr-1" /> Prev
           </Button>
-          <div className="h-10 px-4 flex items-center justify-center bg-white border-2 border-slate-100 rounded-xl text-xs font-black">
+          <div className="h-10 px-4 flex items-center justify-center bg-card border-2 border-border rounded-xl text-sm font-black">
             {currentPage} / {Math.ceil(total / pageSize) || 1}
           </div>
           <Button
@@ -498,7 +501,7 @@ export function ComplaintsTable({
 function TableSkeleton() {
   return (
     <div className="space-y-4">
-      <Skeleton className="h-14 w-full rounded-[2rem]" />
+      <Skeleton className="h-14 w-full rounded-2xl" />
       {[...Array(5)].map((_, i) => (
         <Skeleton key={i} className="h-20 w-full rounded-2xl" />
       ))}
