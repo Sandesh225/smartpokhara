@@ -1,9 +1,14 @@
+
+
+// ═══════════════════════════════════════════════════════════
+// app/(protected)/admin/users/_components/UserRolesCard.tsx
+// ═══════════════════════════════════════════════════════════
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +20,18 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Trash2, ShieldCheck, Plus, Briefcase, MapPin } from "lucide-react";
+import {
+  Trash2,
+  ShieldCheck,
+  Plus,
+  Briefcase,
+  MapPin,
+  Shield,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 // --- Types ---
 interface Role {
@@ -41,6 +56,7 @@ interface UserRole {
   id: string;
   role_id: string;
   assigned_at: string;
+  is_primary?: boolean;
   role: Role;
 }
 
@@ -104,9 +120,7 @@ export function UserRolesCard({
       const { data: authData } = await supabase.auth.getUser();
       const assignedBy = authData.user?.id ?? null;
 
-      // ============================================
-      // STEP 1: ASSIGN ROLE IN user_roles TABLE
-      // ============================================
+      // STEP 1: ASSIGN ROLE
       const { error: roleError } = await supabase.from("user_roles").insert({
         user_id: user.id,
         role_id: selectedRoleId,
@@ -116,9 +130,7 @@ export function UserRolesCard({
 
       if (roleError) throw roleError;
 
-      // ============================================
-      // STEP 2: CREATE/UPDATE staff_profiles
-      // ============================================
+      // STEP 2: CREATE/UPDATE STAFF PROFILE
       const isStaffRole = [
         "dept_head",
         "dept_staff",
@@ -154,16 +166,12 @@ export function UserRolesCard({
         }
       }
 
-      // ============================================
-      // STEP 3: CREATE supervisor_profiles (CRITICAL FIX)
-      // This is what was missing!
-      // ============================================
+      // STEP 3: CREATE SUPERVISOR PROFILE IF NEEDED
       const isSupervisorRole =
         selectedRole?.role_type === "dept_head" ||
         selectedRole?.role_type === "admin";
 
       if (isSupervisorRole) {
-        // Determine supervisor level
         let supervisorLevel: "department" | "ward" | "senior" = "department";
         if (selectedRole?.role_type === "admin") {
           supervisorLevel = "senior";
@@ -171,7 +179,6 @@ export function UserRolesCard({
           supervisorLevel = "ward";
         }
 
-        // Build jurisdiction arrays
         const assignedDepartments =
           requiresDepartment && selectedDeptId ? [selectedDeptId] : [];
         const assignedWards =
@@ -200,13 +207,6 @@ export function UserRolesCard({
             `Failed to create supervisor profile: ${supervisorError.message}`
           );
         }
-
-        console.log("✅ Supervisor profile created:", {
-          user_id: user.id,
-          level: supervisorLevel,
-          departments: assignedDepartments,
-          wards: assignedWards,
-        });
       }
 
       toast.success(
@@ -215,7 +215,6 @@ export function UserRolesCard({
           : "Role assigned successfully"
       );
 
-      // Reset form
       setSelectedRoleId("");
       setSelectedDeptId("");
       setSelectedWardId("");
@@ -234,13 +233,11 @@ export function UserRolesCard({
 
     setLoading(true);
     try {
-      // Get the role being removed
       const roleToRemove = user.user_roles?.find((ur) => ur.role_id === roleId);
       const isSupervisor =
         roleToRemove?.role?.role_type === "dept_head" ||
         roleToRemove?.role?.role_type === "admin";
 
-      // Remove from user_roles
       const { error: roleError } = await supabase
         .from("user_roles")
         .delete()
@@ -249,20 +246,13 @@ export function UserRolesCard({
 
       if (roleError) throw roleError;
 
-      // If removing a supervisor role, also remove supervisor_profiles entry
       if (isSupervisor) {
-        const { error: supervisorError } = await supabase
+        await supabase
           .from("supervisor_profiles")
           .delete()
           .eq("user_id", user.id);
-
-        if (supervisorError) {
-          console.warn("Could not remove supervisor profile:", supervisorError);
-          // Don't throw - supervisor profile might not exist
-        }
       }
 
-      // Optionally deactivate staff_profiles (preserves history)
       await supabase
         .from("staff_profiles")
         .update({ is_active: false })
@@ -278,145 +268,195 @@ export function UserRolesCard({
     }
   };
 
-  // Filter out roles user already has
   const assignedRoleIds = new Set(user.user_roles?.map((ur) => ur.role_id));
   const unassignedRoles = availableRoles.filter(
     (role) => !assignedRoleIds.has(role.id)
   );
 
-  // Determine current context for display
   const currentStaffDetails = user.staff_profiles;
   const currentDepartment = departments.find(
     (d) => d.id === currentStaffDetails?.department_id
   );
   const currentWard = wards.find((w) => w.id === currentStaffDetails?.ward_id);
 
+  const getRoleBadgeStyle = (roleType: string) => {
+    const styles: Record<string, string> = {
+      admin: "border-error-red/30 bg-error-red/10 text-error-red",
+      dept_head: "border-primary/30 bg-primary/10 text-primary",
+      ward_staff: "border-success-green/30 bg-success-green/10 text-success-green",
+      dept_staff: "border-info-blue/30 bg-info-blue/10 text-info-blue",
+      field_staff: "border-warning-amber/30 bg-warning-amber/10 text-warning-amber",
+    };
+    return styles[roleType] || "border-muted-foreground/30 bg-muted text-muted-foreground";
+  };
+
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50/50">
-        <CardTitle className="flex items-center gap-2 text-lg font-bold text-slate-800">
-          <ShieldCheck className="h-5 w-5 text-blue-600" />
-          Access & Roles
-        </CardTitle>
+    <div className="stone-card overflow-hidden">
+      {/* HEADER */}
+      <CardHeader className="border-b-2 border-border bg-muted/30 p-2 md:p-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+          </div>
+          <CardTitle className="text-base md:text-lg font-black text-foreground tracking-tight">
+            Access & Roles
+          </CardTitle>
+        </div>
       </CardHeader>
 
-      <CardContent className="space-y-6 pt-6">
-        {/* Current Context Display */}
+      <CardContent className="space-y-5 md:space-y-6 p-4 md:p-6">
+        {/* CURRENT JURISDICTION */}
         {currentStaffDetails && (
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm flex gap-4 flex-wrap">
-            {currentDepartment && (
-              <div className="flex items-center gap-2 text-blue-700">
-                <Briefcase className="h-4 w-4" />
-                <span className="font-semibold">{currentDepartment.name}</span>
-              </div>
-            )}
-            {currentWard && (
-              <div className="flex items-center gap-2 text-blue-700">
-                <MapPin className="h-4 w-4" />
-                <span className="font-semibold">
-                  Ward {currentWard.ward_number}
-                </span>
-              </div>
-            )}
-            {!currentDepartment && !currentWard && (
-              <span className="text-blue-600 italic">
-                No specific jurisdiction assigned.
+          <div className="bg-info-blue/5 border-2 border-info-blue/20 rounded-lg p-3 md:p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="w-4 h-4 text-info-blue" />
+              <span className="text-[10px] md:text-[11px] font-bold text-info-blue uppercase tracking-wider">
+                Current Jurisdiction
               </span>
-            )}
+            </div>
+            <div className="flex gap-3 flex-wrap">
+              {currentDepartment && (
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-md bg-primary/10">
+                    <Briefcase className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    {currentDepartment.name}
+                  </span>
+                </div>
+              )}
+              {currentWard && (
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-md bg-success-green/10">
+                    <MapPin className="w-3.5 h-3.5 text-success-green" />
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    Ward {currentWard.ward_number}
+                  </span>
+                </div>
+              )}
+              {!currentDepartment && !currentWard && (
+                <span className="text-xs text-muted-foreground italic">
+                  No specific jurisdiction assigned
+                </span>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Active Roles List */}
+        {/* ACTIVE ROLES */}
         <div className="space-y-3">
-          <Label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
+          <Label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Active Roles
           </Label>
           {user.user_roles && user.user_roles.length > 0 ? (
-            user.user_roles.map((ur) => (
-              <div
-                key={ur.id}
-                className="flex items-center justify-between rounded-lg border border-slate-200 p-3 bg-white hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-slate-900">
-                      {ur.role?.name ?? "Unknown role"}
-                    </span>
-                    {ur.role?.role_type === "admin" && (
-                      <Badge className="bg-slate-900">Admin</Badge>
-                    )}
-                    {ur.role?.role_type === "dept_head" && (
-                      <Badge className="bg-purple-600">Supervisor</Badge>
-                    )}
-                    {ur.role?.role_type === "ward_staff" && (
-                      <Badge className="bg-green-600">Ward</Badge>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    Assigned:{" "}
-                    {ur.assigned_at
-                      ? new Date(ur.assigned_at).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-500 hover:bg-red-50 hover:text-red-700 h-8 w-8 p-0"
-                  onClick={() => handleRemoveRole(ur.role_id)}
-                  disabled={loading}
+            <div className="space-y-2">
+              {user.user_roles.map((ur) => (
+                <div
+                  key={ur.id}
+                  className="flex items-center justify-between rounded-lg border-2 border-border p-3 md:p-4 bg-card hover:bg-accent/30 transition-all duration-200 group"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))
+                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Shield className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="font-black text-sm md:text-base text-foreground truncate">
+                        {ur.role?.name ?? "Unknown role"}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[10px] font-bold",
+                          getRoleBadgeStyle(ur.role?.role_type || "")
+                        )}
+                      >
+                        {ur.role?.role_type.replace(/_/g, " ").toUpperCase()}
+                      </Badge>
+                      {ur.is_primary && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-bold border-warning-amber/30 bg-warning-amber/10 text-warning-amber"
+                        >
+                          PRIMARY
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-[10px] md:text-xs text-muted-foreground font-medium">
+                      Assigned:{" "}
+                      {ur.assigned_at
+                        ? new Date(ur.assigned_at).toLocaleDateString("en-US", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "N/A"}
+                    </p>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-error-red hover:bg-error-red/10 hover:text-error-red h-8 w-8 p-0 flex-shrink-0 ml-2"
+                    onClick={() => handleRemoveRole(ur.role_id)}
+                    disabled={loading}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           ) : (
-            <p className="text-sm text-slate-500 italic">
-              No roles assigned yet.
-            </p>
+            <div className="py-8 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
+                <Shield className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground font-medium">
+                No roles assigned yet
+              </p>
+            </div>
           )}
         </div>
 
-        <div className="border-t border-slate-100 my-4" />
+        <div className="border-t-2 border-border" />
 
-        {/* Add New Role Form */}
+        {/* ADD NEW ROLE */}
         <div className="space-y-4">
-          <Label className="text-xs font-semibold uppercase text-slate-500 tracking-wider">
+          <Label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Assign New Role
           </Label>
 
-          <div className="grid grid-cols-1 gap-3">
-            {/* 1. Select Role */}
+          <div className="space-y-3">
+            {/* Role Selection */}
             <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-              <SelectTrigger className="w-full h-10">
+              <SelectTrigger className="w-full h-10 font-medium">
                 <SelectValue placeholder="Select a role..." />
               </SelectTrigger>
               <SelectContent>
                 {unassignedRoles.map((role) => (
                   <SelectItem key={role.id} value={role.id}>
-                    {role.name}
-                    {(role.role_type === "dept_head" ||
-                      role.role_type === "admin") && (
-                      <Badge className="ml-2 text-[10px]" variant="secondary">
-                        Supervisor
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span>{role.name}</span>
+                      {(role.role_type === "dept_head" ||
+                        role.role_type === "admin") && (
+                        <Badge className="text-[10px]" variant="secondary">
+                          Supervisor
+                        </Badge>
+                      )}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* 2. Conditional: Select Department */}
+            {/* Department Selection */}
             {requiresDepartment && (
               <div className="animate-in fade-in slide-in-from-top-2">
                 <Select
                   value={selectedDeptId}
                   onValueChange={setSelectedDeptId}
                 >
-                  <SelectTrigger className="w-full h-10 border-blue-200 bg-blue-50/50">
+                  <SelectTrigger className="w-full h-10 border-2 border-primary/30 bg-primary/5">
                     <div className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4 text-blue-500" />
+                      <Briefcase className="h-4 w-4 text-primary" />
                       <SelectValue placeholder="Select Department" />
                     </div>
                   </SelectTrigger>
@@ -431,16 +471,16 @@ export function UserRolesCard({
               </div>
             )}
 
-            {/* 3. Conditional: Select Ward */}
+            {/* Ward Selection */}
             {requiresWard && (
               <div className="animate-in fade-in slide-in-from-top-2">
                 <Select
                   value={selectedWardId}
                   onValueChange={setSelectedWardId}
                 >
-                  <SelectTrigger className="w-full h-10 border-green-200 bg-green-50/50">
+                  <SelectTrigger className="w-full h-10 border-2 border-success-green/30 bg-success-green/5">
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-green-500" />
+                      <MapPin className="h-4 w-4 text-success-green" />
                       <SelectValue placeholder="Select Ward" />
                     </div>
                   </SelectTrigger>
@@ -457,14 +497,14 @@ export function UserRolesCard({
 
             <Button
               onClick={handleAddRole}
-              className="w-full"
+              className="w-full gap-2 font-bold"
               disabled={!selectedRoleId || loading}
             >
               {loading ? (
                 "Assigning..."
               ) : (
                 <>
-                  <Plus className="h-4 w-4 mr-2" /> Assign Role & Jurisdiction
+                  <Plus className="h-4 w-4" /> Assign Role & Jurisdiction
                 </>
               )}
             </Button>
@@ -472,13 +512,18 @@ export function UserRolesCard({
 
           {/* Help Text */}
           {selectedRole?.role_type === "dept_head" && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
-              <strong>Note:</strong> Assigning Department Head will create a
-              supervisor profile with full department access.
+            <div className="bg-warning-amber/5 border-2 border-warning-amber/20 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-warning-amber flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-warning-amber font-medium">
+                  <strong>Note:</strong> Assigning Department Head will create a
+                  supervisor profile with full department access.
+                </p>
+              </div>
             </div>
           )}
         </div>
       </CardContent>
-    </Card>
+    </div>
   );
 }

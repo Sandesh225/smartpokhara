@@ -1,3 +1,6 @@
+// ==================== EDIT DEPARTMENT PAGE ====================
+// app/admin/departments/[id]/edit/page.tsx
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -8,15 +11,15 @@ import DeleteDepartmentAlert from "../../_components/DeleteDepartmentAlert";
 export default async function EditDepartmentPage({
   params,
 }: {
-  params: Promise<{ id: string }>; // 1. Promise Type
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; // 2. Await params
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data: department } = await supabase
     .from("departments")
     .select("*")
-    .eq("id", id) // Use awaited id
+    .eq("id", id)
     .single();
 
   if (!department) notFound();
@@ -27,18 +30,19 @@ export default async function EditDepartmentPage({
     .order("full_name");
 
   return (
-    <div className="min-h-screen bg-background section-spacing container-padding">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-6 py-10 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <Link
               href={`/admin/departments/${id}`}
-              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary mb-2 transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary mb-3 transition-colors group"
             >
-              <ChevronLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Dashboard
             </Link>
-            <h1 className="text-2xl font-bold text-foreground">
-              Editing: <span className="text-primary">{department.name}</span>
+            <h1 className="text-3xl font-bold text-foreground">
+              Edit: <span className="text-primary">{department.name}</span>
             </h1>
           </div>
           <DeleteDepartmentAlert

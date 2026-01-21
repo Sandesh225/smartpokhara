@@ -15,6 +15,7 @@ import {
   UserPlus,
   XCircle,
   Command,
+  MoreVertical,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,13 @@ import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-c
 import { getSuggestedStaff } from "@/lib/utils/assignment-helpers";
 import type { AssignableStaff } from "@/lib/types/supervisor.types";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export function ComplaintDetailHeader({
   complaint,
@@ -54,11 +62,11 @@ export function ComplaintDetailHeader({
         complaint.id,
         "Closed via header action"
       );
-      toast.success("Operations Terminated: Complaint Closed");
+      toast.success("Complaint closed successfully");
       setIsCloseDialogOpen(false);
       router.refresh();
     } catch (error) {
-      toast.error("Handshake Failed: Could not close record");
+      toast.error("Failed to close complaint");
     }
   };
 
@@ -78,7 +86,7 @@ export function ComplaintDetailHeader({
       setStaffList(getSuggestedStaff(staff, location));
       setIsAssignModalOpen(true);
     } catch (error) {
-      toast.error("Transmission Error: Staff registry unavailable");
+      toast.error("Failed to load staff list");
     } finally {
       setIsLoadingStaff(false);
     }
@@ -100,7 +108,7 @@ export function ComplaintDetailHeader({
           note,
           userId
         );
-        toast.success("Protocol Updated: Staff Reassigned");
+        toast.success("Staff reassigned successfully");
       } else {
         await supervisorComplaintsQueries.assignComplaint(
           supabase,
@@ -109,45 +117,55 @@ export function ComplaintDetailHeader({
           note,
           userId
         );
-        toast.success("Task Synchronized: Staff Assigned");
+        toast.success("Staff assigned successfully");
       }
       setIsAssignModalOpen(false);
       router.refresh();
     } catch (error) {
-      toast.error("Assignment Interrupted: Database rejected the update");
+      toast.error("Assignment failed");
     }
   };
 
   return (
     <>
-      <div className="glass sticky top-0 z-40 w-full border-b border-white/10 dark:border-primary/20 backdrop-blur-2xl transition-all duration-300">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Left Section: Back Link & Context Identity */}
-          <div className="flex items-center gap-5">
+      {/* MOBILE & DESKTOP HEADER */}
+      <div className="glass sticky top-0 z-40 w-full border-b border-border backdrop-blur-xl">
+        <div className="w-full px-3 sm:px-4 lg:px-6 h-14 sm:h-16 lg:h-20 flex items-center justify-between gap-3">
+          {/* LEFT SECTION - Back & Info */}
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 min-w-0 flex-1">
+            {/* Back Button */}
             <Link
               href="/supervisor/complaints"
-              className="p-2.5 rounded-xl bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
-              aria-label="Back to Ledger"
+              className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+              aria-label="Back to complaints"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
 
-            <div className="flex flex-col">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-primary/10 text-[10px] font-black text-primary uppercase tracking-tighter">
-                  <Command className="w-3 h-3" /> Ledger
+            {/* Info Section */}
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Badge - Hidden on very small screens */}
+                <span className="hidden xs:flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded bg-primary/10 text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-tighter flex-shrink-0">
+                  <Command className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <span className="hidden sm:inline">Ledger</span>
                 </span>
-                <h1 className="text-xl font-black text-foreground tracking-tighter dark:text-glow">
+
+                {/* Tracking Code */}
+                <h1 className="text-base sm:text-lg lg:text-xl font-black text-foreground tracking-tighter truncate">
                   {complaint.tracking_code}
                 </h1>
-                <StatusBadge status={complaint.status} variant="complaint" />
+
+                {/* Status Badge */}
+                <div className="flex-shrink-0">
+                  <StatusBadge status={complaint.status} variant="complaint" />
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                <span className="opacity-70">
-                  {format(
-                    new Date(complaint.submitted_at),
-                    "MMM d, yyyy // HH:mm 'Z'"
-                  )}
+
+              {/* Metadata Row - Hidden on mobile */}
+              <div className="hidden sm:flex items-center gap-2 text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
+                <span className="opacity-70 truncate">
+                  {format(new Date(complaint.submitted_at), "MMM d, yyyy")}
                 </span>
                 <span className="text-primary/30">•</span>
                 <PriorityIndicator priority={complaint.priority} size="sm" />
@@ -155,68 +173,104 @@ export function ComplaintDetailHeader({
             </div>
           </div>
 
-          {/* Right Section: Action Controls */}
-          <div className="flex items-center gap-4">
-            {/* Tactical Utility Group */}
-            <div className="hidden lg:flex items-center gap-1 px-3 border-r border-white/10 dark:border-primary/10 mr-2">
+          {/* RIGHT SECTION - Actions */}
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0">
+            {/* Desktop Utility Actions */}
+            <div className="hidden lg:flex items-center gap-1 px-2 lg:px-3 border-r border-border">
               {[Printer, Share2, Download].map((Icon, i) => (
                 <Button
                   key={i}
                   variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                  size="icon-sm"
+                  className="h-8 w-8 lg:h-9 lg:w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg lg:rounded-xl"
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                 </Button>
               ))}
             </div>
 
-            {/* Termination Action */}
+            {/* Close Button - Hidden on mobile */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsCloseDialogOpen(true)}
-              className="hidden sm:flex h-10 px-4 rounded-xl font-bold uppercase text-[10px] tracking-widest border-destructive/20 text-destructive hover:bg-destructive/10 transition-all active:scale-95"
+              className="hidden sm:flex h-8 lg:h-10 px-3 lg:px-4 rounded-lg lg:rounded-xl text-[10px] font-bold uppercase tracking-wider border-error-red/30 text-error-red hover:bg-error-red/10"
             >
-              <XCircle className="w-4 h-4 mr-2" />
-              Terminate
+              <XCircle className="w-3.5 h-3.5 lg:w-4 lg:h-4 sm:mr-1.5" />
+              <span className="hidden lg:inline">Close</span>
             </Button>
 
-            {/* Deployment Action */}
+            {/* Assign/Reassign Button */}
             <Button
               size="sm"
               onClick={loadStaffForAssignment}
               disabled={isLoadingStaff}
               className={cn(
-                "h-10 px-6 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-glow-sm transition-all active:scale-95",
+                "h-8 sm:h-9 lg:h-10 px-3 sm:px-4 lg:px-6 rounded-lg lg:rounded-xl text-[10px] font-bold uppercase tracking-wider shadow-sm",
                 isAssigned
-                  ? "bg-amber-500 hover:bg-amber-600"
+                  ? "bg-warning-amber hover:bg-warning-amber/90"
                   : "bg-primary hover:bg-primary/90"
               )}
             >
               {isLoadingStaff ? (
-                <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-              ) : isAssigned ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" /> Redeploy
-                </>
+                <RefreshCw className="w-3.5 h-3.5 lg:w-4 lg:h-4 animate-spin" />
               ) : (
                 <>
-                  <UserPlus className="w-4 h-4 mr-2" /> Deploy Staff
+                  {isAssigned ? (
+                    <RefreshCw className="w-3.5 h-3.5 lg:w-4 lg:h-4 sm:mr-1.5" />
+                  ) : (
+                    <UserPlus className="w-3.5 h-3.5 lg:w-4 lg:h-4 sm:mr-1.5" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {isAssigned ? "Redeploy" : "Deploy"}
+                  </span>
                 </>
               )}
             </Button>
+
+            {/* Mobile Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="sm:hidden h-8 w-8"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setIsCloseDialogOpen(true)}>
+                  <XCircle className="w-4 h-4 mr-2 text-error-red" />
+                  Close Complaint
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Printer className="w-4 h-4 mr-2" />
+                  Print
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
+      {/* DIALOGS */}
       <ConfirmationDialog
         isOpen={isCloseDialogOpen}
         onClose={() => setIsCloseDialogOpen(false)}
         onConfirm={handleCloseComplaint}
-        title="Protocol Termination"
-        message="You are about to permanently close this record. This action will be logged in the jurisdictional audit trail."
-        confirmLabel="Confirm Closure"
+        title="Close Complaint"
+        message="Are you sure you want to close this complaint? This action will be logged."
+        confirmLabel="Confirm"
         variant="danger"
       />
 

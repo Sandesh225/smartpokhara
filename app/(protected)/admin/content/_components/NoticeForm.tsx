@@ -6,15 +6,32 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { NoticeInput } from "@/types/admin-content";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  FileText,
+  Type,
+  AlignLeft,
+  Tag,
+  Globe,
+  MapPin,
+  AlertCircle,
+  Calendar,
+  Send,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-// Schema Validation
 const schema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   excerpt: z.string().min(10, "Excerpt must be at least 10 characters"),
@@ -61,6 +78,7 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
 
   const [wards, setWards] = useState<any[]>([]);
   const isPublic = watch("is_public");
+  const isUrgent = watch("is_urgent");
 
   useEffect(() => {
     const supabase = createClient();
@@ -73,17 +91,14 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
 
   const onFormSubmit = async (data: any) => {
     try {
-      // Convert form state to API payload
       const submission: NoticeInput = {
         title: data.title,
         content: data.content,
         excerpt: data.excerpt,
         notice_type: data.notice_type,
-        // Force ward_id to null if it's public or 'all'
         ward_id: data.is_public || data.ward_id === "all" ? null : data.ward_id,
         is_public: data.is_public,
         is_urgent: data.is_urgent,
-        // Use undefined for current time, logic handled in queries file
         published_at: undefined,
         expires_at: data.expires_at
           ? new Date(data.expires_at).toISOString()
@@ -96,132 +111,196 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6 max-w-2xl">
-      <div className="grid grid-cols-1 gap-4">
-        <div className="space-y-2">
-          <Label>Title</Label>
-          <Input
-            {...register("title")}
-            placeholder="e.g. Road Maintenance Alert"
-          />
-          {errors.title && (
-            <p className="text-red-500 text-xs">
-              {errors.title.message as string}
-            </p>
+    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5 md:space-y-6">
+      {/* TITLE */}
+      <div className="space-y-2">
+        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Type className="w-3.5 h-3.5" />
+          Title
+        </Label>
+        <Input
+          {...register("title")}
+          placeholder="e.g. Road Maintenance Alert"
+          className={cn(
+            "font-medium",
+            errors.title && "border-error-red focus-visible:ring-error-red"
           )}
-        </div>
+        />
+        {errors.title && (
+          <p className="text-error-red text-xs font-medium flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {errors.title.message as string}
+          </p>
+        )}
+      </div>
 
-        <div className="space-y-2">
-          <Label>Excerpt (Short Summary)</Label>
-          <Input
-            {...register("excerpt")}
-            placeholder="Brief description for notifications..."
-          />
-          {errors.excerpt && (
-            <p className="text-red-500 text-xs">
-              {errors.excerpt.message as string}
-            </p>
+      {/* EXCERPT */}
+      <div className="space-y-2">
+        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <AlignLeft className="w-3.5 h-3.5" />
+          Excerpt (Short Summary)
+        </Label>
+        <Input
+          {...register("excerpt")}
+          placeholder="Brief description for notifications..."
+          className={cn(
+            "font-medium",
+            errors.excerpt && "border-error-red focus-visible:ring-error-red"
           )}
-        </div>
+        />
+        {errors.excerpt && (
+          <p className="text-error-red text-xs font-medium flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {errors.excerpt.message as string}
+          </p>
+        )}
+      </div>
 
-        <div className="space-y-2">
-          <Label>Type</Label>
-          <Select
-            onValueChange={(v) => setValue("notice_type", v as any)}
-            defaultValue={initialData?.notice_type || "announcement"}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="announcement">General Announcement</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
-              <SelectItem value="payment">Tax/Payment</SelectItem>
-              <SelectItem value="alert">Emergency Alert</SelectItem>
-              <SelectItem value="event">Event</SelectItem>
-              <SelectItem value="public_service">Public Service</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* TYPE */}
+      <div className="space-y-2">
+        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Tag className="w-3.5 h-3.5" />
+          Notice Type
+        </Label>
+        <Select
+          onValueChange={(v) => setValue("notice_type", v as any)}
+          defaultValue={initialData?.notice_type || "announcement"}
+        >
+          <SelectTrigger className="font-medium">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="announcement">📢 General Announcement</SelectItem>
+            <SelectItem value="maintenance">🔧 Maintenance</SelectItem>
+            <SelectItem value="payment">💳 Tax/Payment</SelectItem>
+            <SelectItem value="alert">🚨 Emergency Alert</SelectItem>
+            <SelectItem value="event">🎉 Event</SelectItem>
+            <SelectItem value="public_service">🏛️ Public Service</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        <div className="space-y-2">
-          <Label>Content</Label>
-          <Textarea
-            {...register("content")}
-            className="h-40"
-            placeholder="Full details..."
-          />
-          {errors.content && (
-            <p className="text-red-500 text-xs">
-              {errors.content.message as string}
-            </p>
+      {/* CONTENT */}
+      <div className="space-y-2">
+        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <FileText className="w-3.5 h-3.5" />
+          Content
+        </Label>
+        <Textarea
+          {...register("content")}
+          className={cn(
+            "h-40 font-medium resize-none",
+            errors.content && "border-error-red focus-visible:ring-error-red"
           )}
-        </div>
+          placeholder="Full details of the notice..."
+        />
+        {errors.content && (
+          <p className="text-error-red text-xs font-medium flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {errors.content.message as string}
+          </p>
+        )}
+      </div>
 
-        <div className="grid grid-cols-1 gap-6 p-4 border rounded-lg bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Public Notice</Label>
-              <p className="text-xs text-gray-500">
-                Visible to all citizens (No specific Ward)
-              </p>
+      {/* VISIBILITY SETTINGS */}
+      <div className="space-y-4 p-4 md:p-5 border-2 border-border rounded-lg bg-muted/30">
+        {/* PUBLIC TOGGLE */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-success-green" />
+              <Label className="text-sm font-bold text-foreground">
+                Public Notice
+              </Label>
             </div>
-            <Switch
-              checked={isPublic}
-              onCheckedChange={(c) => setValue("is_public", c)}
-            />
+            <p className="text-xs text-muted-foreground">
+              Visible to all citizens (No specific Ward)
+            </p>
           </div>
+          <Switch
+            checked={isPublic}
+            onCheckedChange={(c) => setValue("is_public", c)}
+          />
+        </div>
 
-          {!isPublic && (
-            <div className="space-y-2 animate-in fade-in">
-              <Label>Target Ward</Label>
-              <Select
-                onValueChange={(v) => setValue("ward_id", v)}
-                defaultValue={initialData?.ward_id || "all"}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Ward" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" disabled>
-                    Select a Ward...
+        {/* WARD SELECTION */}
+        {!isPublic && (
+          <div className="space-y-2 animate-in fade-in slide-in-from-top-2 pt-4 border-t-2 border-border">
+            <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5" />
+              Target Ward
+            </Label>
+            <Select
+              onValueChange={(v) => setValue("ward_id", v)}
+              defaultValue={initialData?.ward_id || "all"}
+            >
+              <SelectTrigger className="border-warning-amber/30 bg-warning-amber/5 font-medium">
+                <SelectValue placeholder="Select Ward" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" disabled>
+                  Select a Ward...
+                </SelectItem>
+                {wards.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    Ward {w.ward_number} - {w.name}
                   </SelectItem>
-                  {wards.map((w) => (
-                    <SelectItem key={w.id} value={w.id}>
-                      Ward {w.ward_number} - {w.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between border-t pt-4">
-            <div className="space-y-0.5">
-              <Label className="text-red-600">Urgent Alert</Label>
-              <p className="text-xs text-gray-500">Sends push notification</p>
-            </div>
-            <Switch
-              checked={watch("is_urgent")}
-              onCheckedChange={(c) => setValue("is_urgent", c)}
-            />
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
+        )}
 
-        <div className="space-y-2">
-          <Label>Expires At (Optional)</Label>
-          <Input
-            type="datetime-local"
-            {...register("expires_at")}
-            className="block w-full"
+        {/* URGENT TOGGLE */}
+        <div className="flex items-center justify-between gap-4 pt-4 border-t-2 border-border">
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-error-red" />
+              <Label className="text-sm font-bold text-error-red">
+                Urgent Alert
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Sends push notification & pins to top
+            </p>
+          </div>
+          <Switch
+            checked={isUrgent}
+            onCheckedChange={(c) => setValue("is_urgent", c)}
           />
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isSubmitting ? "Publishing..." : "Publish Notice"}
+      {/* EXPIRY DATE */}
+      <div className="space-y-2">
+        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Calendar className="w-3.5 h-3.5" />
+          Expires At (Optional)
+        </Label>
+        <Input
+          type="datetime-local"
+          {...register("expires_at")}
+          className="font-medium"
+        />
+        <p className="text-xs text-muted-foreground">
+          Leave empty for notices that don't expire
+        </p>
+      </div>
+
+      {/* SUBMIT */}
+      <div className="flex justify-end gap-3 pt-4 border-t-2 border-border">
+        <Button type="submit" disabled={isSubmitting} className="gap-2 font-bold">
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Publishing...
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+              Publish Notice
+            </>
+          )}
         </Button>
       </div>
     </form>

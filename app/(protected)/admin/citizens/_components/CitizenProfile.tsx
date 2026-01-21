@@ -1,16 +1,22 @@
+// ═══════════════════════════════════════════════════════════
+// app/admin/citizens/_components/CitizenProfile.tsx
+// ═══════════════════════════════════════════════════════════
+
+import { cn } from "@/lib/utils";
 import { CitizenProfile } from "@/types/admin-citizens";
 import { User, MapPin, Phone, Mail, BadgeCheck } from "lucide-react";
 
-export default function CitizenProfile({
+export default function CitizenProfileCard({
   profile,
 }: {
   profile: CitizenProfile;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-full">
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+    <div className="stone-card p-4 md:p-6 h-auto">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-background shadow-lg flex-shrink-0">
             {profile.profile_photo_url ? (
               <img
                 src={profile.profile_photo_url}
@@ -18,53 +24,58 @@ export default function CitizenProfile({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="w-8 h-8 text-gray-400" />
+              <User className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />
             )}
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              {profile.full_name}
+          <div className="min-w-0">
+            <h2 className="text-lg md:text-xl font-black text-foreground flex items-center gap-2 truncate">
+              <span className="truncate">{profile.full_name}</span>
               {profile.is_verified && (
-                <BadgeCheck className="w-5 h-5 text-blue-500" />
+                <BadgeCheck className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
               )}
             </h2>
             {profile.full_name_nepali && (
-              <p className="text-sm text-gray-500 font-serif">
+              <p className="text-sm text-muted-foreground font-serif truncate">
                 {profile.full_name_nepali}
               </p>
             )}
           </div>
         </div>
-        <div
-          className={`px-3 py-1 rounded-full text-sm font-medium ${
+
+        <span
+          className={cn(
+            "px-3 py-1 rounded-full text-xs md:text-sm font-bold border self-start sm:self-auto flex-shrink-0",
             profile.is_active
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-red-50 text-red-700 border border-red-200"
-          }`}
+              ? "bg-success-green/10 text-success-green border-success-green/30"
+              : "bg-error-red/10 text-error-red border-error-red/30"
+          )}
         >
-          {profile.is_active ? "Active Account" : "Suspended"}
-        </div>
+          {profile.is_active ? "Active" : "Suspended"}
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 text-sm">
-        <div className="flex items-center gap-3 text-gray-600 p-3 bg-gray-50 rounded-lg">
-          <Mail className="w-4 h-4 text-gray-400" />
-          <span className="font-medium">{profile.email}</span>
+      {/* CONTACT INFO */}
+      <div className="grid grid-cols-1 gap-3 text-sm mb-6">
+        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg md:rounded-xl">
+          <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <span className="font-medium truncate">{profile.email}</span>
         </div>
 
-        <div className="flex items-center gap-3 text-gray-600 p-3 bg-gray-50 rounded-lg">
-          <Phone className="w-4 h-4 text-gray-400" />
-          <span>{profile.phone || "No phone provided"}</span>
+        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg md:rounded-xl">
+          <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <span className="truncate">
+            {profile.phone || "No phone provided"}
+          </span>
         </div>
 
-        <div className="flex items-center gap-3 text-gray-600 p-3 bg-gray-50 rounded-lg">
-          <MapPin className="w-4 h-4 text-gray-400" />
-          <div>
-            <p className="font-medium">
+        <div className="flex items-start gap-3 p-3 bg-muted rounded-lg md:rounded-xl">
+          <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">
               {profile.address_line1 || "No address"}
             </p>
             {profile.ward_id && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Ward No. {profile.ward_id}
               </p>
             )}
@@ -72,24 +83,25 @@ export default function CitizenProfile({
         </div>
       </div>
 
-      <div className="mt-6 pt-6 border-t border-gray-100 grid grid-cols-2 gap-4">
+      {/* METADATA */}
+      <div className="pt-6 border-t border-border grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">
+          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider font-bold">
             Citizenship No
           </p>
-          <p className="font-mono text-gray-900 mt-1">
+          <p className="font-mono text-sm md:text-base text-foreground mt-1 truncate">
             {profile.citizenship_number || "N/A"}
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">
+          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider font-bold">
             User ID
           </p>
           <p
-            className="font-mono text-gray-900 text-xs mt-1 truncate"
+            className="font-mono text-foreground text-xs mt-1 truncate"
             title={profile.user_id}
           >
-            {profile.user_id}
+            {profile.user_id.slice(0, 8)}...
           </p>
         </div>
       </div>

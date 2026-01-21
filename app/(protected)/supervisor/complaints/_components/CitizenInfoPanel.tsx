@@ -2,15 +2,8 @@
 
 import { useState, useEffect } from "react";
 import {
-  User,
-  Phone,
-  Mail,
-  Shield,
-  MessageSquare,
-  History,
-  Fingerprint,
-  Copy,
-  CheckCircle2,
+  User, Phone, Mail, Shield, MessageSquare, History,
+  Fingerprint, Copy, CheckCircle2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -37,25 +30,31 @@ export function CitizenInfoPanel({
     toast.success(`${label} copied to clipboard`);
   };
 
-  if (!mounted) return <div className="stone-card h-[380px] animate-pulse bg-neutral-stone-100" />;
+  if (!mounted) {
+    return (
+      <div className="stone-card h-[300px] md:h-[380px] animate-pulse bg-muted" />
+    );
+  }
 
   /* ═══════════════════════════════════════════════════════════
-      ANONYMOUS STATE (Glass Context)
+      ANONYMOUS STATE
      ═══════════════════════════════════════════════════════════ */
   if (isAnonymous) {
     return (
-      <div className="glass-strong border-white/40 p-10 text-center rounded-3xl elevation-3 relative overflow-hidden group">
-        {/* Subtle background tech pattern */}
+      <div className="glass rounded-xl md:rounded-2xl p-6 md:p-10 text-center relative overflow-hidden group border border-border">
+        {/* Background pattern */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
         
-        <div className="w-20 h-20 bg-white/60 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-white shadow-xl transition-transform group-hover:scale-110 duration-500">
-          <Fingerprint className="w-10 h-10 text-highlight-tech" />
+        <div className="w-16 h-16 md:w-20 md:h-20 bg-muted rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 border border-border shadow-lg transition-transform group-hover:scale-110 duration-500">
+          <Fingerprint className="w-8 h-8 md:w-10 md:h-10 text-warning-amber" />
         </div>
-        <h4 className="font-sans font-black text-text-ink tracking-tight text-xl uppercase">
+        
+        <h4 className="font-sans font-black text-foreground tracking-tight text-lg md:text-xl uppercase">
           Identity Redacted
         </h4>
-        <p className="text-[11px] text-neutral-stone-500 mt-3 leading-relaxed max-w-[240px] mx-auto font-medium">
-          PROTOCOL 403: The reporter has opted for anonymity. Personal identifiers and metadata are locked by the security layer.
+        
+        <p className="text-[10px] md:text-[11px] text-muted-foreground mt-2 md:mt-3 leading-relaxed max-w-[200px] md:max-w-[240px] mx-auto font-medium">
+          PROTOCOL 403: The reporter has opted for anonymity. Personal identifiers are locked by the security layer.
         </p>
       </div>
     );
@@ -71,95 +70,113 @@ export function CitizenInfoPanel({
     : "GUEST";
 
   /* ═══════════════════════════════════════════════════════════
-      VERIFIED STATE (Stone Foundation)
+      VERIFIED STATE
      ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="stone-card overflow-hidden border-none shadow-xl transition-all duration-500 hover:shadow-2xl ring-1 ring-black/5">
-      {/* Header with Integrated Verification */}
-      <div className="px-6 py-4 bg-neutral-stone-50/80 backdrop-blur-md border-b border-neutral-stone-200 flex items-center justify-between">
+    <div className="stone-card overflow-hidden shadow-lg hover:shadow-xl transition-all duration-500">
+      
+      {/* HEADER */}
+      <div className="px-4 md:px-6 py-3 md:py-4 bg-muted/50 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-success-green animate-pulse" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-stone-500">
+          <span className="text-[9px] md:text-[10px] font-black uppercase tracking-wider text-muted-foreground">
             Citizen Node
           </span>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-success-green/10 text-success-green rounded-full border border-success-green/20 shadow-sm">
-          <CheckCircle2 className="w-3 h-3" />
-          <span className="text-[9px] font-black uppercase tracking-tighter">Verified Identity</span>
+        
+        <div className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-success-green/10 text-success-green rounded-full border border-success-green/20">
+          <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
+          <span className="text-[8px] md:text-[9px] font-black uppercase tracking-tighter">
+            Verified
+          </span>
         </div>
       </div>
 
-      <div className="p-7">
-        {/* Profile Card */}
-        <div className="flex items-center gap-5 mb-8">
-          <div className="relative group">
-            <Avatar className="h-16 w-16 border-4 border-white shadow-xl transition-transform group-hover:scale-105 duration-300">
+      <div className="p-4 md:p-6 lg:p-7">
+        
+        {/* PROFILE SECTION */}
+        <div className="flex items-center gap-3 md:gap-5 mb-6 md:mb-8">
+          <div className="relative group flex-shrink-0">
+            <Avatar className="h-12 w-12 md:h-16 md:w-16 border-2 md:border-4 border-background shadow-xl transition-transform group-hover:scale-105 duration-300">
               <AvatarImage src={citizen?.avatar_url} />
-              <AvatarFallback className="bg-primary-brand text-white font-black text-2xl">
+              <AvatarFallback className="bg-primary text-primary-foreground font-black text-lg md:text-2xl">
                 {displayName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md border border-neutral-stone-100">
-              <Shield className="w-3.5 h-3.5 text-primary-brand" />
+            <div className="absolute -bottom-0.5 -right-0.5 md:-bottom-1 md:-right-1 bg-background p-0.5 md:p-1 rounded-full shadow-md border border-border">
+              <Shield className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-primary" />
             </div>
           </div>
           
           <div className="flex-1 min-w-0">
-            <h4 className="font-sans font-black text-text-ink truncate text-lg tracking-tight leading-none mb-1">
+            <h4 className="font-sans font-black text-foreground truncate text-base md:text-lg tracking-tight leading-none mb-1">
               {displayName}
             </h4>
-            <div className="flex items-center gap-2">
-                <span className="text-[9px] bg-neutral-stone-100 px-2 py-0.5 rounded font-mono font-bold text-neutral-stone-500">
-                    POKR-{citizenShortId}
-                </span>
-            </div>
+            <span className="text-[8px] md:text-[9px] bg-muted px-1.5 md:px-2 py-0.5 rounded font-mono font-bold text-muted-foreground inline-block">
+              POKR-{citizenShortId}
+            </span>
           </div>
         </div>
 
-        {/* Contact Information with Copy Actions */}
-        <div className="space-y-3 mb-8">
+        {/* CONTACT INFORMATION */}
+        <div className="space-y-2 md:space-y-3 mb-6 md:mb-8">
           {[
-            { icon: Mail, label: "Primary Email", value: displayEmail, key: "Email" },
-            { icon: Phone, label: "Contact Number", value: displayPhone, key: "Phone" }
+            { 
+              icon: Mail, 
+              label: "Primary Email", 
+              value: displayEmail, 
+              key: "Email" 
+            },
+            { 
+              icon: Phone, 
+              label: "Contact Number", 
+              value: displayPhone, 
+              key: "Phone" 
+            }
           ].map((item) => (
             <div 
               key={item.key}
               onClick={() => copyToClipboard(item.value, item.key)}
-              className="flex items-center gap-4 p-4 bg-neutral-stone-50 rounded-2xl border border-neutral-stone-200/50 cursor-pointer hover:bg-white hover:border-primary-brand/30 hover:shadow-md transition-all group"
+              className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-muted rounded-lg md:rounded-xl border border-border cursor-pointer hover:bg-background hover:border-primary/30 hover:shadow-md transition-all group"
             >
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-neutral-stone-400 border border-neutral-stone-200 group-hover:text-primary-brand transition-colors">
-                <item.icon className="w-4 h-4" />
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground border border-border group-hover:text-primary transition-colors flex-shrink-0">
+                <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </div>
+              
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] text-neutral-stone-400 font-black uppercase tracking-widest mb-0.5">
+                <p className="text-[8px] md:text-[9px] text-muted-foreground font-black uppercase tracking-wider mb-0.5">
                   {item.label}
                 </p>
-                <p className="text-xs font-bold text-text-ink truncate">
+                <p className="text-xs md:text-sm font-bold text-foreground truncate">
                   {item.value}
                 </p>
               </div>
-              <Copy className="w-3.5 h-3.5 text-neutral-stone-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <Copy className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
             </div>
           ))}
         </div>
 
-        {/* Action Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* ACTION BUTTONS */}
+        <div className="grid grid-cols-2 gap-2 md:gap-4">
           <Button
-            size="lg"
-            className="w-full text-[11px] font-black uppercase tracking-widest h-12 bg-primary-brand hover:bg-primary-brand-light text-white rounded-2xl shadow-lg transition-all active:scale-95 disabled:opacity-50"
+            size="sm"
+            className="w-full text-[10px] md:text-[11px] font-black uppercase tracking-wider h-10 md:h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg md:rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50"
             disabled={!hasContact}
           >
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Message
+            <MessageSquare className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+            <span className="hidden sm:inline">Message</span>
+            <span className="sm:hidden">Msg</span>
           </Button>
+          
           <Button
             variant="outline"
-            size="lg"
-            className="w-full text-[11px] font-black uppercase tracking-widest h-12 border-neutral-stone-200 text-neutral-stone-600 hover:bg-neutral-stone-50 rounded-2xl transition-all"
+            size="sm"
+            className="w-full text-[10px] md:text-[11px] font-black uppercase tracking-wider h-10 md:h-12 border-border text-muted-foreground hover:bg-muted rounded-lg md:rounded-xl transition-all"
           >
-            <History className="w-4 h-4 mr-2" />
-            History
+            <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+            <span className="hidden sm:inline">History</span>
+            <span className="sm:hidden">Log</span>
           </Button>
         </div>
       </div>

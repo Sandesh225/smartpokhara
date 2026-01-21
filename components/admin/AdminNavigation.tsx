@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
@@ -17,28 +17,29 @@ import {
   Menu,
   X,
   ChevronDown,
-  User, // Added for Citizens icon
+  User,
+  Moon,
+  Sun,
+  Bell,
+  Search,
 } from "lucide-react";
 
-type NavItem = {
+interface NavItemConfig {
   name: string;
   href: string;
-  icon: any;
-  children?: { name: string; href: string; icon: any }[];
-};
+  icon: React.ElementType;
+  children?: { name: string; href: string; icon: React.ElementType }[];
+}
 
-const navItems: NavItem[] = [
+const navItems: NavItemConfig[] = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Complaints", href: "/admin/complaints", icon: FileText },
   { name: "Tasks", href: "/admin/tasks", icon: CheckSquare },
-
-  // --- PEOPLE MANAGEMENT SECTION ---
-  { name: "Staff Management", href: "/admin/staff", icon: Briefcase },
-  { name: "Citizens", href: "/admin/citizens", icon: User }, // Added Citizens
-  { name: "System Users", href: "/admin/users", icon: Users }, // Renamed to ensure uniqueness
-
-  { name: "Payments", href: "/admin/payments", icon: CreditCard },
-
+  { name: "Staff", href: "/admin/staff", icon: Briefcase },
+  { name: "Citizens", href: "/admin/citizens", icon: User },
+  { name: "System Users", href: "/admin/users", icon: Users },
+  { name: "Analytics", href: "/admin/analytics", icon: CreditCard },
+  { name: "Departments", href: "/admin/departments", icon: CreditCard },
   {
     name: "Content (CMS)",
     href: "/admin/content",
@@ -51,237 +52,220 @@ const navItems: NavItem[] = [
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-const cx = (...classes: Array<string | false | null | undefined>) =>
-  classes.filter(Boolean).join(" ");
-
 export default function AdminNavigation() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
 
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const contentDefaultOpen = useMemo(
-    () => pathname.startsWith("/admin/content"),
-    [pathname]
+  const [isCmsOpen, setIsCmsOpen] = useState(
+    pathname.startsWith("/admin/content")
   );
-  const [contentOpen, setContentOpen] = useState(contentDefaultOpen);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    if (pathname.startsWith("/admin/content")) setContentOpen(true);
     setMobileOpen(false);
+    if (pathname.startsWith("/admin/content")) setIsCmsOpen(true);
   }, [pathname]);
+
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    setIsDark(isDarkMode);
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push("/login");
   };
 
+  const toggleTheme = () => {
+    document.documentElement.classList.toggle("dark");
+    setIsDark(!isDark);
+  };
+
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
 
-  const NavLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <nav className={cx(isMobile ? "py-4 px-3" : "py-6 px-3", "space-y-1")}>
-      {navItems.map((item) => {
-        const parentActive =
-          isActive(item.href) ||
-          item.children?.some((c) => isActive(c.href)) ||
-          false;
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-card text-card-foreground">
+      {/* HEADER */}
+      <div className="h-16 md:h-20 flex items-center justify-between px-4 md:px-6 border-b border-border">
+        <div className="flex items-center gap-2 md:gap-3 group cursor-pointer">
+          <div className="h-8 w-8 md:h-10 md:w-10 bg-primary rounded-lg md:rounded-xl flex items-center justify-center text-primary-foreground font-bold text-sm md:text-base shadow-lg elevation-2 group-hover:scale-105 transition-transform">
+            SP
+          </div>
+          <div>
+            <h1 className="text-sm md:text-base font-bold leading-tight">
+              Admin Portal
+            </h1>
+            <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+              Machhapuchhre Modern
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={toggleTheme}
+          className="p-2 hover:bg-accent rounded-lg transition-colors md:hidden"
+          aria-label="Toggle theme"
+        >
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
+      </div>
 
-        if (item.children?.length) {
-          return (
-            <div key={item.name} className="space-y-1">
-              <button
-                type="button"
-                onClick={() => setContentOpen((v) => !v)}
-                aria-expanded={contentOpen}
-                className={cx(
-                  "group flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium transition-all duration-200",
-                  parentActive
-                    ? "bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 shadow-sm ring-1 ring-blue-200/50"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
+      {/* NAVIGATION */}
+      <nav className="flex-1 px-2 md:px-3 py-3 md:py-4 space-y-1 overflow-y-auto custom-scrollbar">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isParentActive = item.children
+            ? item.children.some((child) => isActive(child.href))
+            : isActive(item.href);
+
+          if (item.children) {
+            return (
+              <div key={item.name} className="space-y-1">
+                <button
+                  onClick={() => setIsCmsOpen(!isCmsOpen)}
+                  className={`w-full group flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl text-xs md:text-sm font-medium transition-all duration-200 ${
+                    isParentActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  }`}
+                >
+                  <Icon
+                    className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${isParentActive ? "text-primary" : "opacity-70"}`}
+                  />
+                  <span className="flex-1 text-left truncate">{item.name}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 transition-transform duration-300 ${isCmsOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {isCmsOpen && (
+                  <div className="ml-4 md:ml-6 pl-3 md:pl-4 border-l-2 border-border mt-1 space-y-1">
+                    {item.children.map((child) => {
+                      const ChildIcon = child.icon;
+                      const active = isActive(child.href);
+                      return (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm transition-all ${
+                            active
+                              ? "text-primary font-semibold bg-primary/5"
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                          }`}
+                        >
+                          <ChildIcon className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+                          <span className="truncate">{child.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                <item.icon
-                  className={cx(
-                    "w-5 h-5 transition-colors",
-                    parentActive
-                      ? "text-blue-600"
-                      : "text-gray-400 group-hover:text-gray-600"
-                  )}
-                />
-                <span className="flex-1 text-left">{item.name}</span>
-                <ChevronDown
-                  className={cx(
-                    "w-4 h-4 transition-transform",
-                    contentOpen && "rotate-180"
-                  )}
-                />
-              </button>
+              </div>
+            );
+          }
 
-              {contentOpen && (
-                <div className="pl-3 space-y-1">
-                  {item.children.map((child) => {
-                    const childActive = isActive(child.href);
-                    return (
-                      <Link
-                        key={child.name}
-                        href={child.href}
-                        className={cx(
-                          "group flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                          childActive
-                            ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200/50"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                        )}
-                      >
-                        <child.icon
-                          className={cx(
-                            "w-4 h-4 transition-colors",
-                            childActive
-                              ? "text-blue-600"
-                              : "text-gray-400 group-hover:text-gray-600"
-                          )}
-                        />
-                        <span className="flex-1">{child.name}</span>
-                        {childActive && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 shadow-sm" />
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`group flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl text-xs md:text-sm font-medium transition-all duration-200 ${
+                isParentActive
+                  ? "bg-primary text-primary-foreground shadow-md elevation-2"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+            >
+              <Icon
+                className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${isParentActive ? "text-primary-foreground" : "opacity-70"}`}
+              />
+              <span className="flex-1 truncate">{item.name}</span>
+              {isParentActive && (
+                <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground animate-pulse flex-shrink-0" />
               )}
-            </div>
+            </Link>
           );
-        }
+        })}
+      </nav>
 
-        const active = isActive(item.href);
-        return (
-          <Link
-            key={item.name}
-            href={item.href}
-            className={cx(
-              "group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-              active
-                ? "bg-gradient-to-r from-blue-50 to-blue-100/50 text-blue-700 shadow-sm ring-1 ring-blue-200/50"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
-            )}
+      {/* USER SECTION */}
+      <div className="p-3 md:p-4 border-t border-border bg-muted/30 space-y-3 md:space-y-4">
+        <div className="flex items-center gap-2 md:gap-3 px-2">
+          <div className="h-7 w-7 md:h-8 md:w-8 rounded-full bg-accent border border-border flex items-center justify-center flex-shrink-0">
+            <User className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground" />
+          </div>
+          <div className="overflow-hidden flex-1 min-w-0">
+            <p className="text-xs md:text-sm font-bold truncate">Admin User</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+              admin@pokhara.gov
+            </p>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className="hidden md:flex p-1.5 hover:bg-accent rounded-lg transition-colors flex-shrink-0"
+            aria-label="Toggle theme"
           >
-            <item.icon
-              className={cx(
-                "w-5 h-5 transition-colors",
-                active
-                  ? "text-blue-600"
-                  : "text-gray-400 group-hover:text-gray-600"
-              )}
-            />
-            <span className="flex-1">{item.name}</span>
-            {active && (
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-600 shadow-sm" />
+            {isDark ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
             )}
-          </Link>
-        );
-      })}
-    </nav>
+          </button>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 w-full text-xs md:text-sm font-semibold text-destructive hover:bg-destructive/10 rounded-lg md:rounded-xl transition-all"
+        >
+          <LogOut className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </div>
   );
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50 flex items-center justify-between px-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+      {/* MOBILE HEADER */}
+      <header className="md:hidden fixed top-0 left-0 right-0 h-14 glass border-b border-border/50 z-50 flex items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
             SP
           </div>
-          <span className="font-bold text-lg text-gray-900">Smart Pokhara</span>
+          <span className="font-bold text-foreground text-sm tracking-tight">
+            Smart Pokhara
+          </span>
         </div>
-
         <button
           onClick={() => setMobileOpen(true)}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Open menu"
+          className="p-2 text-foreground hover:bg-accent rounded-lg transition-colors"
+          aria-label="Open Menu"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5" />
         </button>
-      </div>
+      </header>
 
-      {/* Mobile Drawer */}
+      {/* MOBILE DRAWER */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
+        <div className="md:hidden fixed inset-0 z-[60] flex">
           <div
-            className="absolute inset-0 bg-black/30"
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute left-0 top-0 h-full w-[85%] max-w-xs bg-white shadow-xl border-r border-gray-200 flex flex-col">
-            <div className="h-16 px-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
-                  SP
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-base font-bold text-gray-900 leading-tight">
-                    Admin Portal
-                  </span>
-                  <span className="text-[10px] text-gray-500 font-medium">
-                    Smart Pokhara
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="p-2 rounded-lg hover:bg-gray-100 text-gray-700"
-                aria-label="Close menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              <NavLinks isMobile />
-            </div>
-
-            <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-red-600 hover:bg-red-50 active:bg-red-100 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2"
-              >
-                <LogOut className="w-5 h-5" />
-                <span>Sign Out</span>
-              </button>
-            </div>
+          <div className="relative w-[280px] max-w-[85vw] h-full shadow-2xl animate-in slide-in-from-left duration-300">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-4 -right-12 p-2 bg-primary text-primary-foreground rounded-full shadow-lg z-10"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <SidebarContent />
           </div>
         </div>
       )}
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex fixed top-0 left-0 flex-col w-64 h-screen bg-white border-r border-gray-200 z-40 shadow-sm">
-        <div className="h-16 flex items-center px-5 border-b border-gray-100 bg-gradient-to-r from-white to-blue-50/30">
-          <div className="h-9 w-9 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-bold shadow-md ring-2 ring-blue-100 ring-offset-2">
-            SP
-          </div>
-          <div className="ml-3 flex flex-col">
-            <span className="text-base font-bold text-gray-900 leading-tight">
-              Admin Portal
-            </span>
-            <span className="text-[10px] text-gray-500 font-medium">
-              Smart Pokhara
-            </span>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-          <NavLinks />
-        </div>
-
-        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-red-600 hover:bg-red-50 active:bg-red-100 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Sign Out</span>
-          </button>
-        </div>
+      {/* DESKTOP SIDEBAR */}
+      <aside className="hidden md:flex fixed top-0 left-0 w-56 lg:w-64 h-screen border-r border-border z-40 elevation-1">
+        <SidebarContent />
       </aside>
     </>
   );

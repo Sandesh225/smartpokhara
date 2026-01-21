@@ -1,13 +1,21 @@
+// ═══════════════════════════════════════════════════════════
+// _components/CategoryManager.tsx
+// ═══════════════════════════════════════════════════════════
+
 "use client";
 
 import { useState } from "react";
-import { Edit2, Trash2, Plus, Save } from "lucide-react";
+import { Edit2, Trash2, Plus, Save, X, Building2, Clock, Layers } from "lucide-react";
 import { saveCategory, deleteCategory } from "../actions";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Department {
   id: string;
   name: string;
 }
+
 interface Category {
   id: string;
   name: string;
@@ -26,26 +34,34 @@ export default function CategoryManager({
   const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
-    <div className="stone-card p-0 overflow-hidden">
-      <div className="p-6 border-b border-border bg-neutral-stone-50 flex justify-between items-center">
-        <div>
-          <h3 className="font-bold text-lg text-primary">
-            Complaint Categories
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Manage categories and route them to departments.
-          </p>
+    <div className="stone-card overflow-hidden">
+      {/* HEADER */}
+      <div className="p-4 md:p-6 border-b-2 border-border bg-muted/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Layers className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-black text-base md:text-lg text-foreground">
+              Complaint Categories
+            </h3>
+            <p className="text-xs md:text-sm text-muted-foreground font-medium">
+              Manage categories and route them to departments
+            </p>
+          </div>
         </div>
-        <button
+        <Button
           onClick={() => setEditingId("new")}
-          className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-opacity-90 flex items-center gap-2"
+          className="gap-2 font-bold"
+          size="sm"
         >
           <Plus className="w-4 h-4" /> Add Category
-        </button>
+        </Button>
       </div>
 
+      {/* CATEGORIES LIST */}
       <div className="divide-y divide-border">
-        {/* New Category Form */}
+        {/* NEW CATEGORY FORM */}
         {editingId === "new" && (
           <CategoryRow
             category={{
@@ -61,7 +77,7 @@ export default function CategoryManager({
           />
         )}
 
-        {/* Existing Categories */}
+        {/* EXISTING CATEGORIES */}
         {categories.map((cat) =>
           editingId === cat.id ? (
             <CategoryRow
@@ -73,39 +89,89 @@ export default function CategoryManager({
           ) : (
             <div
               key={cat.id}
-              className="p-4 flex items-center justify-between hover:bg-neutral-stone-50 group"
+              className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-accent/30 transition-colors group"
             >
-              <div>
-                <h4 className="font-semibold text-foreground">{cat.name}</h4>
-                <div className="text-sm text-muted-foreground flex gap-4 mt-1">
-                  <span>SLA: {cat.default_sla_days} Days</span>
-                  <span>&bull;</span>
-                  <span>
-                    Routes to:{" "}
-                    <span className="text-primary font-medium">
-                      {departments.find(
-                        (d) => d.id === cat.default_department_id
-                      )?.name || "Unassigned"}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="font-black text-sm md:text-base text-foreground">
+                    {cat.name}
+                  </h4>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-bold border-primary/30 bg-primary/10 text-primary"
+                  >
+                    ACTIVE
+                  </Badge>
+                </div>
+                
+                {cat.description && (
+                  <p className="text-xs md:text-sm text-muted-foreground mb-2">
+                    {cat.description}
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5 text-warning-amber" />
+                    <span className="font-medium">
+                      SLA: <span className="text-foreground font-bold">{cat.default_sla_days} Days</span>
                     </span>
-                  </span>
+                  </div>
+                  <span className="text-border">•</span>
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Building2 className="w-3.5 h-3.5 text-primary" />
+                    <span className="font-medium">
+                      Routes to:{" "}
+                      <span className="text-primary font-bold">
+                        {departments.find((d) => d.id === cat.default_department_id)?.name || "Unassigned"}
+                      </span>
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
+
+              <div className="flex gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setEditingId(cat.id)}
-                  className="p-2 hover:bg-white rounded border border-transparent hover:border-border text-muted-foreground hover:text-primary"
+                  className="hover:bg-primary/10 hover:text-primary"
                 >
                   <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => deleteCategory(cat.id)}
-                  className="p-2 hover:bg-red-50 rounded text-muted-foreground hover:text-red-600"
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (confirm("Delete this category?")) {
+                      deleteCategory(cat.id);
+                    }
+                  }}
+                  className="hover:bg-error-red/10 hover:text-error-red"
                 >
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </div>
           )
+        )}
+
+        {categories.length === 0 && editingId !== "new" && (
+          <div className="p-12 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <Layers className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-black text-foreground mb-2">
+              No Categories Yet
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Create your first complaint category to get started
+            </p>
+            <Button onClick={() => setEditingId("new")}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Category
+            </Button>
+          </div>
         )}
       </div>
     </div>
@@ -119,81 +185,96 @@ function CategoryRow({ category, departments, onCancel, isNew }: any) {
         await saveCategory(formData);
         onCancel();
       }}
-      className="p-4 bg-primary/5 grid grid-cols-1 md:grid-cols-12 gap-4 items-end"
+      className="p-4 md:p-5 bg-primary/5 border-2 border-primary/20"
     >
       {!isNew && <input type="hidden" name="id" value={category.id} />}
 
-      <div className="md:col-span-3 space-y-1">
-        <label className="text-xs font-semibold text-muted-foreground">
-          Name
-        </label>
-        <input
-          name="name"
-          defaultValue={category.name}
-          className="dept-input-base w-full py-1.5"
-          placeholder="e.g. Roads"
-          required
-        />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4">
+        {/* NAME */}
+        <div className="md:col-span-3 space-y-1.5">
+          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+            Category Name
+          </label>
+          <input
+            name="name"
+            defaultValue={category.name}
+            className="w-full px-3 py-2 border-2 border-border rounded-lg bg-card font-medium text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+            placeholder="e.g. Roads & Transport"
+            required
+          />
+        </div>
 
-      <div className="md:col-span-3 space-y-1">
-        <label className="text-xs font-semibold text-muted-foreground">
-          Department Mapping
-        </label>
-        <select
-          name="department_id"
-          defaultValue={category.default_department_id || ""}
-          className="dept-input-base w-full py-1.5"
-        >
-          <option value="">Select Department...</option>
-          {departments.map((d: any) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* DEPARTMENT */}
+        <div className="md:col-span-3 space-y-1.5">
+          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+            <Building2 className="w-3 h-3" />
+            Department Mapping
+          </label>
+          <select
+            name="department_id"
+            defaultValue={category.default_department_id || ""}
+            className="w-full px-3 py-2 border-2 border-border rounded-lg bg-card font-medium text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+          >
+            <option value="">Select Department...</option>
+            {departments.map((d: any) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="md:col-span-2 space-y-1">
-        <label className="text-xs font-semibold text-muted-foreground">
-          Default SLA (Days)
-        </label>
-        <input
-          name="sla_days"
-          type="number"
-          defaultValue={category.default_sla_days}
-          className="dept-input-base w-full py-1.5"
-          required
-        />
-      </div>
+        {/* SLA DAYS */}
+        <div className="md:col-span-2 space-y-1.5">
+          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            SLA (Days)
+          </label>
+          <input
+            name="sla_days"
+            type="number"
+            defaultValue={category.default_sla_days}
+            className="w-full px-3 py-2 border-2 border-border rounded-lg bg-card font-medium text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+            required
+            min="1"
+          />
+        </div>
 
-      <div className="md:col-span-2 space-y-1">
-        <label className="text-xs font-semibold text-muted-foreground">
-          Description
-        </label>
-        <input
-          name="description"
-          defaultValue={category.description}
-          className="dept-input-base w-full py-1.5"
-          placeholder="Optional..."
-        />
-      </div>
+        {/* DESCRIPTION */}
+        <div className="md:col-span-2 space-y-1.5">
+          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+            Description
+          </label>
+          <input
+            name="description"
+            defaultValue={category.description}
+            className="w-full px-3 py-2 border-2 border-border rounded-lg bg-card font-medium text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+            placeholder="Optional..."
+          />
+        </div>
 
-      <div className="md:col-span-2 flex gap-2">
-        <button
-          type="submit"
-          className="flex-1 py-2 bg-primary text-white rounded text-xs font-bold hover:brightness-110"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-3 py-2 border border-border bg-white rounded text-xs font-medium"
-        >
-          Cancel
-        </button>
+        {/* ACTIONS */}
+        <div className="md:col-span-2 flex gap-2 items-end">
+          <Button
+            type="submit"
+            className="flex-1 gap-2 font-bold"
+            size="sm"
+          >
+            <Save className="w-3.5 h-3.5" />
+            Save
+          </Button>
+          <Button
+            type="button"
+            onClick={onCancel}
+            variant="outline"
+            size="sm"
+            className="font-bold"
+          >
+            <X className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </div>
     </form>
   );
 }
+

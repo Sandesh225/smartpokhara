@@ -1,8 +1,26 @@
-// app/(protected)/staff/analytics/page.tsx
+// ═══════════════════════════════════════════════════════════
+// app/(protected)/staff/analytics/page.tsx - ENHANCED ANALYTICS
+// ═══════════════════════════════════════════════════════════
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  BarChart3,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Target,
+  Calendar,
+  RefreshCw,
+  Download,
+  Filter,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface AnalyticsData {
   totalComplaints: number;
@@ -36,10 +54,10 @@ export default function StaffAnalyticsPage() {
   }, [timeRange]);
 
   async function loadAnalytics() {
+    setLoading(true);
     const supabase = createClient();
     
     try {
-      // Calculate date range
       const now = new Date();
       const startDate = new Date();
       switch (timeRange) {
@@ -57,7 +75,6 @@ export default function StaffAnalyticsPage() {
           break;
       }
 
-      // Get complaints data
       const { data: complaints, error } = await supabase
         .from("complaints")
         .select(`
@@ -72,7 +89,6 @@ export default function StaffAnalyticsPage() {
 
       if (error) throw error;
 
-      // Calculate metrics
       const total = complaints?.length || 0;
       const resolved = complaints?.filter(c => c.status === "resolved").length || 0;
       const pending = complaints?.filter(c => 
@@ -84,7 +100,6 @@ export default function StaffAnalyticsPage() {
         !["resolved", "closed", "rejected"].includes(c.status)
       ).length || 0;
 
-      // Calculate average resolution time
       const resolvedComplaints = complaints?.filter(c => c.resolved_at) || [];
       const totalResolutionTime = resolvedComplaints.reduce((acc, complaint) => {
         const submitted = new Date(complaint.submitted_at);
@@ -95,7 +110,6 @@ export default function StaffAnalyticsPage() {
         ? totalResolutionTime / resolvedComplaints.length / (1000 * 60 * 60 * 24)
         : 0;
 
-      // Calculate SLA compliance
       const slaCompliant = resolvedComplaints.filter(complaint => {
         if (!complaint.sla_due_at) return true;
         const resolved = new Date(complaint.resolved_at!);
@@ -106,7 +120,6 @@ export default function StaffAnalyticsPage() {
         ? (slaCompliant / resolvedComplaints.length) * 100 
         : 0;
 
-      // Complaints by category
       const categoryCounts = complaints?.reduce((acc, complaint) => {
         const category = complaint.complaint_categories?.name || "Unknown";
         acc[category] = (acc[category] || 0) + 1;
@@ -117,9 +130,8 @@ export default function StaffAnalyticsPage() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      // Complaints by ward
       const wardCounts = complaints?.reduce((acc, complaint) => {
-        const ward = complaint.wards?.name || "Unknown";
+        const ward = `Ward ${complaint.wards?.ward_number || "Unknown"}`;
         acc[ward] = (acc[ward] || 0) + 1;
         return acc;
       }, {} as Record<string, number>) || {};
@@ -128,7 +140,6 @@ export default function StaffAnalyticsPage() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      // Monthly trend
       const monthlyCounts = complaints?.reduce((acc, complaint) => {
         const month = new Date(complaint.submitted_at).toLocaleDateString('en-US', { 
           year: 'numeric', 
@@ -159,169 +170,283 @@ export default function StaffAnalyticsPage() {
     }
   }
 
+  const getTimeRangeLabel = () => {
+    const labels = {
+      "7days": "Last 7 Days",
+      "30days": "Last 30 Days",
+      "90days": "Last 90 Days",
+      "1year": "Last Year",
+    };
+    return labels[timeRange];
+  };
+
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="border-b border-gray-200 pb-5">
-          <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
-          <p className="mt-2 text-sm text-gray-600">Loading analytics data...</p>
+      <div className="space-y-4 md:space-y-6 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-primary animate-pulse" />
+          </div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground tracking-tighter">
+            Analytics Dashboard
+          </h1>
+        </div>
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground font-medium">Loading analytics data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-5">
-        <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+          </div>
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Performance metrics and complaint statistics.
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground tracking-tighter">
+              Analytics Dashboard
+            </h1>
+            <p className="text-sm md:text-base text-muted-foreground font-medium mt-0.5">
+              Performance metrics and complaint statistics
             </p>
           </div>
+        </div>
+
+        <div className="flex gap-2 w-full sm:w-auto">
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as any)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 sm:flex-none px-3 py-2 border-2 border-border rounded-lg bg-card font-medium text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
           >
             <option value="7days">Last 7 days</option>
             <option value="30days">Last 30 days</option>
             <option value="90days">Last 90 days</option>
             <option value="1year">Last year</option>
           </select>
+          <Button variant="outline" size="sm" onClick={loadAnalytics} className="gap-2 font-bold">
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+      {/* KEY METRICS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <MetricCard
           title="Total Complaints"
           value={analytics.totalComplaints}
-          trend="total"
-          color="blue"
+          icon={BarChart3}
+          color="primary"
         />
         <MetricCard
           title="Resolved"
           value={analytics.resolvedComplaints}
-          trend="positive"
-          subtitle={`${((analytics.resolvedComplaints / analytics.totalComplaints) * 100).toFixed(1)}% resolution rate`}
-          color="green"
+          subtitle={`${analytics.totalComplaints > 0 ? ((analytics.resolvedComplaints / analytics.totalComplaints) * 100).toFixed(1) : 0}% resolution rate`}
+          icon={CheckCircle2}
+          color="success"
         />
         <MetricCard
           title="Overdue"
           value={analytics.overdueComplaints}
-          trend="negative"
           subtitle="SLA breached"
-          color="red"
+          icon={AlertCircle}
+          color="error"
         />
         <MetricCard
           title="Avg. Resolution"
-          value={analytics.avgResolutionDays.toFixed(1)}
-          trend="neutral"
-          subtitle="Days"
-          color="purple"
+          value={`${analytics.avgResolutionDays.toFixed(1)} days`}
+          subtitle="Resolution time"
+          icon={Clock}
+          color="info"
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Complaints by Category */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Complaints by Category</h3>
-          <div className="space-y-3">
-            {analytics.complaintsByCategory.map((item) => (
-              <div key={item.category} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{item.category}</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-32 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full"
-                      style={{
-                        width: `${(item.count / analytics.totalComplaints) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 w-8 text-right">
-                    {item.count}
-                  </span>
-                </div>
+      {/* CHARTS ROW 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Category Chart */}
+        <div className="stone-card overflow-hidden">
+          <div className="p-4 md:p-6 border-b-2 border-border bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Filter className="w-5 h-5 text-primary" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Complaints by Ward */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Complaints by Ward</h3>
-          <div className="space-y-3">
-            {analytics.complaintsByWard.map((item) => (
-              <div key={item.ward} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{item.ward}</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-32 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full"
-                      style={{
-                        width: `${(item.count / analytics.totalComplaints) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 w-8 text-right">
-                    {item.count}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Monthly Trend */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Monthly Trend</h3>
-        <div className="h-64">
-          <div className="flex items-end justify-between h-48">
-            {analytics.monthlyTrend.map((item, index) => (
-              <div key={item.month} className="flex flex-col items-center flex-1">
-                <div
-                  className="w-8 bg-blue-500 rounded-t"
-                  style={{
-                    height: `${(item.count / Math.max(...analytics.monthlyTrend.map(m => m.count))) * 100}%`,
-                  }}
-                />
-                <div className="mt-2 text-xs text-gray-500 text-center">
-                  {item.month}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">SLA Compliance</h3>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-gray-900">
-              {analytics.slaCompliance.toFixed(1)}%
+              <h3 className="font-black text-base md:text-lg text-foreground">
+                Complaints by Category
+              </h3>
             </div>
-            <div className="text-sm text-gray-500 mt-2">
+          </div>
+          <div className="p-4 md:p-6 space-y-3">
+            {analytics.complaintsByCategory.length > 0 ? (
+              analytics.complaintsByCategory.map((item) => {
+                const percentage = analytics.totalComplaints > 0 
+                  ? (item.count / analytics.totalComplaints) * 100 
+                  : 0;
+                return (
+                  <div key={item.category} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-bold text-foreground">{item.category}</span>
+                      <span className="font-black text-primary">{item.count}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-primary to-primary/70 h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">No data available</div>
+            )}
+          </div>
+        </div>
+
+        {/* Ward Chart */}
+        <div className="stone-card overflow-hidden">
+          <div className="p-4 md:p-6 border-b-2 border-border bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-success-green/10">
+                <Target className="w-5 h-5 text-success-green" />
+              </div>
+              <h3 className="font-black text-base md:text-lg text-foreground">
+                Complaints by Ward
+              </h3>
+            </div>
+          </div>
+          <div className="p-4 md:p-6 space-y-3">
+            {analytics.complaintsByWard.length > 0 ? (
+              analytics.complaintsByWard.map((item) => {
+                const percentage = analytics.totalComplaints > 0 
+                  ? (item.count / analytics.totalComplaints) * 100 
+                  : 0;
+                return (
+                  <div key={item.ward} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-bold text-foreground">{item.ward}</span>
+                      <span className="font-black text-success-green">{item.count}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-success-green to-success-green/70 h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">No data available</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* MONTHLY TREND */}
+      <div className="stone-card overflow-hidden">
+        <div className="p-4 md:p-6 border-b-2 border-border bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-info-blue/10">
+                <TrendingUp className="w-5 h-5 text-info-blue" />
+              </div>
+              <h3 className="font-black text-base md:text-lg text-foreground">
+                Monthly Trend
+              </h3>
+            </div>
+            <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary text-[10px] font-bold">
+              {getTimeRangeLabel()}
+            </Badge>
+          </div>
+        </div>
+        <div className="p-4 md:p-6">
+          {analytics.monthlyTrend.length > 0 ? (
+            <div className="h-64 md:h-80">
+              <div className="flex items-end justify-between h-full gap-2 md:gap-3">
+                {analytics.monthlyTrend.map((item) => {
+                  const maxCount = Math.max(...analytics.monthlyTrend.map(m => m.count));
+                  const heightPercent = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                  return (
+                    <div key={item.month} className="flex flex-col items-center flex-1 group">
+                      <div className="relative w-full">
+                        <div
+                          className="w-full bg-gradient-to-t from-info-blue to-info-blue/70 rounded-t-lg transition-all duration-500 group-hover:from-primary group-hover:to-primary/70 min-h-[20px]"
+                          style={{ height: `${Math.max(heightPercent, 5)}%` }}
+                        />
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="bg-foreground text-background px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                            {item.count}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-2 md:mt-3 text-[10px] md:text-xs text-muted-foreground text-center font-medium">
+                        {item.month.split(' ')[0]}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-muted-foreground">
+              No trend data available
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* PERFORMANCE METRICS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        {/* SLA Compliance */}
+        <div className="stone-card overflow-hidden">
+          <div className="p-4 md:p-6 border-b-2 border-border bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-success-green/10">
+                <Target className="w-5 h-5 text-success-green" />
+              </div>
+              <h3 className="font-black text-base md:text-lg text-foreground">
+                SLA Compliance
+              </h3>
+            </div>
+          </div>
+          <div className="p-6 md:p-8 text-center">
+            <div className="inline-flex items-center justify-center w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-success-green/20 to-success-green/5 mb-4">
+              <div className="text-4xl md:text-5xl font-black text-success-green">
+                {analytics.slaCompliance.toFixed(1)}%
+              </div>
+            </div>
+            <p className="text-sm md:text-base text-muted-foreground font-medium">
               of complaints resolved within SLA
-            </div>
+            </p>
           </div>
         </div>
         
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Pending Complaints</h3>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-gray-900">
-              {analytics.pendingComplaints}
+        {/* Pending Complaints */}
+        <div className="stone-card overflow-hidden">
+          <div className="p-4 md:p-6 border-b-2 border-border bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-warning-amber/10">
+                <Clock className="w-5 h-5 text-warning-amber" />
+              </div>
+              <h3 className="font-black text-base md:text-lg text-foreground">
+                Pending Complaints
+              </h3>
             </div>
-            <div className="text-sm text-gray-500 mt-2">
+          </div>
+          <div className="p-6 md:p-8 text-center">
+            <div className="inline-flex items-center justify-center w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-warning-amber/20 to-warning-amber/5 mb-4">
+              <div className="text-4xl md:text-5xl font-black text-warning-amber">
+                {analytics.pendingComplaints}
+              </div>
+            </div>
+            <p className="text-sm md:text-base text-muted-foreground font-medium">
               awaiting resolution
-            </div>
+            </p>
           </div>
         </div>
       </div>
@@ -333,41 +458,44 @@ function MetricCard({
   title, 
   value, 
   subtitle, 
-  trend,
+  icon: Icon,
   color 
 }: { 
   title: string;
   value: string | number;
   subtitle?: string;
-  trend: "positive" | "negative" | "neutral" | "total";
-  color: "blue" | "green" | "red" | "purple";
+  icon: any;
+  color: "primary" | "success" | "error" | "info";
 }) {
   const colorClasses = {
-    blue: "bg-blue-50 text-blue-700 border-blue-200",
-    green: "bg-green-50 text-green-700 border-green-200",
-    red: "bg-red-50 text-red-700 border-red-200",
-    purple: "bg-purple-50 text-purple-700 border-purple-200",
-  };
-
-  const trendIcons = {
-    positive: "↗",
-    negative: "↘", 
-    neutral: "→",
-    total: ""
+    primary: "border-primary/30 bg-primary/5 text-primary",
+    success: "border-success-green/30 bg-success-green/5 text-success-green",
+    error: "border-error-red/30 bg-error-red/5 text-error-red",
+    info: "border-info-blue/30 bg-info-blue/5 text-info-blue",
   };
 
   return (
-    <div className={`rounded-lg border p-6 ${colorClasses[color]}`}>
-      <div className="flex items-center justify-between">
-        <dt className="text-sm font-medium">{title}</dt>
-        {trend !== "total" && (
-          <span className="text-sm">{trendIcons[trend]}</span>
-        )}
+    <div className="stone-card hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 overflow-hidden">
+      <div className={cn("p-4 md:p-5 border-l-4", colorClasses[color])}>
+        <div className="flex items-start justify-between mb-3">
+          <div className={cn("p-2 rounded-lg", colorClasses[color].split(' ')[1])}>
+            <Icon className={cn("w-5 h-5 md:w-6 md:h-6", colorClasses[color].split(' ')[2])} />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1">
+            {title}
+          </p>
+          <p className="text-2xl md:text-3xl font-black text-foreground">
+            {value}
+          </p>
+          {subtitle && (
+            <p className="text-xs md:text-sm text-muted-foreground font-medium mt-1">
+              {subtitle}
+            </p>
+          )}
+        </div>
       </div>
-      <dd className="mt-2 text-3xl font-semibold">{value}</dd>
-      {subtitle && (
-        <dd className="text-sm opacity-75">{subtitle}</dd>
-      )}
     </div>
   );
 }

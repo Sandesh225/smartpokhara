@@ -1,51 +1,100 @@
-'use client';
+// ==================== DELETE ALERT COMPONENT ====================
+// app/admin/departments/_components/DeleteDepartmentAlert.tsx
 
-import { useState } from 'react';
-import { Trash2, AlertTriangle } from 'lucide-react';
+"use client";
+import { useState } from "react";
+import { Trash2, AlertTriangle, X, Loader2 } from "lucide-react";
+import { deleteDepartment } from "../actions";
+import { useRouter } from "next/navigation";
 
-export default function DeleteDepartmentAlert({ departmentName }: { departmentName: string }) {
+interface Props {
+  departmentId: string;
+  departmentName: string;
+}
+
+export default function DeleteDepartmentAlert({
+  departmentId,
+  departmentName,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await deleteDepartment(departmentId);
+      router.push("/admin/departments");
+    } catch (error) {
+      alert("Error deleting department");
+      setLoading(false);
+    }
+  };
 
   if (!isOpen) {
     return (
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 text-sm font-medium hover:bg-red-100 transition-colors flex items-center gap-2"
+        className="px-5 py-3 rounded-xl bg-[rgb(var(--error-red))]/10 text-[rgb(var(--error-red))] border-2 border-[rgb(var(--error-red))]/20 font-semibold hover:bg-[rgb(var(--error-red))]/20 hover:border-[rgb(var(--error-red))]/40 transition-all flex items-center gap-2 group"
       >
-        <Trash2 className="w-4 h-4" /> Delete Department
+        <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+        Delete Department
       </button>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-red-100 overflow-hidden">
-        {/* Header */}
-        <div className="bg-red-50 p-6 flex items-start gap-4 border-b border-red-100">
-          <div className="p-3 bg-red-100 rounded-full text-red-600">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-red-900">Delete Department?</h3>
-            <p className="text-sm text-red-700 mt-1">
-              This action cannot be undone. This will permanently delete <strong>{departmentName}</strong> and remove all associated data.
-            </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="glass rounded-2xl shadow-2xl max-w-md w-full border-2 border-[rgb(var(--error-red))]/30 overflow-hidden elevation-3">
+        <div className="bg-gradient-to-br from-[rgb(var(--error-red))]/10 to-[rgb(var(--error-red))]/5 p-6 border-b-2 border-[rgb(var(--error-red))]/20">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-[rgb(var(--error-red))]/20 rounded-xl">
+              <AlertTriangle className="w-7 h-7 text-[rgb(var(--error-red))]" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-foreground mb-2">
+                Delete Department?
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                This will permanently delete{" "}
+                <strong className="text-foreground">{departmentName}</strong>{" "}
+                and remove all associated data. This action cannot be undone.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
+              disabled={loading}
+            >
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-6 bg-white flex justify-end gap-3">
-          <button 
+        <div className="p-6 flex justify-end gap-3">
+          <button
             onClick={() => setIsOpen(false)}
-            className="px-4 py-2 rounded-lg border border-neutral-stone-200 text-neutral-stone-600 font-medium hover:bg-neutral-stone-50 transition-colors"
+            className="px-5 py-2.5 rounded-xl border-2 border-border text-foreground font-semibold hover:bg-muted transition-all"
+            disabled={loading}
           >
             Cancel
           </button>
-          <button 
-            onClick={() => alert('Delete logic would happen here')}
-            className="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors shadow-sm"
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="px-5 py-2.5 rounded-xl bg-[rgb(var(--error-red))] text-white font-semibold hover:brightness-110 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
           >
-            Confirm Delete
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4" />
+                Confirm Delete
+              </>
+            )}
           </button>
         </div>
       </div>

@@ -1,3 +1,6 @@
+// ==================== CATEGORY MAPPING COMPONENT ====================
+// app/admin/departments/_components/CategoryMapping.tsx
+
 import { Tag } from "lucide-react";
 
 interface Category {
@@ -11,28 +14,29 @@ export default function CategoryMapping({
   categories: Category[];
 }) {
   return (
-    <div className="stone-panel p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="font-bold text-foreground flex items-center gap-2">
-          <Tag className="w-4 h-4 text-accent" /> Mapped Categories
-        </h4>
-      </div>
+    <div className="glass rounded-2xl p-6 border border-border elevation-1 h-full flex flex-col">
+      <h4 className="font-bold text-foreground mb-4 flex items-center gap-2">
+        <Tag className="w-5 h-5 text-secondary" />
+        Mapped Categories
+      </h4>
 
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
         Complaints filed under these categories are automatically routed to this
         department.
       </p>
 
       {categories.length === 0 ? (
-        <div className="text-sm text-muted-foreground italic p-4 bg-neutral-stone-50 rounded-md border border-dashed border-neutral-stone-200">
-          No categories mapped yet.
+        <div className="flex-1 flex items-center justify-center p-6 border-2 border-dashed border-border rounded-xl bg-muted/30">
+          <p className="text-sm text-muted-foreground italic text-center">
+            No categories mapped yet
+          </p>
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
             <span
               key={cat.id}
-              className="inline-flex items-center px-3 py-1.5 rounded-md bg-neutral-stone-100 border border-neutral-stone-200 text-sm font-medium text-neutral-stone-700 transition-all hover:border-accent hover:text-accent"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-secondary/10 border-2 border-secondary/20 text-sm font-semibold text-secondary-foreground transition-all hover:border-secondary hover:shadow-md hover:-translate-y-0.5"
             >
               {cat.name}
             </span>

@@ -32,50 +32,48 @@ export function StaffWorkload() {
     fetchWorkloadData();
   }, []);
 
+  // Inside StaffWorkload.tsx
+
   const fetchWorkloadData = async () => {
     const supabase = createClient();
     try {
-      const { data: staffData, error } = await supabase
-        .from("staff")
-        .select("current_workload, availability_status");
+      // 1. Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // 2. Call the jurisdictional RPC instead of direct table select
+      const { data: stats, error } = await supabase.rpc(
+        "rpc_get_staff_workload_stats",
+        {
+          p_supervisor_id: user.id,
+        }
+      );
 
       if (error) throw error;
 
-      if (staffData && staffData.length > 0) {
-        const totalStaff = staffData.length;
-        const workloads = staffData.map((s) => s.current_workload || 0);
-        const avgWorkload = workloads.reduce((a, b) => a + b, 0) / totalStaff;
-
-        const balanced = staffData.filter(
-          (s) =>
-            (s.current_workload || 0) >= 3 && (s.current_workload || 0) <= 7
-        ).length;
-        const overloaded = staffData.filter(
-          (s) => (s.current_workload || 0) > 7
-        ).length;
-        const underutilized = staffData.filter(
-          (s) => (s.current_workload || 0) < 3
-        ).length;
-
+      if (stats) {
         setData({
-          balanced: Math.round((balanced / totalStaff) * 100),
-          overloaded: Math.round((overloaded / totalStaff) * 100),
-          underutilized: Math.round((underutilized / totalStaff) * 100),
-          avgWorkload: Number(avgWorkload.toFixed(1)),
+          balanced: stats.balanced || 0,
+          overloaded: stats.overloaded || 0,
+          underutilized: stats.underutilized || 0,
+          avgWorkload: stats.avgWorkload || 0,
         });
 
-        // Determine trend
-        if (overloaded > balanced) setTrend("up");
-        else if (underutilized > balanced) setTrend("down");
+        // Trend logic based on stats
+        if (stats.overloaded > stats.balanced) setTrend("up");
+        else if (stats.underutilized > stats.balanced) setTrend("down");
         else setTrend("stable");
       }
     } catch (err) {
       console.error("Error fetching workload data:", err);
+      // Setting default empty state to prevent UI crash
+      setData({ balanced: 0, overloaded: 0, underutilized: 0, avgWorkload: 0 });
     } finally {
       setLoading(false);
     }
   };
-
   const balancedPercentage = data.balanced;
   const status =
     balancedPercentage >= 70

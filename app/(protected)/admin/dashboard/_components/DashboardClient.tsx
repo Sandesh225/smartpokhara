@@ -83,7 +83,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
   return (
     <div className="space-y-4 md:space-y-8 pb-8 md:pb-12 px-2 sm:px-4 lg:px-6 animate-in fade-in duration-700">
       {/* RESPONSIVE HEADER */}
-      <header className="flex flex-col gap-4 md:gap-6 border-b border-border pb-4 pt-4 md:pb-6">
+      <header className="flex flex-col gap-4 md:gap-6 border-b border-border pb-4 pt-4 px-2 md:pb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 md:gap-3">
@@ -102,7 +102,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
               </span>
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2 md:gap-3 self-start sm:self-auto">
             <div className="hidden lg:flex flex-col items-end mr-2 md:mr-4">
               <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
@@ -152,7 +152,10 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                     <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                     <span>Inflow Velocity</span>
                   </CardTitle>
-                  <Badge variant="outline" className="font-mono text-[9px] md:text-[10px] bg-background self-start sm:self-auto">
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-[9px] md:text-[10px] bg-background self-start sm:self-auto"
+                  >
                     7 DAY CYCLE
                   </Badge>
                 </CardHeader>
@@ -160,22 +163,44 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData.trends}>
                       <defs>
-                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={COLORS.primary} stopOpacity={1} />
-                          <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.6} />
+                        <linearGradient
+                          id="barGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor={COLORS.primary}
+                            stopOpacity={1}
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor={COLORS.primary}
+                            stopOpacity={0.6}
+                          />
                         </linearGradient>
                       </defs>
                       <XAxis
                         dataKey="name"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "rgb(var(--muted-foreground))", fontSize: 10, fontWeight: 600 }}
+                        tick={{
+                          fill: "rgb(var(--muted-foreground))",
+                          fontSize: 10,
+                          fontWeight: 600,
+                        }}
                         dy={8}
                       />
                       <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "rgb(var(--muted-foreground))", fontSize: 10, fontWeight: 600 }}
+                        tick={{
+                          fill: "rgb(var(--muted-foreground))",
+                          fontSize: 10,
+                          fontWeight: 600,
+                        }}
                         width={30}
                       />
                       <Tooltip
@@ -207,7 +232,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
             <aside className="lg:col-span-4 space-y-4 md:space-y-6">
               {/* QUICK ACTIONS */}
               <QuickActionsPanel />
-              
+
               {/* STATUS PIE CHART */}
               <Card className="stone-card border border-border">
                 <CardHeader className="bg-muted/30 p-4 md:p-6">
@@ -228,18 +253,21 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                         stroke="none"
                       >
                         {chartData.status.map((_, i) => (
-                          <Cell 
-                            key={i} 
+                          <Cell
+                            key={i}
                             fill={
-                              i === 0 ? COLORS.primary : 
-                              i === 1 ? COLORS.success : 
-                              i === 2 ? COLORS.warning : 
-                              COLORS.muted
-                            } 
+                              i === 0
+                                ? COLORS.primary
+                                : i === 1
+                                  ? COLORS.success
+                                  : i === 2
+                                    ? COLORS.warning
+                                    : COLORS.muted
+                            }
                           />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{
                           borderRadius: "8px",
                           border: "1px solid rgb(var(--border))",
@@ -250,17 +278,17 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                       <Legend
                         verticalAlign="bottom"
                         iconType="circle"
-                        wrapperStyle={{ 
-                          fontSize: "10px", 
-                          fontWeight: "600", 
-                          paddingTop: "16px" 
+                        wrapperStyle={{
+                          fontSize: "10px",
+                          fontWeight: "600",
+                          paddingTop: "16px",
                         }}
                       />
                     </RechartsPie>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-              
+
               {/* TASKS OVERVIEW */}
               <TasksOverview tasks={data.recentTasks} />
             </aside>
@@ -269,7 +297,11 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
 
         {/* ANALYTICS TAB */}
         <TabsContent value="analytics" className="space-y-4 md:space-y-6">
-          <TrendGraph data={data.trends} range={trendRange} onRangeChange={setTrendRange} />
+          <TrendGraph
+            data={data.trends}
+            range={trendRange}
+            onRangeChange={setTrendRange}
+          />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <ComplaintStatusChart data={data.statusDist} />
             <PaymentCollectionStats data={data.paymentStats || []} />
@@ -291,12 +323,20 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                 </CardHeader>
                 <CardContent className="space-y-3 p-4 md:p-6 pt-0">
                   <div className="flex justify-between items-center p-3 md:p-4 bg-success-green/10 rounded-xl border border-success-green/20">
-                    <span className="text-xs md:text-sm font-bold text-success-green">API Gateway</span>
-                    <Badge className="bg-success-green text-[8px] md:text-[9px] px-2 py-0.5">OPERATIONAL</Badge>
+                    <span className="text-xs md:text-sm font-bold text-success-green">
+                      API Gateway
+                    </span>
+                    <Badge className="bg-success-green text-[8px] md:text-[9px] px-2 py-0.5">
+                      OPERATIONAL
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center p-3 md:p-4 bg-info-blue/10 rounded-xl border border-info-blue/20">
-                    <span className="text-xs md:text-sm font-bold text-info-blue">DB Cluster</span>
-                    <Badge className="bg-info-blue text-[8px] md:text-[9px] px-2 py-0.5">SYNCED</Badge>
+                    <span className="text-xs md:text-sm font-bold text-info-blue">
+                      DB Cluster
+                    </span>
+                    <Badge className="bg-info-blue text-[8px] md:text-[9px] px-2 py-0.5">
+                      SYNCED
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>

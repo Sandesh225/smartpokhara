@@ -1,9 +1,12 @@
+// ═══════════════════════════════════════════════════════════
+// app/(protected)/admin/users/page.tsx - USERS MANAGEMENT PAGE
+// ═══════════════════════════════════════════════════════════
+
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
-import { PageHeader } from "@/components/shared/PageHeader";
 import { createClient } from "@/lib/supabase/server";
-import { UserTable } from "@/components/admin/user-table";
+import { UserTable } from "@/app/(protected)/admin/users/_components/user-table";
 
 interface UsersPageSearchParams {
   page?: string;
@@ -17,7 +20,12 @@ interface UsersPageProps {
   searchParams: Promise<UsersPageSearchParams>;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function UsersPage({ searchParams }: UsersPageProps) {
+  // ═══════════════════════════════════════════════════════════
+  // AUTHENTICATION & AUTHORIZATION
+  // ═══════════════════════════════════════════════════════════
   const user = await getCurrentUserWithRoles();
 
   if (!user) {
@@ -28,9 +36,13 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     redirect("/citizen/dashboard");
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // SEARCH PARAMS & PAGINATION
+  // ═══════════════════════════════════════════════════════════
   const params = await searchParams;
-  const page = Number(params.page || "1");
-  const search = params.search || "";
+  const page = Math.max(1, Number(params.page || "1"));
+  const search = params.search?.trim() || "";
+  const roleFilter = params.role || "";
   const status = params.status || "";
   const verified = params.verified || "";
 
@@ -38,6 +50,9 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   const itemsPerPage = 20;
   const offset = (page - 1) * itemsPerPage;
 
+  // ═══════════════════════════════════════════════════════════
+  // BUILD QUERY WITH FILTERS
+  // ═══════════════════════════════════════════════════════════
   let query = supabase
     .from("users")
     .select(
@@ -54,58 +69,76 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     .order("created_at", { ascending: false })
     .range(offset, offset + itemsPerPage - 1);
 
-  // Filters
+  // Apply search filter (email or name)
   if (search) {
-    query = query.ilike("email", `%${search}%`);
+    // Search in email or user profile name
+    query = query.or(
+      `email.ilike.%${search}%,user_profiles.full_name.ilike.%${search}%`
+    );
   }
 
+  // Apply status filter
   if (status === "active") {
     query = query.eq("is_active", true);
   } else if (status === "inactive") {
     query = query.eq("is_active", false);
   }
 
+  // Apply verification filter
   if (verified === "true") {
     query = query.eq("is_verified", true);
   } else if (verified === "false") {
     query = query.eq("is_verified", false);
   }
 
+  // Execute query
   const { data, count, error } = await query;
 
   if (error) {
-    console.error("Error fetching users:", error);
+    console.error("❌ Error fetching users:", error);
   }
 
   const users = data || [];
 
-  const { data: roles = [] } = await supabase
+  // ═══════════════════════════════════════════════════════════
+  // FETCH ROLES FOR FILTER DROPDOWN
+  // ═══════════════════════════════════════════════════════════
+  const { data: roles = [], error: rolesError } = await supabase
     .from("roles")
     .select("*")
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .order("name", { ascending: true });
 
+  if (rolesError) {
+    console.error("❌ Error fetching roles:", rolesError);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FILTER BY ROLE (CLIENT-SIDE FILTER SINCE IT'S NESTED)
+  // ═══════════════════════════════════════════════════════════
+  let filteredUsers = users;
+
+  if (roleFilter) {
+    filteredUsers = users.filter((user) =>
+      user.user_roles?.some((ur) => String(ur.role?.id) === roleFilter)
+    );
+  }
+
+  // Recalculate count after role filtering
+  const finalCount = roleFilter ? filteredUsers.length : count || 0;
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════════
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="User Management"
-        description="Manage system users and their roles"
-        actions={
-          <a
-            href="/admin/users/new"
-            className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
-          >
-            Add User
-          </a>
-        }
-      />
-
+    <div className="space-y-2 md:space-y-2 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
       <UserTable
-        users={users}
-        totalCount={count || 0}
+        users={filteredUsers}
+        totalCount={finalCount}
         currentPage={page}
         itemsPerPage={itemsPerPage}
         searchParams={params}
-        roles={roles || []}
+        roles={roles}
       />
     </div>
   );

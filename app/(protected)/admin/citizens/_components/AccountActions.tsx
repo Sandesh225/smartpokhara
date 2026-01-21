@@ -1,9 +1,16 @@
+// ═══════════════════════════════════════════════════════════
+// app/admin/citizens/_components/AccountActions.tsx
+// ═══════════════════════════════════════════════════════════
+
 "use client";
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ShieldAlert, ShieldCheck, KeyRound, UserCog } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function AccountActions({
   userId,
@@ -34,26 +41,34 @@ export default function AccountActions({
         .eq("id", userId);
 
       if (error) throw error;
+
+      toast.success(
+        `Account ${isActive ? "suspended" : "activated"} successfully`
+      );
       router.refresh();
     } catch (err) {
-      alert("Failed to update status");
+      toast.error("Failed to update status");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-      <h3 className="font-semibold text-gray-900 mb-4">Account Actions</h3>
-      <div className="space-y-3">
-        <button
+    <div className="stone-card p-4 md:p-6">
+      <h3 className="font-bold text-sm md:text-base text-foreground mb-4">
+        Account Actions
+      </h3>
+      <div className="space-y-2 md:space-y-3">
+        <Button
           onClick={toggleStatus}
           disabled={loading}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+          variant="outline"
+          className={cn(
+            "w-full justify-center gap-2",
             isActive
-              ? "border-red-200 text-red-700 hover:bg-red-50"
-              : "border-green-200 text-green-700 hover:bg-green-50"
-          }`}
+              ? "border-error-red/30 text-error-red hover:bg-error-red/10"
+              : "border-success-green/30 text-success-green hover:bg-success-green/10"
+          )}
         >
           {isActive ? (
             <ShieldAlert className="w-4 h-4" />
@@ -61,17 +76,17 @@ export default function AccountActions({
             <ShieldCheck className="w-4 h-4" />
           )}
           {isActive ? "Suspend Account" : "Activate Account"}
-        </button>
+        </Button>
 
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-medium">
+        <Button variant="outline" className="w-full justify-center gap-2">
           <KeyRound className="w-4 h-4" />
           Send Password Reset
-        </button>
+        </Button>
 
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-medium">
+        <Button variant="outline" className="w-full justify-center gap-2">
           <UserCog className="w-4 h-4" />
           Promote to Staff
-        </button>
+        </Button>
       </div>
     </div>
   );

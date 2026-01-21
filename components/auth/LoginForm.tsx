@@ -3,7 +3,15 @@
 import { useState, type FormEvent, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import {
+  Loader2,
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { getDefaultDashboardPath } from "@/lib/auth/role-helpers";
@@ -112,14 +120,14 @@ export function LoginForm() {
       <div className="space-y-2">
         <label
           htmlFor="email"
-          className="block text-sm font-semibold text-[rgb(26,32,44)]"
+          className="block text-sm font-semibold text-foreground"
         >
           Email Address
         </label>
         <div className="relative group">
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
-              emailFocused || email ? "text-[rgb(43,95,117)]" : "text-slate-400"
+              emailFocused || email ? "text-primary" : "text-muted-foreground"
             }`}
           >
             <Mail className="h-5 w-5" />
@@ -133,18 +141,24 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             onFocus={() => setEmailFocused(true)}
             onBlur={() => setEmailFocused(false)}
-            className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 bg-white transition-all duration-200 outline-none ${
+            className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
               emailError && !emailFocused
-                ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/10"
                 : email && !emailError
-                  ? "border-[rgb(95,158,160)] focus:border-[rgb(95,158,160)] focus:ring-4 focus:ring-[rgb(95,158,160)]/10"
-                  : "border-slate-200 focus:border-[rgb(43,95,117)] focus:ring-4 focus:ring-[rgb(43,95,117)]/10"
+                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/10"
             }`}
             placeholder="name@example.com"
           />
+          {email && !emailError && !emailFocused && (
+            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
+          )}
         </div>
         {emailError && (
-          <p className="text-xs text-red-500 ml-1">{emailError}</p>
+          <p className="text-xs text-destructive ml-1 flex items-center gap-1">
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
+            {emailError}
+          </p>
         )}
       </div>
 
@@ -153,13 +167,13 @@ export function LoginForm() {
         <div className="flex justify-between items-center">
           <label
             htmlFor="password"
-            className="block text-sm font-semibold text-[rgb(26,32,44)]"
+            className="block text-sm font-semibold text-foreground"
           >
             Password
           </label>
           <Link
             href="/forgot-password"
-            className="text-xs font-medium text-[rgb(43,95,117)] hover:text-[rgb(95,158,160)] transition-colors"
+            className="text-xs font-medium text-primary hover:text-secondary transition-colors hover:underline"
           >
             Forgot password?
           </Link>
@@ -168,8 +182,8 @@ export function LoginForm() {
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
               passwordFocused || password
-                ? "text-[rgb(43,95,117)]"
-                : "text-slate-400"
+                ? "text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <Lock className="h-5 w-5" />
@@ -183,19 +197,20 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             onFocus={() => setPasswordFocused(true)}
             onBlur={() => setPasswordFocused(false)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white transition-all duration-200 outline-none ${
+            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
               passwordError && !passwordFocused
-                ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/10"
                 : password && !passwordError
-                  ? "border-[rgb(95,158,160)] focus:border-[rgb(95,158,160)] focus:ring-4 focus:ring-[rgb(95,158,160)]/10"
-                  : "border-slate-200 focus:border-[rgb(43,95,117)] focus:ring-4 focus:ring-[rgb(43,95,117)]/10"
+                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/10"
             }`}
             placeholder="Enter your password"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[rgb(43,95,117)] transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-accent"
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <EyeOff className="h-5 w-5" />
@@ -205,7 +220,10 @@ export function LoginForm() {
           </button>
         </div>
         {passwordError && (
-          <p className="text-xs text-red-500 ml-1">{passwordError}</p>
+          <p className="text-xs text-destructive ml-1 flex items-center gap-1">
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
+            {passwordError}
+          </p>
         )}
       </div>
 
@@ -213,9 +231,9 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading || !isFormValid}
-        className="relative w-full group overflow-hidden rounded-xl bg-[rgb(43,95,117)] p-[2px] transition-all duration-300 hover:shadow-xl hover:shadow-[rgb(43,95,117)]/25 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="relative w-full group overflow-hidden rounded-xl bg-primary hover:bg-secondary transition-all duration-300 hover:shadow-xl hover:shadow-primary/25 dark:hover:shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.98]"
       >
-        <div className="relative flex items-center justify-center gap-2 bg-[rgb(43,95,117)] rounded-[10px] px-6 py-3.5 text-white font-semibold hover:bg-[rgb(95,158,160)] transition-colors">
+        <div className="relative flex items-center justify-center gap-2 px-6 py-3.5 text-primary-foreground font-semibold">
           {loading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
@@ -230,10 +248,10 @@ export function LoginForm() {
       {/* Divider */}
       <div className="relative py-4">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center">
-          <span className="px-4 text-sm font-medium text-slate-500 bg-white">
+          <span className="px-4 text-sm font-medium text-muted-foreground bg-background dark:bg-[rgb(15,20,25)]">
             New to Smart Pokhara?
           </span>
         </div>
@@ -242,7 +260,7 @@ export function LoginForm() {
       {/* Register Link */}
       <Link
         href="/register"
-        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-[rgb(26,32,44)] font-semibold hover:bg-[rgb(244,245,247)] hover:border-[rgb(43,95,117)] transition-all"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border hover:border-primary bg-background dark:bg-card text-foreground font-semibold hover:bg-accent transition-all active:scale-[0.98]"
       >
         Create an account
         <ArrowRight className="h-5 w-5" />

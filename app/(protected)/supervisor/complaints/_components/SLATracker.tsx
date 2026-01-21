@@ -19,9 +19,9 @@ export function SLATracker({ deadline, status, createdAt }: SLATrackerProps) {
   const urgency = useMemo(() => {
     if (isResolved) return "complete";
     const hoursLeft = differenceInHours(parseISO(deadline), new Date());
-    if (hoursLeft <= 12) return "critical"; // Red/Pulse
-    if (hoursLeft <= 48) return "warning"; // Marigold/High-contrast
-    return "stable"; // Primary/Dimmed
+    if (hoursLeft <= 12) return "critical";
+    if (hoursLeft <= 48) return "warning";
+    return "stable";
   }, [deadline, isResolved]);
 
   const isCritical = urgency === "critical";
@@ -29,95 +29,93 @@ export function SLATracker({ deadline, status, createdAt }: SLATrackerProps) {
   return (
     <div
       className={cn(
-        "stone-card-elevated dark:glass-glow overflow-hidden transition-all duration-500 border-none relative group",
-        isCritical &&
-          "ring-1 ring-highlight-tech/30 shadow-[0_0_25px_-5px_rgba(255,184,0,0.2)]"
+        "stone-card overflow-hidden transition-all duration-500 relative group",
+        isCritical && "ring-2 ring-error-red/30 shadow-lg"
       )}
     >
-      {/* ⚡ Status Badge with Dynamic Colors */}
+      {/* STATUS BADGE */}
       <div
         className={cn(
-          "absolute top-0 right-0 px-3 py-1 text-[8px] font-black uppercase tracking-[0.2em] rounded-bl-xl shadow-sm z-10 transition-colors",
-          urgency === "complete" && "bg-emerald-500 text-white",
-          urgency === "critical" && "bg-red-600 text-white animate-pulse",
-          urgency === "warning" && "bg-highlight-tech text-dark-midnight",
+          "absolute top-0 right-0 px-2 md:px-3 py-1 text-[8px] md:text-[9px] font-black uppercase tracking-wider rounded-bl-lg md:rounded-bl-xl shadow-sm z-10 transition-colors",
+          urgency === "complete" && "bg-success-green text-white",
+          urgency === "critical" && "bg-error-red text-white animate-pulse",
+          urgency === "warning" && "bg-warning-amber text-white",
           urgency === "stable" && "bg-primary text-primary-foreground"
         )}
       >
-        {isResolved
-          ? "Protocol Complete"
-          : isCritical
-            ? "Immediate Breach"
-            : "Active Monitor"}
+        {isResolved ? "Complete" : isCritical ? "Critical" : "Active"}
       </div>
 
-      {/* Header with Glass Effect */}
-      <div className="px-5 py-4 border-b border-primary/10 bg-primary/5 dark:bg-dark-surface/40 flex items-center justify-between">
+      {/* HEADER */}
+      <div className="px-4 md:px-5 py-3 md:py-4 border-b border-border bg-muted/30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Timer
             className={cn(
-              "h-3.5 w-3.5",
-              isCritical ? "text-highlight-tech" : "text-primary"
+              "h-3 w-3 md:h-3.5 md:w-3.5",
+              isCritical ? "text-error-red" : "text-primary"
             )}
           />
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-glow">
-            Temporal Parameters
+          <h3 className="text-[9px] md:text-[10px] font-black uppercase tracking-wider text-foreground">
+            SLA Monitor
           </h3>
         </div>
         {isCritical && (
-          <Zap className="h-3 w-3 text-highlight-tech animate-bounce" />
+          <Zap className="h-3 w-3 text-error-red animate-bounce" />
         )}
       </div>
 
-      <div className="p-6">
-        {/* Main Countdown Visualizer */}
-        <div className="mb-8 relative">
+      <div className="p-4 md:p-6">
+        {/* MAIN COUNTDOWN */}
+        <div className="mb-6 md:mb-8 relative">
           <SLACountdown
             deadline={deadline}
             status={status}
             variant="progress"
           />
 
-          {/* Enhanced Critical Warning */}
+          {/* WARNING MESSAGE */}
           {!isResolved && urgency !== "stable" && (
             <div
               className={cn(
-                "mt-3 flex items-center gap-2 text-[9px] font-bold uppercase tracking-tight p-2 rounded-lg border",
+                "mt-3 flex items-start gap-2 text-[9px] md:text-[10px] font-bold uppercase tracking-tight p-2 md:p-3 rounded-lg border",
                 isCritical
-                  ? "bg-red-500/10 border-red-500/20 text-red-500"
-                  : "bg-highlight-tech/10 border-highlight-tech/20 text-highlight-tech"
+                  ? "bg-error-red/10 border-error-red/20 text-error-red"
+                  : "bg-warning-amber/10 border-warning-amber/20 text-warning-amber"
               )}
             >
-              <ShieldAlert className="h-3 w-3" />
-              <span>
+              <ShieldAlert className="h-3 w-3 md:h-3.5 md:w-3.5 flex-shrink-0 mt-0.5" />
+              <span className="leading-tight">
                 {isCritical
-                  ? "SLA Breach Imminent: Escalation Protocol Active"
-                  : "Approaching Deadline: Prioritize Deployment"}
+                  ? "SLA Breach Imminent: Escalate Now"
+                  : "Approaching Deadline: Prioritize"}
               </span>
             </div>
           )}
         </div>
 
-        {/* Temporal Data Grid */}
-        <div className="grid grid-cols-2 gap-6 pt-5 border-t border-primary/5">
+        {/* TEMPORAL DATA GRID */}
+        <div className="grid grid-cols-2 gap-3 md:gap-6 pt-4 md:pt-5 border-t border-border">
           <div className="space-y-1">
-            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
-              Inception
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-wider text-muted-foreground block">
+              Started
             </span>
-            <p className="text-[11px] font-mono font-bold text-foreground/80">
+            <p className="text-[10px] md:text-[11px] font-mono font-bold text-foreground">
               {format(parseISO(createdAt), "MMM d, HH:mm")}
             </p>
           </div>
+
           <div className="space-y-1">
-            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
-              Termination
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-wider text-muted-foreground block">
+              Deadline
             </span>
             <p
               className={cn(
-                "text-[11px] font-mono font-bold",
+                "text-[10px] md:text-[11px] font-mono font-bold",
                 urgency === "stable"
-                  ? "text-foreground/80"
-                  : "text-highlight-tech"
+                  ? "text-foreground"
+                  : urgency === "critical"
+                    ? "text-error-red"
+                    : "text-warning-amber"
               )}
             >
               {format(parseISO(deadline), "MMM d, HH:mm")}
@@ -125,23 +123,29 @@ export function SLATracker({ deadline, status, createdAt }: SLATrackerProps) {
           </div>
         </div>
 
-        {/* Action Button: Enhanced Interactivity */}
+        {/* ACTION BUTTON */}
         {!isResolved && (
           <button
             onClick={() => {
-              /* Trigger Extension Logic */
+              /* Extension Logic */
             }}
-            className="mt-6 w-full py-2.5 text-[10px] font-black uppercase tracking-[0.15em] text-highlight-tech border border-highlight-tech/30 bg-highlight-tech/5 hover:bg-highlight-tech hover:text-dark-midnight rounded-xl transition-all duration-500 flex items-center justify-center gap-2 group/btn active:scale-95"
+            className={cn(
+              "mt-4 md:mt-6 w-full py-2 md:py-2.5 text-[9px] md:text-[10px] font-black uppercase tracking-wider border rounded-lg md:rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group/btn active:scale-95",
+              isCritical
+                ? "text-error-red border-error-red/30 bg-error-red/5 hover:bg-error-red hover:text-white"
+                : "text-primary border-primary/30 bg-primary/5 hover:bg-primary hover:text-primary-foreground"
+            )}
           >
-            <AlertCircle className="h-3.5 w-3.5 transition-transform group-hover/btn:rotate-12" />
-            Request Protocol Extension
+            <AlertCircle className="h-3 w-3 md:h-3.5 md:w-3.5 transition-transform group-hover/btn:rotate-12" />
+            <span className="hidden sm:inline">Request Extension</span>
+            <span className="sm:hidden">Extend</span>
           </button>
         )}
       </div>
 
-      {/* 🏔️ Machhapuchhre Visual Accent */}
+      {/* CRITICAL OVERLAY */}
       {isCritical && (
-        <div className="absolute inset-0 bg-gradient-to-t from-red-500/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-error-red/5 to-transparent pointer-events-none" />
       )}
     </div>
   );

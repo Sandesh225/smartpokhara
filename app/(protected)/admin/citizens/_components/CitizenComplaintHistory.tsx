@@ -1,14 +1,20 @@
+// ═══════════════════════════════════════════════════════════
+// app/admin/citizens/_components/ComplaintHistory.tsx
+// ═══════════════════════════════════════════════════════════
+
 import { ComplaintHistoryItem } from "@/types/admin-citizens";
 import { format } from "date-fns";
 import Link from "next/link";
+import { FileText } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
-  received: "bg-gray-100 text-gray-700",
-  under_review: "bg-blue-100 text-blue-700",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  resolved: "bg-green-100 text-green-700",
-  closed: "bg-gray-200 text-gray-800",
-  rejected: "bg-red-100 text-red-700",
+  received: "bg-muted text-foreground border-border",
+  under_review: "bg-info-blue/10 text-info-blue border-info-blue/30",
+  in_progress: "bg-warning-amber/10 text-warning-amber border-warning-amber/30",
+  resolved: "bg-success-green/10 text-success-green border-success-green/30",
+  closed: "bg-muted text-muted-foreground border-border",
+  rejected: "bg-error-red/10 text-error-red border-error-red/30",
 };
 
 export default function ComplaintHistory({
@@ -17,67 +23,64 @@ export default function ComplaintHistory({
   complaints: ComplaintHistoryItem[];
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-        <h3 className="font-semibold text-gray-900">Complaint History</h3>
-        <span className="text-xs font-medium bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+    <div className="stone-card overflow-hidden">
+      {/* HEADER */}
+      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-border bg-muted/30 flex items-center justify-between">
+        <h3 className="font-bold text-sm md:text-base text-foreground">
+          Complaint History
+        </h3>
+        <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/30">
           {complaints.length} Total
         </span>
       </div>
 
-      <div className="max-h-[400px] overflow-y-auto">
+      {/* CONTENT */}
+      <div className="max-h-[350px] md:max-h-[400px] overflow-y-auto custom-scrollbar">
         {complaints.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm">
-            No complaints found.
+          <div className="p-8 md:p-12 text-center">
+            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+            <p className="text-sm text-muted-foreground">No complaints found</p>
           </div>
         ) : (
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 sticky top-0">
-              <tr>
-                <th className="px-6 py-3 font-medium text-gray-500">
-                  Tracking ID
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-500">
-                  Category
-                </th>
-                <th className="px-6 py-3 font-medium text-gray-500">Status</th>
-                <th className="px-6 py-3 font-medium text-gray-500">Date</th>
-                <th className="px-6 py-3 text-right"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {complaints.map((c) => (
-                <tr key={c.id} className="hover:bg-gray-50/50">
-                  <td className="px-6 py-3 font-mono text-xs">
-                    {c.tracking_code}
-                  </td>
-                  <td className="px-6 py-3 text-gray-700">
-                    {c.category?.name}
-                  </td>
-                  <td className="px-6 py-3">
+          <div className="divide-y divide-border">
+            {complaints.map((c) => (
+              <div
+                key={c.id}
+                className="p-4 hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-mono text-xs text-primary font-bold mb-1">
+                      {c.tracking_code}
+                    </p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {c.category?.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(c.submitted_at), "MMM d, yyyy")}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
                     <span
-                      className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${
-                        statusColors[c.status] || "bg-gray-100"
-                      }`}
+                      className={cn(
+                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap",
+                        statusColors[c.status] || "bg-muted"
+                      )}
                     >
                       {c.status.replace("_", " ")}
                     </span>
-                  </td>
-                  <td className="px-6 py-3 text-gray-500">
-                    {format(new Date(c.submitted_at), "MMM d, yyyy")}
-                  </td>
-                  <td className="px-6 py-3 text-right">
                     <Link
                       href={`/admin/complaints/${c.id}`}
-                      className="text-blue-600 hover:underline text-xs"
+                      className="text-xs font-bold text-primary hover:underline whitespace-nowrap"
                     >
-                      Details
+                      Details →
                     </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

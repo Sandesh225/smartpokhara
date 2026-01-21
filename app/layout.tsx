@@ -1,14 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeModeScript } from "flowbite-react";
 import "./globals.css";
 import { Providers } from "./providers";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
 
 export const viewport: Viewport = {
   themeColor: "#2B5F75",
@@ -37,7 +30,7 @@ export default function RootLayout({
         <ThemeModeScript />
       </head>
       <body
-        className={`${inter.variable} ${jetbrains.variable} min-h-screen bg-background font-sans antialiased text-foreground selection:bg-brand-100 selection:text-brand-700`}
+        className="min-h-screen bg-background font-sans antialiased text-foreground selection:bg-primary/10 selection:text-primary"
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>

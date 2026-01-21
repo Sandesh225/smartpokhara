@@ -1,10 +1,15 @@
+// ═══════════════════════════════════════════════════════════
+// app/admin/citizens/[id]/page.tsx - CITIZEN DETAIL PAGE
+// ═══════════════════════════════════════════════════════════
+
 import { createClient } from "@/lib/supabase/server";
 import { citizenQueries } from "@/lib/supabase/queries/admin/citizens";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import CitizenWalletView from "../_components/CitizenWalletView";
-import CitizenProfile from "./../_components/CitizenProfile";
+import CitizenProfileCard from "../_components/CitizenProfile";
 import AccountActions from "../_components/AccountActions";
 import ComplaintHistory from "../_components/CitizenComplaintHistory";
 import CitizenPaymentHistory from "../_components/CitizenPaymentHistory";
@@ -30,29 +35,35 @@ export default async function CitizenDetailPage({
   if (!profile) return notFound();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/admin/citizens"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5 text-gray-600" />
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Citizen Profile</h1>
+    <div className="space-y-4 md:space-y-6 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
+      {/* HEADER */}
+      <div className="flex items-center gap-3 md:gap-4">
+        <Button variant="ghost" size="icon" asChild className="flex-shrink-0">
+          <Link href="/admin/citizens">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+        </Button>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground tracking-tighter">
+          Citizen Profile
+        </h1>
       </div>
 
+      {/* WALLET VIEW */}
       <CitizenWalletView bills={payments} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="space-y-6">
-          <CitizenProfile profile={profile} />
+      {/* MAIN GRID LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* LEFT COLUMN - Profile & Actions */}
+        <div className="space-y-4 md:space-y-6 lg:order-1">
+          <CitizenProfileCard profile={profile} />
           <AccountActions
             userId={profile.user_id}
             isActive={profile.is_active}
           />
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
+        {/* RIGHT COLUMN - History */}
+        <div className="lg:col-span-2 space-y-4 md:space-y-6 lg:order-2">
           <ComplaintHistory complaints={complaints} />
           <CitizenPaymentHistory payments={payments} />
         </div>
