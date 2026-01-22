@@ -1,61 +1,57 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   RefreshCw,
-  Sparkles,
+  Layers,
   TrendingUp,
   ShieldCheck,
-  Info,
+  SlidersHorizontal,
+  SearchX,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
+
 import { noticesService } from "@/lib/supabase/queries/notices";
 import NoticesList from "./_components/NoticesList";
 import NoticeFilters from "./_components/NoticeFilters";
+
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// Custom Stat Card component matching Machhapuchhre Modern "Stone Card"
-function StatCard({ icon: Icon, label, value, colorVar }: any) {
+/* ---------------------------------- */
+/* Dashboard Stat Card                 */
+/* ---------------------------------- */
+function StatCard({ icon: Icon, label, value }: any) {
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.3 }}>
-      <div className="stone-card p-6 relative overflow-hidden group">
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500"
-          style={{ background: `rgb(var(${colorVar}))` }}
-        />
-        <div className="flex items-center justify-between relative z-10">
-          <div className="space-y-1">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
-              {label}
-            </p>
-            <p className="text-3xl font-mono font-bold text-foreground tracking-tight">
-              {value.toLocaleString()}
-            </p>
-          </div>
-          <div
-            className="h-12 w-12 rounded-xl flex items-center justify-center shadow-sm border border-white/20"
-            style={{
-              background: `linear-gradient(135deg, rgb(var(${colorVar}) / 0.1), rgb(var(${colorVar}) / 0.2))`,
-              color: `rgb(var(${colorVar}))`,
-            }}
-          >
-            <Icon className="h-6 w-6" strokeWidth={2.5} />
-          </div>
-        </div>
-      </div>
-    </motion.div>
+    <Card className="stone-card hover:shadow-lg transition-shadow duration-300">
+      <CardContent className="p-5 flex flex-col gap-2">
+        <Icon className="w-5 h-5 text-primary" />
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+          {label}
+        </p>
+        <p className="text-2xl lg:text-3xl font-black text-foreground">
+          {value}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
+/* ---------------------------------- */
+/* Notices Page                        */
+/* ---------------------------------- */
 export default function NoticesPage() {
   const [notices, setNotices] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
+
   const [filters, setFilters] = useState({
     search: undefined as string | undefined,
     ward: undefined as string | undefined,
@@ -63,15 +59,17 @@ export default function NoticesPage() {
     dateFrom: undefined as Date | undefined,
     dateTo: undefined as Date | undefined,
     unreadOnly: false,
+    urgentOnly: false,
   });
 
   const limit = 10;
   const offset = (page - 1) * limit;
 
   const fetchNotices = useCallback(
-    async (isSilent = false) => {
+    async (silent = false) => {
       try {
-        if (!isSilent) setIsLoading(true);
+        if (!silent) setIsLoading(true);
+
         const [noticesData, unread] = await Promise.all([
           noticesService.getUserNotices({
             limit,
@@ -89,127 +87,156 @@ export default function NoticesPage() {
         setNotices(noticesData.notices);
         setTotal(noticesData.total);
         setUnreadCount(unread);
-      } catch (error: any) {
-        toast.error("Connection Error", {
-          description: "Unable to sync with Smart City servers.",
-        });
+      } catch {
+        toast.error("Failed to load notices");
       } finally {
-        if (!isSilent) setIsLoading(false);
+        if (!silent) setIsLoading(false);
       }
     },
-    [page, filters, limit, offset]
+    [filters, page]
   );
 
   useEffect(() => {
     fetchNotices();
   }, [fetchNotices]);
 
-  const handleRefresh = () => {
-    toast.promise(fetchNotices(true), {
-      loading: "Syncing with municipal servers...",
-      success: "Notice board updated",
-      error: "Sync failed",
-    });
-  };
-
-  const handleFilterChange = (newFilters: any) => {
-    const safeFilters = {
-      ...newFilters,
-      dateFrom: newFilters.dateFrom ? new Date(newFilters.dateFrom) : undefined,
-      dateTo: newFilters.dateTo ? new Date(newFilters.dateTo) : undefined,
-    };
-    setFilters((prev) => ({ ...prev, ...safeFilters }));
-    setPage(1);
-  };
+  const activeFiltersCount = [
+    filters.search,
+    filters.ward,
+    filters.type,
+    filters.unreadOnly,
+    filters.urgentOnly,
+  ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--neutral-stone))] relative overflow-x-hidden font-sans">
-      {/* --- Ambient Background Effects (Phewa & Nature) --- */}
-      <div className="fixed top-[-20%] left-[-10%] w-[800px] h-[800px] rounded-full blur-[120px] opacity-40 bg-[rgb(var(--accent-nature)/0.3)] pointer-events-none" />
-      <div className="fixed bottom-[-20%] right-[-5%] w-[600px] h-[600px] rounded-full blur-[100px] opacity-30 bg-[rgb(var(--primary-brand)/0.2)] pointer-events-none" />
-
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 max-w-7xl">
-        {/* --- Header Section --- */}
-        <header className="mb-12 space-y-8">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 border border-white/40 backdrop-blur-sm text-[rgb(var(--primary-brand))] text-[10px] font-black uppercase tracking-widest shadow-sm">
-                <ShieldCheck className="h-3 w-3" />
-                Pokhara Metropolitan City
-              </div>
-              <h1 className="text-4xl md:text-6xl font-black text-[rgb(var(--text-ink))] tracking-tight">
-                Official{" "}
-                <span className="text-[rgb(var(--primary-brand))]">
-                  Notices
-                </span>
-              </h1>
-              <p className="text-[rgb(var(--neutral-stone-600))] text-lg max-w-2xl leading-relaxed">
-                Stay informed with the latest municipal announcements, tenders,
-                and emergency alerts.
-              </p>
-            </div>
-
+    <div className="space-y-6 pb-12 px-4 animate-in fade-in duration-700">
+      {/* HEADER */}
+      <header className="border-b border-border dark:border-border pb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
             <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="h-12 px-6 rounded-2xl bg-white/80 border-[rgb(var(--neutral-stone-200))] text-[rgb(var(--text-ink))] hover:bg-white shadow-sm hover:shadow-md transition-all font-bold"
-              >
-                <RefreshCw
-                  className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")}
-                />
-                Sync
-              </Button>
-              {unreadCount > 0 && (
-                <div className="h-12 px-6 rounded-2xl bg-[rgb(var(--highlight-tech))] text-white flex items-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-orange-500/20 animate-in zoom-in">
-                  <Bell className="h-4 w-4 animate-[bell-swing_1s_ease-in-out_infinite]" />
-                  {unreadCount} New
-                </div>
-              )}
+              <ShieldCheck className="w-6 h-6 text-primary" />
+              <h1 className="text-3xl font-black tracking-tight text-foreground">
+                Public Notices
+              </h1>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Bell className="w-3 h-3" />
+                {unreadCount} Unread
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Layers className="w-3 h-3" />
+                {total} Total
+              </Badge>
             </div>
           </div>
 
-          {/* --- Stats Grid --- */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            <StatCard
-              icon={Info}
-              label="Total Notices"
-              value={total}
-              colorVar="--primary-brand"
-            />
-            <StatCard
-              icon={Sparkles}
-              label="Unread Alerts"
-              value={unreadCount}
-              colorVar="--highlight-tech"
-            />
-            <StatCard
-              icon={TrendingUp}
-              label="This Month"
-              value={notices.length}
-              colorVar="--accent-nature"
-            />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() =>
+                toast.promise(fetchNotices(true), {
+                  loading: "Refreshing notices...",
+                  success: "Notices updated",
+                  error: "Refresh failed",
+                })
+              }
+              disabled={isLoading}
+            >
+              <RefreshCw
+                className={cn(
+                  "w-4 h-4 mr-2 transition-transform",
+                  isLoading && "animate-spin"
+                )}
+              />
+              Refresh
+            </Button>
+
+            <Button
+              variant={showFilters ? "default" : "outline"}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              Filters
+              {activeFiltersCount > 0 && (
+                <span className="ml-2 px-2 py-0.5 rounded-full bg-background text-xs font-black">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </Button>
           </div>
-        </header>
-
-        {/* --- Main Content Layout --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <aside className="lg:col-span-3 lg:sticky lg:top-8 z-20">
-            <NoticeFilters onFilterChange={handleFilterChange} />
-          </aside>
-
-          <main className="lg:col-span-9 min-h-[500px]">
-            <NoticesList
-              notices={notices}
-              isLoading={isLoading}
-              total={total}
-              page={page}
-              limit={limit}
-              onPageChange={setPage}
-            />
-          </main>
         </div>
+      </header>
+
+      {/* STATS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={Layers} label="Total Notices" value={total} />
+        <StatCard icon={Bell} label="Unread Notices" value={unreadCount} />
+        <StatCard icon={TrendingUp} label="Visible" value={notices.length} />
+      </div>
+
+      {/* CONTENT */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <AnimatePresence>
+          {showFilters && (
+            <motion.aside
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="lg:col-span-3"
+            >
+              <NoticeFilters
+                onFilterChange={(f) => {
+                  setFilters((p) => ({ ...p, ...f }));
+                  setPage(1);
+                }}
+              />
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
+        <main className={cn(showFilters ? "lg:col-span-9" : "lg:col-span-12")}>
+          <NoticesList
+            notices={notices}
+            isLoading={isLoading}
+            total={total}
+            page={page}
+            limit={limit}
+            onPageChange={setPage}
+          />
+
+          {!isLoading && notices.length === 0 && (
+            <Card className="stone-card mt-12 border-dashed flex flex-col items-center text-center py-16">
+              <CardContent className="space-y-4">
+                <SearchX className="w-12 h-12 text-muted-foreground mx-auto" />
+                <h3 className="text-2xl font-black text-foreground">
+                  No Notices Found
+                </h3>
+                <p className="text-muted-foreground">
+                  Try adjusting or clearing your filters.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setFilters({
+                      search: undefined,
+                      ward: undefined,
+                      type: undefined,
+                      dateFrom: undefined,
+                      dateTo: undefined,
+                      unreadOnly: false,
+                      urgentOnly: false,
+                    })
+                  }
+                >
+                  Reset Filters
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </main>
       </div>
     </div>
   );
