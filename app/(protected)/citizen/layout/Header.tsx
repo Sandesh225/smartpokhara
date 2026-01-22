@@ -14,13 +14,11 @@ import {
   Sun,
   Settings,
 } from "lucide-react";
-import { useThemeMode } from "flowbite-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import NotificationDropdown from "./NotificationDropdown";
 
 interface HeaderProps {
   user: any;
@@ -39,14 +37,18 @@ export default function Header({
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const userMenuRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
   const router = useRouter();
   const supabase = createClient();
-  const { mode, toggleMode } = useThemeMode();
 
   useEffect(() => {
     setMounted(true);
+    setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
 
   // Close dropdowns when clicking outside
@@ -58,8 +60,13 @@ export default function Header({
       ) {
         setUserMenuOpen(false);
       }
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setNotificationOpen(false);
+      }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -80,9 +87,7 @@ export default function Header({
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, [user.id, notificationCount, onCountUpdate, supabase]);
 
   const handleSignOut = async () => {
@@ -100,21 +105,26 @@ export default function Header({
     );
   };
 
+  const toggleTheme = () => {
+    document.documentElement.classList.toggle("dark");
+    setIsDark(!isDark);
+  };
+
   const profilePhotoUrl =
     user?.profile?.profile_photo_url ?? user?.avatar_url ?? null;
 
   return (
-    <header className="sticky top-0 z-40 h-20 sm:h-24 shrink-0 border-b-2 border-border bg-card/90 dark:bg-dark-surface/90 backdrop-blur-2xl transition-all duration-300 elevation-2">
-      <div className="flex h-full items-center justify-between gap-4 sm:gap-6 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 h-20 w-full shrink-0 border-b border-border bg-background/95 backdrop-blur-md transition-all duration-300">
+      <div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* Left Section - Menu & Search */}
         <div className="flex flex-1 items-center gap-4 sm:gap-5 max-w-3xl">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden h-12 w-12 sm:h-13 sm:w-13 flex items-center justify-center rounded-xl bg-card border-2 border-border text-muted-foreground hover:bg-accent hover:text-foreground hover:border-primary transition-all duration-300 active:scale-95 elevation-1 hover:elevation-2"
+            className="lg:hidden h-12 w-12 flex items-center justify-center rounded-xl bg-card border-2 border-border text-muted-foreground hover:bg-accent-nature hover:text-foreground hover:border-primary transition-all duration-300 active:scale-95 shadow-sm"
             aria-label="Open sidebar"
           >
-            <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+            <Menu className="h-5 w-5" />
           </button>
 
           {/* Search Bar */}
@@ -135,7 +145,7 @@ export default function Header({
                 placeholder="Search services, bills, complaints..."
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
-                className="w-full h-13 rounded-xl border-2 border-border focus:border-primary bg-card dark:bg-dark-surface py-3 pl-12 pr-5 text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:ring-4 focus:ring-primary/15 transition-all duration-300 outline-none font-medium elevation-1 focus:elevation-2"
+                className="w-full h-13 rounded-xl border-2 border-border focus:border-primary bg-card py-3 pl-12 pr-5 text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:ring-4 focus:ring-primary/15 transition-all duration-300 outline-none font-medium shadow-sm focus:shadow-md"
               />
             </div>
           </div>
@@ -145,34 +155,36 @@ export default function Header({
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Theme Toggle */}
           <button
-            onClick={toggleMode}
-            className="flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground hover:border-primary transition-all duration-300 active:scale-95 elevation-1 hover:elevation-2"
-            aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
+            onClick={toggleTheme}
+            className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground hover:bg-accent-nature hover:text-foreground hover:border-primary transition-all duration-300 active:scale-95 shadow-sm"
+            aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
           >
             {!mounted ? (
-              <div className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse rounded-full bg-muted" />
-            ) : mode === "dark" ? (
-              <Sun className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 transition-transform hover:rotate-90 duration-300" />
+              <div className="h-5 w-5 animate-pulse rounded-full bg-muted" />
+            ) : isDark ? (
+              <Sun className="h-5 w-5 text-amber-500 transition-transform hover:rotate-90 duration-300" />
             ) : (
-              <Moon className="h-5 w-5 sm:h-6 sm:w-6 text-primary transition-transform hover:-rotate-12 duration-300" />
+              <Moon className="h-5 w-5 text-primary transition-transform hover:-rotate-12 duration-300" />
             )}
           </button>
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setNotificationOpen(!notificationOpen)}
               className={cn(
-                "h-12 w-12 sm:h-13 sm:w-13 flex items-center justify-center rounded-xl border-2 transition-all duration-300 active:scale-95 elevation-1 hover:elevation-2",
+                "h-12 w-12 flex items-center justify-center rounded-xl border-2 transition-all duration-300 active:scale-95 shadow-sm",
                 notificationOpen
-                  ? "border-primary bg-primary/15 dark:bg-primary/25 text-primary scale-105 elevation-3"
-                  : "border-border bg-card hover:bg-accent hover:border-primary"
+                  ? "border-primary bg-primary/15 text-primary scale-105 shadow-md"
+                  : "border-border bg-card hover:bg-accent-nature hover:border-primary"
               )}
-              aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount} unread)` : ""}`}
+              aria-label={`Notifications${
+                notificationCount > 0 ? ` (${notificationCount} unread)` : ""
+              }`}
             >
               <Bell
                 className={cn(
-                  "h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300",
+                  "h-5 w-5 transition-transform duration-300",
                   notificationCount > 0 && !notificationOpen && "animate-bounce"
                 )}
               />
@@ -181,19 +193,46 @@ export default function Header({
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="absolute -top-1.5 -right-1.5 h-6 min-w-[24px] rounded-full bg-destructive text-xs font-black text-destructive-foreground flex items-center justify-center ring-4 ring-background px-2 elevation-2"
+                  className="absolute -top-1.5 -right-1.5 h-6 min-w-[24px] rounded-full bg-destructive text-xs font-black text-destructive-foreground flex items-center justify-center ring-4 ring-background px-2 shadow-md"
                 >
                   {notificationCount > 99 ? "99+" : notificationCount}
                 </motion.span>
               )}
             </button>
+
+            {/* Notification Dropdown */}
             <AnimatePresence>
               {notificationOpen && (
-                <NotificationDropdown
-                  userId={user.id}
-                  onClose={() => setNotificationOpen(false)}
-                  onCountUpdate={onCountUpdate}
-                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute right-0 top-full mt-4 w-80 rounded-2xl border-2 border-border bg-card p-4 shadow-lg z-50"
+                >
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-border">
+                    <h3 className="text-base font-black text-foreground">
+                      Notifications
+                    </h3>
+                    <button
+                      onClick={() => onCountUpdate(0)}
+                      className="text-xs font-bold text-primary hover:text-primary/80"
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                    {notificationCount === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        No new notifications
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        {notificationCount} new notifications
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
@@ -202,27 +241,19 @@ export default function Header({
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-3 sm:gap-4 rounded-xl border-2 border-transparent hover:border-border hover:bg-accent/80 px-3 sm:px-4 py-2.5 transition-all duration-300 active:scale-95 elevation-1 hover:elevation-2"
+              className="flex items-center gap-3 rounded-xl border-2 border-transparent hover:border-border hover:bg-accent/80 px-3 py-2.5 transition-all duration-300 active:scale-95 shadow-sm"
               aria-expanded={userMenuOpen}
               aria-haspopup="true"
             >
-              <Avatar className="h-11 w-11 sm:h-12 sm:w-12 ring-2 ring-border elevation-1">
+              <Avatar className="h-11 w-11 ring-2 ring-border shadow-sm">
                 <AvatarImage
                   src={profilePhotoUrl || ""}
                   alt={user.displayName}
                 />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-primary-foreground font-black text-base sm:text-lg">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-primary-foreground font-black">
                   {user.displayName?.charAt(0)?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden sm:flex flex-col items-start min-w-0">
-                <span className="text-sm sm:text-base font-black text-foreground truncate max-w-[140px]">
-                  {user.displayName}
-                </span>
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  {user.roleName}
-                </span>
-              </div>
               <ChevronDown
                 className={cn(
                   "hidden sm:block h-4 w-4 text-muted-foreground transition-transform duration-300",
@@ -238,10 +269,10 @@ export default function Header({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute right-0 top-full mt-4 w-72 rounded-2xl border-2 border-border bg-card p-4 elevation-3 z-50"
+                  className="absolute right-0 top-full mt-4 w-72 rounded-2xl border-2 border-border bg-card p-4 shadow-lg z-50"
                 >
-                  {/* User Info Header */}
-                  <div className="px-5 py-4 bg-muted/70 dark:bg-muted/50 rounded-xl mb-4">
+                  {/* User Info */}
+                  <div className="px-5 py-4 bg-muted/70 rounded-xl mb-4">
                     <p className="text-base font-black text-foreground truncate">
                       {user.displayName}
                     </p>
@@ -250,11 +281,11 @@ export default function Header({
                     </p>
                   </div>
 
-                  {/* Menu Items */}
+                  {/* Menu Links */}
                   <Link
                     href="/citizen/profile"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-4 px-5 py-3.5 text-sm sm:text-base font-bold hover:bg-accent rounded-xl transition-all duration-300 group"
+                    className="flex items-center gap-4 px-5 py-3.5 text-sm font-bold hover:bg-accent rounded-xl transition-all duration-300 group"
                   >
                     <User className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     <span>My Profile</span>
@@ -263,7 +294,7 @@ export default function Header({
                   <Link
                     href="/citizen/settings"
                     onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-4 px-5 py-3.5 text-sm sm:text-base font-bold hover:bg-accent rounded-xl transition-all duration-300 group"
+                    className="flex items-center gap-4 px-5 py-3.5 text-sm font-bold hover:bg-accent rounded-xl transition-all duration-300 group"
                   >
                     <Settings className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     <span>Settings</span>
@@ -273,7 +304,7 @@ export default function Header({
                   <div className="my-4 border-t-2 border-border" />
                   <button
                     onClick={handleSignOut}
-                    className="flex w-full items-center gap-4 px-5 py-3.5 text-sm sm:text-base font-black text-destructive hover:bg-destructive/15 dark:hover:bg-destructive/20 rounded-xl transition-all duration-300 group"
+                    className="flex w-full items-center gap-4 px-5 py-3.5 text-sm font-black text-destructive hover:bg-destructive/15 rounded-xl transition-all duration-300 group"
                   >
                     <LogOut className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
                     <span>Sign Out</span>
