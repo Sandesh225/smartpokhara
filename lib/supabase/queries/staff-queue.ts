@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const staffQueueQueries = {
-  // ... existing getMyAssignments ...
   async getMyAssignments(client: SupabaseClient, staffId: string) {
     const { data, error } = await client
       .from("staff_work_assignments")
@@ -45,7 +44,6 @@ export const staffQueueQueries = {
     }));
   },
 
-  // ... existing getTeamAssignments ...
   async getTeamAssignments(client: SupabaseClient, staffId: string) {
     const { data: profile } = await client
       .from("staff_profiles")
@@ -93,7 +91,7 @@ export const staffQueueQueries = {
       },
     }));
   },
-  // Replace this function in lib/supabase/queries/staff-queue.ts
+
   async getAssignmentById(client: SupabaseClient, assignmentId: string) {
     const { data, error } = await client
       .from("staff_work_assignments")
@@ -103,7 +101,8 @@ export const staffQueueQueries = {
       complaint:complaints(
         id, tracking_code, title, description, status, priority, 
         address_text, location_point, ward:wards(ward_number, name),
-        citizen:users!complaints_citizen_id_fkey(phone, email, profile:user_profiles(full_name))
+        citizen:users!complaints_citizen_id_fkey(phone, email, profile:user_profiles(full_name)),
+        attachments:complaint_attachments(id, file_path, file_name, file_type, created_at)
       ),
       task:supervisor_tasks(
         id, tracking_code, title, description, status, priority,
@@ -115,7 +114,7 @@ export const staffQueueQueries = {
     `
       )
       .eq("id", assignmentId)
-      .maybeSingle(); // Prevents crashing into 404 if data is slightly malformed
+      .maybeSingle();
 
     if (error) {
       console.error("Database Fetch Error:", error.message);
@@ -136,6 +135,7 @@ export const staffQueueQueries = {
       tracking_code: base.tracking_code,
       status: data.assignment_status,
       priority: data.priority,
+      due_at: data.due_at,
       location: base.address_text,
       coordinates: base.location_point,
       ward: data.complaint ? `Ward ${base.ward?.ward_number}` : "N/A",
@@ -152,19 +152,19 @@ export const staffQueueQueries = {
       assigned_by_name:
         data.assigned_by_user?.profile?.full_name || "Supervisor",
       instructions: data.assignment_notes,
+      attachments: data.complaint?.attachments || [],
     };
   },
+
   async startAssignment(
     client: SupabaseClient,
     assignmentId: string,
     location?: { lat: number; lng: number }
   ) {
-    // 1. Ensure strictly defined JSON structure or NULL (not undefined)
     const locationJson = location
       ? { type: "Point", coordinates: [location.lng, location.lat] }
       : null;
 
-    // 2. Call RPC
     const { data, error } = await client.rpc("rpc_start_assignment", {
       p_assignment_id: assignmentId,
       p_checkin_location: locationJson,
@@ -172,11 +172,12 @@ export const staffQueueQueries = {
 
     if (error) {
       console.error("RPC Error in startAssignment:", error);
-      throw error; // Pass the Supabase error object up
+      throw error;
     }
 
     return data;
   },
+
   async uploadWorkPhoto(client: SupabaseClient, staffId: string, file: File) {
     const fileExt = file.name.split(".").pop();
     const path = `${staffId}/${Date.now()}_${Math.random()
@@ -205,11 +206,10 @@ export const staffQueueQueries = {
       p_assignment_id: assignmentId,
       p_resolution_notes: notes,
       p_photos: photos,
-      p_materials_used: [], // Ensure this is an empty array not null
+      p_materials_used: [],
     });
 
     if (error) {
-      // Better error logging to avoid "{}"
       console.error("RPC Error:", error.message, error.details, error.hint);
       throw new Error(error.message || "Unknown database error occurred");
     }
