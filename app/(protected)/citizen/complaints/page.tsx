@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Wifi,
   Inbox,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,40 +34,53 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { ComplaintsTable } from "@/app/(protected)/citizen/complaints/_components/ComplaintsTable";
 import { complaintsService } from "@/lib/supabase/queries/complaints";
-import type {
-  Complaint,
-  ComplaintStatus,
-} from "@/lib/supabase/queries/complaints";
+import type { Complaint } from "@/lib/supabase/queries/complaints";
 import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────── */
-/* Registry Stat Card */
+/* 1. Registry Stat Card (Increased Size) */
 /* ─────────────────────────────────────────── */
 function RegistryStat({
   label,
   value,
   icon: Icon,
   colorClass,
+  description,
 }: {
   label: string;
   value: number;
   icon: any;
   colorClass: string;
+  description?: string;
 }) {
   return (
-    <Card className="stone-card border-2 border-border elevation-2 transition-all hover:elevation-3">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-              {label}
-            </p>
-            <h3 className="mt-2 text-4xl font-black tabular-nums text-foreground">
-              {value}
-            </h3>
-          </div>
-          <div className={cn("p-3 rounded-2xl elevation-1", colorClass)}>
-            <Icon className="w-5 h-5 text-white" />
+    <Card className="stone-card border-border shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group">
+      <CardContent className="p-0">
+        <div className="flex items-stretch h-40">
+          {" "}
+          {/* Height increased from 32 to 40 */}
+          <div className={cn("w-3", colorClass)} /> {/* Bar thickened */}
+          <div className="flex-1 p-6 flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  {label} {/* text-[10px] -> text-sm */}
+                </p>
+                <h3 className="text-5xl font-black tabular-nums text-foreground mt-2 tracking-tighter">
+                  {value} {/* text-3xl -> text-5xl */}
+                </h3>
+              </div>
+              <div className={cn("p-3 rounded-2xl bg-muted/50")}>
+                <Icon
+                  className={cn("w-7 h-7", colorClass.replace("bg-", "text-"))}
+                />
+              </div>
+            </div>
+            {description && (
+              <p className="text-sm font-bold text-muted-foreground/80 italic">
+                {description} {/* text-[11px] -> text-sm */}
+              </p>
+            )}
           </div>
         </div>
       </CardContent>
@@ -74,20 +88,15 @@ function RegistryStat({
   );
 }
 
-/* ─────────────────────────────────────────── */
-/* Main Page */
-/* ─────────────────────────────────────────── */
 export default function ComplaintsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
   const searchRef = useRef<NodeJS.Timeout | null>(null);
 
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isConnected, setIsConnected] = useState(true);
 
   const [stats, setStats] = useState({
     total: 0,
@@ -96,21 +105,22 @@ export default function ComplaintsPage() {
     resolved: 0,
   });
 
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "all");
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const pageSize = 10;
 
-  const pageSize = 15;
+  const updateParams = useCallback(
+    (params: Record<string, string>) => {
+      const p = new URLSearchParams(searchParams.toString());
+      Object.entries(params).forEach(([k, v]) =>
+        v ? p.set(k, v) : p.delete(k)
+      );
+      router.replace(`?${p.toString()}`, { scroll: false });
+    },
+    [router, searchParams]
+  );
 
-  /* URL Sync */
-  const updateParams = (params: Record<string, string>) => {
-    const p = new URLSearchParams(searchParams.toString());
-    Object.entries(params).forEach(([k, v]) => (v ? p.set(k, v) : p.delete(k)));
-    router.replace(`?${p.toString()}`, { scroll: false });
-  };
-
-  /* Search */
   const handleSearch = (value: string) => {
     setSearch(value);
     if (searchRef.current) clearTimeout(searchRef.current);
@@ -121,23 +131,25 @@ export default function ComplaintsPage() {
     }, 400);
   };
 
-  /* Fetch */
   const fetchData = useCallback(
     async (silent = false) => {
       silent ? setIsRefreshing(true) : setIsLoading(true);
       try {
-        const res = await complaintsService.getUserComplaints({
-          search_term: debouncedSearch || undefined,
-          limit: pageSize,
-          offset: (page - 1) * pageSize,
-        });
-        const statsRes = await complaintsService.getDashboardStats();
-
+        const [res, statsRes] = await Promise.all([
+          complaintsService.getUserComplaints({
+            search_term: debouncedSearch || undefined,
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+          }),
+          complaintsService.getDashboardStats(),
+        ]);
         setComplaints(res.complaints);
         setTotal(res.total);
         setStats(statsRes.complaints);
-      } catch {
-        toast.error("Failed to load complaints");
+      } catch (err) {
+        toast.error("Network Error", {
+          description: "Failed to fetch records.",
+        });
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
@@ -151,42 +163,42 @@ export default function ComplaintsPage() {
   }, [fetchData]);
 
   return (
-    <div className="min-h-screen -mt-12">
-      <Container size="wide">
+    <div className="min-h-screen bg-background">
+      <Container size="wide" className="py-12 -mt-12">
+        {" "}
+        {/* Increased padding */}
         <Section>
           <PageHeader
-            title="My Complaints"
-            subtitle="Track and manage your municipal issues."
+            title={
+              <span className="text-5xl font-black">My Complaints</span>
+            } // Forced size
+            subtitle={
+              <span className="text-xl font-medium mt-3 block text-muted-foreground">
+                Track and manage your official municipal reports.
+              </span>
+            }
             badge={
-              <>
-                <Badge className="glass text-primary text-xs font-black uppercase border-2 border-primary/20 px-3 py-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-                  Official
+              <div className="flex gap-3">
+                <Badge className="glass bg-primary/10 text-primary text-xs font-black uppercase tracking-widest border-2 border-primary/20 px-4 py-2">
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Secured
                 </Badge>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "text-xs font-black uppercase border-2 px-3 py-1.5",
-                    isConnected
-                      ? "text-secondary border-secondary/30 bg-secondary/10"
-                      : "text-destructive border-destructive/30 bg-destructive/10"
-                  )}
-                >
-                  <Wifi className="w-3.5 h-3.5 mr-1.5" />
-                  {isConnected ? "Live" : "Offline"}
+                <Badge className="glass bg-secondary/10 text-secondary text-xs font-black uppercase tracking-widest border-2 border-secondary/20 px-4 py-2">
+                  <Wifi className="w-4 h-4 mr-2" />
+                  Live Sync
                 </Badge>
-              </>
+              </div>
             }
             actions={
-              <>
+              <div className="flex items-center gap-4">
                 <Button
                   variant="outline"
                   onClick={() => fetchData(true)}
-                  className="stone-card h-11 rounded-xl border-2 font-bold"
+                  className="h-14 px-8 rounded-xl border-2 font-black text-base"
                 >
                   <RefreshCw
                     className={cn(
-                      "w-4 h-4 mr-2",
+                      "w-5 h-5 mr-3",
                       isRefreshing && "animate-spin"
                     )}
                   />
@@ -194,82 +206,81 @@ export default function ComplaintsPage() {
                 </Button>
                 <Button
                   onClick={() => router.push("/citizen/complaints/new")}
-                  className="h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black elevation-2 px-6"
+                  className="h-14 px-10 rounded-xl bg-primary text-primary-foreground font-black text-base shadow-xl"
                 >
-                  <Plus className="w-5 h-5 mr-2" />
-                  New Report
+                  <Plus className="w-6 h-6 mr-3 stroke-[3]" />
+                  Log New Case
                 </Button>
-              </>
+              </div>
             }
           />
 
-          <Grid cols={4} className="mb-6">
+          <Grid cols={4} className="mb-12 gap-6">
             <RegistryStat
-              label="Total"
+              label="Total Cases"
               value={stats.total}
               icon={FileText}
-              colorClass="bg-muted"
+              colorClass="bg-primary-brand"
+              description="Lifetime history"
             />
             <RegistryStat
-              label="Open"
+              label="Pending"
               value={stats.open}
               icon={Clock}
               colorClass="bg-amber-500"
+              description="Awaiting review"
             />
             <RegistryStat
               label="Active"
               value={stats.in_progress}
               icon={Activity}
-              colorClass="bg-primary"
+              colorClass="bg-blue-500"
+              description="In progress"
             />
             <RegistryStat
               label="Resolved"
               value={stats.resolved}
               icon={CheckCircle}
               colorClass="bg-secondary"
+              description="Closed"
             />
           </Grid>
 
-          <Card className="stone-card border-2 border-border elevation-2">
-            <CardHeader className="border-b-2 border-border p-6">
-              <div className="relative max-w-xl">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search by title, tracking code, or category..."
-                  className="h-12 pl-12 pr-12 rounded-xl bg-background border-2 border-border focus:border-primary text-sm font-medium"
-                />
-                {search && (
-                  <button
-                    onClick={() => handleSearch("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 hover:bg-accent rounded-lg p-1 transition-colors"
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                )}
+          <Card className="stone-card border-2 border-border overflow-hidden bg-card shadow-xl">
+            <CardHeader className="border-b-2 border-border bg-muted/30 p-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="relative w-full max-w-2xl">
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    placeholder="Search by Case ID, Title..."
+                    className="h-16 pl-14 pr-14 rounded-xl text-lg font-bold border-2 focus:ring-4"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 text-sm font-black text-muted-foreground uppercase tracking-widest">
+                  <AlertCircle className="w-5 h-5" />
+                  Viewing {complaints.length} of {total} records
+                </div>
               </div>
             </CardHeader>
 
-            <CardContent className="min-h-[400px] p-6">
+            <CardContent className="p-0">
               <AnimatePresence mode="wait">
                 {isLoading ? (
-                  <div className="flex h-64 items-center justify-center">
-                    <RefreshCw className="w-10 h-10 animate-spin text-primary" />
+                  <div className="flex flex-col h-[500px] items-center justify-center gap-6">
+                    <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    <p className="text-lg font-black text-primary uppercase tracking-tighter">
+                      Syncing Database...
+                    </p>
                   </div>
                 ) : complaints.length === 0 ? (
-                  <div className="py-24 text-center">
-                    <div className="p-6 bg-muted rounded-2xl inline-flex items-center justify-center mb-5 border-2 border-border">
-                      <Inbox className="w-12 h-12 text-muted-foreground/60" />
-                    </div>
-                    <h3 className="text-xl font-black text-foreground mb-2">
-                      No Complaints Found
+                  <div className="py-40 text-center">
+                    <Inbox className="w-20 h-20 text-muted-foreground/30 mx-auto mb-6" />
+                    <h3 className="text-3xl font-black text-foreground">
+                      Registry Empty
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {search
-                        ? "Try adjusting your search terms"
-                        : "Your submitted complaints will appear here"}
-                    </p>
                   </div>
                 ) : (
                   <ComplaintsTable
