@@ -10,8 +10,9 @@ import {
   MapPin,
   Calendar,
   ArrowRight,
+  Zap,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
@@ -36,10 +37,13 @@ export default function QuickActions({
       description: "Report an issue or request service",
       icon: FileText,
       color: "bg-primary",
+      glowColor: "group-hover:shadow-primary/20",
+      borderColor: "border-primary/20",
       path: "/citizen/complaints/new",
       badge: "New",
-      badgeColor: "bg-primary/10 text-primary border-primary/20",
+      badgeColor: "bg-primary/10 text-primary border-primary/30",
       hotkey: "C",
+      priority: true,
     },
     {
       id: "view-complaints",
@@ -47,6 +51,8 @@ export default function QuickActions({
       description: "View all your submitted complaints",
       icon: ClipboardList,
       color: "bg-secondary",
+      glowColor: "group-hover:shadow-secondary/20",
+      borderColor: "border-secondary/20",
       path: "/citizen/complaints",
       stats: complaintsCount,
     },
@@ -55,22 +61,27 @@ export default function QuickActions({
       title: "Pay Bills",
       description: "Pay taxes, fees, and charges online",
       icon: DollarSign,
-      color: "bg-[rgb(var(--warning-amber))]",
+      color: "bg-amber-500",
+      glowColor: "group-hover:shadow-amber-500/20",
+      borderColor: "border-amber-500/20",
       path: "/citizen/payments",
-      badge: pendingBillsCount > 0 ? `${pendingBillsCount} Pending` : undefined,
+      badge: pendingBillsCount > 0 ? `${pendingBillsCount} Due` : undefined,
       badgeColor:
         pendingBillsCount > 0
-          ? "bg-amber-100 text-amber-800 border-amber-200"
-          : "bg-muted text-muted-foreground",
+          ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
+          : "bg-muted text-muted-foreground border-border",
       stats: pendingBillsCount,
       hotkey: "P",
+      priority: pendingBillsCount > 0,
     },
     {
       id: "view-notices",
       title: "View Notices",
       description: "Latest announcements and alerts",
       icon: Bell,
-      color: "bg-[rgb(var(--info-blue))]",
+      color: "bg-blue-500",
+      glowColor: "group-hover:shadow-blue-500/20",
+      borderColor: "border-blue-500/20",
       path: "/citizen/notices",
     },
     {
@@ -78,7 +89,9 @@ export default function QuickActions({
       title: "City Services",
       description: "Access city services and applications",
       icon: Building,
-      color: "bg-[rgb(var(--neutral-stone-600))]",
+      color: "bg-slate-600",
+      glowColor: "group-hover:shadow-slate-600/20",
+      borderColor: "border-slate-600/20",
       path: "/citizen/services",
     },
     {
@@ -86,7 +99,9 @@ export default function QuickActions({
       title: "Property Tax",
       description: "Calculate and pay property taxes",
       icon: DollarSign,
-      color: "bg-[rgb(var(--highlight-tech))]",
+      color: "bg-emerald-500",
+      glowColor: "group-hover:shadow-emerald-500/20",
+      borderColor: "border-emerald-500/20",
       path: "/citizen/services/property-tax",
     },
     {
@@ -95,6 +110,8 @@ export default function QuickActions({
       description: "Your ward office details and contacts",
       icon: MapPin,
       color: "bg-primary",
+      glowColor: "group-hover:shadow-primary/20",
+      borderColor: "border-primary/20",
       path: "/citizen/ward",
     },
     {
@@ -102,7 +119,9 @@ export default function QuickActions({
       title: "Events",
       description: "Upcoming city events and meetings",
       icon: Calendar,
-      color: "bg-[rgb(var(--success-green))]",
+      color: "bg-green-500",
+      glowColor: "group-hover:shadow-green-500/20",
+      borderColor: "border-green-500/20",
       path: "/citizen/events",
     },
   ];
@@ -119,7 +138,7 @@ export default function QuickActions({
     >
       <div className="space-y-6">
         <div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5"
           role="list"
           aria-label="Quick actions"
         >
@@ -130,30 +149,32 @@ export default function QuickActions({
             return (
               <motion.div
                 key={action.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.3,
-                  delay: index * 0.05,
-                  ease: "easeOut",
+                  duration: 0.4,
+                  delay: index * 0.06,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
                 whileHover={{
-                  scale: 1.02,
-                  y: -6,
-                  transition: { duration: 0.2 },
+                  y: -8,
+                  transition: { duration: 0.25, ease: "easeOut" },
                 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.97 }}
                 onHoverStart={() => setHoveredAction(action.id)}
                 onHoverEnd={() => setHoveredAction(null)}
-                className="relative"
+                className="relative group"
                 role="listitem"
               >
                 <Card
                   className={cn(
-                    "cursor-pointer overflow-hidden transition-all duration-300 h-full stone-card",
+                    "cursor-pointer overflow-hidden transition-all duration-300 h-full border-2",
+                    "bg-card hover:bg-accent/5",
                     isHovered
-                      ? "border-primary elevation-4"
-                      : "elevation-1 hover:elevation-2"
+                      ? `${action.borderColor} elevation-3 shadow-lg ${action.glowColor}`
+                      : "border-border/60 elevation-1",
+                    action.priority &&
+                      "ring-2 ring-primary/10 ring-offset-2 ring-offset-background"
                   )}
                   onClick={() => handleActionClick(action)}
                   role="button"
@@ -164,28 +185,54 @@ export default function QuickActions({
                       handleActionClick(action);
                     }
                   }}
-                  aria-label={`${action.title}: ${action.description}${action.stats ? `. Total: ${action.stats}` : ""}`}
+                  aria-label={`${action.title}: ${action.description}${action.stats !== undefined ? `. Total: ${action.stats}` : ""}`}
                 >
-                  <CardContent className="p-5 relative">
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between mb-4 gap-2">
+                  {/* Gradient Background Accent */}
+                  <div
+                    className={cn(
+                      "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                      "bg-gradient-to-br from-transparent via-transparent to-primary/5"
+                    )}
+                  />
+
+                  <CardContent className="p-6 relative">
+                    <div className="relative z-10 space-y-4">
+                      {/* Icon and Badge Row */}
+                      <div className="flex items-start justify-between gap-3">
                         <motion.div
                           className={cn(
-                            "p-3 rounded-xl shadow-sm",
-                            action.color
+                            "relative p-3.5 rounded-xl shadow-sm transition-all duration-300",
+                            action.color,
+                            "group-hover:shadow-lg"
                           )}
-                          whileHover={{ scale: 1.08, rotate: 3 }}
-                          transition={{ duration: 0.2 }}
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 15,
+                          }}
                         >
                           <Icon
                             className="h-5 w-5 text-white"
                             aria-hidden="true"
                           />
+
+                          {/* Priority Indicator */}
+                          {action.priority && (
+                            <motion.div
+                              className="absolute -top-1 -right-1"
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            >
+                              <div className="h-2.5 w-2.5 rounded-full bg-white shadow-lg" />
+                            </motion.div>
+                          )}
                         </motion.div>
+
                         {action.badge && (
                           <Badge
                             className={cn(
-                              "text-xs font-semibold px-2.5 py-1 border",
+                              "text-xs font-bold px-3 py-1 border shadow-sm",
                               action.badgeColor
                             )}
                           >
@@ -194,49 +241,114 @@ export default function QuickActions({
                         )}
                       </div>
 
-                      <h3 className="font-bold text-base mb-2 leading-tight text-balance">
-                        {action.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-3">
-                        {action.description}
-                      </p>
-
-                      {action.stats !== undefined && (
-                        <p className="text-xs font-bold text-primary font-mono tabular-nums">
-                          {action.stats}{" "}
-                          {action.id === "view-complaints"
-                            ? "requests"
-                            : "pending"}
+                      {/* Text Content */}
+                      <div className="space-y-2">
+                        <h3
+                          className={cn(
+                            "font-black text-base leading-tight text-balance transition-colors",
+                            isHovered && "text-primary"
+                          )}
+                        >
+                          {action.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                          {action.description}
                         </p>
+                      </div>
+
+                      {/* Stats Display */}
+                      {action.stats !== undefined && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <div
+                            className={cn(
+                              "h-1.5 w-1.5 rounded-full",
+                              action.stats > 0
+                                ? action.color
+                                : "bg-muted-foreground/30"
+                            )}
+                          />
+                          <p
+                            className={cn(
+                              "text-sm font-bold font-mono tabular-nums",
+                              action.stats > 0
+                                ? "text-foreground"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {action.stats}{" "}
+                            <span className="text-xs font-normal">
+                              {action.id === "view-complaints"
+                                ? action.stats === 1
+                                  ? "request"
+                                  : "requests"
+                                : action.stats === 1
+                                  ? "bill"
+                                  : "pending"}
+                            </span>
+                          </p>
+                        </div>
                       )}
 
+                      {/* Hotkey Badge */}
                       {action.hotkey && (
-                        <div className="absolute bottom-4 right-4">
-                          <kbd className="px-2 py-1 text-[10px] font-bold bg-muted rounded border border-border shadow-sm font-mono">
+                        <div className="absolute top-6 right-6">
+                          <kbd
+                            className={cn(
+                              "px-2.5 py-1 text-[10px] font-black rounded-md border-2 shadow-sm font-mono transition-all",
+                              "bg-muted/50 border-border/60 text-muted-foreground",
+                              isHovered &&
+                                "bg-primary/10 border-primary/30 text-primary scale-110"
+                            )}
+                          >
                             {action.hotkey}
                           </kbd>
                         </div>
                       )}
 
-                      {isHovered && (
-                        <motion.div
-                          className="absolute -right-2 -bottom-2"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <div className="p-2.5 bg-primary rounded-full text-white shadow-lg elevation-3">
-                            <ArrowRight
-                              className="h-4 w-4"
-                              aria-hidden="true"
-                            />
-                          </div>
-                        </motion.div>
-                      )}
+                      {/* Arrow Indicator on Hover */}
+                      <AnimatePresence>
+                        {isHovered && (
+                          <motion.div
+                            className="absolute -bottom-3 -right-3"
+                            initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 20,
+                            }}
+                          >
+                            <div
+                              className={cn(
+                                "p-3 rounded-full text-white shadow-2xl elevation-3",
+                                action.color
+                              )}
+                            >
+                              <ArrowRight
+                                className="h-4 w-4"
+                                aria-hidden="true"
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Hover Glow Effect */}
+                <div
+                  className={cn(
+                    "absolute inset-0 -z-10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                    action.color.replace("bg-", "bg-"),
+                    "scale-95"
+                  )}
+                  style={{
+                    background: `radial-gradient(circle at center, ${action.color.replace("bg-", "rgb(var(--")})}, transparent)`,
+                    opacity: isHovered ? 0.15 : 0,
+                  }}
+                />
               </motion.div>
             );
           })}
