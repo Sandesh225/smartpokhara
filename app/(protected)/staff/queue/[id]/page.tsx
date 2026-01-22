@@ -8,7 +8,6 @@ import { WorkProgressTimeline } from "../_components/WorkProgressTimeline";
 import { TaskActionBar } from "../_components/TaskActionBar"; 
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 
-
 export const dynamic = "force-dynamic";
 
 interface PageProps {
@@ -37,9 +36,6 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const assignmentStaffId = assignment.staff_id;
   
   const isAssignee = staffIdFromAuth === assignmentStaffId;
-
-  // Debugging (Uncomment if still having issues)
-  // console.log(`Auth ID: ${staffIdFromAuth}, Assigned ID: ${assignmentStaffId}, Match: ${isAssignee}`);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
