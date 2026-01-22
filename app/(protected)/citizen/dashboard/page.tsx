@@ -7,36 +7,41 @@ import { toast } from "sonner";
 import {
   RefreshCw,
   Activity,
-  Sparkles,
   ChevronRight,
+  TrendingUp,
+  FileText,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Bell,
+  CreditCard,
+  Sparkles,
+  Loader2,
+  ShieldCheck,
   MapPin,
   Calendar,
-  Bell,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { format } from "date-fns";
-
-// UI Components
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Container, Section, PageHeader } from "@/lib/design-system/container";
-import DashboardStats from "@/app/(protected)/citizen/dashboard/_components/DashboardStats";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-// Sub-components
-import QuickActions from "./_components/QuickActions";
-import RecentNotices from "./_components/RecentNotices";
-import RecentComplaints from "./_components/RecentComplaints";
-
-// Types
 interface DashboardState {
-  profile: { name: string; wardNumber: number | null; wardName: string };
+  profile: {
+    name: string;
+    wardNumber: number | null;
+    wardName: string;
+    wardId: string | null;
+  };
   complaints: any[];
   bills: any[];
   notices: any[];
-  stats: { total: number; open: number; inProgress: number; resolved: number };
+  stats: {
+    total: number;
+    open: number;
+    inProgress: number;
+    resolved: number;
+  };
   loading: boolean;
   error: string | null;
 }
@@ -44,11 +49,13 @@ interface DashboardState {
 export default function CitizenDashboard() {
   const router = useRouter();
   const supabase = createClient();
+
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const [dashboardData, setDashboardData] = useState<DashboardState>({
-    profile: { name: "", wardNumber: null, wardName: "" },
+    profile: { name: "", wardNumber: null, wardName: "", wardId: null },
     complaints: [],
     bills: [],
     notices: [],
@@ -57,85 +64,116 @@ export default function CitizenDashboard() {
     error: null,
   });
 
-  // Time-based Logic
+  /* ---------------------------------- */
+  /* Lifecycle                           */
+  /* ---------------------------------- */
+
+  useEffect(() => setIsMounted(true), []);
+
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   const greeting = useMemo(() => {
     const hour = currentTime.getHours();
-    if (hour < 12) return { text: "Subha Prabhat", icon: "🌅" };
-    if (hour < 18) return { text: "Namaste", icon: "☀️" };
-    return { text: "Subha Sandhya", icon: "🌙" };
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
   }, [currentTime]);
 
+  /* ---------------------------------- */
+  /* Fetch Dashboard                     */
+  /* ---------------------------------- */
   const fetchDashboardState = useCallback(
     async (isRefresh = false) => {
       if (isRefresh) setIsRefreshing(true);
+
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+
         if (!user) {
           router.push("/login");
           return;
         }
 
-        const [profileRes, complaintsRes, billsRes, noticesRes] =
+        /* ---------------- PROFILE FIRST ---------------- */
+        const { data: profile, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("full_name, ward_id, ward:wards(ward_number, name)")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        const wardId = profile?.ward_id ?? null;
+
+        /* ---------------- PARALLEL REST ---------------- */
+        const [statsRes, complaintsRes, billsRes, noticesRes] =
           await Promise.all([
-            supabase
-              .from("user_profiles")
-              .select("full_name, ward:wards(ward_number, name)")
-              .eq("user_id", user.id)
-              .maybeSingle(),
+            supabase.rpc("rpc_get_dashboard_stats"),
+
             supabase
               .from("complaints")
               .select("*")
               .eq("citizen_id", user.id)
-              .order("submitted_at", { ascending: false }),
+              .order("submitted_at", { ascending: false })
+              .limit(5),
+
             supabase
               .from("bills")
               .select("*")
               .eq("citizen_id", user.id)
               .eq("status", "pending"),
-            supabase
-              .from("notices")
-              .select("*")
-              .order("published_at", { ascending: false })
-              .limit(5),
+
+            wardId
+              ? supabase
+                  .from("notices")
+                  .select("*")
+                  .or(`is_public.eq.true,ward_id.eq.${wardId}`)
+                  .order("published_at", { ascending: false })
+                  .limit(5)
+              : supabase
+                  .from("notices")
+                  .select("*")
+                  .eq("is_public", true)
+                  .order("published_at", { ascending: false })
+                  .limit(5),
           ]);
 
-        const complaintsList = complaintsRes.data || [];
-        const openCount = complaintsList.filter((c) =>
-          ["received", "under_review", "assigned"].includes(c.status)
-        ).length;
-        const inProgressCount = complaintsList.filter(
-          (c) => c.status === "in_progress"
-        ).length;
+        if (statsRes.error) throw statsRes.error;
+        if (complaintsRes.error) throw complaintsRes.error;
+        if (billsRes.error) throw billsRes.error;
+        if (noticesRes.error) throw noticesRes.error;
+
+        const stats = statsRes.data?.complaints || {};
 
         setDashboardData({
           profile: {
-            name: profileRes.data?.full_name?.split(" ")[0] || "Citizen",
-            wardNumber: profileRes.data?.ward?.ward_number ?? null,
-            wardName: profileRes.data?.ward?.name || "",
+            name: profile?.full_name?.split(" ")[0] || "Citizen",
+            wardNumber: profile?.ward?.ward_number ?? null,
+            wardName: profile?.ward?.name || "",
+            wardId,
           },
-          complaints: complaintsList.slice(0, 5),
+          complaints: complaintsRes.data || [],
           bills: billsRes.data || [],
           notices: noticesRes.data || [],
           stats: {
-            total: complaintsList.length,
-            open: openCount,
-            inProgress: inProgressCount,
-            resolved: complaintsList.filter((c) =>
-              ["resolved", "closed"].includes(c.status)
-            ).length,
+            total: stats.total || 0,
+            open: stats.open || 0,
+            inProgress: stats.in_progress || 0,
+            resolved: stats.resolved || 0,
           },
           loading: false,
           error: null,
         });
-        if (isRefresh) toast.success("Dashboard refreshed successfully");
+
+        if (isRefresh) toast.success("Dashboard refreshed");
       } catch (err: any) {
+        console.error("Dashboard load error:", err);
+        toast.error("Failed to load dashboard");
         setDashboardData((prev) => ({
           ...prev,
           loading: false,
@@ -152,233 +190,255 @@ export default function CitizenDashboard() {
     fetchDashboardState();
   }, [fetchDashboardState]);
 
-  if (dashboardData.loading) return <DashboardSkeleton />;
+  /* ---------------------------------- */
+  /* Loading State                       */
+  /* ---------------------------------- */
 
-  const activeReportsCount =
-    dashboardData.stats.open + dashboardData.stats.inProgress;
+  if (!isMounted || dashboardData.loading) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-14 h-14 animate-spin text-primary" />
+        <p className="font-bold text-lg">Loading Citizen Dashboard</p>
+        <Badge variant="outline" className="tracking-widest uppercase text-xs">
+          Pokhara Citizen Portal
+        </Badge>
+      </div>
+    );
+  }
+
+  const activeCount = dashboardData.stats.open + dashboardData.stats.inProgress;
+
+  /* ---------------------------------- */
+  /* Render                             */
+  /* ---------------------------------- */
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="min-h-screen pb-12"
-    >
-      {/* Background Decorative Element */}
-      <div className="absolute top-0 left-0 w-full h-72 bg-gradient-to-b from-primary/10 dark:from-primary/15 to-transparent -z-10" />
+    <div className="space-y-6 pb-12 px-4 animate-in fade-in duration-700">
+      {/* HEADER */}
+      <header className="border-b pb-6 pt-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="w-6 h-6 text-primary" />
+              <h1 className="text-3xl font-black tracking-tight">
+                {greeting}, {dashboardData.profile.name}
+              </h1>
+            </div>
 
-      <Container size="wide" className="px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-6">
-          <div className="space-y-3">
-            <motion.div
-              initial={{ x: -20 }}
-              animate={{ x: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-wrap items-center gap-3"
-            >
-              <Badge
-                variant="outline"
-                className="glass border-2 border-primary/30 text-primary font-black px-5 py-2.5 text-sm elevation-1"
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                {dashboardData.profile.wardNumber
-                  ? `Ward ${dashboardData.profile.wardNumber}`
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="outline">
+                <MapPin className="w-3 h-3 mr-1" />
+                {dashboardData.profile.wardName
+                  ? `${dashboardData.profile.wardName} · Ward ${dashboardData.profile.wardNumber}`
                   : "Pokhara Metro"}
               </Badge>
-              <Badge
-                variant="outline"
-                className="glass border-2 border-border text-muted-foreground font-bold px-5 py-2.5 text-sm elevation-1"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                {format(currentTime, "MMMM do, yyyy")}
+              <Badge variant="outline">
+                <Calendar className="w-3 h-3 mr-1" />
+                {format(currentTime, "EEEE, MMM do")}
               </Badge>
-            </motion.div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
-              {greeting.text},{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {dashboardData.profile.name}
-              </span>{" "}
-              <span className="inline-block">{greeting.icon}</span>
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base font-semibold max-w-2xl">
-              Welcome to your digital municipal command center.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="glass px-5 py-3 rounded-2xl flex items-center gap-4 border-2 border-border elevation-2">
-              <div className="text-right">
-                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                  Local Time
-                </p>
-                <p className="text-2xl font-black font-mono leading-none text-foreground mt-1">
-                  {format(currentTime, "HH:mm")}
-                </p>
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => fetchDashboardState(true)}
-                disabled={isRefreshing}
-                className={cn(
-                  "rounded-xl hover:bg-primary/15 transition-all h-11 w-11",
-                  isRefreshing && "animate-spin"
-                )}
-              >
-                <RefreshCw className="w-5 h-5 text-primary" />
-              </Button>
             </div>
           </div>
-        </div>
 
-        {/* Dynamic Alerts */}
-        {activeReportsCount > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-6"
+          <button
+            onClick={() => fetchDashboardState(true)}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-4 py-2 border rounded-xl bg-card hover:bg-accent"
           >
-            <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/15 to-secondary/15 overflow-hidden rounded-2xl elevation-3">
-              <CardContent className="p-6 sm:p-7 flex flex-col md:flex-row items-center justify-between gap-5">
-                <div className="flex items-center gap-5">
-                  <div className="h-14 w-14 rounded-2xl bg-primary/20 border-2 border-primary/40 flex items-center justify-center backdrop-blur-sm elevation-2">
-                    <Activity className="w-7 h-7 animate-pulse text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-black text-foreground mb-1.5">
-                      Active Inquiries
-                    </h3>
-                    <p className="text-sm text-muted-foreground font-semibold">
-                      You have{" "}
-                      <span className="font-black text-primary">
-                        {activeReportsCount}
-                      </span>{" "}
-                      {activeReportsCount === 1 ? "request" : "requests"}{" "}
-                      currently being processed.
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="lg"
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-xl px-7 py-6 text-sm sm:text-base elevation-2 hover:elevation-3 transition-all"
-                  onClick={() => router.push("/citizen/complaints")}
-                >
-                  View Details <ChevronRight className="ml-2 w-5 h-5" />
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Main Feed */}
-          <div className="xl:col-span-2 space-y-6">
-            <section>
-              <DashboardStats
-                totalComplaints={dashboardData.stats.total}
-                openCount={dashboardData.stats.open}
-                inProgressCount={dashboardData.stats.inProgress}
-                resolvedCount={dashboardData.stats.resolved}
-              />
-            </section>
-
-            <section className="space-y-4">
-              <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-4">
-                  <Sparkles className="w-6 h-6 text-secondary" />
-                  <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground">
-                    Services
-                  </h2>
-                </div>
-              </div>
-              <QuickActions
-                complaintsCount={dashboardData.stats.total}
-                pendingBillsCount={dashboardData.bills.length}
-              />
-            </section>
-
-            <section>
-              <RecentComplaints complaints={dashboardData.complaints} />
-            </section>
-          </div>
-
-          {/* Sidebar */}
-          <aside className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 px-2">
-                <Bell className="w-6 h-6 text-primary" />
-                <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight text-foreground">
-                  Bulletin
-                </h2>
-              </div>
-              <RecentNotices
-                notices={dashboardData.notices}
-                wardNumber={dashboardData.profile.wardNumber}
-              />
-            </div>
-
-            <Card className="border-2 border-destructive/40 bg-gradient-to-br from-destructive to-red-700 text-white rounded-2xl elevation-3 overflow-hidden">
-              <div className="p-6 border-b-2 border-white/20 flex justify-between items-center bg-black/20">
-                <div className="flex items-center gap-4">
-                  <div className="h-3 w-3 bg-white rounded-full animate-ping" />
-                  <h3 className="font-black uppercase tracking-widest text-sm">
-                    Emergency Hotlines
-                  </h3>
-                </div>
-              </div>
-              <div className="p-4">
-                {[
-                  { icon: "🚔", label: "Police", phone: "100" },
-                  { icon: "🚑", label: "Ambulance", phone: "102" },
-                  { icon: "🚒", label: "Fire", phone: "101" },
-                ].map((item, idx) => (
-                  <motion.a
-                    key={idx}
-                    href={`tel:${item.phone}`}
-                    whileHover={{ scale: 1.02, x: 5 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex items-center justify-between p-5 rounded-xl hover:bg-white/20 transition-all group"
-                  >
-                    <div className="flex items-center gap-5">
-                      <span className="text-3xl">{item.icon}</span>
-                      <span className="font-black text-base">{item.label}</span>
-                    </div>
-                    <span className="bg-white text-destructive px-6 py-2.5 rounded-xl font-mono font-black text-sm elevation-2 group-hover:elevation-3 transition-all">
-                      {item.phone}
-                    </span>
-                  </motion.a>
-                ))}
-              </div>
-            </Card>
-          </aside>
+            <RefreshCw
+              className={cn("w-4 h-4", isRefreshing && "animate-spin")}
+            />
+            Refresh
+          </button>
         </div>
-      </Container>
-    </motion.div>
-  );
-}
+      </header>
 
-// Optimized Skeleton
-function DashboardSkeleton() {
-  return (
-    <Container size="wide" className="pt-12 space-y-12 px-4 sm:px-6 lg:px-8">
-      <div className="space-y-5">
-        <Skeleton className="h-7 w-48 rounded-full" />
-        <Skeleton className="h-24 w-full max-w-3xl rounded-2xl" />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-44 rounded-2xl" />
+      {/* ACTIVE ALERT */}
+      {activeCount > 0 && (
+        <Card className="border-2 border-primary/40 bg-primary/5">
+          <CardContent className="flex items-center justify-between p-6">
+            <div className="flex items-center gap-4">
+              <Activity className="w-8 h-8 text-primary" />
+              <div>
+                <p className="font-black text-lg">Active Requests</p>
+                <p className="text-muted-foreground">
+                  {activeCount} request{activeCount !== 1 && "s"} in progress
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/citizen/complaints")}
+              className="px-5 py-3 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2"
+            >
+              Track
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STATS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            label: "Total Complaints",
+            value: dashboardData.stats.total,
+            icon: FileText,
+          },
+          { label: "Open", value: dashboardData.stats.open, icon: AlertCircle },
+          {
+            label: "In Progress",
+            value: dashboardData.stats.inProgress,
+            icon: Clock,
+          },
+          {
+            label: "Resolved",
+            value: dashboardData.stats.resolved,
+            icon: CheckCircle2,
+          },
+        ].map((s, i) => (
+          <Card key={i} className="hover:shadow-2xl transition">
+            <CardContent className="p-5">
+              <s.icon className="w-5 h-5 text-primary mb-2" />
+              <p className="text-sm text-muted-foreground">{s.label}</p>
+              <p className="text-3xl font-black">{s.value}</p>
+            </CardContent>
+          </Card>
         ))}
       </div>
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div className="xl:col-span-2 space-y-8">
-          <Skeleton className="h-80 rounded-2xl" />
-          <Skeleton className="h-96 rounded-2xl" />
+
+      {/* GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* QUICK ACTIONS */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5" /> Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid sm:grid-cols-3 gap-4">
+              {[
+                {
+                  label: "File Complaint",
+                  href: "/citizen/complaints/new",
+                  icon: FileText,
+                },
+                {
+                  label: "Pay Bills",
+                  href: "/citizen/payments",
+                  icon: CreditCard,
+                },
+                {
+                  label: "Request Service",
+                  href: "/citizen/services",
+                  icon: Sparkles,
+                },
+              ].map((a, i) => (
+                <button
+                  key={i}
+                  onClick={() => router.push(a.href)}
+                  className="p-6 border rounded-xl hover:bg-accent flex flex-col items-center gap-3"
+                >
+                  <a.icon className="w-6 h-6 text-primary" />
+                  <span className="font-bold">{a.label}</span>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* RECENT COMPLAINTS */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Complaints</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {dashboardData.complaints.length > 0 ? (
+                dashboardData.complaints.map((c) => (
+                  <div
+                    key={c.id}
+                    onClick={() => router.push(`/citizen/complaints/${c.id}`)}
+                    className="p-4 border rounded-lg hover:bg-accent cursor-pointer"
+                  >
+                    <p className="font-bold">
+                      {c.title || "Untitled Complaint"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(c.submitted_at), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground py-6">
+                  No complaints yet
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
-        <Skeleton className="h-full min-h-[600px] rounded-2xl" />
+
+        {/* RIGHT */}
+        <div className="space-y-6">
+          {/* NOTICES */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5" /> Ward Notices
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {dashboardData.notices.length > 0 ? (
+                dashboardData.notices.map((n) => (
+                  <div
+                    key={n.id}
+                    onClick={() => router.push(`/citizen/notices/${n.id}`)}
+                    className="p-3 border rounded-lg hover:bg-accent cursor-pointer"
+                  >
+                    <p className="font-bold text-sm">{n.title}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground py-6">
+                  No notices
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* BILLS */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" /> Pending Bills
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {dashboardData.bills.length > 0 ? (
+                <>
+                  {dashboardData.bills.map((b) => (
+                    <div key={b.id} className="flex justify-between py-2">
+                      <span>{b.description || "Utility Bill"}</span>
+                      <span className="font-bold text-warning-amber">
+                        NPR {b.amount?.toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => router.push("/citizen/payments")}
+                    className="mt-4 w-full py-3 bg-warning-amber text-white font-bold rounded-xl"
+                  >
+                    Pay Now
+                  </button>
+                </>
+              ) : (
+                <p className="text-center text-muted-foreground py-6">
+                  All bills paid 🎉
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </Container>
+    </div>
   );
 }
