@@ -98,6 +98,7 @@ const COMPLAINT_STATUS_CONFIG = {
     textColor: "text-purple-700",
     borderColor: "border-purple-200",
   },
+  assigned: { label: "Assigned", icon: User, color: "bg-indigo-500" },
   resolved: {
     label: "Resolved",
     icon: CheckCircle,
@@ -168,6 +169,16 @@ export default function ComplaintDetailPage() {
       try {
         const data = await complaintsService.getComplaintById(complaintId);
         if (!data) throw new Error("Entry not found");
+
+        // ✅ Ensure we have the complete data structure
+        console.log("Loaded complaint data:", {
+          id: data.id,
+          status: data.status,
+          assigned_staff_id: data.assigned_staff_id,
+          assigned_department_id: data.assigned_department_id,
+          has_staff_profile: !!data.staff,
+        });
+
         setComplaint(data);
         setComments(data.comments || []);
         setStatusHistory(data.status_history || []);
@@ -180,7 +191,74 @@ export default function ComplaintDetailPage() {
     },
     [complaintId]
   );
+  useEffect(() => {
+    if (complaint) {
+      console.log("=".repeat(80));
+      console.log("🔍 COMPLAINT DATA DEBUG");
+      console.log("=".repeat(80));
 
+      // 1. Basic Info
+      console.log("📋 Basic Info:");
+      console.log("  ID:", complaint.id);
+      console.log("  Tracking Code:", complaint.tracking_code);
+      console.log("  Status:", complaint.status);
+      console.log("  Title:", complaint.title);
+
+      // 2. Assignment IDs
+      console.log("\n🎯 Assignment IDs:");
+      console.log("  assigned_staff_id:", complaint.assigned_staff_id);
+      console.log(
+        "  assigned_department_id:",
+        complaint.assigned_department_id
+      );
+
+      // 3. Staff Object
+      console.log("\n👤 Staff Object:");
+      console.log("  staff:", complaint.staff);
+      console.log("  Has staff?", !!complaint.staff);
+
+      if (complaint.staff) {
+        console.log("  staff.user_id:", complaint.staff.user_id);
+        console.log("  staff.staff_role:", complaint.staff.staff_role);
+        console.log("  staff.profile:", complaint.staff.profile);
+        console.log(
+          "  staff.profile.full_name:",
+          complaint.staff.profile?.full_name
+        );
+      } else {
+        console.log("  ⚠️ NO STAFF OBJECT FOUND!");
+      }
+
+      // 4. Department Object
+      console.log("\n🏢 Department Object:");
+      console.log("  department:", complaint.department);
+      console.log("  department.name:", complaint.department?.name);
+
+      // 5. Conditional Check
+      console.log("\n✅ Conditional Logic Check:");
+      const hasAssignedStaff = complaint.assigned_staff_id && complaint.staff;
+      console.log("  hasAssignedStaff:", hasAssignedStaff);
+      console.log("  (assigned_staff_id && staff)?", hasAssignedStaff);
+      console.log(
+        "  assigned_department_id?",
+        !!complaint.assigned_department_id
+      );
+
+      // 6. Which UI Should Show?
+      console.log("\n🎨 UI Display Logic:");
+      if (hasAssignedStaff) {
+        console.log("  ✅ Should show: STAFF MEMBER");
+        console.log("     Name:", complaint.staff?.profile?.full_name);
+      } else if (complaint.assigned_department_id) {
+        console.log("  ⚠️ Should show: DEPARTMENT (awaiting staff)");
+        console.log("     Dept:", complaint.department?.name);
+      } else {
+        console.log("  🕐 Should show: PENDING");
+      }
+
+      console.log("=".repeat(80));
+    }
+  }, [complaint]);
   useEffect(() => {
     loadComplaintData();
     const sub1 = complaintsService.subscribeToComplaint(
@@ -283,17 +361,17 @@ export default function ComplaintDetailPage() {
           <PageHeader
             title={complaint.title}
             subtitle={
-              <div className="flex items-center gap-2">
-                <Hash className="h-4 w-4 text-muted-foreground" />
+              <>
+                <Hash className="h-4 w-4 text-muted-foreground inline-block mr-2" />
                 <span className="font-mono text-sm font-bold text-foreground tracking-tight">
                   {complaint.tracking_code}
                 </span>
-                <span className="h-1 w-1 rounded-full bg-muted-foreground/30"></span>
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/30 inline-block mx-2"></span>
                 <span className="text-xs text-muted-foreground font-medium">
                   Updated {formatDistanceToNow(new Date(complaint.updated_at))}{" "}
                   ago
                 </span>
-              </div>
+              </>
             }
             badge={
               <>
@@ -670,61 +748,235 @@ export default function ComplaintDetailPage() {
                 </CardContent>
               </Card>
 
-              <Card className="stone-card border-2 border-border elevation-2 transition-all hover:elevation-3">
-                <CardHeader className="border-b-2 border-border p-6 bg-primary text-primary-foreground">
-                  <div className="flex items-center gap-3">
-                    <Shield className="w-5 h-5" />
-                    <h2 className="text-sm font-black uppercase tracking-widest">
-                      Assigned To
-                    </h2>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {complaint.staff ? (
-                    <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center text-2xl font-black text-foreground elevation-1">
-                        {complaint.staff.profile?.full_name?.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-black text-foreground text-lg truncate">
-                          {complaint.staff.profile?.full_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground font-medium capitalize">
-                          {complaint.staff.staff_role.replace("_", " ")}
-                        </p>
-                      </div>
-                    </div>
-                  ) : computed?.isResolved ? (
-                    <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center elevation-1">
-                        <CheckCircle2 className="h-8 w-8 text-secondary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-black text-foreground text-lg">
-                          Resolved
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          By {complaint.department?.name}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center elevation-1">
-                        <Clock className="h-8 w-8 text-amber-600 animate-pulse" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-black text-foreground text-lg">
-                          Pending
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Awaiting assignment
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+
+<Card className="stone-card border-2 border-border elevation-2 transition-all hover:elevation-3">
+  <CardHeader className="border-b-2 border-border p-6 bg-primary text-primary-foreground">
+    <div className="flex items-center gap-3">
+      <Shield className="w-5 h-5" />
+      <h2 className="text-sm font-black uppercase tracking-widest">
+        Assigned To
+      </h2>
+    </div>
+  </CardHeader>
+  <CardContent className="p-6">
+    {/* Check 1: Staff member is assigned */}
+    {complaint.assigned_staff_id && complaint.staff ? (
+      <div className="space-y-4">
+        {/* Staff Header */}
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-2xl font-black text-white elevation-2">
+            {complaint.staff.profile?.full_name
+              ? complaint.staff.profile.full_name.charAt(0).toUpperCase()
+              : "S"}
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-foreground text-lg truncate">
+              {complaint.staff.profile?.full_name || "Staff Member"}
+            </p>
+            <p className="text-sm text-primary font-semibold capitalize">
+              {complaint.staff.staff_role?.replace(/_/g, " ") || "Field Staff"}
+            </p>
+          </div>
+        </div>
+
+        {/* Staff Details Grid */}
+        <div className="pt-4 border-t border-border space-y-3">
+          {/* Staff Code */}
+          {complaint.staff.staff_code && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Staff Code</span>
+              <span className="text-sm font-bold text-foreground font-mono">
+                {complaint.staff.staff_code}
+              </span>
+            </div>
+          )}
+
+          {/* Department */}
+          {complaint.department?.name && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Department</span>
+              <span className="text-sm font-bold text-foreground">
+                {complaint.department.name}
+              </span>
+            </div>
+          )}
+
+          {/* Ward Assignment */}
+          {complaint.staff.ward_id && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Assigned Ward</span>
+              <span className="text-sm font-bold text-foreground">
+                {complaint.ward ? `Ward ${complaint.ward.ward_number}` : "Ward Assignment"}
+              </span>
+            </div>
+          )}
+
+          {/* Supervisor Badge */}
+          {complaint.staff.is_supervisor && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Role Type</span>
+              <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs font-bold">
+                <Users className="w-3 h-3 mr-1" />
+                Supervisor
+              </Badge>
+            </div>
+          )}
+
+          {/* Current Workload */}
+          {complaint.staff.current_workload !== undefined && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Current Tasks</span>
+              <span className="text-sm font-bold text-foreground">
+                {complaint.staff.current_workload} / {complaint.staff.max_concurrent_assignments || "∞"}
+              </span>
+            </div>
+          )}
+
+          {/* Specializations */}
+          {complaint.staff.specializations && complaint.staff.specializations.length > 0 && (
+            <div className="pt-2">
+              <span className="text-xs text-muted-foreground font-medium block mb-2">
+                Specializations
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {complaint.staff.specializations.map((spec: string, idx: number) => (
+                  <Badge
+                    key={idx}
+                    variant="outline"
+                    className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                  >
+                    {spec}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Assigned Date */}
+          {complaint.assigned_at && (
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <span className="text-xs text-muted-foreground font-medium">Assigned On</span>
+              <span className="text-xs font-semibold text-foreground">
+                {format(new Date(complaint.assigned_at), "MMM dd, yyyy 'at' h:mm a")}
+              </span>
+            </div>
+          )}
+
+          {/* Staff ID (for debugging) */}
+          <div className="pt-2 border-t border-border">
+            <span className="text-[10px] text-muted-foreground font-mono">
+              ID: {complaint.assigned_staff_id}
+            </span>
+          </div>
+        </div>
+      </div>
+    ) : 
+    /* Check 2: Only assigned_staff_id exists but no staff object loaded */
+    complaint.assigned_staff_id && !complaint.staff ? (
+      <div className="flex items-center gap-4">
+        <div className="h-16 w-16 rounded-xl bg-blue-100 flex items-center justify-center elevation-1 animate-pulse">
+          <User className="h-8 w-8 text-blue-600" />
+        </div>
+        <div className="flex-1">
+          <p className="font-black text-foreground text-lg">
+            Staff Assigned
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Loading staff details...
+          </p>
+          <p className="text-xs text-muted-foreground mt-2 font-mono">
+            ID: {complaint.assigned_staff_id.substring(0, 8)}...
+          </p>
+        </div>
+      </div>
+    ) :
+    /* Check 3: Department assigned but no specific staff yet */
+    complaint.assigned_department_id && complaint.department?.name ? (
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center elevation-2">
+            <Building2 className="h-8 w-8 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-foreground text-lg">
+              {complaint.department.name}
+            </p>
+            <p className="text-sm text-amber-600 font-semibold">
+              Awaiting staff assignment
+            </p>
+          </div>
+        </div>
+        <div className="pt-4 border-t border-border">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Your complaint has been forwarded to the {complaint.department.name}. 
+            A field officer will be assigned shortly to address your concern.
+          </p>
+        </div>
+      </div>
+    ) : 
+    /* Check 4: Complaint is resolved */
+    computed?.isResolved ? (
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center elevation-2">
+            <CheckCircle2 className="h-8 w-8 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-foreground text-lg">
+              Resolved
+            </p>
+            <p className="text-sm text-green-600 font-semibold">
+              {complaint.department?.name || "City Department"}
+            </p>
+          </div>
+        </div>
+        {complaint.resolved_at && (
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-medium">Resolved On</span>
+              <span className="text-xs font-semibold text-foreground">
+                {format(new Date(complaint.resolved_at), "MMM dd, yyyy")}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    ) : (
+      /* Default: Pending */
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center elevation-1">
+            <Clock className="h-8 w-8 text-amber-600 animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-foreground text-lg">
+              Pending Review
+            </p>
+            <p className="text-sm text-muted-foreground font-medium">
+              Awaiting department assignment
+            </p>
+          </div>
+        </div>
+        <div className="pt-4 border-t border-border">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Your complaint is being reviewed by our system. It will be assigned to 
+            the appropriate department shortly.
+          </p>
+        </div>
+      </div>
+    )}
+  </CardContent>
+</Card>
+
+
+
+
+
+
+
+
+
+
 
               <Card className="stone-card border-2 border-border elevation-2 transition-all hover:elevation-3">
                 <CardHeader className="border-b-2 border-border p-6 bg-primary text-primary-foreground">
