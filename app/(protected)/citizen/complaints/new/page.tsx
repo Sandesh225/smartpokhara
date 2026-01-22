@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
@@ -18,9 +18,12 @@ import {
   Sparkles,
   Clock,
   Info,
-  Shield,
+  ShieldCheck,
   AlertCircle,
   ChevronRight,
+  Loader2,
+  MapPin,
+  FileText,
 } from "lucide-react";
 import {
   Dialog,
@@ -29,8 +32,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function NewComplaintPage() {
   const router = useRouter();
@@ -44,39 +48,37 @@ export default function NewComplaintPage() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
 
-        if (!session) {
-          toast.error("Authentication required");
-          router.push("/auth/signin?redirect=/citizen/complaints/new");
-          return;
-        }
-
-        const [categoriesData, wardsData] = await Promise.all([
-          complaintsService.getCategories(),
-          complaintsService.getWards(),
-        ]);
-
-        setCategories(categoriesData);
-        setWards(wardsData);
-      } catch (err: any) {
-        console.error("Error fetching data:", err);
-        setError(err.message || "Failed to load form data.");
-      } finally {
-        setIsLoading(false);
+      if (!session) {
+        toast.error("Authentication required");
+        router.push("/auth/signin?redirect=/citizen/complaints/new");
+        return;
       }
-    };
 
-    fetchData();
+      const [categoriesData, wardsData] = await Promise.all([
+        complaintsService.getCategories(),
+        complaintsService.getWards(),
+      ]);
+
+      setCategories(categoriesData);
+      setWards(wardsData);
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      setError(err.message || "Failed to load form data.");
+    } finally {
+      setIsLoading(false);
+    }
   }, [router]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSubmitComplaint = async (
     formData: SubmitComplaintRequest,
@@ -104,201 +106,163 @@ export default function NewComplaintPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background section-spacing container-padding">
-        <div className="container mx-auto max-w-7xl space-y-8">
-          <Skeleton className="h-10 w-40 rounded-full" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Skeleton className="h-[600px] w-full rounded-3xl" />
-            </div>
-            <Skeleton className="h-[400px] w-full rounded-3xl" />
-          </div>
-        </div>
+      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4 bg-background text-foreground">
+        <Loader2 className="w-14 h-14 animate-spin text-primary" />
+        <p className="font-black text-lg tracking-tight">Preparing Report Form</p>
+        <Badge variant="outline" className="tracking-widest uppercase text-xs border-primary/30">
+          Pokhara Citizen Portal
+        </Badge>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center container-padding">
-        <div className="stone-card max-w-lg w-full overflow-hidden border-destructive/20 elevation-4">
-          <div className="h-2 w-full bg-destructive" />
-          <div className="card-padding text-center">
+      <div className="min-h-[80vh] flex items-center justify-center px-4 bg-background">
+        <Card className="max-w-md w-full border-destructive/20 shadow-2xl bg-card">
+          <div className="h-1.5 w-full bg-destructive" />
+          <CardContent className="pt-8 text-center">
             <div className="mx-auto h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center mb-4">
               <AlertCircle className="h-8 w-8 text-destructive" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Initialization Error</h2>
+            <h2 className="text-2xl font-black tracking-tight mb-2">Initialization Error</h2>
             <p className="text-muted-foreground mb-6">{error}</p>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.back()}
-              >
+              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => router.back()}>
                 Go Back
               </Button>
-              <Button
-                className="flex-1 bg-destructive hover:bg-destructive/90 text-white"
-                onClick={() => window.location.reload()}
-              >
+              <Button className="flex-1 bg-primary text-primary-foreground rounded-xl" onClick={() => window.location.reload()}>
                 Retry
               </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background section-spacing container-padding relative overflow-hidden">
-      {/* Decorative Brand Blurs */}
-      <div className="fixed top-[-10%] left-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10" />
-      <div className="fixed bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[120px] -z-10" />
+    <div className="min-h-screen bg-background text-foreground space-y-8 pb-12 px-4 animate-in fade-in duration-700">
+      {/* HEADER SECTION */}
+      <header className="border-b border-border pb-6 pt-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h1 className="text-3xl font-black tracking-tight text-primary-brand-dark dark:text-foreground">
+                Submit New Complaint
+              </h1>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20 font-bold">
+                <Sparkles className="w-3 h-3 mr-1" /> Pokhara Metro
+              </Badge>
+              <Badge variant="outline" className="font-medium text-muted-foreground border-border">
+                <ShieldCheck className="w-3 h-3 mr-1" /> Secure Official Registry
+              </Badge>
+            </div>
+          </div>
 
-      <div className="container mx-auto max-w-7xl">
-        {/* Navigation */}
-        <nav className="mb-8">
           <Button
             variant="ghost"
             onClick={() => router.push("/citizen/complaints")}
-            className="text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-full px-4 group transition-all"
+            className="group hover:bg-muted rounded-xl font-bold text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to Dashboard
+            Dashboard
           </Button>
-        </nav>
+        </div>
+      </header>
 
-        {/* Hero Header */}
-        <header className="text-center max-w-3xl mx-auto mb-16 animate-in fade-in slide-in-from-top-4 duration-1000">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary font-bold text-xs uppercase tracking-widest mb-6">
-            <Sparkles className="h-3.5 w-3.5" />
-            Pokhara Citizen Service
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-foreground mb-6 leading-[1.1]">
-            Submit a <span className="text-primary">New Complaint</span>
-          </h1>
-          <p className="text-lg text-muted-foreground mb-10 font-medium">
-            Help us maintain the beauty of Pokhara. Report issues directly to
-            your ward office and track resolution in real-time.
-          </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* FORM SIDE */}
+        <div className="lg:col-span-2">
+          <Card className="stone-card overflow-hidden border-border bg-card shadow-md">
+            <div className="h-1.5 w-full bg-gradient-to-r from-primary via-secondary to-primary-brand-light" />
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl font-black text-foreground">Issue Details</CardTitle>
+              <p className="text-sm text-muted-foreground">Provide as much detail as possible for faster resolution.</p>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <ComplaintForm
+                categories={categories}
+                wards={wards}
+                onSubmit={handleSubmitComplaint}
+              />
+            </CardContent>
+          </Card>
+        </div>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <div className="glass-strong px-5 py-3 rounded-2xl flex items-center gap-3 border-secondary/10 elevation-2">
-              <Shield className="h-5 w-5 text-secondary" />
-              <span className="text-sm font-bold">Encrypted & Secure</span>
-            </div>
-            <div className="glass-strong px-5 py-3 rounded-2xl flex items-center gap-3 border-primary/10 elevation-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <span className="text-sm font-bold">Rapid Response</span>
-            </div>
-          </div>
-        </header>
-
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Main Form Entry */}
-          <div className="lg:col-span-2 animate-in fade-in slide-in-from-left-8 duration-1000">
-            <div className="stone-card elevation-4 overflow-hidden bg-white">
-              <div className="h-1.5 w-full bg-gradient-to-r from-primary via-secondary to-primary" />
-              <div className="card-padding">
-                <ComplaintForm
-                  categories={categories}
-                  wards={wards}
-                  onSubmit={handleSubmitComplaint}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Educational Sidebar */}
-          <aside className="space-y-6 lg:sticky lg:top-8 animate-in fade-in slide-in-from-right-8 duration-1000 delay-200">
-            <Card className="stone-card elevation-3 border-none overflow-hidden">
-              <div className="bg-primary p-6 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                    <Info className="h-5 w-5" />
+        {/* INFO SIDEBAR */}
+        <aside className="space-y-6">
+          <Card className="stone-card bg-primary text-primary-foreground border-none shadow-xl dark:bg-card dark:border-border dark:border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="w-5 h-5 text-secondary dark:text-primary" /> 
+                <span className="font-black">Resolution Process</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {[
+                {
+                  title: "Instant Logging",
+                  desc: "Your report is assigned a unique tracking ID immediately.",
+                  icon: ShieldCheck,
+                },
+                {
+                  title: "Ward Routing",
+                  desc: "Automatically routed to the specific Ward Officer in charge.",
+                  icon: MapPin,
+                },
+                {
+                  title: "Live Updates",
+                  desc: "Get SMS and dashboard notifications as the status changes.",
+                  icon: Clock,
+                },
+              ].map((step, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-primary-foreground/10 flex items-center justify-center">
+                    <step.icon className="h-5 w-5 text-secondary dark:text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">How it works</h3>
-                </div>
-              </div>
-              <CardContent className="card-padding space-y-8">
-                {[
-                  {
-                    title: "Submit Details",
-                    desc: "Provide accurate location and clear photos for faster processing.",
-                    color: "bg-primary",
-                  },
-                  {
-                    title: "Smart Routing",
-                    desc: "System automatically alerts the specific Ward Officer in charge.",
-                    color: "bg-secondary",
-                  },
-                  {
-                    title: "Resolution",
-                    desc: "Track progress live and provide feedback once completed.",
-                    color: "bg-chart-3",
-                  },
-                ].map((step, i) => (
-                  <div key={i} className="flex gap-4 relative group">
-                    <div
-                      className={`flex-shrink-0 h-8 w-8 rounded-full ${step.color} text-white flex items-center justify-center text-sm font-bold z-10 elevation-2`}
-                    >
-                      {i + 1}
-                    </div>
-                    {i !== 2 && (
-                      <div className="absolute left-4 top-8 w-0.5 h-12 bg-muted" />
-                    )}
-                    <div>
-                      <h4 className="font-bold text-foreground group-hover:text-primary transition-colors">
-                        {step.title}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {step.desc}
-                      </p>
-                    </div>
+                  <div>
+                    <h4 className="font-bold text-sm">{step.title}</h4>
+                    <p className="text-xs opacity-80 dark:text-muted-foreground mt-1 leading-relaxed">{step.desc}</p>
                   </div>
-                ))}
-
-                <div className="mt-6 p-4 rounded-2xl bg-secondary/5 border-2 border-secondary/10">
-                  <p className="text-xs font-medium leading-relaxed">
-                    <strong className="text-secondary">Pro Tip:</strong>{" "}
-                    High-quality photos of the issue help our teams triage and
-                    fix problems up to 40% faster.
-                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </aside>
-        </main>
+              ))}
+            </CardContent>
+          </Card>
+
+          <div className="glass p-6 rounded-xl border-dashed border-2 border-primary/20 bg-primary/5 dark:bg-primary/10">
+            <p className="text-xs font-medium leading-relaxed text-foreground">
+              <span className="font-black text-primary">Pro Tip:</span> Complaints with clear photos and precise GPS locations are typically resolved <span className="underline font-bold text-secondary">40% faster</span> by our field teams.
+            </p>
+          </div>
+        </aside>
       </div>
 
-      {/* Modern Success Modal */}
+      {/* SUCCESS MODAL */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="sm:max-w-md border-none bg-white p-0 overflow-hidden rounded-[2rem] elevation-5">
-          <div className="absolute inset-0 bg-gradient-to-b from-secondary/10 to-transparent pointer-events-none" />
-          <div className="relative z-10 pt-10 pb-8 px-8 text-center">
-            <div className="relative mx-auto w-24 h-24 mb-6">
-              <div className="absolute inset-0 bg-secondary/20 rounded-full animate-ping" />
-              <div className="relative h-24 w-24 bg-secondary rounded-full flex items-center justify-center elevation-4 ring-4 ring-white">
-                <CheckCircle2
-                  className="h-12 w-12 text-white"
-                  strokeWidth={3}
-                />
-              </div>
+        <DialogContent className="sm:max-w-md border-none p-0 overflow-hidden rounded-2xl bg-card">
+          <div className="bg-gradient-to-b from-secondary/20 to-card pt-10 pb-8 px-8 text-center">
+            <div className="mx-auto w-20 h-20 bg-secondary rounded-full flex items-center justify-center shadow-lg mb-6 ring-8 ring-secondary/10">
+              <CheckCircle2 className="h-10 w-10 text-secondary-foreground" strokeWidth={3} />
             </div>
 
             <DialogHeader className="mb-6">
-              <DialogTitle className="text-3xl font-extrabold text-foreground tracking-tight">
-                Success!
+              <DialogTitle className="text-3xl font-black tracking-tight text-foreground">
+                Report Logged
               </DialogTitle>
               <DialogDescription className="text-muted-foreground font-medium">
-                Your complaint has been logged in the city registry.
+                Your complaint has been successfully registered in the city registry.
               </DialogDescription>
             </DialogHeader>
 
             {submissionResult && (
-              <div className="stone-panel p-6 mb-8 bg-muted/30 border-2 border-secondary/20">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground block mb-2">
+              <div className="bg-muted p-4 rounded-xl border border-border mb-8">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">
                   Tracking Code
                 </span>
                 <div className="text-3xl font-mono font-black text-primary tracking-tighter">
@@ -307,24 +271,19 @@ export default function NewComplaintPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-3">
               <Button
-                onClick={() =>
-                  router.push(
-                    `/citizen/complaints/${submissionResult?.complaint_id}`
-                  )
-                }
-                className="w-full h-14 rounded-2xl bg-primary hover:bg-primary-light text-white font-bold elevation-3 text-lg"
+                onClick={() => router.push(`/citizen/complaints/${submissionResult?.complaint_id}`)}
+                className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:opacity-90 font-bold text-base shadow-md transition-all active:scale-[0.98]"
               >
-                Track Status
-                <ChevronRight className="ml-2 h-5 w-5" />
+                Track Status <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => window.location.reload()}
-                className="w-full h-12 rounded-xl text-muted-foreground font-bold hover:text-primary"
+                className="w-full h-12 rounded-xl text-muted-foreground font-bold hover:bg-muted"
               >
-                Submit Another Issue
+                File Another Report
               </Button>
             </div>
           </div>
