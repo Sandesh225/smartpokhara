@@ -10,11 +10,10 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import CitizenLayoutClient from "./CitizenLayoutClient";
 
-type CitizenLayoutProps = {
+interface CitizenLayoutProps {
   children: ReactNode;
-};
+}
 
-// Ensure this layout is dynamic so it checks auth on every navigation
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -22,25 +21,22 @@ export default async function CitizenLayout({ children }: CitizenLayoutProps) {
   const user = await getCurrentUserWithRoles();
 
   if (!user) {
-    redirect("/login?error=session_expired");
+    redirect("/login");
   }
 
-  // Double check strict role protection
   if (!user.roles.includes("citizen") && !user.roles.includes("admin")) {
-    // Optional: Redirect staff to their own portal if they try to access citizen view
-    // redirect("/staff/dashboard");
+    redirect("/");
   }
 
   const supabase = await createClient();
 
-  // Server-side data prefetch for the sidebar badges
-  // We use Promise.all to fetch them in parallel for speed
   const [complaintsResult, notificationsResult] = await Promise.all([
     supabase
       .from("complaints")
       .select("id", { count: "exact", head: true })
-      .eq("citizen_id", user.id) // Corrected from owner_id to citizen_id based on DB Schema
-      .not("status", "eq", "closed"), // Count active complaints
+      .eq("citizen_id", user.id)
+      .neq("status", "resolved"),
+
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -63,8 +59,8 @@ export default async function CitizenLayout({ children }: CitizenLayoutProps) {
         profile: user.profile,
       }}
       initialCounts={{
-        complaints: complaintsResult.count || 0,
-        notifications: notificationsResult.count || 0,
+        complaints: complaintsResult.count ?? 0,
+        notifications: notificationsResult.count ?? 0,
       }}
     >
       {children}
