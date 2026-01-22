@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Play, PlusSquare, CheckCircle2, Loader2, MessageSquare, ShieldAlert } from "lucide-react";
+import {
+  Play,
+  PlusSquare,
+  CheckCircle2,
+  Loader2,
+  MessageSquare,
+  ShieldAlert,
+} from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
@@ -14,7 +21,7 @@ interface TaskActionBarProps {
   status: string;
   isAssignee: boolean;
   assigneeId?: string;
-  staffId?: string; 
+  staffId?: string;
 }
 
 export function TaskActionBar({
@@ -35,29 +42,33 @@ export function TaskActionBar({
       let location = null;
       try {
         // Attempt to get location, but don't block work if it fails
-        location = await getCurrentLocation();
+        const geoLocation = await getCurrentLocation();
+
+        // FIX: Safely extract coordinates
+        if (geoLocation?.coords) {
+          location = {
+            lat: geoLocation.coords.latitude,
+            lng: geoLocation.coords.longitude,
+          };
+        }
       } catch (err) {
-        console.warn("Location bypassed:", err);
+        console.warn("Location unavailable:", err);
+        // Continue without location
       }
 
-      // Convert location to the format expected by the query function
-      const locationArg = location
-        ? { lat: location.coords.latitude, lng: location.coords.longitude }
-        : undefined;
-
+      // FIX: Pass location as optional parameter (can be undefined)
       await staffQueueQueries.startAssignment(
         supabase,
         assignmentId,
-        locationArg
+        location || undefined
       );
 
       toast.success("Work started successfully");
       router.refresh();
     } catch (error: any) {
-      // FIX: Better error extraction logic
-      console.error("Start Work Failed:", JSON.stringify(error, null, 2));
+      console.error("Start Work Failed:", error);
 
-      // Try to get the message from various common Supabase error locations
+      // Better error message extraction
       const errorMessage =
         error?.message ||
         error?.error_description ||
