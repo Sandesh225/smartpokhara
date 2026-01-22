@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -8,7 +8,10 @@ import { ChevronRight, ChevronLeft, Send, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Schema and Types
-import { formSchema, FormData } from "../../../../../components/citizen/complaints/schema";
+import {
+  formSchema,
+  FormData,
+} from "../../../../../components/citizen/complaints/schema";
 import type {
   ComplaintCategory,
   Ward,
@@ -27,10 +30,20 @@ interface ComplaintFormProps {
 }
 
 const STEPS = [
-  { id: 0, label: "Category", desc: "Type of issue" },
-  { id: 1, label: "Location", desc: "Where is it" },
-  { id: 2, label: "Details", desc: "More info" },
-  { id: 3, label: "Review", desc: "Final check" }
+  {
+    id: 0,
+    label: "Category",
+    desc: "Type of issue",
+    fields: ["category_id", "title"],
+  },
+  {
+    id: 1,
+    label: "Location",
+    desc: "Where is it",
+    fields: ["ward_id", "address_text"],
+  },
+  { id: 2, label: "Details", desc: "More info", fields: ["description"] },
+  { id: 3, label: "Review", desc: "Final check", fields: [] },
 ];
 
 export default function ComplaintForm({
@@ -58,16 +71,15 @@ export default function ComplaintForm({
     mode: "onChange",
   });
 
-  const nextStep = async () => {
-    let fields: any = [];
-    if (currentStep === 0) fields = ["category_id", "title"];
-    if (currentStep === 1) fields = ["ward_id", "address_text"];
-    if (currentStep === 2) fields = ["description"];
+  // Cleanup object URLs for attachments
+  useEffect(() => () => previews.forEach(URL.revokeObjectURL), [previews]);
 
+  const nextStep = async () => {
+    const fields = STEPS[currentStep].fields;
     const isValid = await methods.trigger(fields);
 
     if (isValid) {
-      setCurrentStep((prev) => Math.min(prev + 1, 3));
+      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
       window.scrollTo({ top: 0, behavior: "smooth" });
       toast.success(`Step ${currentStep + 1} completed`);
     } else {
@@ -80,11 +92,22 @@ export default function ComplaintForm({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const jumpToStep = (step: number) => {
-    if (step < currentStep) {
-      setCurrentStep(step);
-      toast.info(`Jumped to ${STEPS[step].label}`);
+  const jumpToStep = async (step: number) => {
+    if (step === currentStep) return;
+
+    // If jumping forward, validate intermediate steps
+    if (step > currentStep) {
+      for (let i = currentStep; i < step; i++) {
+        const valid = await methods.trigger(STEPS[i].fields);
+        if (!valid) {
+          toast.error("Complete previous steps first");
+          return;
+        }
+      }
     }
+
+    setCurrentStep(step);
+    toast.info(`Jumped to ${STEPS[step].label}`);
   };
 
   const handleFormSubmit = async () => {
@@ -96,9 +119,8 @@ export default function ComplaintForm({
 
     const data = methods.getValues();
     setIsSubmitting(true);
-    
     const submitToast = toast.loading("Submitting your report...");
-    
+
     try {
       await onSubmit({ ...data, source: "web" }, attachments);
       toast.success("Report submitted successfully!", { id: submitToast });
@@ -111,9 +133,8 @@ export default function ComplaintForm({
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen bg-background py-8 px-4">
+      <div className="min-h-screen stone-card py-8 px-4">
         <div className="max-w-5xl mx-auto">
-          
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -127,49 +148,50 @@ export default function ComplaintForm({
           {/* Progress Steps */}
           <div className="mb-10">
             <div className="flex items-center justify-between relative max-w-2xl mx-auto">
-              {/* Progress Line */}
               <div className="absolute top-5 left-0 right-0 h-0.5 bg-border -z-10" />
-              <motion.div 
+              <motion.div
                 className="absolute top-5 left-0 h-0.5 bg-primary -z-10"
                 initial={false}
-                animate={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
+                animate={{
+                  width: `${(currentStep / (STEPS.length - 1)) * 100}%`,
+                }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
               />
-              
+
               {STEPS.map((step, index) => {
                 const isActive = index <= currentStep;
                 const isCurrent = index === currentStep;
-                
+
                 return (
-                  <div key={step.id} className="flex flex-col items-center">
+                  <div
+                    key={step.id}
+                    className="flex flex-col items-center cursor-pointer"
+                    onClick={() => jumpToStep(index)}
+                  >
                     <motion.div
                       initial={false}
-                      animate={{ 
+                      animate={{
                         scale: isCurrent ? 1.1 : 1,
-                        backgroundColor: isActive 
-                          ? "hsl(var(--primary))" 
-                          : "hsl(var(--background))"
+                        backgroundColor: isActive
+                          ? "hsl(var(--primary))"
+                          : "hsl(var(--background))",
                       }}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
-                        isActive 
-                          ? "border-primary shadow-md" 
-                          : "border-border"
-                      }`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${isActive ? "border-primary shadow-md" : "border-border"}`}
                     >
                       {isActive && !isCurrent ? (
                         <Check className="w-5 h-5 text-primary-foreground" />
                       ) : (
-                        <span className={`font-semibold text-sm ${
-                          isActive ? "text-primary-foreground" : "text-muted-foreground"
-                        }`}>
+                        <span
+                          className={`font-semibold text-sm ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`}
+                        >
                           {index + 1}
                         </span>
                       )}
                     </motion.div>
                     <div className="mt-2 text-center hidden sm:block">
-                      <p className={`text-xs font-semibold ${
-                        isActive ? "text-foreground" : "text-muted-foreground"
-                      }`}>
+                      <p
+                        className={`text-xs font-semibold ${isActive ? "text-foreground" : "text-muted-foreground"}`}
+                      >
                         {step.label}
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -184,7 +206,6 @@ export default function ComplaintForm({
 
           {/* Main Card */}
           <div className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-            
             {/* Content Area */}
             <div className="p-6 md:p-8 min-h-[500px]">
               <AnimatePresence mode="wait">
@@ -195,7 +216,9 @@ export default function ComplaintForm({
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {currentStep === 0 && <CategoryStep categories={categories} />}
+                  {currentStep === 0 && (
+                    <CategoryStep categories={categories} />
+                  )}
                   {currentStep === 1 && <LocationStep wards={wards} />}
                   {currentStep === 2 && (
                     <DetailsStep
@@ -210,8 +233,8 @@ export default function ComplaintForm({
                       categories={categories}
                       wards={wards}
                       previews={previews}
-                      jumpToStep={jumpToStep}
                       attachments={attachments}
+                      jumpToStep={jumpToStep}
                     />
                   )}
                 </motion.div>
@@ -234,41 +257,38 @@ export default function ComplaintForm({
                 Step {currentStep + 1} of {STEPS.length}
               </div>
 
-              {currentStep < 3 ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="inline-flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleFormSubmit}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>Submit</span>
-                    </>
-                  )}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={
+                  currentStep < STEPS.length - 1 ? nextStep : handleFormSubmit
+                }
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : currentStep < STEPS.length - 1 ? (
+                  <>
+                    <span>Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Submit</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
           {/* Footer Info */}
           <p className="text-center text-xs text-muted-foreground mt-6">
-            🔒 Your information is secure and will be reviewed by government officials
+            🔒 Your information is secure and will be reviewed by government
+            officials
           </p>
         </div>
       </div>
