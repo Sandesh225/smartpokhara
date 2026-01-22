@@ -1,7 +1,14 @@
 "use client";
 
 import { useFormContext, Controller } from "react-hook-form";
-import { Upload, X, ImageIcon, AlertCircle, ShieldCheck } from "lucide-react";
+import {
+  Upload,
+  X,
+  ImageIcon,
+  AlertCircle,
+  ShieldCheck,
+  Loader2,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -71,19 +78,18 @@ export function DetailsStep({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header */}
       <div>
-        <h2 className="text-xl font-semibold text-foreground mb-1">
-          Provide Details
-        </h2>
-        <p className="text-sm text-muted-foreground mb-4">
+        <h2 className="text-2xl font-black text-foreground">Provide Details</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           Describe the issue and add supporting evidence
         </p>
       </div>
 
       {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-foreground">
           Description <span className="text-destructive">*</span>
         </label>
         <Controller
@@ -92,32 +98,32 @@ export function DetailsStep({
           render={({ field }) => (
             <textarea
               {...field}
-              placeholder="Describe the issue in detail. When did it start? How severe is it? Who is affected?"
               rows={6}
-              className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              placeholder="Describe the issue in detail. When did it start? How severe is it? Who is affected?"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
             />
           )}
         />
         {errors.description && (
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mt-1.5 flex items-center gap-1.5 text-xs text-destructive"
+            className="flex items-center gap-1.5 text-xs text-destructive font-medium mt-1.5"
           >
             <AlertCircle className="h-3 w-3" />
             {errors.description.message as string}
-          </motion.p>
+          </motion.div>
         )}
       </div>
 
       {/* File Upload */}
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-sm font-medium text-foreground">
           <ImageIcon className="h-4 w-4 text-primary" />
           Photos (Optional)
         </label>
 
-        <div className="relative border-2 border-dashed border-border rounded-md p-8 hover:border-primary/50 transition-colors bg-muted/30 hover:bg-muted/50 cursor-pointer group">
+        <div className="relative border-2 border-dashed border-border rounded-xl p-8 hover:border-primary/50 transition-colors bg-muted/30 hover:bg-muted/50 cursor-pointer group">
           <input
             type="file"
             multiple
@@ -155,12 +161,12 @@ export function DetailsStep({
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
-                  className="relative aspect-square rounded-md overflow-hidden border border-border group bg-card"
+                  className="relative aspect-square rounded-xl overflow-hidden border border-border group bg-card"
                 >
                   <img
                     src={src}
-                    className="w-full h-full object-cover"
                     alt={`Preview ${i}`}
+                    className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button
@@ -184,7 +190,7 @@ export function DetailsStep({
       </div>
 
       {/* Anonymous Option */}
-      <div className="bg-muted/50 border border-border p-4 rounded-md">
+      <div className="bg-muted/50 border border-border p-4 rounded-xl">
         <label className="flex items-start gap-3 cursor-pointer">
           <Controller
             name="is_anonymous"
@@ -195,11 +201,11 @@ export function DetailsStep({
                 checked={field.value}
                 onChange={(e) => {
                   field.onChange(e);
-                  if (e.target.checked) {
-                    toast.info("Your identity will be kept confidential");
-                  } else {
-                    toast.info("Your name will be visible");
-                  }
+                  toast.info(
+                    e.target.checked
+                      ? "Your identity will be kept confidential"
+                      : "Your name will be visible"
+                  );
                 }}
                 className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary/50 cursor-pointer"
               />
