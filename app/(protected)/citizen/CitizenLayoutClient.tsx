@@ -48,7 +48,11 @@ export default function CitizenLayoutClient({
       />
 
       {/* MAIN CONTENT */}
-      <div className="flex flex-1 flex-col min-w-0 lg:ml-80 transition-all duration-300">
+      <div
+        className={`flex flex-1 flex-col min-w-0 transition-all duration-300 lg:ml-58
+          ${sidebarOpen ? "lg:ml-80" : ""} 
+        `}
+      >
         <Header
           user={user}
           setSidebarOpen={setSidebarOpen}
@@ -57,6 +61,7 @@ export default function CitizenLayoutClient({
             setCounts((prev) => ({ ...prev, notifications: newCount }))
           }
         />
+
         <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="w-full max-w-[1600px] mx-auto p-6">{children}</div>
         </main>

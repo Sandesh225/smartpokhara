@@ -1,3 +1,6 @@
+// ============================================================================
+// FILE: app/(protected)/citizen/profile/page.tsx
+// ============================================================================
 "use client";
 
 import { useEffect, useState } from "react";
@@ -17,10 +20,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-import ProfileView from "@/app/(protected)/citizen/profile/_components/ProfileView";
-import ProfileEditForm from "@/app/(protected)/citizen/profile/_components/ProfileEditForm";
-import ChangePasswordForm from "@/app/(protected)/citizen/profile/_components/ChangePasswordForm";
-import NotificationPreferences from "@/app/(protected)/citizen/profile/_components/NotificationPreferences";
+import ProfileView from "./_components/ProfileView";
+import ProfileEditForm from "./_components/ProfileEditForm";
+import ChangePasswordForm from "./_components/ChangePasswordForm";
+import NotificationPreferences from "./_components/NotificationPreferences";
 
 import {
   profileService,
@@ -84,10 +87,16 @@ export default function ProfilePage() {
         complaintsService.getWards(),
       ]);
 
+      if (!profileData) {
+        toast.error("Could not load profile data. Please try again.");
+        return;
+      }
+
       setProfile(profileData);
       setPreferences(prefsData);
       setWards(wardsList as any);
-    } catch {
+    } catch (error: any) {
+      console.error("Profile fetch error:", error);
       toast.error("Failed to load profile data");
     } finally {
       setLoading(false);
@@ -104,10 +113,6 @@ export default function ProfilePage() {
     toast.success("Logged out successfully");
   };
 
-  /**
-   * 🔥 Sonner destructive confirmation
-   * No modal, matches modern UX
-   */
   const handleDeleteAccount = () => {
     toast.error("Delete your account?", {
       description:
@@ -131,7 +136,7 @@ export default function ProfilePage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary-brand" />
           <p className="text-sm font-mono text-foreground animate-pulse">
             Loading your profile…
           </p>
@@ -144,11 +149,11 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container-padding section-spacing max-w-7xl mx-auto">
+      <div className="container max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <header className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div>
-            <h1 className="text-4xl font-black tracking-tight">
+            <h1 className="text-4xl font-black tracking-tight text-primary-brand-dark dark:text-foreground">
               Account Settings
             </h1>
             <p className="mt-2 text-muted-foreground font-medium">
@@ -159,7 +164,7 @@ export default function ProfilePage() {
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="rounded-2xl h-12 px-6 font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="rounded-2xl h-12 px-6 font-bold text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sign Out
@@ -185,8 +190,8 @@ export default function ProfilePage() {
                       className={cn(
                         "flex w-full items-center gap-4 rounded-2xl px-5 py-4 text-sm font-bold transition-all",
                         isActive
-                          ? "bg-primary text-primary-foreground elevation-2"
-                          : "text-muted-foreground hover:bg-muted hover:text-primary"
+                          ? "bg-primary-brand text-white shadow-lg"
+                          : "text-muted-foreground hover:bg-muted hover:text-primary-brand"
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -200,15 +205,15 @@ export default function ProfilePage() {
               </div>
 
               {/* Danger Zone */}
-              <div className="mt-4 rounded-3xl border-2 border-destructive/20 bg-destructive/5 p-6">
-                <h3 className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-destructive">
+              <div className="mt-4 rounded-3xl border-2 border-red-500/20 bg-red-500/5 p-6">
+                <h3 className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-red-500">
                   Danger Zone
                 </h3>
 
                 <Button
                   variant="ghost"
                   onClick={handleDeleteAccount}
-                  className="w-full justify-start h-auto py-3 px-3 rounded-xl font-bold text-destructive hover:bg-destructive/10"
+                  className="w-full justify-start h-auto py-3 px-3 rounded-xl font-bold text-red-500 hover:bg-red-500/10"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Account
@@ -242,7 +247,9 @@ export default function ProfilePage() {
 
             {activeTab === "security" && (
               <div className="max-w-2xl">
-                <h2 className="text-2xl font-black">Security Settings</h2>
+                <h2 className="text-2xl font-black text-primary-brand-dark dark:text-foreground">
+                  Security Settings
+                </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Manage your password and account security preferences.
                 </p>
@@ -252,7 +259,7 @@ export default function ProfilePage() {
 
             {activeTab === "notifications" && (
               <div className="max-w-3xl">
-                <h2 className="text-2xl font-black">
+                <h2 className="text-2xl font-black text-primary-brand-dark dark:text-foreground">
                   Notification Preferences
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">

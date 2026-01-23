@@ -4,210 +4,187 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  Loader2,
-  KeyRound,
-  Check,
-  AlertCircle,
-  ShieldCheck,
-  Lock,
-  ArrowRight,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { Eye, EyeOff, Lock, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const passwordSchema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function ChangePasswordForm() {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const supabase = createClient();
+  const [isChanging, setIsChanging] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
 
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
   } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
 
-  const newPassword = watch("password", "");
-
   const onSubmit = async (data: PasswordFormData) => {
-    setIsUpdating(true);
-    setErrorMsg(null);
-
-    const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    });
-
-    setIsUpdating(false);
-
-    if (error) {
-      setErrorMsg(error.message);
-      toast.error("Security Update Failed", { description: error.message });
-    } else {
-      toast.success("Password Updated", {
-        description: "Your account security has been strengthened.",
-        icon: <ShieldCheck className="h-4 w-4 text-[rgb(95,158,160)]" />,
+    setIsChanging(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: data.newPassword,
       });
+
+      if (error) throw error;
+
+      toast.success("Password updated successfully");
       reset();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setIsChanging(false);
     }
   };
 
   return (
-    <Card className="border-0 elevation-3 rounded-3xl bg-white ring-1 ring-slate-900/5 overflow-hidden">
-      <CardHeader className="card-padding bg-[rgb(244,245,247)]/50 border-b-2 border-slate-100">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[rgb(43,95,117)] to-[rgb(95,158,160)] flex items-center justify-center text-white elevation-2">
-            <Lock className="h-7 w-7" />
-          </div>
-          <div>
-            <CardTitle className="text-2xl font-black tracking-tight text-[rgb(26,32,44)]">
-              Security Credentials
-            </CardTitle>
-            <CardDescription className="font-medium text-[rgb(26,32,44)]/60 mt-1">
-              Update your password to maintain account integrity.
-            </CardDescription>
-          </div>
-        </div>
+    <Card className="max-w-xl">
+      <CardHeader className="border-b">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Lock className="h-4 w-4 text-primary" />
+          Change Password
+        </CardTitle>
       </CardHeader>
-
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="card-padding space-y-8">
-          {errorMsg && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Alert variant="destructive" className="rounded-2xl border-2">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle className="font-bold">Update Blocked</AlertTitle>
-                <AlertDescription>{errorMsg}</AlertDescription>
-              </Alert>
-            </motion.div>
-          )}
-
-          <div className="grid gap-8">
-            <div className="space-y-3">
-              <Label
-                htmlFor="password"
-                className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 ml-1"
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Current Password */}
+          <div className="space-y-2">
+            <Label>Current Password</Label>
+            <div className="relative">
+              <Input
+                {...register("currentPassword")}
+                type={showPasswords.current ? "text" : "password"}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPasswords((prev) => ({ ...prev, current: !prev.current }))
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                New Secure Password
-              </Label>
-              <div className="relative group">
-                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[rgb(26,32,44)]/40 group-focus-within:text-[rgb(43,95,117)] transition-colors" />
-                <Input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                  className={cn(
-                    "pl-11 h-12 rounded-2xl border-2 border-slate-200 bg-white focus:ring-4 focus:ring-[rgb(43,95,117)]/10 transition-all font-bold",
-                    errors.password &&
-                      "border-[rgb(229,121,63)] focus:ring-[rgb(229,121,63)]/10"
-                  )}
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className="flex items-center justify-between px-1">
-                <p
-                  className={cn(
-                    "text-xs font-bold transition-colors",
-                    errors.password
-                      ? "text-[rgb(229,121,63)]"
-                      : "text-[rgb(26,32,44)]/40"
-                  )}
-                >
-                  {errors.password
-                    ? errors.password.message
-                    : "Minimum 8 characters required"}
-                </p>
-                {newPassword.length >= 8 && !errors.password && (
-                  <span className="text-xs font-black text-[rgb(95,158,160)] uppercase flex items-center gap-1">
-                    <Check className="h-3 w-3" strokeWidth={3} /> Strong
-                  </span>
+                {showPasswords.current ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
                 )}
-              </div>
+              </button>
             </div>
+            {errors.currentPassword && (
+              <p className="text-xs text-destructive">
+                {errors.currentPassword.message}
+              </p>
+            )}
+          </div>
 
-            <div className="space-y-3">
-              <Label
-                htmlFor="confirmPassword"
-                className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40 ml-1"
+          {/* New Password */}
+          <div className="space-y-2">
+            <Label>New Password</Label>
+            <div className="relative">
+              <Input
+                {...register("newPassword")}
+                type={showPasswords.new ? "text" : "password"}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPasswords((prev) => ({ ...prev, new: !prev.new }))
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                Verify New Password
-              </Label>
-              <div className="relative group">
-                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[rgb(26,32,44)]/40 group-focus-within:text-[rgb(43,95,117)] transition-colors" />
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  {...register("confirmPassword")}
-                  className={cn(
-                    "pl-11 h-12 rounded-2xl border-2 border-slate-200 bg-white focus:ring-4 focus:ring-[rgb(43,95,117)]/10 transition-all font-bold",
-                    errors.confirmPassword &&
-                      "border-[rgb(229,121,63)] focus:ring-[rgb(229,121,63)]/10"
-                  )}
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-xs font-bold text-[rgb(229,121,63)] ml-1">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
+                {showPasswords.new ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {errors.newPassword && (
+              <p className="text-xs text-destructive">{errors.newPassword.message}</p>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-2">
+            <Label>Confirm New Password</Label>
+            <div className="relative">
+              <Input
+                {...register("confirmPassword")}
+                type={showPasswords.confirm ? "text" : "password"}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPasswords.confirm ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-xs text-destructive">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="p-3 bg-muted/50 rounded-lg border">
+            <div className="flex items-start gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary mt-0.5" />
+              <p className="text-xs text-muted-foreground">
+                Password must be at least 8 characters long and include a mix of
+                letters and numbers for better security.
+              </p>
             </div>
           </div>
-        </CardContent>
 
-        <CardFooter className="bg-[rgb(244,245,247)]/50 border-t-2 border-slate-100 card-padding flex justify-end">
-          <Button
-            type="submit"
-            disabled={isUpdating}
-            className="w-full sm:w-auto min-w-[180px] h-12 rounded-2xl bg-[rgb(43,95,117)] hover:bg-[rgb(43,95,117)]/90 font-black text-white elevation-2 transition-all active:scale-95"
-          >
-            {isUpdating ? (
+          {/* Submit */}
+          <Button type="submit" disabled={isChanging} className="gap-2">
+            {isChanging ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Updating...
               </>
             ) : (
               <>
-                Commit Changes
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <Lock className="h-4 w-4" />
+                Update Password
               </>
             )}
           </Button>
-        </CardFooter>
-      </form>
+        </form>
+      </CardContent>
     </Card>
   );
 }

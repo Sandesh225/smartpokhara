@@ -98,7 +98,7 @@ export default function Sidebar({
   ];
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-background text-foreground">
+    <div className="flex flex-col h-full bg-background border-r border-border/60 ">
       {/* HEADER */}
       <div className="h-20 flex items-center justify-between px-6 border-b border-border">
         <Link
@@ -224,7 +224,7 @@ export default function Sidebar({
       )}
 
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex fixed top-0 left-0 w-80 h-screen border-r border-border z-40 bg-background">
+      <aside className="hidden lg:flex fixed top-0 left-0  h-screen border-r border-border z-40 bg-background">
         <SidebarContent />
       </aside>
     </>
