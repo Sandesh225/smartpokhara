@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 import { complaintsService } from "@/lib/supabase/queries/complaints";
@@ -32,17 +32,11 @@ export function CategoryStep({ categories }: CategoryStepProps) {
 
     const fetchSubcategories = async () => {
       setLoadingSubs(true);
-      const toastId = toast.loading("Loading subcategories...");
       try {
         const subs = await complaintsService.getSubcategories(watchedCategory);
         setSubcategories(subs || []);
-        if (subs?.length) {
-          toast.success(`Found ${subs.length} subcategories`, { id: toastId });
-        } else {
-          toast.dismiss(toastId);
-        }
       } catch (err) {
-        toast.error("Failed to load subcategories", { id: toastId });
+        toast.error("Failed to load subcategories");
       } finally {
         setLoadingSubs(false);
       }
@@ -52,14 +46,12 @@ export function CategoryStep({ categories }: CategoryStepProps) {
   }, [watchedCategory]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-black text-foreground">
-          Select Issue Category
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Pick the category that best describes your complaint.
+        <h2 className="text-xl font-bold mb-1">Select Issue Category</h2>
+        <p className="text-sm text-muted-foreground">
+          Choose the category that best describes your complaint
         </p>
       </div>
 
@@ -68,40 +60,33 @@ export function CategoryStep({ categories }: CategoryStepProps) {
         name="category_id"
         control={control}
         render={({ field }) => (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {categories.map((category) => {
               const isSelected = field.value === category.id;
               return (
                 <motion.button
                   key={category.id}
                   type="button"
-                  layout
                   onClick={() => {
                     field.onChange(category.id);
                     setValue("subcategory_id", "");
-                    toast.success(
-                      `Selected: ${formatCategoryName(category.name)}`
-                    );
+                    toast.success(`Selected: ${formatCategoryName(category.name)}`);
                   }}
-                  className={`relative p-5 rounded-xl border-2 transition-all flex flex-col items-start justify-between ${
+                  className={`relative p-4 rounded-lg border-2 transition-all text-left ${
                     isSelected
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-primary/50 bg-card"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/30 bg-card"
                   }`}
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {isSelected && (
-                    <motion.div
-                      layoutId="categoryCheck"
-                      className="absolute top-3 right-3"
-                    >
-                      <CheckCircle2 className="w-5 h-5 text-primary" />
-                    </motion.div>
+                    <div className="absolute top-2 right-2">
+                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                    </div>
                   )}
-                  <div className="text-3xl mb-2">
-                    {getCategoryIcon(category.name)}
-                  </div>
-                  <span className="font-semibold text-sm text-foreground">
+                  <div className="text-2xl mb-2">{getCategoryIcon(category.name)}</div>
+                  <span className="font-medium text-sm">
                     {formatCategoryName(category.name)}
                   </span>
                 </motion.button>
@@ -111,57 +96,54 @@ export function CategoryStep({ categories }: CategoryStepProps) {
         )}
       />
       {errors.category_id && (
-        <div className="flex items-center gap-2 mt-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           <AlertCircle className="w-4 h-4" />
           {errors.category_id.message as string}
         </div>
       )}
 
       {/* Subcategory & Title */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 gap-4">
         {/* Subcategory */}
-        <AnimatePresence>
-          {subcategories.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Specific Type
-              </label>
-              <Controller
-                name="subcategory_id"
-                control={control}
-                render={({ field }) => (
-                  <select
-                    {...field}
-                    disabled={loadingSubs}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-                    onChange={(e) => {
-                      field.onChange(e);
-                      const subName = subcategories.find(
-                        (s) => s.id === e.target.value
-                      )?.name;
-                      if (subName) toast.success(`Selected: ${subName}`);
-                    }}
-                  >
-                    <option value="">Choose type...</option>
-                    {subcategories.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {subcategories.length > 0 && (
+          <div className="relative">
+            <label className="block text-sm font-medium mb-2">
+              Specific Type
+            </label>
+            <Controller
+              name="subcategory_id"
+              control={control}
+              render={({ field }) => (
+                <select
+                  {...field}
+                  disabled={loadingSubs}
+                  className="w-full px-3 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+                  onChange={(e) => {
+                    field.onChange(e);
+                    const subName = subcategories.find(s => s.id === e.target.value)?.name;
+                    if (subName) toast.success(`Selected: ${subName}`);
+                  }}
+                >
+                  <option value="">Choose type...</option>
+                  {subcategories.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            {loadingSubs && (
+              <div className="absolute right-3 top-10">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Title */}
-        <div className={subcategories.length === 0 ? "md:col-span-2" : ""}>
-          <label className="block text-sm font-medium text-foreground mb-2">
+        <div className={subcategories.length === 0 ? "sm:col-span-2" : ""}>
+          <label className="block text-sm font-medium mb-2">
             Brief Title <span className="text-destructive">*</span>
           </label>
           <Controller
@@ -172,7 +154,7 @@ export function CategoryStep({ categories }: CategoryStepProps) {
                 {...field}
                 type="text"
                 placeholder="e.g., Broken streetlight on Main Road"
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full px-3 py-2 rounded-lg border bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             )}
           />
@@ -184,13 +166,6 @@ export function CategoryStep({ categories }: CategoryStepProps) {
           )}
         </div>
       </div>
-
-      {/* Loading Overlay */}
-      {loadingSubs && (
-        <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-xl">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
-      )}
     </div>
   );
 }
