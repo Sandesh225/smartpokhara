@@ -377,163 +377,174 @@ export const complaintsService = {
   // ========================================================================
   // 2. GET COMPLAINT BY ID WITH ALL RELATIONS (FIXED)
   // ========================================================================
- async getComplaintById(id: string): Promise<ComplaintWithRelations | null> {
-  try {
-    // 1. Validate ID Format first to prevent DB crashes
-    if (!isValidUUID(id)) {
-      return null;
-    }
+  async getComplaintById(id: string): Promise<ComplaintWithRelations | null> {
+    try {
+      // 1. Validate ID Format first to prevent DB crashes
+      if (!isValidUUID(id)) {
+        return null;
+      }
 
-    // 2. Fetch Base Complaint
-    const { data: complaint, error } = await supabase
-      .from('complaints')
-      .select(
-        `
+      // 2. Fetch Base Complaint
+      const { data: complaint, error } = await supabase
+        .from("complaints")
+        .select(
+          `
         *,
         category:complaint_categories!category_id(*),
         subcategory:complaint_subcategories!subcategory_id(*),
         ward:wards!ward_id(*),
         department:departments!assigned_department_id(*)
-      `,
-      )
-      .eq('id', id)
-      .maybeSingle();
+      `
+        )
+        .eq("id", id)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching complaint:', error);
-      throw error;
-    }
+      if (error) {
+        console.error("Error fetching complaint:", error);
+        throw error;
+      }
 
-    if (!complaint) return null;
+      if (!complaint) return null;
 
-    // 3. Parallel Fetch: Attachments, Comments, History, Work Logs
-    const [attachmentsRes, commentsRes, historyRes, workLogsRes] = await Promise.all([
-      supabase
-        .from('complaint_attachments')
-        .select('*')
-        .eq('complaint_id', id)
-        .order('created_at', { ascending: false }),
-      
-      supabase
-        .from('complaint_comments')
-        .select(`
+      // 3. Parallel Fetch: Attachments, Comments, History, Work Logs
+      const [attachmentsRes, commentsRes, historyRes, workLogsRes] =
+        await Promise.all([
+          supabase
+            .from("complaint_attachments")
+            .select("*")
+            .eq("complaint_id", id)
+            .order("created_at", { ascending: false }),
+
+          supabase
+            .from("complaint_comments")
+            .select(
+              `
           *,
           author:users!author_id(
             id, email,
             user_profiles(full_name, profile_photo_url)
           )
-        `)
-        .eq('complaint_id', id)
-        .order('created_at', { ascending: true }),
+        `
+            )
+            .eq("complaint_id", id)
+            .order("created_at", { ascending: true }),
 
-      supabase
-        .from('complaint_status_history')
-        .select('*')
-        .eq('complaint_id', id)
-        .order('created_at', { ascending: true }),
-      
-      supabase
-        .from('staff_work_logs')
-        .select('photo_urls, created_at, staff_id')
-        .eq('complaint_id', id)
-        .eq('log_type', 'completion_submitted')
-    ]);
+          supabase
+            .from("complaint_status_history")
+            .select("*")
+            .eq("complaint_id", id)
+            .order("created_at", { ascending: true }),
 
-    // 4. FIXED: Handle Staff Profile - Handle RLS policy restrictions
-    let staff: StaffProfile | null = null;
-    
-    if (complaint.assigned_staff_id) {
-      console.log('🔍 Fetching staff for ID:', complaint.assigned_staff_id);
-      
-      try {
-        // Try to get staff_profiles - this might fail due to RLS
-        const { data: staffData, error: staffError } = await supabase
-          .from("staff_profiles")
-          .select("*")
-          .eq("user_id", complaint.assigned_staff_id)
-          .maybeSingle();
+          supabase
+            .from("staff_work_logs")
+            .select("photo_urls, created_at, staff_id")
+            .eq("complaint_id", id)
+            .eq("log_type", "completion_submitted"),
+        ]);
 
-        if (staffError) {
-          console.error("❌ Staff profile RLS blocked or error:", staffError.message || "Permission denied");
-          console.log("ℹ️ This is likely an RLS policy issue. Citizens may not have permission to view staff_profiles table.");
-          
-          // FALLBACK: Try to at least get user_profiles which should be public
-          const { data: publicProfile } = await supabase
-            .from("user_profiles")
-            .select("full_name, profile_photo_url")
+      // 4. FIXED: Handle Staff Profile - Handle RLS policy restrictions
+      let staff: StaffProfile | null = null;
+
+      if (complaint.assigned_staff_id) {
+        console.log("🔍 Fetching staff for ID:", complaint.assigned_staff_id);
+
+        try {
+          // Try to get staff_profiles - this might fail due to RLS
+          const { data: staffData, error: staffError } = await supabase
+            .from("staff_profiles")
+            .select("*")
             .eq("user_id", complaint.assigned_staff_id)
             .maybeSingle();
-          
-          if (publicProfile) {
-            console.log("✅ Got staff info from public user_profiles table");
-            // Create a minimal staff object with available data
-            staff = {
-              user_id: complaint.assigned_staff_id,
-              staff_code: null,
-              department_id: complaint.assigned_department_id,
-              ward_id: null,
-              staff_role: "staff_member", // Default role
-              is_supervisor: false,
-              is_active: true,
-              max_concurrent_assignments: 0,
-              current_workload: 0,
-              specializations: null,
-              employment_date: null,
-              termination_date: null,
-              metadata: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              profile: publicProfile,
-            } as StaffProfile;
+
+          if (staffError) {
+            console.error(
+              "❌ Staff profile RLS blocked or error:",
+              staffError.message || "Permission denied"
+            );
+            console.log(
+              "ℹ️ This is likely an RLS policy issue. Citizens may not have permission to view staff_profiles table."
+            );
+
+            // FALLBACK: Try to at least get user_profiles which should be public
+            const { data: publicProfile } = await supabase
+              .from("user_profiles")
+              .select("full_name, profile_photo_url")
+              .eq("user_id", complaint.assigned_staff_id)
+              .maybeSingle();
+
+            if (publicProfile) {
+              console.log("✅ Got staff info from public user_profiles table");
+              // Create a minimal staff object with available data
+              staff = {
+                user_id: complaint.assigned_staff_id,
+                staff_code: null,
+                department_id: complaint.assigned_department_id,
+                ward_id: null,
+                staff_role: "staff_member", // Default role
+                is_supervisor: false,
+                is_active: true,
+                max_concurrent_assignments: 0,
+                current_workload: 0,
+                specializations: null,
+                employment_date: null,
+                termination_date: null,
+                metadata: {},
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                profile: publicProfile,
+              } as StaffProfile;
+            } else {
+              console.warn("⚠️ Could not fetch any staff information");
+            }
+          } else if (!staffData) {
+            console.warn(
+              `⚠️ No staff profile found for: ${complaint.assigned_staff_id}`
+            );
           } else {
-            console.warn("⚠️ Could not fetch any staff information");
+            console.log("✅ Step 1: Staff profile record found");
+
+            // Get user_profiles record (should be publicly readable)
+            const { data: profileData } = await supabase
+              .from("user_profiles")
+              .select("full_name, profile_photo_url")
+              .eq("user_id", complaint.assigned_staff_id)
+              .maybeSingle();
+
+            // Combine all data
+            staff = {
+              user_id: staffData.user_id,
+              staff_code: staffData.staff_code,
+              department_id: staffData.department_id,
+              ward_id: staffData.ward_id,
+              staff_role: staffData.staff_role,
+              is_supervisor: staffData.is_supervisor,
+              is_active: staffData.is_active,
+              max_concurrent_assignments: staffData.max_concurrent_assignments,
+              current_workload: staffData.current_workload,
+              specializations: staffData.specializations,
+              employment_date: staffData.employment_date,
+              termination_date: staffData.termination_date,
+              metadata: staffData.metadata,
+              created_at: staffData.created_at,
+              updated_at: staffData.updated_at,
+              profile: profileData || undefined,
+            } as StaffProfile;
+
+            console.log("✅ Staff profile loaded:", {
+              user_id: staff.user_id,
+              full_name: staff.profile?.full_name || "NO NAME",
+              staff_role: staff.staff_role,
+            });
           }
-        } else if (!staffData) {
-          console.warn(`⚠️ No staff profile found for: ${complaint.assigned_staff_id}`);
-        } else {
-          console.log("✅ Step 1: Staff profile record found");
-          
-          // Get user_profiles record (should be publicly readable)
-          const { data: profileData } = await supabase
-            .from("user_profiles")
-            .select("full_name, profile_photo_url")
-            .eq("user_id", complaint.assigned_staff_id)
-            .maybeSingle();
-          
-          // Combine all data
-          staff = {
-            user_id: staffData.user_id,
-            staff_code: staffData.staff_code,
-            department_id: staffData.department_id,
-            ward_id: staffData.ward_id,
-            staff_role: staffData.staff_role,
-            is_supervisor: staffData.is_supervisor,
-            is_active: staffData.is_active,
-            max_concurrent_assignments: staffData.max_concurrent_assignments,
-            current_workload: staffData.current_workload,
-            specializations: staffData.specializations,
-            employment_date: staffData.employment_date,
-            termination_date: staffData.termination_date,
-            metadata: staffData.metadata,
-            created_at: staffData.created_at,
-            updated_at: staffData.updated_at,
-            profile: profileData || undefined,
-          } as StaffProfile;
-
-          console.log("✅ Staff profile loaded:", {
-            user_id: staff.user_id,
-            full_name: staff.profile?.full_name || "NO NAME",
-            staff_role: staff.staff_role,
-          });
+        } catch (err) {
+          console.error("❌ Unexpected error fetching staff:", err);
         }
-      } catch (err) {
-        console.error("❌ Unexpected error fetching staff:", err);
       }
-    }
 
-    // 5. Transform Comments
-    const transformedComments: ComplaintComment[] = (commentsRes.data || []).map(
-      (comment: any) => {
+      // 5. Transform Comments
+      const transformedComments: ComplaintComment[] = (
+        commentsRes.data || []
+      ).map((comment: any) => {
         const author = comment.author;
         const profile = author?.user_profiles?.[0];
 
@@ -554,51 +565,51 @@ export const complaintsService = {
           ...(rest as ComplaintComment),
           author: flattenedAuthor,
         };
-      },
-    );
-
-    // 6. Merge Staff Proof Photos into Attachments
-    const existingAttachments = (attachmentsRes.data || []) as ComplaintAttachment[];
-    const staffProofAttachments: ComplaintAttachment[] = [];
-
-    if (workLogsRes.data) {
-      workLogsRes.data.forEach((log: any) => {
-        if (log.photo_urls && Array.isArray(log.photo_urls)) {
-          log.photo_urls.forEach((url: string, index: number) => {
-            staffProofAttachments.push({
-              id: `proof-${log.staff_id}-${index}`,
-              complaint_id: id,
-              file_name: `Proof of Work ${index + 1}`,
-              file_type: 'image/jpeg',
-              file_size: 0, 
-              file_path: url, 
-              thumbnail_url: null,
-              uploaded_by: log.staff_id,
-              uploaded_by_role: 'staff',
-              is_public: true,
-              created_at: log.created_at
-            });
-          });
-        }
       });
-    } else if (workLogsRes.error) {
-      console.warn("Could not fetch staff work logs:", workLogsRes.error);
-    }
-    
-    const allAttachments = [...existingAttachments, ...staffProofAttachments];
 
-    return {
-      ...(complaint as Complaint),
-      attachments: allAttachments,
-      comments: transformedComments,
-      status_history: (historyRes.data || []) as ComplaintStatusHistory[],
-      staff,
-    } as ComplaintWithRelations;
-  } catch (error) {
-    console.error('Error in getComplaintById:', error);
-    throw error;
-  }
-},
+      // 6. Merge Staff Proof Photos into Attachments
+      const existingAttachments = (attachmentsRes.data ||
+        []) as ComplaintAttachment[];
+      const staffProofAttachments: ComplaintAttachment[] = [];
+
+      if (workLogsRes.data) {
+        workLogsRes.data.forEach((log: any) => {
+          if (log.photo_urls && Array.isArray(log.photo_urls)) {
+            log.photo_urls.forEach((url: string, index: number) => {
+              staffProofAttachments.push({
+                id: `proof-${log.staff_id}-${index}`,
+                complaint_id: id,
+                file_name: `Proof of Work ${index + 1}`,
+                file_type: "image/jpeg",
+                file_size: 0,
+                file_path: url,
+                thumbnail_url: null,
+                uploaded_by: log.staff_id,
+                uploaded_by_role: "staff",
+                is_public: true,
+                created_at: log.created_at,
+              });
+            });
+          }
+        });
+      } else if (workLogsRes.error) {
+        console.warn("Could not fetch staff work logs:", workLogsRes.error);
+      }
+
+      const allAttachments = [...existingAttachments, ...staffProofAttachments];
+
+      return {
+        ...(complaint as Complaint),
+        attachments: allAttachments,
+        comments: transformedComments,
+        status_history: (historyRes.data || []) as ComplaintStatusHistory[],
+        staff,
+      } as ComplaintWithRelations;
+    } catch (error) {
+      console.error("Error in getComplaintById:", error);
+      throw error;
+    }
+  },
 
   // ========================================================================
   // 3. GET USER'S COMPLAINTS
@@ -724,18 +735,21 @@ export const complaintsService = {
 
   // ========================================================================
   // 5. ADD COMMENT
-  // ========================================================================
+  //
   async addComment(
     complaintId: string,
     content: string,
     isInternal = false
   ): Promise<{ success: boolean; comment_id: string; message: string }> {
     try {
-      const { data, error } = await supabase.rpc("rpc_add_complaint_comment", {
-        p_complaint_id: complaintId,
-        p_content: content,
-        p_is_internal: isInternal,
-      });
+      const { data, error } = await supabase.rpc(
+        "rpc_add_complaint_comment_v2",
+        {
+          p_complaint_id: complaintId,
+          p_content: content,
+          p_is_internal: isInternal,
+        }
+      );
 
       if (error) {
         console.error("Error adding comment:", error);
@@ -752,7 +766,6 @@ export const complaintsService = {
       throw error;
     }
   },
-
   // ========================================================================
   // 6. SUBMIT FEEDBACK
   // ========================================================================

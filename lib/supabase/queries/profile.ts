@@ -1,5 +1,7 @@
-import { supabase } from "../client";
-import { User } from "@supabase/supabase-js";
+// ============================================================================
+// FILE: lib/supabase/queries/profile.ts
+// ============================================================================
+import { createClient } from "../client";
 
 export interface UserProfile {
   id: string;
@@ -9,6 +11,9 @@ export interface UserProfile {
   email: string;
   phone: string | null;
   ward_id: string | null;
+  ward_number: number | null;
+  ward_name: string | null;
+  ward_name_nepali: string | null;
   address_line1: string | null;
   address_line2: string | null;
   landmark: string | null;
@@ -32,35 +37,60 @@ export interface UserPreferences {
 }
 
 export const profileService = {
-  // 1. Get Full User Profile (Joins auth.users via public.users proxy if needed, or just profiles)
+  // 1. Get Full User Profile
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      // Fetch core profile data
+      const supabase = createClient();
+
+      // Fetch profile with ward information
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
-        .select("*")
+        .select(
+          `
+          *,
+          wards:ward_id (
+            id,
+            ward_number,
+            name,
+            name_nepali
+          )
+        `
+        )
         .eq("user_id", userId)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        throw profileError;
+      }
 
-      // Fetch user account data (email, phone, verification status)
+      // Fetch user account data
       const { data: userAccount, error: userError } = await supabase
         .from("users")
         .select("email, phone, is_verified")
         .eq("id", userId)
         .single();
 
-      if (userError) throw userError;
+      if (userError) {
+        console.error("User account fetch error:", userError);
+        throw userError;
+      }
+
+      // Extract ward info
+      const wardInfo = profile.wards as any;
 
       return {
         ...profile,
         email: userAccount.email,
         phone: userAccount.phone,
         is_verified: userAccount.is_verified,
+        ward_number: wardInfo?.ward_number || null,
+        ward_name: wardInfo?.name || null,
+        ward_name_nepali: wardInfo?.name_nepali || null,
+        wards: undefined, // Remove the nested object
       };
-    } catch (error) {
-      console.error("Error fetching profile:", error);
+    } catch (error: any) {
+      console.error("Error fetching profile:", error.message || error);
       return null;
     }
   },
@@ -68,9 +98,32 @@ export const profileService = {
   // 2. Update Profile Details
   async updateProfile(userId: string, updates: Partial<UserProfile>) {
     try {
-      // Separate profile fields from user account fields
-      const { email, phone, is_verified, ...profileUpdates } = updates;
+      const supabase = createClient();
 
+      // Separate profile fields from user account fields
+      const {
+        email,
+        phone,
+        is_verified,
+        ward_number,
+        ward_name,
+        ward_name_nepali,
+        ...profileUpdates
+      } = updates;
+
+      // Update phone in users table if provided
+      if (phone !== undefined) {
+        const { error: phoneError } = await supabase
+          .from("users")
+          .update({ phone })
+          .eq("id", userId);
+
+        if (phoneError) {
+          console.error("Phone update error:", phoneError);
+        }
+      }
+
+      // Update profile
       const { data, error } = await supabase
         .from("user_profiles")
         .update(profileUpdates)
@@ -78,10 +131,14 @@ export const profileService = {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Profile update error:", error);
+        throw error;
+      }
+
       return { success: true, data };
     } catch (error: any) {
-      console.error("Error updating profile:", error);
+      console.error("Error updating profile:", error.message || error);
       return { success: false, error: error.message };
     }
   },
@@ -89,6 +146,8 @@ export const profileService = {
   // 3. Upload Profile Photo
   async uploadProfilePhoto(userId: string, file: File) {
     try {
+      const supabase = createClient();
+
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}/${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -98,12 +157,15 @@ export const profileService = {
         .from("profile-photos")
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Photo upload error:", uploadError);
+        throw uploadError;
+      }
 
       // Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("profile-photos")
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("profile-photos").getPublicUrl(filePath);
 
       // Update Profile Record
       const { error: updateError } = await supabase
@@ -111,11 +173,14 @@ export const profileService = {
         .update({ profile_photo_url: publicUrl })
         .eq("user_id", userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Photo URL update error:", updateError);
+        throw updateError;
+      }
 
       return { success: true, url: publicUrl };
     } catch (error: any) {
-      console.error("Error uploading photo:", error);
+      console.error("Error uploading photo:", error.message || error);
       return { success: false, error: error.message };
     }
   },
@@ -123,49 +188,88 @@ export const profileService = {
   // 4. Get Notification Preferences
   async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
+      const supabase = createClient();
+
       const { data, error } = await supabase
         .from("user_notification_preferences")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error; // Ignore "Row not found"
-      
+      if (error && error.code !== "PGRST116") {
+        console.error("Preferences fetch error:", error);
+        throw error;
+      }
+
       // If no preferences exist, create default
       if (!data) {
         return await this.createDefaultPreferences(userId);
       }
 
       return data;
-    } catch (error) {
-      console.error("Error fetching preferences:", error);
+    } catch (error: any) {
+      console.error("Error fetching preferences:", error.message || error);
       return null;
     }
   },
 
   // Helper: Create default preferences
-  async createDefaultPreferences(userId: string): Promise<UserPreferences | null> {
-    const { data, error } = await supabase
-      .from("user_notification_preferences")
-      .insert({ user_id: userId })
-      .select()
-      .single();
-    
-    if (error) return null;
-    return data;
+  async createDefaultPreferences(
+    userId: string
+  ): Promise<UserPreferences | null> {
+    try {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from("user_notification_preferences")
+        .insert({
+          user_id: userId,
+          email_notifications: true,
+          sms_notifications: true,
+          in_app_notifications: true,
+          push_notifications: true,
+          complaint_updates: true,
+          new_bills: true,
+          payment_reminders: true,
+          new_notices: true,
+          digest_frequency: "immediate",
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Create preferences error:", error);
+        return null;
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error(
+        "Error creating default preferences:",
+        error.message || error
+      );
+      return null;
+    }
   },
 
   // 5. Update Notification Preferences
   async updatePreferences(userId: string, updates: Partial<UserPreferences>) {
     try {
+      const supabase = createClient();
+
       const { error } = await supabase
         .from("user_notification_preferences")
         .update(updates)
         .eq("user_id", userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Preferences update error:", error);
+        throw error;
+      }
+
       return { success: true };
     } catch (error: any) {
+      console.error("Error updating preferences:", error.message || error);
       return { success: false, error: error.message };
     }
   },
