@@ -1,3 +1,6 @@
+// ============================================================================
+// FILE 3: middleware.ts (UPDATED)
+// ============================================================================
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
@@ -33,7 +36,6 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // 1. Get User
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -41,27 +43,22 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const pathname = url.pathname;
 
-  // 2. Define Route Categories
   const isAuthPage = ["/login", "/register", "/forgot-password"].some((p) =>
     pathname.startsWith(p)
   );
   const isResetPasswordPage = pathname.startsWith("/reset-password");
   const isPublicInvitation = pathname.startsWith("/staff/accept-invitation");
+  const isSetupProfile = pathname.startsWith("/setup-profile");
 
-  // Protected roots
   const isProtected = ["/citizen", "/staff", "/supervisor", "/admin"].some(
     (p) => pathname.startsWith(p)
   );
 
-  // 3. Handle Public/Auth Scenarios
-
-  // Allow password reset flow regardless of session
+  // Allow password reset and public pages
   if (isResetPasswordPage) return response;
-
-  // Allow public invitation pages if not logged in
   if (isPublicInvitation && !user) return response;
 
-  // Redirect unauthenticated users trying to access protected routes
+  // Redirect unauthenticated users
   if (isProtected && !user) {
     const redirectUrl = url.clone();
     redirectUrl.pathname = "/login";
@@ -69,61 +66,66 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 4. Handle Authenticated User Routing
+  // Handle authenticated users
   if (user) {
-    // If user is on an auth page, or we need to check role access for a protected route
-    if (isAuthPage || isProtected) {
-      try {
-        // CALL THE RPC: Let Postgres calculate the correct path
+    try {
+      // Check profile completion status
+      const { data: profileCheck } = await supabase.rpc(
+        "rpc_is_profile_complete"
+      );
+
+      // If profile is incomplete and not on setup page, redirect to setup
+      if (!profileCheck?.is_complete && !isSetupProfile) {
+        return NextResponse.redirect(new URL("/setup-profile", request.url));
+      }
+
+      // If profile is complete and on setup page, redirect to dashboard
+      if (profileCheck?.is_complete && isSetupProfile) {
+        const { data: config } = await supabase.rpc("rpc_get_dashboard_config");
+        const targetRoute =
+          config?.dashboard_config?.default_route || "/citizen/dashboard";
+        return NextResponse.redirect(new URL(targetRoute, request.url));
+      }
+
+      // Handle auth pages for logged-in users
+      if (isAuthPage || isProtected) {
         const { data: config, error } = await supabase.rpc(
           "rpc_get_dashboard_config"
         );
 
         if (error || !config || !config.authenticated) {
-          // Fallback if RPC fails (shouldn't happen for valid users)
           console.error("Middleware RPC Error:", error);
-          if (isAuthPage) return response; // Let them try to logout/login
+          if (isAuthPage) return response;
           return NextResponse.redirect(new URL("/login", request.url));
         }
 
         const targetDashboard = config.dashboard_config.default_route;
 
-        // SCENARIO A: User is on Login/Register but already logged in
+        // Redirect from auth pages to dashboard
         if (isAuthPage) {
-          // Prevent redirect loop: Only redirect if not already there
           if (pathname !== targetDashboard) {
             return NextResponse.redirect(new URL(targetDashboard, request.url));
           }
           return response;
         }
 
-        // SCENARIO B: User is on a protected route. Check if they are allowed.
+        // Check portal access for protected routes
         if (isProtected) {
-          // Simple check: Does the current path start with one of their allowed portals?
-          // e.g. path is /admin/users, available_portals is ['citizen', 'staff'] -> BLOCK
-          const currentPortal = pathname.split("/")[1]; // "admin", "staff", etc.
+          const currentPortal = pathname.split("/")[1];
           const allowedPortals = config.dashboard_config.available_portals;
-
-          // Note: "dashboard" is a common shared route, strictly check portal prefixes
           const isAllowed = allowedPortals.includes(currentPortal);
 
-          if (!isAllowed) {
-            // Redirect to their default dashboard if they try to access unauthorized portal
-            if (pathname !== targetDashboard) {
-              return NextResponse.redirect(
-                new URL(targetDashboard, request.url)
-              );
-            }
+          if (!isAllowed && pathname !== targetDashboard) {
+            return NextResponse.redirect(new URL(targetDashboard, request.url));
           }
         }
-      } catch (err) {
-        console.error("Middleware Exception:", err);
-        // Fail safe to citizen dashboard
-        if (pathname !== "/citizen/dashboard") {
-          return NextResponse.redirect(
-            new URL("/citizen/dashboard", request.url)
-          );
-        }
+      }
+    } catch (err) {
+      console.error("Middleware Exception:", err);
+      if (pathname !== "/citizen/dashboard") {
+        return NextResponse.redirect(
+          new URL("/citizen/dashboard", request.url)
+        );
       }
     }
   }

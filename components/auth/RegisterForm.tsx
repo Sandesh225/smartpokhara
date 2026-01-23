@@ -79,7 +79,6 @@ export function RegisterForm() {
     setFieldErrors(errors);
     return isValid;
   };
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -123,8 +122,17 @@ export function RegisterForm() {
         return;
       }
 
-      toast.success("Account Created!", { id: toastId });
-      setSuccess(true);
+      // Check if email confirmation is required
+      if (authData.user && !authData.session) {
+        // Email confirmation required
+        toast.success("Account Created!", { id: toastId });
+        setSuccess(true);
+      } else if (authData.session) {
+        // Auto logged in (no email confirmation needed)
+        toast.success("Account Created!", { id: toastId });
+        // Redirect to profile setup
+        window.location.href = "/setup-profile";
+      }
     } catch (err: any) {
       toast.error("Registration Failed", {
         id: toastId,
@@ -134,7 +142,6 @@ export function RegisterForm() {
       setLoading(false);
     }
   };
-
   if (success) {
     return (
       <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500 py-10">
