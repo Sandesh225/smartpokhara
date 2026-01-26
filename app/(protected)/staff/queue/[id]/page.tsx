@@ -7,8 +7,10 @@ import { TaskInfoCard } from "../_components/TaskInfoCard";
 import { CitizenInfoPanel } from "../_components/CitizenInfoPanel";
 import { WorkProgressTimeline } from "../_components/WorkProgressTimeline";
 import { TaskActionBar } from "../_components/TaskActionBar";
-import { StaffCommunication } from "../_components/StaffCommunication";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
+
+// ✅ IMPORT THE REAL-TIME COMMUNICATION COMPONENT
+import StaffCommunication from "@/app/(protected)/citizen/complaints/_components/CitizenStaffCommunication";
 
 export const dynamic = "force-dynamic";
 
@@ -27,16 +29,16 @@ export default async function TaskDetailPage({ params }: PageProps) {
 
   // 2. Fetch Assignment
   const assignment = await staffQueueQueries.getAssignmentById(supabase, id);
-
-  if (!assignment) {
-    return notFound();
-  }
+  if (!assignment) return notFound();
 
   // 3. Determine View Mode (Assignee vs Viewer)
   const staffIdFromAuth = staff.user_id || staff.id;
   const assignmentStaffId = assignment.staff_id;
-
   const isAssignee = staffIdFromAuth === assignmentStaffId;
+
+  // For chat component
+  const complaintId = assignment.type === "complaint" ? assignment.id : null;
+  const currentUserId = staffIdFromAuth;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -66,17 +68,6 @@ export default async function TaskDetailPage({ params }: PageProps) {
           completed_at={assignment.completed_at}
         />
 
-        {/* ✅ REAL-TIME COMMUNICATION - Only for complaints */}
-        {assignment.type === "complaint" && assignment.complaint_id && (
-          <div className="mt-6">
-            <StaffCommunication
-              complaintId={assignment.complaint_id}
-              currentUserId={staffIdFromAuth}
-              isStaff={true}
-            />
-          </div>
-        )}
-
         {/* Action Bar */}
         <TaskActionBar
           assignmentId={assignment.id}
@@ -85,6 +76,19 @@ export default async function TaskDetailPage({ params }: PageProps) {
           assigneeId={assignmentStaffId}
           staffId={staffIdFromAuth}
         />
+
+        {/* ----------------------------- */}
+        {/* Communication Section (Chat) */}
+        {/* ----------------------------- */}
+        {assignment.type === "complaint" && complaintId && currentUserId && (
+          <div className="space-y-6">
+            <StaffCommunication
+              complaintId={complaintId}
+              currentUserId={currentUserId}
+              isStaff={true}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
