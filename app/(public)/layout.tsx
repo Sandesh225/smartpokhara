@@ -1,14 +1,15 @@
-export default function AuthLayout({
+import { Footer } from "@/components/landing/Footer";
+import { Header } from "@/components/landing/Header";
+
+export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Note: The <Toaster /> is already in app/providers.tsx 
-         so it will work here automatically without adding it again.
-      */}
-      {children}
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

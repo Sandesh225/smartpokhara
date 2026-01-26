@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,12 +13,15 @@ import {
   Moon,
   Sun,
   Settings,
+  Command,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+// Import your dropdown component here
+import NotificationDropdown from "./NotificationDropdown";
 
 interface HeaderProps {
   user: any;
@@ -36,23 +39,32 @@ export default function Header({
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
   const supabase = createClient();
 
+  const profilePhotoUrl = useMemo(
+    () => user?.profile?.profile_photo_url ?? user?.avatar_url ?? null,
+    [user]
+  );
+
   useEffect(() => {
     setMounted(true);
     setIsDark(document.documentElement.classList.contains("dark"));
-  }, []);
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         userMenuRef.current &&
@@ -67,11 +79,16 @@ export default function Header({
         setNotificationOpen(false);
       }
     };
+
+    window.addEventListener("keydown", handleKeyDown);
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  // Real-time notifications
+  // Real-time listener
   useEffect(() => {
     const channel = supabase
       .channel("header-notifs")
@@ -87,7 +104,9 @@ export default function Header({
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user.id, notificationCount, onCountUpdate, supabase]);
 
   const handleSignOut = async () => {
@@ -99,216 +118,184 @@ export default function Header({
       },
       {
         loading: "Signing out...",
-        success: "Signed out successfully",
-        error: "Failed to sign out",
+        success: "Signed out!",
+        error: "Error signing out",
       }
     );
   };
 
   const toggleTheme = () => {
-    document.documentElement.classList.toggle("dark");
-    setIsDark(!isDark);
+    const newDark = !isDark;
+    setIsDark(newDark);
+    document.documentElement.classList.toggle("dark", newDark);
   };
 
-  const profilePhotoUrl =
-    user?.profile?.profile_photo_url ?? user?.avatar_url ?? null;
-
   return (
-    <header className="sticky top-0 z-40 h-20 w-full shrink-0 border-b border-border bg-background/95 backdrop-blur-md transition-all duration-300">
-      <div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        {/* Left Section - Menu & Search */}
-        <div className="flex flex-1 items-center gap-4 sm:gap-5 max-w-3xl">
-          {/* Mobile Menu Button */}
+    <header className="sticky top-0 z-40 h-20 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <div className="flex h-full items-center justify-between gap-4 px-6 lg:px-10">
+        {/* Search Section */}
+        <div className="flex flex-1 items-center gap-6 max-w-2xl">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden h-12 w-12 flex items-center justify-center rounded-xl bg-card border-2 border-border text-muted-foreground hover:bg-accent-nature hover:text-foreground hover:border-primary transition-all duration-300 active:scale-95 shadow-sm"
-            aria-label="Open sidebar"
+            className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl border border-border bg-card"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5 text-muted-foreground" />
           </button>
 
-          {/* Search Bar */}
-          <div className="hidden sm:block w-full max-w-xl">
-            <div className="relative group">
-              <Search
-                className={cn(
-                  "absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 transition-all duration-300",
-                  searchFocused
-                    ? "text-primary scale-110"
-                    : "text-muted-foreground"
-                )}
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search services, bills, complaints..."
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                className="w-full h-13 rounded-xl border-2 border-border focus:border-primary bg-card py-3 pl-12 pr-5 text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:ring-4 focus:ring-primary/15 transition-all duration-300 outline-none font-medium shadow-sm focus:shadow-md"
-              />
-            </div>
+          <div
+            className={cn(
+              "hidden sm:flex flex-1 items-center rounded-2xl border-2 transition-all duration-300",
+              searchFocused
+                ? "border-primary bg-background ring-4 ring-primary/5"
+                : "border-border bg-muted/20"
+            )}
+          >
+            <Search
+              className={cn(
+                "ml-4 h-5 w-5 transition-colors",
+                searchFocused ? "text-primary" : "text-muted-foreground"
+              )}
+            />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search services..."
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              className="w-full bg-transparent px-3 py-2.5 text-sm outline-none font-medium"
+            />
+            <kbd className="mr-3 hidden items-center gap-1 rounded border bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground lg:flex">
+              <Command className="h-3 w-3" />K
+            </kbd>
           </div>
         </div>
 
-        {/* Right Section - Actions */}
+        {/* Action Section */}
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-border bg-card text-muted-foreground hover:bg-accent-nature hover:text-foreground hover:border-primary transition-all duration-300 active:scale-95 shadow-sm"
-            aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+            className="h-11 w-11 flex items-center justify-center rounded-2xl border border-border bg-card hover:border-primary transition-all"
           >
-            {!mounted ? (
-              <div className="h-5 w-5 animate-pulse rounded-full bg-muted" />
-            ) : isDark ? (
-              <Sun className="h-5 w-5 text-amber-500 transition-transform hover:rotate-90 duration-300" />
+            {isDark ? (
+              <Sun className="h-5 w-5 text-amber-500" />
             ) : (
-              <Moon className="h-5 w-5 text-primary transition-transform hover:-rotate-12 duration-300" />
+              <Moon className="h-5 w-5 text-primary" />
             )}
           </button>
 
-          {/* Notifications */}
+          {/* Notifications Trigger */}
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setNotificationOpen(!notificationOpen)}
               className={cn(
-                "h-12 w-12 flex items-center justify-center rounded-xl border-2 transition-all duration-300 active:scale-95 shadow-sm",
+                "h-11 w-11 flex items-center justify-center rounded-2xl border transition-all relative",
                 notificationOpen
-                  ? "border-primary bg-primary/15 text-primary scale-105 shadow-md"
-                  : "border-border bg-card hover:bg-accent-nature hover:border-primary"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-primary"
               )}
-              aria-label={`Notifications${
-                notificationCount > 0 ? ` (${notificationCount} unread)` : ""
-              }`}
             >
               <Bell
                 className={cn(
-                  "h-5 w-5 transition-transform duration-300",
-                  notificationCount > 0 && !notificationOpen && "animate-bounce"
+                  "h-5 w-5",
+                  notificationCount > 0 && !notificationOpen && "animate-pulse"
                 )}
               />
               {notificationCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="absolute -top-1.5 -right-1.5 h-6 min-w-[24px] rounded-full bg-destructive text-xs font-black text-destructive-foreground flex items-center justify-center ring-4 ring-background px-2 shadow-md"
-                >
+                <span className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full bg-destructive text-[10px] font-black text-white flex items-center justify-center ring-4 ring-background shadow-lg">
                   {notificationCount > 99 ? "99+" : notificationCount}
-                </motion.span>
+                </span>
               )}
             </button>
 
-            {/* Notification Dropdown */}
+            {/* Notification Dropdown Component */}
             <AnimatePresence>
               {notificationOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute right-0 top-full mt-4 w-80 rounded-2xl border-2 border-border bg-card p-4 shadow-lg z-50"
-                >
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-border">
-                    <h3 className="text-base font-black text-foreground">
-                      Notifications
-                    </h3>
-                    <button
-                      onClick={() => onCountUpdate(0)}
-                      className="text-xs font-bold text-primary hover:text-primary/80"
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-                  <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
-                    {notificationCount === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        No new notifications
-                      </p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        {notificationCount} new notifications
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
+                <NotificationDropdown
+                  userId={user.id}
+                  onClose={() => setNotificationOpen(false)}
+                  onCountUpdate={onCountUpdate}
+                />
               )}
             </AnimatePresence>
           </div>
 
-          {/* User Profile Menu */}
+          <div className="h-8 w-[1px] bg-border/60 mx-1 hidden sm:block" />
+
+          {/* User Profile Trigger */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-3 rounded-xl border-2 border-transparent hover:border-border hover:bg-accent/80 px-3 py-2.5 transition-all duration-300 active:scale-95 shadow-sm"
-              aria-expanded={userMenuOpen}
-              aria-haspopup="true"
+              className={cn(
+                "flex items-center gap-3 rounded-2xl border bg-background/50 px-2 py-1.5 transition-all",
+                userMenuOpen
+                  ? "border-primary/40 bg-accent"
+                  : "border-border hover:border-muted-foreground/30"
+              )}
             >
-              <Avatar className="h-11 w-11 ring-2 ring-border shadow-sm">
+              <Avatar className="h-9 w-9 border-2 border-background shadow-sm">
                 <AvatarImage
                   src={profilePhotoUrl || ""}
-                  alt={user.displayName}
+                  className="object-cover"
                 />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-primary-foreground font-black">
-                  {user.displayName?.charAt(0)?.toUpperCase() || "U"}
+                <AvatarFallback className="bg-primary text-white text-[10px] font-bold">
+                  {user.displayName?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+              <div className="hidden sm:flex flex-col items-start leading-tight">
+                <span className="text-xs font-bold text-foreground">
+                  {user.displayName?.split(" ")[0]}
+                </span>
+                <span className="text-[9px] font-semibold text-muted-foreground/70 uppercase">
+                  Member
+                </span>
+              </div>
               <ChevronDown
                 className={cn(
-                  "hidden sm:block h-4 w-4 text-muted-foreground transition-transform duration-300",
+                  "h-4 w-4 text-muted-foreground transition-transform",
                   userMenuOpen && "rotate-180"
                 )}
               />
             </button>
 
+            {/* User Menu Dropdown Content */}
             <AnimatePresence>
               {userMenuOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute right-0 top-full mt-4 w-72 rounded-2xl border-2 border-border bg-card p-4 shadow-lg z-50"
+                  className="absolute right-0 top-full mt-3 w-64 rounded-[24px] border border-border/50 bg-popover/95 backdrop-blur-2xl shadow-2xl p-2 z-50"
                 >
-                  {/* User Info */}
-                  <div className="px-5 py-4 bg-muted/70 rounded-xl mb-4">
-                    <p className="text-base font-black text-foreground truncate">
+                  <div className="p-4 mb-2 bg-muted/40 rounded-2xl">
+                    <p className="text-sm font-black truncate">
                       {user.displayName}
                     </p>
-                    <p className="text-sm text-muted-foreground truncate mt-1.5">
+                    <p className="text-[10px] text-muted-foreground truncate">
                       {user.email}
                     </p>
                   </div>
-
-                  {/* Menu Links */}
-                  <Link
-                    href="/citizen/profile"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-4 px-5 py-3.5 text-sm font-bold hover:bg-accent rounded-xl transition-all duration-300 group"
-                  >
-                    <User className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span>My Profile</span>
-                  </Link>
-
-                  <Link
-                    href="/citizen/settings"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-4 px-5 py-3.5 text-sm font-bold hover:bg-accent rounded-xl transition-all duration-300 group"
-                  >
-                    <Settings className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span>Settings</span>
-                  </Link>
-
-                  {/* Sign Out */}
-                  <div className="my-4 border-t-2 border-border" />
-                  <button
-                    onClick={handleSignOut}
-                    className="flex w-full items-center gap-4 px-5 py-3.5 text-sm font-black text-destructive hover:bg-destructive/15 rounded-xl transition-all duration-300 group"
-                  >
-                    <LogOut className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
-                    <span>Sign Out</span>
-                  </button>
+                  <div className="space-y-1">
+                    <Link
+                      href="/citizen/profile"
+                      className="flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-xl transition-all"
+                    >
+                      <User className="h-4 w-4" /> My Profile
+                    </Link>
+                    <Link
+                      href="/citizen/settings"
+                      className="flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-xl transition-all"
+                    >
+                      <Settings className="h-4 w-4" /> Settings
+                    </Link>
+                    <div className="h-[1px] bg-border/40 my-1 mx-2" />
+                    <button
+                      onClick={handleSignOut}
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-xs font-black text-destructive/80 hover:bg-destructive/10 rounded-xl transition-all"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign Out
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

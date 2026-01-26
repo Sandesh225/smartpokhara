@@ -12,7 +12,7 @@ import {
   LogOut,
   X,
   Briefcase,
-  MapPin,
+  Vote, // Added icon for Participatory Budgeting
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -80,6 +80,13 @@ export default function Sidebar({
           icon: FileText,
           badge: counts.complaints,
         },
+        // --- NEW ITEM START ---
+        {
+          name: "Participatory Budgeting",
+          href: "/citizen/participatory-budgeting",
+          icon: Vote,
+        },
+        // --- NEW ITEM END ---
         {
           name: "Bills & Payments",
           href: "/citizen/payments",
@@ -107,7 +114,11 @@ export default function Sidebar({
           onClick={() => setSidebarOpen(false)}
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground group-hover:scale-110 transition-transform duration-300">
-            <MapPin className="h-5 w-5" />
+            <img
+              src="/logo.png"
+              alt="Smart Pokhara Logo"
+              className="h-6 w-6 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-base font-bold tracking-tight leading-none">
@@ -224,7 +235,7 @@ export default function Sidebar({
       )}
 
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex fixed top-0 left-0  h-screen border-r border-border z-40 bg-background">
+      <aside className="hidden lg:flex fixed top-0 left-0 h-screen border-r border-border z-40 bg-background">
         <SidebarContent />
       </aside>
     </>
