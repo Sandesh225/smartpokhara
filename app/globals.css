@@ -119,6 +119,25 @@
   .dark .glass {
     @apply bg-neutral-900/75 backdrop-blur-xl border border-white/5;
   }
+  .surface {
+    @apply bg-card text-card-foreground;
+  }
+
+  .surface-elevated {
+    @apply bg-card shadow-md;
+  }
+
+  .dark .surface {
+    @apply bg-card/90;
+  }
+
+  .dark .surface-elevated {
+    @apply bg-card shadow-lg shadow-black/20;
+  }
+
+  .section-divider {
+    @apply border-t border-border/60;
+  }
 }
 
 /* --- 🗺️ LEAFLET FIXES --- */

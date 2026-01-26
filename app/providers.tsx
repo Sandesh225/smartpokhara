@@ -4,38 +4,25 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { ThemeProvider } from "flowbite-react";
+// 1. Alias the Flowbite provider
+import { ThemeProvider as FlowbiteThemeProvider } from "flowbite-react";
+// 2. Import your CUSTOM provider
+import { ThemeProvider as CustomThemeProvider } from "../lib/contexts/ThemeContext";
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000,
-            gcTime: 5 * 60 * 1000,
-            retry: 1,
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  );
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <TooltipProvider delayDuration={300}>
-          {children}
-          <Toaster
-            position="top-right"
-            richColors
-            expand={false}
-            closeButton
-            theme="system"
-            className="font-sans"
-          />
-        </TooltipProvider>
-      </ThemeProvider>
+      {/* Wrap everything in your custom provider first */}
+      <CustomThemeProvider>
+        <FlowbiteThemeProvider>
+          <TooltipProvider delayDuration={300}>
+            {children}
+            <Toaster position="top-center" richColors />
+          </TooltipProvider>
+        </FlowbiteThemeProvider>
+      </CustomThemeProvider>
     </QueryClientProvider>
   );
 }

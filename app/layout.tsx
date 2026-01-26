@@ -1,21 +1,43 @@
+// app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { ThemeModeScript } from "flowbite-react";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Logo } from "@/components/ui/Logo";
 
 export const viewport: Viewport = {
-  themeColor: "#2B5F75",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0f4169" }, // Pokhara Blue
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
 };
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Smart City Pokhara",
-    default: "Smart City Pokhara – Official Citizen Portal",
+    template: "%s | Smart Pokhara Portal",
+    default: "Smart City Pokhara – Official Metropolitan Services",
   },
-  description: "The official digital platform for Pokhara Metropolitan City.",
+  description:
+    "The official digital platform for citizens of Pokhara Metropolitan City. Access public services, pay taxes, and report municipal issues securely.",
+  keywords: [
+    "Pokhara",
+    "Smart City",
+    "Nepal Government",
+    "Public Services",
+    "Ward Directory",
+  ],
+  authors: [{ name: "Pokhara Metropolitan City IT Department" }],
+  icons: {
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" }, // Modern SVG icon support
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png" }, // Recommended for iOS
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -26,13 +48,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
       <head>
-        {/* Injects theme logic immediately to prevent white flash */}
         <ThemeModeScript />
       </head>
-      <body
-        className="min-h-screen bg-background font-sans antialiased text-foreground selection:bg-primary/10 selection:text-primary"
-        suppressHydrationWarning
-      >
+      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         <Providers>{children}</Providers>
       </body>
     </html>
