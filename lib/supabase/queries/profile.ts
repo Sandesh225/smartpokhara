@@ -23,7 +23,7 @@ export interface UserProfile {
 }
 
 export interface UserPreferences {
-  id: string;
+  id?: string; // Optional, maps to profile ID
   user_id: string;
   email_notifications: boolean;
   sms_notifications: boolean;
@@ -35,6 +35,19 @@ export interface UserPreferences {
   new_notices: boolean;
   digest_frequency: "immediate" | "daily" | "weekly";
 }
+
+const DEFAULT_PREFERENCES: UserPreferences = {
+  user_id: "",
+  email_notifications: true,
+  sms_notifications: true,
+  in_app_notifications: true,
+  push_notifications: false,
+  complaint_updates: true,
+  new_bills: true,
+  payment_reminders: true,
+  new_notices: true,
+  digest_frequency: "immediate",
+};
 
 export const profileService = {
   // 1. Get Full User Profile
@@ -60,8 +73,11 @@ export const profileService = {
         .single();
 
       if (profileError) {
-        console.error("Profile fetch error:", profileError);
-        throw profileError;
+        // PGRST116 means no rows returned, which is expected if profile isn't created yet
+        if (profileError.code !== "PGRST116") {
+          console.error("Profile fetch error:", profileError);
+        }
+        return null;
       }
 
       // Fetch user account data
@@ -73,7 +89,7 @@ export const profileService = {
 
       if (userError) {
         console.error("User account fetch error:", userError);
-        throw userError;
+        // Continue with just profile data if user fetch fails, though unlikely
       }
 
       // Extract ward info
@@ -81,9 +97,9 @@ export const profileService = {
 
       return {
         ...profile,
-        email: userAccount.email,
-        phone: userAccount.phone,
-        is_verified: userAccount.is_verified,
+        email: userAccount?.email || "",
+        phone: userAccount?.phone || null,
+        is_verified: userAccount?.is_verified || false,
         ward_number: wardInfo?.ward_number || null,
         ward_name: wardInfo?.name || null,
         ward_name_nepali: wardInfo?.name_nepali || null,
@@ -185,81 +201,69 @@ export const profileService = {
     }
   },
 
-  // 4. Get Notification Preferences
+  // 4. Get Notification Preferences (FIXED: Uses user_profiles JSONB column)
   async getUserPreferences(userId: string): Promise<UserPreferences | null> {
     try {
       const supabase = createClient();
 
       const { data, error } = await supabase
-        .from("user_notification_preferences")
-        .select("*")
+        .from("user_profiles")
+        .select("id, notification_preferences")
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
+        // If profile doesn't exist yet, return defaults
+        if (error.code === "PGRST116") {
+          return { ...DEFAULT_PREFERENCES, user_id: userId };
+        }
         console.error("Preferences fetch error:", error);
         throw error;
       }
 
-      // If no preferences exist, create default
-      if (!data) {
-        return await this.createDefaultPreferences(userId);
-      }
+      // Retrieve stored JSON or empty object
+      const storedPrefs = (data?.notification_preferences ||
+        {}) as Partial<UserPreferences>;
 
-      return data;
+      // Merge defaults with stored preferences
+      return {
+        ...DEFAULT_PREFERENCES,
+        ...storedPrefs,
+        id: data.id, // Use profile ID as key if needed
+        user_id: userId,
+      };
     } catch (error: any) {
       console.error("Error fetching preferences:", error.message || error);
       return null;
     }
   },
 
-  // Helper: Create default preferences
-  async createDefaultPreferences(
-    userId: string
-  ): Promise<UserPreferences | null> {
-    try {
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from("user_notification_preferences")
-        .insert({
-          user_id: userId,
-          email_notifications: true,
-          sms_notifications: true,
-          in_app_notifications: true,
-          push_notifications: true,
-          complaint_updates: true,
-          new_bills: true,
-          payment_reminders: true,
-          new_notices: true,
-          digest_frequency: "immediate",
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Create preferences error:", error);
-        return null;
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error(
-        "Error creating default preferences:",
-        error.message || error
-      );
-      return null;
-    }
-  },
-
-  // 5. Update Notification Preferences
+  // 5. Update Notification Preferences (FIXED: Updates user_profiles JSONB column)
   async updatePreferences(userId: string, updates: Partial<UserPreferences>) {
     try {
       const supabase = createClient();
 
+      // 1. Fetch current to merge
+      const { data: currentData } = await supabase
+        .from("user_profiles")
+        .select("notification_preferences")
+        .eq("user_id", userId)
+        .single();
+
+      const currentPrefs = (currentData?.notification_preferences ||
+        {}) as UserPreferences;
+
+      // 2. Merge updates
+      const newPrefs = { ...currentPrefs, ...updates };
+
+      // Clean up fields we don't want in the JSON blob
+      delete (newPrefs as any).id;
+      delete (newPrefs as any).user_id;
+
+      // 3. Save back to user_profiles
       const { error } = await supabase
-        .from("user_notification_preferences")
-        .update(updates)
+        .from("user_profiles")
+        .update({ notification_preferences: newPrefs })
         .eq("user_id", userId);
 
       if (error) {
@@ -273,4 +277,7 @@ export const profileService = {
       return { success: false, error: error.message };
     }
   },
+
+  // Deprecated: createDefaultPreferences
+  // No longer needed as we merge defaults in getUserPreferences
 };

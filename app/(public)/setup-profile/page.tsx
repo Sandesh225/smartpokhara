@@ -1,14 +1,12 @@
-// ============================================================================
-// FILE: app/(auth)/setup-profile/page.tsx
-// ============================================================================
+// app/(auth)/setup-profile/page.tsx
 import { ProfileSetupClient } from "@/components/auth/ProfileSetupClient";
 import { redirect } from "next/navigation";
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export default async function SetupProfilePage() {
   const cookieStore = await cookies();
-  
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -27,21 +25,21 @@ export default async function SetupProfilePage() {
       },
     }
   );
-  
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
-  if (userError || !user) {
-    redirect("/login");
-  }
 
-  // Check if profile is already complete
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) redirect("/login");
+
+  // Check if profile is already complete to prevent re-filling
   try {
-    const { data: profileCheck } = await supabase.rpc("rpc_is_profile_complete");
-
+    const { data: profileCheck } = await supabase.rpc(
+      "rpc_is_profile_complete"
+    );
     if (profileCheck?.is_complete) {
       const { data: config } = await supabase.rpc("rpc_get_dashboard_config");
-      const targetRoute = config?.dashboard_config?.default_route || "/citizen/dashboard";
-      redirect(targetRoute);
+      redirect(config?.dashboard_config?.default_route || "/citizen/dashboard");
     }
   } catch (error) {
     console.error("Profile check error:", error);
