@@ -29,8 +29,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-// IMPORT THE REAL-TIME COMMUNICATION COMPONENT
-
 import { complaintsService } from "@/lib/supabase/queries/complaints";
 import type {
   ComplaintComment,
@@ -43,6 +41,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+
+// ────────────────────────────────────────────────
+//  NEW IMPORTS for communication
+// ────────────────────────────────────────────────
+import CitizenStaffCommunication from "../_components/CitizenStaffCommunication";
 import StaffCommunication from "../_components/StaffCommunication";
 
 // Status Configuration
@@ -118,9 +121,7 @@ export default function ComplaintDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [comments, setComments] = useState<ComplaintComment[]>([]);
-  const [statusHistory, setStatusHistory] = useState<ComplaintStatusHistory[]>(
-    []
-  );
+  const [statusHistory, setStatusHistory] = useState<ComplaintStatusHistory[]>([]);
   const [activeView, setActiveView] = useState<
     "overview" | "timeline" | "communication"
   >("overview");
@@ -236,27 +237,25 @@ export default function ComplaintDetailPage() {
     );
   }
 
-  const statusConfig = COMPLAINT_STATUS_CONFIG[
-    complaint.status as keyof typeof COMPLAINT_STATUS_CONFIG
-  ] || {
-    label: complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1),
-    icon: AlertCircle,
-    color: "bg-gray-600",
-    textColor: "text-gray-700",
-  };
+  const statusConfig =
+    COMPLAINT_STATUS_CONFIG[complaint.status as keyof typeof COMPLAINT_STATUS_CONFIG] || {
+      label: complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1),
+      icon: AlertCircle,
+      color: "bg-gray-600",
+      textColor: "text-gray-700",
+    };
 
-  const priorityConfig = COMPLAINT_PRIORITY_CONFIG[
-    complaint.priority as keyof typeof COMPLAINT_PRIORITY_CONFIG
-  ] || {
-    label:
-      complaint.priority.charAt(0).toUpperCase() +
-      complaint.priority.slice(1) +
-      " Priority",
-    color: "bg-gray-100 text-gray-700 border-gray-300",
-    icon: AlertCircle,
-  };
+  const priorityConfig =
+    COMPLAINT_PRIORITY_CONFIG[complaint.priority as keyof typeof COMPLAINT_PRIORITY_CONFIG] || {
+      label:
+        complaint.priority.charAt(0).toUpperCase() +
+        complaint.priority.slice(1) +
+        " Priority",
+      color: "bg-gray-100 text-gray-700 border-gray-300",
+      icon: AlertCircle,
+    };
 
-  const StatusIcon = statusConfig?.icon || AlertCircle;
+  const StatusIcon = statusConfig.icon || AlertCircle;
 
   return (
     <div className="space-y-6 pb-12">
@@ -264,18 +263,13 @@ export default function ComplaintDetailPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold mb-2 truncate">
-              {complaint.title}
-            </h1>
+            <h1 className="text-2xl font-bold mb-2 truncate">{complaint.title}</h1>
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span className="font-mono font-semibold text-foreground">
                 {complaint.tracking_code}
               </span>
               <span>•</span>
-              <span>
-                Updated {formatDistanceToNow(new Date(complaint.updated_at))}{" "}
-                ago
-              </span>
+              <span>Updated {formatDistanceToNow(new Date(complaint.updated_at))} ago</span>
             </div>
           </div>
 
@@ -286,9 +280,7 @@ export default function ComplaintDetailPage() {
               onClick={() => loadComplaintData(true)}
               disabled={isRefreshing}
             >
-              <RefreshCw
-                className={cn("w-4 h-4", isRefreshing && "animate-spin")}
-              />
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
             </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()}>
               <Printer className="w-4 h-4" />
@@ -314,11 +306,7 @@ export default function ComplaintDetailPage() {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          {
-            label: "Category",
-            value: complaint.category?.name,
-            icon: FileText,
-          },
+          { label: "Category", value: complaint.category?.name, icon: FileText },
           {
             label: "Department",
             value: complaint.department?.name || "Pending",
@@ -343,9 +331,7 @@ export default function ComplaintDetailPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">{item.label}</p>
-                  <p className="font-semibold text-sm truncate">
-                    {item.value || "N/A"}
-                  </p>
+                  <p className="font-semibold text-sm truncate">{item.value || "N/A"}</p>
                 </div>
               </div>
             </CardContent>
@@ -358,11 +344,7 @@ export default function ComplaintDetailPage() {
         {[
           { id: "overview", label: "Overview", icon: FileText },
           { id: "timeline", label: "Timeline", icon: Clock },
-          {
-            id: "communication",
-            label: "Chat with Staff",
-            icon: MessageSquare,
-          },
+          { id: "communication", label: "Chat with Staff", icon: MessageSquare },
         ].map((view) => (
           <Button
             key={view.id}
@@ -446,17 +428,15 @@ export default function ComplaintDetailPage() {
                   </div>
                   {!computed?.isResolved && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Time Remaining
-                      </span>
+                      <span className="text-muted-foreground">Time Remaining</span>
                       <span
                         className={cn(
                           "font-semibold",
                           computed?.isOverdue
                             ? "text-destructive"
                             : computed!.daysRemaining <= 2
-                              ? "text-amber-600"
-                              : "text-green-600"
+                            ? "text-amber-600"
+                            : "text-green-600"
                         )}
                       >
                         {computed?.isOverdue
@@ -488,28 +468,27 @@ export default function ComplaintDetailPage() {
                 <div className="space-y-6">
                   {statusHistory.map((h, i) => {
                     const isLast = i === statusHistory.length - 1;
-                    const config = COMPLAINT_STATUS_CONFIG[
-                      h.new_status as keyof typeof COMPLAINT_STATUS_CONFIG
-                    ] || {
-                      label:
-                        h.new_status.charAt(0).toUpperCase() +
-                        h.new_status.slice(1),
-                      icon: AlertCircle,
-                      color: "bg-gray-600",
-                    };
-                    const Icon = config?.icon || Activity;
+                    const config =
+                      COMPLAINT_STATUS_CONFIG[
+                        h.new_status as keyof typeof COMPLAINT_STATUS_CONFIG
+                      ] || {
+                        label:
+                          h.new_status.charAt(0).toUpperCase() +
+                          h.new_status.slice(1),
+                        icon: AlertCircle,
+                        color: "bg-gray-600",
+                      };
+                    const Icon = config.icon || Activity;
 
                     return (
                       <div key={i} className="relative flex gap-4">
                         <div className="flex flex-col items-center">
                           <div
-                            className={`h-10 w-10 rounded-lg flex items-center justify-center text-white ${config?.color}`}
+                            className={`h-10 w-10 rounded-lg flex items-center justify-center text-white ${config.color}`}
                           >
                             <Icon className="h-5 w-5" />
                           </div>
-                          {!isLast && (
-                            <div className="w-px flex-1 bg-border mt-2" />
-                          )}
+                          {!isLast && <div className="w-px flex-1 bg-border mt-2" />}
                         </div>
                         <div className="flex-1 pb-6">
                           <div className="flex items-center justify-between mb-2">
@@ -521,9 +500,7 @@ export default function ComplaintDetailPage() {
                             </span>
                           </div>
                           {h.note && (
-                            <p className="text-sm text-muted-foreground">
-                              {h.note}
-                            </p>
+                            <p className="text-sm text-muted-foreground">{h.note}</p>
                           )}
                         </div>
                       </div>
@@ -534,15 +511,44 @@ export default function ComplaintDetailPage() {
             </Card>
           )}
 
-          {/* ✅ INTEGRATED REAL-TIME COMMUNICATION */}
+          {/* ────────────────────────────────────────────────
+              COMMUNICATION SECTION (updated with CitizenStaffCommunication)
+          ──────────────────────────────────────────────── */}
           {activeView === "communication" && (
             <>
               {complaint.assigned_staff_id && currentUserId ? (
-                <StaffCommunication
-                  complaintId={complaintId}
-                  currentUserId={currentUserId}
-                  isStaff={false}
-                />
+                <div className="space-y-6">
+                  {/* Primary: Citizen ↔ Assigned Staff Chat */}
+                  <CitizenStaffCommunication
+                    complaintId={complaintId}
+                    currentUserId={currentUserId}
+                    userRole="citizen"
+                    assignedStaffName={
+                      complaint.staff?.profile?.full_name ||
+                      complaint.staff?.user?.email ||
+                      "Assigned Staff"
+                    }
+                    citizenName={complaint.citizen?.profile?.full_name || "Citizen"}
+                  />
+
+                  {/* Optional: Supervisor / Department chat (if escalated/supervised) */}
+                  {complaint.assigned_department_id && (
+                    <div className="mt-8 pt-6 border-t">
+                      <div className="flex items-center gap-2 mb-4 px-1">
+                        <Shield className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-600">
+                          Department Supervisor Available
+                        </span>
+                      </div>
+
+                      <StaffCommunication
+                        complaintId={complaintId}
+                        currentUserId={currentUserId}
+                        isStaff={false}
+                      />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <Card>
                   <CardContent className="p-12 text-center">
@@ -552,11 +558,11 @@ export default function ComplaintDetailPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg mb-2">
-                          Communication Not Available
+                          Communication Not Available Yet
                         </h3>
                         <p className="text-muted-foreground text-sm max-w-md">
-                          You can chat with staff once your complaint has been
-                          assigned to a team member.
+                          Once your complaint is assigned to a staff member, you'll be
+                          able to chat with them directly here.
                         </p>
                       </div>
                     </div>
@@ -593,53 +599,51 @@ export default function ComplaintDetailPage() {
           </Card>
 
           {/* Assigned To */}
-         {/* Assigned To */}
-<Card>
-  <CardHeader className="border-b bg-primary/5">
-    <h3 className="text-sm font-semibold flex items-center gap-2">
-      <Shield className="w-4 h-4" />
-      Assigned To
-    </h3>
-  </CardHeader>
+          <Card>
+            <CardHeader className="border-b bg-primary/5">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Assigned To
+              </h3>
+            </CardHeader>
+            <CardContent className="p-6">
+              {complaint.assigned_staff_id && complaint.staff ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-lg bg-blue-500 flex items-center justify-center text-lg font-bold text-white">
+                      {complaint.staff.profile?.full_name?.charAt(0) || "S"}
+                    </div>
 
-  <CardContent className="p-6">
-    {complaint.assigned_staff_id && complaint.staff ? (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-lg bg-blue-500 flex items-center justify-center text-lg font-bold text-white">
-            {complaint.staff.profile?.full_name?.charAt(0) || "S"}
-          </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">
+                        {complaint.staff.profile?.full_name ||
+                          complaint.staff.user?.email ||
+                          "Assigned Staff"}
+                      </p>
+                      <p className="text-xs text-primary capitalize">
+                        {complaint.staff.staff_role?.replace(/_/g, " ") || "Staff Member"}
+                      </p>
+                    </div>
+                  </div>
 
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold truncate">
-              {complaint.staff.profile?.full_name ||
-                complaint.staff.user?.email ||
-                "Assigned Staff"}
-            </p>
-
-            <p className="text-xs text-primary capitalize">
-              {complaint.staff.staff_role?.replace(/_/g, " ") || "Staff Member"}
-            </p>
-          </div>
-        </div>
-
-        {complaint.staff.staff_code && (
-          <div className="pt-3 border-t text-xs">
-            <span className="text-muted-foreground">ID: </span>
-            <span className="font-mono font-semibold">
-              {complaint.staff.staff_code}
-            </span>
-          </div>
-        )}
-      </div>
-    ) : complaint.assigned_department_id ? (
-      <p className="text-sm text-muted-foreground">Awaiting staff assignment</p>
-    ) : (
-      <p className="text-sm text-muted-foreground">Not yet assigned</p>
-    )}
-  </CardContent>
-</Card>
-
+                  {complaint.staff.staff_code && (
+                    <div className="pt-3 border-t text-xs">
+                      <span className="text-muted-foreground">ID: </span>
+                      <span className="font-mono font-semibold">
+                        {complaint.staff.staff_code}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : complaint.assigned_department_id ? (
+                <p className="text-sm text-muted-foreground">
+                  Awaiting staff assignment
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Not yet assigned</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -680,10 +684,7 @@ function DetailSkeleton() {
       </div>
       <div className="flex gap-2">
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-10 w-24 bg-muted rounded-lg animate-pulse"
-          />
+          <div key={i} className="h-10 w-24 bg-muted rounded-lg animate-pulse" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
