@@ -52,11 +52,19 @@ export default function NotificationDropdown({
 
   const getIcon = (type: NotificationType) => {
     const icons = {
-      complaint_status: <FileText className="h-5 w-5 text-blue-500" />,
-      bill_generated: <CreditCard className="h-5 w-5 text-emerald-500" />,
-      new_notice: <Megaphone className="h-5 w-5 text-amber-500" />,
-      system_announcement: <AlertTriangle className="h-5 w-5 text-rose-500" />,
-      general: <Info className="h-5 w-5 text-slate-400" />,
+      complaint_status: (
+        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+      ),
+      bill_generated: (
+        <CreditCard className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+      ),
+      new_notice: (
+        <Megaphone className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+      ),
+      system_announcement: (
+        <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+      ),
+      general: <Info className="h-5 w-5 text-slate-500 dark:text-slate-400" />,
     };
     return icons[type] || icons.general;
   };
@@ -87,12 +95,11 @@ export default function NotificationDropdown({
     );
     await supabase.from("notifications").update({ is_read: true }).eq("id", id);
 
-    const { data } = await supabase
-      .from("notifications")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("is_read", false);
-    onCountUpdate(data?.length || 0);
+    // Update count based on remaining unread in local state
+    const unreadCount = notifications.filter(
+      (n) => n.id !== id && !n.is_read
+    ).length;
+    onCountUpdate(unreadCount);
   };
 
   const markAllRead = async () => {
@@ -114,34 +121,29 @@ export default function NotificationDropdown({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-40 bg-background/30 dark:bg-background/50 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-black/20 dark:bg-black/60 backdrop-blur-[2px]"
         onClick={onClose}
       />
 
-      {/* Dropdown */}
+      {/* Dropdown Container */}
       <motion.div
         initial={{ opacity: 0, y: 15, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 15, scale: 0.95 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="absolute right-0 top-full mt-4 w-[450px] max-w-[calc(100vw-2rem)] bg-card dark:bg-[rgb(26,31,46)] rounded-2xl elevation-3 border-2 border-border z-50 overflow-hidden flex flex-col"
+        className="absolute right-0 top-full mt-4 w-[420px] max-w-[calc(100vw-2rem)] bg-popover text-popover-foreground rounded-2xl shadow-2xl border border-border z-50 overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="p-6 border-b-2 border-border flex items-center justify-between bg-gradient-to-r from-muted/40 to-muted/60 dark:from-[rgb(20,26,33)] dark:to-[rgb(22,28,35)]">
+        <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30">
           <div>
-            <h3 className="text-xl font-bold text-foreground leading-none flex items-center gap-2.5">
-              <Bell className="h-6 w-6 text-primary" />
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
               Notifications
             </h3>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2">
-              Stay updated with your services
-            </p>
           </div>
           {notifications.some((n) => !n.is_read) && (
             <button
               onClick={markAllRead}
-              className="flex items-center gap-2 h-9 px-4 rounded-xl text-xs font-bold text-primary hover:bg-primary/15 dark:hover:bg-primary/20 transition-all duration-200 active:scale-95"
+              className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
             >
               <CheckCheck className="h-4 w-4" />
               Mark all read
@@ -149,57 +151,51 @@ export default function NotificationDropdown({
           )}
         </div>
 
-        {/* Notifications List */}
-        <div className="max-h-[520px] overflow-y-auto custom-scrollbar">
+        {/* List */}
+        <div className="max-h-[480px] overflow-y-auto">
           {loading ? (
-            <div className="p-16 flex flex-col items-center justify-center gap-4">
-              <div className="h-12 w-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-              <p className="text-sm font-semibold text-muted-foreground">
-                Loading notifications...
+            <div className="p-12 flex flex-col items-center gap-3">
+              <div className="h-8 w-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <p className="text-xs text-muted-foreground font-medium">
+                Loading...
               </p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-16 text-center">
-              <div className="h-24 w-24 bg-muted rounded-3xl flex items-center justify-center mx-auto mb-5 border-2 border-border elevation-1">
-                <Bell className="w-12 h-12 text-muted-foreground/30" />
-              </div>
-              <p className="text-foreground font-bold text-xl mb-2">
-                All caught up!
-              </p>
-              <p className="text-muted-foreground text-base">
-                No new notifications at the moment.
+            <div className="p-12 text-center">
+              <Bell className="w-10 h-10 text-muted/50 mx-auto mb-3" />
+              <p className="font-semibold text-foreground">No new updates</p>
+              <p className="text-sm text-muted-foreground">
+                We'll let you know when something happens.
               </p>
             </div>
           ) : (
-            <div className="divide-y-2 divide-border">
+            <div className="divide-y divide-border">
               <AnimatePresence mode="popLayout">
                 {notifications.map((n) => (
                   <motion.div
                     key={n.id}
                     layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     className={cn(
-                      "p-5 transition-all duration-200 hover:bg-accent/60 relative group cursor-pointer",
-                      !n.is_read &&
-                        "bg-primary/8 dark:bg-primary/12 border-l-4 border-l-primary"
+                      "p-4 transition-colors relative group",
+                      !n.is_read
+                        ? "bg-primary/[0.03] dark:bg-primary/[0.05]"
+                        : "hover:bg-muted/50"
                     )}
-                    onClick={() => !n.is_read && markRead(n.id)}
                   >
                     <div className="flex gap-4">
-                      {/* Icon */}
-                      <div className="h-12 w-12 rounded-xl bg-background dark:bg-card border-2 border-border elevation-1 flex items-center justify-center shrink-0">
+                      {/* Icon with Ring */}
+                      <div className="h-10 w-10 rounded-full bg-background border border-border flex items-center justify-center shrink-0 shadow-sm">
                         {getIcon(n.type)}
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex justify-between items-start mb-1">
                           <h4
                             className={cn(
-                              "text-base font-bold truncate",
+                              "text-sm font-bold truncate",
                               n.is_read
                                 ? "text-muted-foreground"
                                 : "text-foreground"
@@ -208,27 +204,16 @@ export default function NotificationDropdown({
                             {n.title}
                           </h4>
                           {!n.is_read && (
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markRead(n.id);
-                              }}
-                              className="p-1.5 rounded-lg text-primary hover:bg-primary/15 dark:hover:bg-primary/20 transition-all duration-200"
-                              title="Mark as read"
-                            >
-                              <Check className="w-4 h-4" />
-                            </motion.button>
+                            <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
                           )}
                         </div>
 
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2 leading-snug">
                           {n.message}
                         </p>
 
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          <span className="text-[11px] font-medium text-muted-foreground/70 uppercase italic">
                             {formatDistanceToNow(new Date(n.created_at), {
                               addSuffix: true,
                             })}
@@ -237,10 +222,9 @@ export default function NotificationDropdown({
                             <Link
                               href={n.action_url}
                               onClick={onClose}
-                              className="text-sm font-bold text-primary hover:underline flex items-center gap-1.5 group-hover:gap-2 transition-all duration-200"
+                              className="text-xs font-bold text-primary flex items-center gap-1 hover:underline"
                             >
-                              View Details
-                              <ArrowRight className="h-4 w-4" />
+                              Details <ArrowRight className="h-3 w-3" />
                             </Link>
                           )}
                         </div>
@@ -254,14 +238,13 @@ export default function NotificationDropdown({
         </div>
 
         {/* Footer */}
-        <div className="p-5 border-t-2 border-border bg-gradient-to-r from-muted/40 to-muted/60 dark:from-[rgb(20,26,33)] dark:to-[rgb(22,28,35)]">
+        <div className="p-4 border-t border-border bg-muted/20">
           <Link
             href="/citizen/notifications"
             onClick={onClose}
-            className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl bg-primary/15 hover:bg-primary hover:text-primary-foreground border-2 border-primary/30 hover:border-primary text-base font-bold text-primary transition-all duration-200 active:scale-95 elevation-1"
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity"
           >
-            View All Notifications
-            <ArrowRight className="h-5 w-5" />
+            View All
           </Link>
         </div>
       </motion.div>

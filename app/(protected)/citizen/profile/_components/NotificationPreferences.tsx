@@ -53,7 +53,7 @@ export default function NotificationPreferences({
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  const safePrefs =
+  const safePrefs: UserPreferences =
     preferences ||
     ({
       email_notifications: true,
@@ -68,12 +68,12 @@ export default function NotificationPreferences({
     } as UserPreferences);
 
   const handleToggle = (key: keyof UserPreferences) => {
-    setPreferences((prev) => (prev ? { ...prev, [key]: !prev[key] } : null));
+    setPreferences((prev) => (prev ? { ...prev, [key]: !prev[key] } : prev));
   };
 
   const handleSelect = (val: string) => {
     setPreferences((prev) =>
-      prev ? { ...prev, digest_frequency: val as any } : null
+      prev ? { ...prev, digest_frequency: val as any } : prev
     );
   };
 
@@ -84,8 +84,8 @@ export default function NotificationPreferences({
     setIsSaving(false);
 
     if (result.success) {
-      toast.success("Preferences Synchronized", {
-        description: "Your notification settings are now live.",
+      toast.success("Preferences updated", {
+        description: "Your notification settings are now active.",
       });
     } else {
       toast.error("Failed to save preferences");
@@ -93,41 +93,46 @@ export default function NotificationPreferences({
   };
 
   return (
-    <Card className="border-0 elevation-3 rounded-3xl bg-white ring-1 ring-slate-900/5 overflow-hidden">
-      <CardHeader className="card-padding bg-[rgb(244,245,247)]/50 border-b-2 border-slate-100">
+    <Card className="rounded-3xl border bg-background text-foreground shadow-sm dark:shadow-none overflow-hidden">
+      {/* ================= Header ================= */}
+      <CardHeader className="border-b bg-muted/40 dark:bg-muted/20 card-padding">
         <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[rgb(43,95,117)] to-[rgb(95,158,160)] flex items-center justify-center text-white elevation-2">
+          <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
             <BellRing className="h-7 w-7" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-black tracking-tight text-[rgb(26,32,44)]">
+            <CardTitle className="text-2xl font-black tracking-tight">
               Alert Configuration
             </CardTitle>
-            <CardDescription className="font-medium text-[rgb(26,32,44)]/60 mt-1">
-              Manage your connection with municipal digital services.
+            <CardDescription className="mt-1">
+              Control how the municipality contacts you.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
+      {/* ================= Content ================= */}
       <CardContent className="card-padding space-y-12">
+        {/* Delivery Channels */}
         <section className="space-y-6">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(43,95,117)] flex items-center gap-2 ml-1">
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 ml-1">
             <Globe className="h-3.5 w-3.5" /> Delivery Channels
           </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ChannelCard
-              id="email_notifs"
-              label="Email Services"
+              id="email"
+              label="Email Notifications"
               desc="Official documents & records"
               icon={Mail}
               checked={safePrefs.email_notifications}
               onToggle={() => handleToggle("email_notifications")}
             />
+
             <ChannelCard
-              id="sms_notifs"
-              label="SMS Direct"
-              desc="Critical alerts & security"
+              id="sms"
+              label="SMS Alerts"
+              desc="Critical & time-sensitive alerts"
               icon={Smartphone}
               checked={safePrefs.sms_notifications}
               onToggle={() => handleToggle("sms_notifications")}
@@ -135,57 +140,51 @@ export default function NotificationPreferences({
           </div>
         </section>
 
-        <Separator className="bg-slate-100" />
+        <Separator />
 
+        {/* Topics */}
         <section className="space-y-6">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(95,158,160)] flex items-center gap-2 ml-1">
-            <MessageSquare className="h-3.5 w-3.5" /> Subscription Topics
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 ml-1">
+            <MessageSquare className="h-3.5 w-3.5" /> Notification Topics
           </h3>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               {
-                id: "complaint_updates",
-                label: "Complaint Lifecycle",
+                key: "complaint_updates",
+                label: "Complaint Updates",
                 desc: "Status changes & staff notes",
               },
               {
-                id: "new_bills",
-                label: "Financial Records",
-                desc: "New taxes & utility assessments",
+                key: "new_bills",
+                label: "New Bills",
+                desc: "Taxes & utility invoices",
               },
               {
-                id: "payment_reminders",
-                label: "Due Reminders",
-                desc: "72h before payment deadlines",
+                key: "payment_reminders",
+                label: "Payment Reminders",
+                desc: "Before due date alerts",
               },
               {
-                id: "new_notices",
-                label: "Ward Bulletins",
-                desc: "Local announcements & tenders",
+                key: "new_notices",
+                label: "Public Notices",
+                desc: "Ward announcements",
               },
             ].map((item) => (
               <div
-                key={item.id}
-                className="flex items-center justify-between p-5 rounded-2xl border-2 border-slate-100 bg-[rgb(244,245,247)]/30 transition-all hover:bg-white hover:border-[rgb(95,158,160)]/20 group"
+                key={item.key}
+                className="flex items-center justify-between p-5 rounded-2xl border bg-muted/40 dark:bg-muted/20 hover:bg-muted transition-all"
               >
                 <div className="space-y-1">
-                  <Label
-                    htmlFor={item.id}
-                    className="text-sm font-bold text-[rgb(26,32,44)] group-hover:text-[rgb(95,158,160)] transition-colors"
-                  >
-                    {item.label}
-                  </Label>
-                  <p className="text-xs font-medium text-[rgb(26,32,44)]/50">
-                    {item.desc}
-                  </p>
+                  <Label className="font-bold">{item.label}</Label>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
                 <Switch
-                  id={item.id}
                   checked={
-                    safePrefs[item.id as keyof UserPreferences] as boolean
+                    safePrefs[item.key as keyof UserPreferences] as boolean
                   }
                   onCheckedChange={() =>
-                    handleToggle(item.id as keyof UserPreferences)
+                    handleToggle(item.key as keyof UserPreferences)
                   }
                 />
               </div>
@@ -193,54 +192,54 @@ export default function NotificationPreferences({
           </div>
         </section>
 
-        <Separator className="bg-slate-100" />
+        <Separator />
 
-        <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[rgb(43,95,117)]/5 p-8 rounded-3xl border-2 border-[rgb(43,95,117)]/10">
-          <div className="space-y-1">
-            <Label className="text-lg font-black text-[rgb(26,32,44)]">
-              Digest Frequency
-            </Label>
-            <p className="text-xs text-[rgb(26,32,44)]/60 font-medium leading-relaxed">
-              How should we bundle non-urgent system updates?
+        {/* Digest */}
+        <section className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 rounded-3xl border bg-muted/30 dark:bg-muted/20">
+          <div>
+            <Label className="text-lg font-black">Digest Frequency</Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              How often should we bundle non-urgent notifications?
             </p>
           </div>
+
           <Select
             value={safePrefs.digest_frequency}
             onValueChange={handleSelect}
           >
-            <SelectTrigger className="w-full md:w-[240px] h-12 rounded-2xl border-2 border-slate-200 bg-white font-bold elevation-1">
-              <SelectValue placeholder="Select logic" />
+            <SelectTrigger className="w-full md:w-[240px] h-12 rounded-2xl bg-background">
+              <SelectValue placeholder="Select frequency" />
             </SelectTrigger>
-            <SelectContent className="rounded-2xl elevation-3 border-2 border-slate-100">
-              <SelectItem value="immediate" className="font-medium">
-                Real-time (Standard)
-              </SelectItem>
-              <SelectItem value="daily" className="font-medium">
-                Daily Summary (08:00)
-              </SelectItem>
-              <SelectItem value="weekly" className="font-medium">
-                Weekly Digest (Fri)
-              </SelectItem>
+            <SelectContent>
+              <SelectItem value="immediate">Real-time</SelectItem>
+              <SelectItem value="daily">Daily Summary</SelectItem>
+              <SelectItem value="weekly">Weekly Digest</SelectItem>
             </SelectContent>
           </Select>
         </section>
       </CardContent>
 
-      <CardFooter className="bg-[rgb(244,245,247)]/80 backdrop-blur-sm border-t-2 border-slate-100 card-padding flex justify-between items-center">
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[rgb(26,32,44)]/40">
-          <ShieldCheck className="h-4 w-4 text-[rgb(43,95,117)]" /> AES-256
+      {/* ================= Footer ================= */}
+      <CardFooter className="border-t bg-muted/50 dark:bg-muted/30 card-padding flex justify-between items-center">
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground">
+          <ShieldCheck className="h-4 w-4 text-primary" />
           Encrypted
         </div>
+
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="min-w-[180px] h-12 rounded-2xl bg-[rgb(26,32,44)] hover:bg-black font-black text-white elevation-2 transition-all active:scale-95"
+          className="h-12 min-w-[180px] rounded-2xl font-black
+                     bg-foreground text-background
+                     hover:bg-foreground/90
+                     active:scale-95"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              <Save className="h-4 w-4 mr-2" /> Sync Settings
+              <Save className="h-4 w-4 mr-2" />
+              Save Settings
             </>
           )}
         </Button>
@@ -249,35 +248,32 @@ export default function NotificationPreferences({
   );
 }
 
+/* ================= Channel Card ================= */
+
 function ChannelCard({ id, label, desc, icon: Icon, checked, onToggle }: any) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between p-6 rounded-3xl border-2 transition-all duration-300",
+        "flex items-center justify-between p-6 rounded-3xl border transition-all",
         checked
-          ? "bg-white border-[rgb(43,95,117)] elevation-2 ring-4 ring-[rgb(43,95,117)]/10"
-          : "bg-[rgb(244,245,247)]/50 border-slate-100 opacity-60"
+          ? "bg-background border-primary ring-4 ring-primary/10"
+          : "bg-muted/40 border-border opacity-70"
       )}
     >
       <div className="flex items-center gap-4">
         <div
           className={cn(
-            "h-12 w-12 rounded-2xl flex items-center justify-center transition-colors",
+            "h-12 w-12 rounded-2xl flex items-center justify-center",
             checked
-              ? "bg-[rgb(43,95,117)] text-white"
-              : "bg-slate-200 text-[rgb(26,32,44)]/40"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground"
           )}
         >
           <Icon className="h-6 w-6" />
         </div>
-        <div className="space-y-1">
-          <Label
-            htmlFor={id}
-            className="text-base font-bold text-[rgb(26,32,44)] cursor-pointer"
-          >
-            {label}
-          </Label>
-          <p className="text-xs font-medium text-[rgb(26,32,44)]/50 uppercase tracking-wider">
+        <div>
+          <Label className="font-bold">{label}</Label>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {desc}
           </p>
         </div>
