@@ -11,17 +11,16 @@ import {
   Users,
   Briefcase,
   Settings,
-  LogOut,
+  Vote, // NEW ICON
   CreditCard,
   Megaphone,
   Menu,
-  X,
   ChevronDown,
   User,
   Moon,
   Sun,
-  Bell,
-  Search,
+  X,
+  LogOut,
 } from "lucide-react";
 
 interface NavItemConfig {
@@ -31,10 +30,16 @@ interface NavItemConfig {
   children?: { name: string; href: string; icon: React.ElementType }[];
 }
 
+// UPDATED NAV ITEMS
 const navItems: NavItemConfig[] = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Complaints", href: "/admin/complaints", icon: FileText },
   { name: "Tasks", href: "/admin/tasks", icon: CheckSquare },
+  {
+    name: "Participatory Budget",
+    href: "/admin/participatory-budgeting",
+    icon: Vote,
+  }, // NEW LINK
   { name: "Staff", href: "/admin/staff", icon: Briefcase },
   { name: "Citizens", href: "/admin/citizens", icon: User },
   { name: "System Users", href: "/admin/users", icon: Users },
@@ -196,9 +201,6 @@ export default function AdminNavigation() {
           </div>
           <div className="overflow-hidden flex-1 min-w-0">
             <p className="text-xs md:text-sm font-bold truncate">Admin User</p>
-            <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-              admin@pokhara.gov
-            </p>
           </div>
           <button
             onClick={toggleTheme}
@@ -225,48 +227,32 @@ export default function AdminNavigation() {
 
   return (
     <>
-      {/* MOBILE HEADER */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-14 glass border-b border-border/50 z-50 flex items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
-            SP
-          </div>
-          <span className="font-bold text-foreground text-sm tracking-tight">
-            Smart Pokhara
-          </span>
-        </div>
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2 text-foreground hover:bg-accent rounded-lg transition-colors"
-          aria-label="Open Menu"
-        >
-          <Menu className="w-5 h-5" />
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex fixed top-0 left-0 h-screen w-56 lg:w-64 border-r border-border z-40">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-50 flex items-center px-4 justify-between">
+        <div className="font-bold text-lg">Admin Portal</div>
+        <button onClick={() => setMobileOpen(true)}>
+          <Menu />
         </button>
       </header>
 
-      {/* MOBILE DRAWER */}
+      {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-[60] flex">
-          <div
-            className="fixed inset-0 bg-background/60 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="relative w-[280px] max-w-[85vw] h-full shadow-2xl animate-in slide-in-from-left duration-300">
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="absolute top-4 -right-12 p-2 bg-primary text-primary-foreground rounded-full shadow-lg z-10"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        <div className="md:hidden fixed inset-0 z-50 bg-background/50 backdrop-blur-sm">
+          <div className="fixed inset-y-0 left-0 w-64 bg-background shadow-lg">
+            <div className="p-4 flex justify-end">
+              <button onClick={() => setMobileOpen(false)}>
+                <X />
+              </button>
+            </div>
             <SidebarContent />
           </div>
         </div>
       )}
-
-      {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex fixed top-0 left-0 w-56 lg:w-64 h-screen border-r border-border z-40 elevation-1">
-        <SidebarContent />
-      </aside>
     </>
   );
 }
