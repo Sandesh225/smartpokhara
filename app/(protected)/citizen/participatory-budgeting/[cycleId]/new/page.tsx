@@ -16,7 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../../../../../../components/ui/form.tsx";
+} from "../../../../../../components/ui/form";
 import {
   Select,
   SelectContent,
@@ -24,12 +24,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../../../components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../../../../components/ui/card";
-import { 
-  pbService, 
-  type BudgetCycle, 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../../../../components/ui/card";
+import {
+  pbService,
+  type BudgetCycle,
   type ProposalCategory,
-  type Department 
+  type Department,
 } from "../../../../../../lib/supabase/queries/participatory-budgeting";
 import { complaintsService } from "../../../../../../lib/supabase/queries/complaints";
 
@@ -37,7 +42,7 @@ interface ProposalFormData {
   title: string;
   description: string;
   category: ProposalCategory; // This will now act as a Department selector
-  department_id: string;      // We will store the selected department ID here
+  department_id: string; // We will store the selected department ID here
   estimated_cost: number;
   ward_id: string;
   address_text: string;
@@ -60,7 +65,7 @@ export default function NewProposalPage() {
       title: "",
       description: "",
       category: "road_infrastructure",
-      department_id: "", 
+      department_id: "",
       estimated_cost: 0,
       address_text: "",
     },
@@ -72,7 +77,7 @@ export default function NewProposalPage() {
         const [cycleData, wardsData, departmentsData] = await Promise.all([
           pbService.getCycleById(cycleId),
           complaintsService.getWards(),
-          pbService.getDepartments()
+          pbService.getDepartments(),
         ]);
         setCycle(cycleData);
         setWards(wardsData);
@@ -88,32 +93,43 @@ export default function NewProposalPage() {
 
   // Helper to map department code to category enum
   const getCategoryFromCode = (code: string): ProposalCategory => {
-      switch(code) {
-          case 'ROAD': return 'road_infrastructure';
-          case 'WATER': return 'water_sanitation';
-          case 'WASTE': return 'water_sanitation';
-          case 'HEALTH': return 'health_safety';
-          case 'PARKS': return 'parks_environment';
-          case 'BUILDING': return 'other';
-          case 'WARD': return 'education_culture';
-          default: return 'other';
-      }
+    switch (code) {
+      case "ROAD":
+        return "road_infrastructure";
+      case "WATER":
+        return "water_sanitation";
+      case "WASTE":
+        return "water_sanitation";
+      case "HEALTH":
+        return "health_safety";
+      case "PARKS":
+        return "parks_environment";
+      case "BUILDING":
+        return "other";
+      case "WARD":
+        return "education_culture";
+      default:
+        return "other";
+    }
   };
-
   const onSubmit = async (data: ProposalFormData) => {
     if (!cycle) return;
 
-    // Validate Department
+    // Validate Department Selection
     if (!data.department_id) {
-        form.setError("department_id", { message: "Please select a department" });
-        return;
+      toast.error("Please select a department");
+      return;
     }
 
-    // Auto-select category based on department if manual select not desired, 
-    // or trust the category passed if we want fine-grain control.
-    // Here we will derive it from the selected department for consistency.
-    const selectedDept = departments.find(d => d.id === data.department_id);
-    const derivedCategory = selectedDept ? getCategoryFromCode(selectedDept.code) : 'other';
+    // Get the selected department
+    const selectedDept = departments.find((d) => d.id === data.department_id);
+    if (!selectedDept) {
+      toast.error("Invalid department selected");
+      return;
+    }
+
+    // Map department to category
+    const derivedCategory = getCategoryFromCode(selectedDept.code);
 
     // Validate Cost
     if (data.estimated_cost < cycle.min_project_cost) {
@@ -123,7 +139,11 @@ export default function NewProposalPage() {
       });
       return;
     }
-    if (cycle.max_project_cost && data.estimated_cost > cycle.max_project_cost) {
+
+    if (
+      cycle.max_project_cost &&
+      data.estimated_cost > cycle.max_project_cost
+    ) {
       form.setError("estimated_cost", {
         type: "max",
         message: `Maximum cost is NPR ${cycle.max_project_cost.toLocaleString()}`,
@@ -138,12 +158,12 @@ export default function NewProposalPage() {
           cycle_id: cycleId,
           title: data.title,
           description: data.description,
-          category: derivedCategory, // Use mapped category
-          department_id: data.department_id, // Store the link!
+          category: derivedCategory,
+          department_id: data.department_id, // ✅ This is the key!
           ward_id: data.ward_id === "city-wide" ? null : data.ward_id,
           estimated_cost: data.estimated_cost,
           address_text: data.address_text,
-          location_point: null, 
+          location_point: null,
         },
         coverImage || undefined
       );
@@ -151,6 +171,7 @@ export default function NewProposalPage() {
       toast.success("Proposal submitted successfully!");
       router.push(`/citizen/participatory-budgeting/${cycleId}`);
     } catch (error: any) {
+      console.error("Submission error:", error);
       toast.error(error.message || "Failed to submit proposal");
     } finally {
       setSubmitting(false);
@@ -187,7 +208,6 @@ export default function NewProposalPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
               <FormField
                 control={form.control}
                 name="title"
@@ -195,7 +215,11 @@ export default function NewProposalPage() {
                   <FormItem>
                     <FormLabel>Project Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. New Playground in Ward 5" {...field} required />
+                      <Input
+                        placeholder="e.g. New Playground in Ward 5"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -210,7 +234,10 @@ export default function NewProposalPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Relevant Department</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select department" />
@@ -218,9 +245,9 @@ export default function NewProposalPage() {
                         </FormControl>
                         <SelectContent>
                           {departments.map((dept) => (
-                              <SelectItem key={dept.id} value={dept.id}>
-                                  {dept.name}
-                              </SelectItem>
+                            <SelectItem key={dept.id} value={dept.id}>
+                              {dept.name}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -235,7 +262,10 @@ export default function NewProposalPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Target Ward</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a ward" />
@@ -263,16 +293,21 @@ export default function NewProposalPage() {
                   <FormItem>
                     <FormLabel>Estimated Cost (NPR)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        {...field} 
-                        onChange={e => field.onChange(parseFloat(e.target.value))}
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value))
+                        }
                         min={cycle.min_project_cost}
                         max={cycle.max_project_cost || undefined}
                       />
                     </FormControl>
                     <FormDescription>
-                      Range: NPR {cycle.min_project_cost.toLocaleString()} - {cycle.max_project_cost ? cycle.max_project_cost.toLocaleString() : 'No Limit'}
+                      Range: NPR {cycle.min_project_cost.toLocaleString()} -{" "}
+                      {cycle.max_project_cost
+                        ? cycle.max_project_cost.toLocaleString()
+                        : "No Limit"}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -286,11 +321,11 @@ export default function NewProposalPage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Describe the project, who it benefits, and why it's needed." 
+                      <Textarea
+                        placeholder="Describe the project, who it benefits, and why it's needed."
                         className="min-h-[120px]"
-                        {...field} 
-                        required 
+                        {...field}
+                        required
                       />
                     </FormControl>
                     <FormMessage />
@@ -307,7 +342,11 @@ export default function NewProposalPage() {
                     <FormControl>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input className="pl-10" placeholder="Specific street address or landmark" {...field} />
+                        <Input
+                          className="pl-10"
+                          placeholder="Specific street address or landmark"
+                          {...field}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -318,17 +357,22 @@ export default function NewProposalPage() {
               <div className="space-y-2">
                 <FormLabel>Cover Image (Optional)</FormLabel>
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors">
-                  <Input 
-                    type="file" 
-                    className="hidden" 
-                    id="image-upload" 
+                  <Input
+                    type="file"
+                    className="hidden"
+                    id="image-upload"
                     accept="image/*"
                     onChange={(e) => setCoverImage(e.target.files?.[0] || null)}
                   />
-                  <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center">
+                  <label
+                    htmlFor="image-upload"
+                    className="cursor-pointer flex flex-col items-center"
+                  >
                     <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                     <span className="text-sm font-medium">
-                      {coverImage ? coverImage.name : "Click to upload an image"}
+                      {coverImage
+                        ? coverImage.name
+                        : "Click to upload an image"}
                     </span>
                     <span className="text-xs text-muted-foreground mt-1">
                       JPG, PNG up to 5MB
@@ -338,11 +382,17 @@ export default function NewProposalPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => router.back()}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.back()}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {submitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Submit Proposal
                 </Button>
               </div>
