@@ -16,11 +16,11 @@ import {
   Calendar,
   Settings,
   LogOut,
-  ChevronRight,
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
   Loader2,
+  Vote, // Added icon for Participatory Budgeting
 } from "lucide-react";
 import {
   Tooltip,
@@ -62,6 +62,14 @@ const MENU_ITEMS: SupervisorMenuItem[] = [
       },
     ],
   },
+  {
+    href: "/supervisor/participatory-budgeting",
+    label: "Budget Proposals",
+    icon: Vote,
+    submenu: [
+      { href: "/supervisor/participatory-budgeting", label: "Vetting Inbox" },
+    ],
+  },
   { href: "/supervisor/staff", label: "Staff", icon: Users },
   { href: "/supervisor/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/supervisor/analytics", label: "Analytics", icon: BarChart2 },
@@ -92,6 +100,9 @@ export function SupervisorSidebar({
   const { isCollapsed, toggleCollapse, closeMobile } = useSidebar();
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({
     "/supervisor/complaints": pathname.includes("/complaints"),
+    "/supervisor/participatory-budgeting": pathname.includes(
+      "/participatory-budgeting"
+    ),
   });
 
   const toggleSubmenu = (href: string) => {
