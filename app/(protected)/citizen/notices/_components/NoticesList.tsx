@@ -86,29 +86,41 @@ export default function NoticesList({
   if (isLoading && notices.length === 0) return <NoticesLoadingState />;
 
   return (
-    <div className="space-y-6">
-      <Card className="stone-card overflow-hidden rounded-[2rem] shadow-lg dark:shadow-primary/10">
-        <CardHeader className="pb-6 border-b border-border dark:border-border">
-          {/* Header */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6"
+    >
+      <Card className="border-2 border-border overflow-hidden rounded-3xl shadow-xl">
+        <CardHeader className="pb-6 border-b-2 border-border bg-gradient-to-br from-muted/30 to-transparent">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <motion.div
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400 }}
-                className="h-12 w-12 rounded-2xl bg-primary dark:bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/30 dark:shadow-primary/20"
+                className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-xl"
               >
-                <Bell className="h-6 w-6" />
+                <Bell className="h-7 w-7 text-white" strokeWidth={2.5} />
               </motion.div>
               <div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-1">
                   <h2 className="font-black text-2xl text-foreground tracking-tight">
                     Official Registry
                   </h2>
-                  {unreadCount > 0 && (
-                    <Badge className="bg-warning-amber text-white font-black rounded-full animate-pulse px-3 py-1">
-                      {unreadCount} New
-                    </Badge>
-                  )}
+                  <AnimatePresence>
+                    {unreadCount > 0 && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                      >
+                        <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black rounded-full animate-pulse px-3 py-1 shadow-lg">
+                          {unreadCount} New
+                        </Badge>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   Displaying {from}—{to} of {total} Bulletins
@@ -116,8 +128,7 @@ export default function NoticesList({
               </div>
             </div>
 
-            {/* View Toggle */}
-            <div className="flex items-center gap-2 bg-muted dark:bg-muted p-1 rounded-xl border border-border dark:border-border shadow-sm">
+            <div className="flex items-center gap-2 bg-muted p-1.5 rounded-2xl border-2 border-border shadow-sm">
               <ViewToggleButton
                 active={viewMode === "list"}
                 onClick={() => setViewMode("list")}
@@ -133,35 +144,43 @@ export default function NoticesList({
             </div>
           </div>
 
-          {/* Sorting */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full sm:w-[220px] rounded-xl border-border dark:border-border bg-background dark:bg-background font-bold h-11">
+              <SelectTrigger className="w-full sm:w-[240px] rounded-2xl border-2 border-border bg-background font-bold h-12">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-border dark:border-border">
-                <SelectItem value="published_at">Publication Date</SelectItem>
-                <SelectItem value="title">Alphabetical</SelectItem>
-                <SelectItem value="notice_type">Category</SelectItem>
+              <SelectContent className="rounded-2xl border-2 border-border">
+                <SelectItem value="published_at">📅 Publication Date</SelectItem>
+                <SelectItem value="title">🔤 Alphabetical</SelectItem>
+                <SelectItem value="notice_type">📂 Category</SelectItem>
               </SelectContent>
             </Select>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-11 px-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/5 dark:hover:bg-primary/10"
-              onClick={handleSortToggle}
-            >
-              <ArrowUpDown
-                className={cn("h-4 w-4 mr-2 transition-transform", sortOrder === "ASC" && "rotate-180")}
-              />
-              {sortOrder === "DESC" ? "Newest" : "Oldest"}
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-12 px-5 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary/10 border-2"
+                onClick={handleSortToggle}
+              >
+                <ArrowUpDown
+                  className={cn("h-4 w-4 mr-2 transition-transform duration-300", sortOrder === "ASC" && "rotate-180")}
+                />
+                {sortOrder === "DESC" ? "Newest First" : "Oldest First"}
+              </Button>
+            </motion.div>
 
             {isLoading && (
-              <div className="flex items-center gap-2 text-xs font-black text-primary dark:text-primary uppercase tracking-wider animate-pulse ml-auto">
-                <Sparkles className="h-4 w-4" /> Updating...
-              </div>
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 text-xs font-black text-primary uppercase tracking-wider ml-auto"
+              >
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                  <Sparkles className="h-4 w-4" />
+                </motion.div>
+                Updating...
+              </motion.div>
             )}
           </div>
         </CardHeader>
@@ -176,6 +195,7 @@ export default function NoticesList({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
                 className={cn("gap-6", viewMode === "grid" ? "grid grid-cols-1 lg:grid-cols-2" : "flex flex-col")}
               >
                 {notices.map((notice, idx) => (
@@ -192,38 +212,40 @@ export default function NoticesList({
             </AnimatePresence>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-12 pt-8 border-t border-border dark:border-border"
+              className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-12 pt-8 border-t-2 border-border"
             >
               <div className="text-sm font-bold text-muted-foreground">
-                Page <span className="text-primary font-black">{page}</span> of {totalPages}
+                Page <span className="text-primary font-black text-lg">{page}</span> of {totalPages}
               </div>
               <div className="flex items-center gap-2">
-                <PaginationButton disabled={page === 1} onClick={() => onPageChange(page - 1)} icon={ChevronLeft} label="Prev" />
-                <div className="flex items-center gap-1 bg-muted dark:bg-muted p-1 rounded-xl border border-border dark:border-border">
+                <PaginationButton disabled={page === 1} onClick={() => onPageChange(page - 1)} icon={ChevronLeft} label="Previous" />
+                <div className="flex items-center gap-1.5 bg-muted p-1.5 rounded-2xl border-2 border-border">
                   {getPageNumbers().map((pageNum, idx) =>
                     pageNum === "ellipsis" ? (
-                      <div key={idx} className="h-9 w-9 flex items-center justify-center text-muted-foreground">
+                      <div key={idx} className="h-10 w-10 flex items-center justify-center text-muted-foreground">
                         <MoreHorizontal className="h-4 w-4" />
                       </div>
                     ) : (
-                      <Button
-                        key={pageNum}
-                        variant={page === pageNum ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => onPageChange(pageNum as number)}
-                        className={cn(
-                          "h-9 w-9 rounded-lg font-black text-xs transition-all",
-                          page === pageNum ? "bg-primary dark:bg-primary text-primary-foreground shadow-lg scale-110" : "text-muted-foreground hover:text-foreground hover:bg-background dark:hover:bg-background"
-                        )}
-                      >
-                        {pageNum}
-                      </Button>
+                      <motion.div key={pageNum} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          variant={page === pageNum ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => onPageChange(pageNum as number)}
+                          className={cn(
+                            "h-10 w-10 rounded-xl font-black text-sm transition-all",
+                            page === pageNum
+                              ? "bg-gradient-to-br from-primary to-secondary text-whiteshadow-xl scale-110"
+                              : "text-muted-foreground hover:text-foreground hover:bg-background"
+                          )}
+                        >
+                          {pageNum}
+                        </Button>
+                      </motion.div>
                     )
                   )}
                 </div>
@@ -233,41 +255,45 @@ export default function NoticesList({
           )}
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }
 
-// ================= Helper Components =================
-
 function ViewToggleButton({ active, onClick, icon: Icon, label }: any) {
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onClick}
-      className={cn(
-        "h-9 px-4 rounded-lg font-bold text-xs transition-all",
-        active ? "bg-background dark:bg-background text-primary dark:text-primary shadow-sm scale-105" : "text-muted-foreground hover:text-foreground"
-      )}
-    >
-      <Icon className="h-4 w-4 mr-2" />
-      <span className="hidden sm:inline">{label}</span>
-    </Button>
+    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClick}
+        className={cn(
+          "h-10 px-4 rounded-xl font-bold text-xs transition-all",
+          active
+            ? "bg-background text-primary shadow-md scale-105 border-2 border-primary/20"
+            : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        <Icon className="h-4 w-4 mr-2" />
+        <span className="hidden sm:inline">{label}</span>
+      </Button>
+    </motion.div>
   );
 }
 
 function PaginationButton({ disabled, onClick, icon: Icon, label }: any) {
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      disabled={disabled}
-      onClick={onClick}
-      className="rounded-xl border-border dark:border-border h-10 px-4 bg-background dark:bg-background hover:bg-muted dark:hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-all hover:scale-105 active:scale-95"
-    >
-      <Icon className="h-4 w-4 sm:mr-2" />
-      <span className="hidden sm:inline">{label}</span>
-    </Button>
+    <motion.div whileHover={{ scale: disabled ? 1 : 1.05 }} whileTap={{ scale: disabled ? 1 : 0.95 }}>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        onClick={onClick}
+        className="rounded-2xl border-2 border-border h-11 px-5 bg-background hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-all"
+      >
+        <Icon className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">{label}</span>
+      </Button>
+    </motion.div>
   );
 }
 
@@ -281,7 +307,7 @@ function EmptyRegistryState() {
       <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="h-24 w-24 rounded-full bg-muted/50 dark:bg-muted flex items-center justify-center text-muted-foreground/40 border-2 border-dashed border-border dark:border-border"
+        className="h-24 w-24 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground/40 border-2 border-dashed border-border"
       >
         <Inbox className="h-12 w-12" />
       </motion.div>
@@ -298,11 +324,11 @@ function EmptyRegistryState() {
 function NoticesLoadingState() {
   return (
     <div className="space-y-6">
-      <Card className="stone-card overflow-hidden rounded-[2rem] shadow-lg">
+      <Card className="border-2 border-border overflow-hidden rounded-3xl shadow-xl">
         <CardHeader className="pb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-muted/30 animate-pulse" />
+              <div className="h-14 w-14 rounded-2xl bg-muted/30 animate-pulse" />
               <div className="space-y-2">
                 <div className="h-6 w-40 bg-muted/30 rounded animate-pulse" />
                 <div className="h-4 w-32 bg-muted/30 rounded animate-pulse" />
@@ -313,7 +339,7 @@ function NoticesLoadingState() {
         </CardHeader>
         <CardContent className="p-8 space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-48 w-full rounded-[1.5rem] bg-muted/30 animate-pulse" />
+            <div key={i} className="h-48 w-full rounded-2xl bg-muted/30 animate-pulse" />
           ))}
         </CardContent>
       </Card>

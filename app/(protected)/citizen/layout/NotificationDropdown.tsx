@@ -12,11 +12,14 @@ import {
   Info,
   ArrowRight,
   CheckCheck,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type NotificationType =
   | "complaint_status"
@@ -51,22 +54,47 @@ export default function NotificationDropdown({
   const supabase = createClient();
 
   const getIcon = (type: NotificationType) => {
-    const icons = {
-      complaint_status: (
-        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-      ),
-      bill_generated: (
-        <CreditCard className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-      ),
-      new_notice: (
-        <Megaphone className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-      ),
-      system_announcement: (
-        <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
-      ),
-      general: <Info className="h-5 w-5 text-slate-500 dark:text-slate-400" />,
+    const iconMap = {
+      complaint_status: {
+        icon: FileText,
+        className:
+          "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-950/50",
+      },
+      bill_generated: {
+        icon: CreditCard,
+        className:
+          "text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50",
+      },
+      new_notice: {
+        icon: Megaphone,
+        className:
+          "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/50",
+      },
+      system_announcement: {
+        icon: AlertTriangle,
+        className:
+          "text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-950/50",
+      },
+      general: {
+        icon: Info,
+        className:
+          "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/50",
+      },
     };
-    return icons[type] || icons.general;
+
+    const config = iconMap[type] || iconMap.general;
+    const Icon = config.icon;
+
+    return (
+      <div
+        className={cn(
+          "h-10 w-10 rounded-xl flex items-center justify-center",
+          config.className
+        )}
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+    );
   };
 
   const fetchNotifications = useCallback(async () => {
@@ -95,7 +123,6 @@ export default function NotificationDropdown({
     );
     await supabase.from("notifications").update({ is_read: true }).eq("id", id);
 
-    // Update count based on remaining unread in local state
     const unreadCount = notifications.filter(
       (n) => n.id !== id && !n.is_read
     ).length;
@@ -116,7 +143,6 @@ export default function NotificationDropdown({
 
   return (
     <>
-      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -125,77 +151,101 @@ export default function NotificationDropdown({
         onClick={onClose}
       />
 
-      {/* Dropdown Container */}
       <motion.div
         initial={{ opacity: 0, y: 15, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 15, scale: 0.95 }}
-        className="absolute right-0 top-full mt-4 w-[420px] max-w-[calc(100vw-2rem)] bg-popover text-popover-foreground rounded-2xl shadow-2xl border border-border z-50 overflow-hidden flex flex-col"
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="absolute right-0 top-full mt-4 w-[440px] max-w-[calc(100vw-2rem)] bg-card border-2 border-border rounded-3xl shadow-2xl z-50 overflow-hidden"
       >
-        {/* Header */}
-        <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30">
-          <div>
-            <h3 className="text-lg font-bold flex items-center gap-2">
+        <div className="p-6 border-b-2 border-border flex items-center justify-between bg-gradient-to-br from-muted/30 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
               <Bell className="h-5 w-5 text-primary" />
-              Notifications
-            </h3>
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-foreground">
+                Notifications
+              </h3>
+              <p className="text-xs text-muted-foreground font-semibold">
+                {notifications.filter((n) => !n.is_read).length} unread
+              </p>
+            </div>
           </div>
-          {notifications.some((n) => !n.is_read) && (
-            <button
-              onClick={markAllRead}
-              className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+          <div className="flex items-center gap-2">
+            {notifications.some((n) => !n.is_read) && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={markAllRead}
+                className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-primary/10 transition-all"
+              >
+                <CheckCheck className="h-4 w-4" />
+                Mark all read
+              </motion.button>
+            )}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onClose}
+              className="h-8 w-8 rounded-xl hover:bg-muted flex items-center justify-center transition-all"
             >
-              <CheckCheck className="h-4 w-4" />
-              Mark all read
-            </button>
-          )}
+              <X className="h-4 w-4 text-muted-foreground" />
+            </motion.button>
+          </div>
         </div>
 
-        {/* List */}
-        <div className="max-h-[480px] overflow-y-auto">
+        <ScrollArea className="h-[480px]">
           {loading ? (
-            <div className="p-12 flex flex-col items-center gap-3">
-              <div className="h-8 w-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-              <p className="text-xs text-muted-foreground font-medium">
-                Loading...
+            <div className="p-12 flex flex-col items-center gap-4">
+              <div className="h-10 w-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <p className="text-sm text-muted-foreground font-semibold">
+                Loading notifications...
               </p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-12 text-center">
-              <Bell className="w-10 h-10 text-muted/50 mx-auto mb-3" />
-              <p className="font-semibold text-foreground">No new updates</p>
-              <p className="text-sm text-muted-foreground">
-                We'll let you know when something happens.
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-12 text-center"
+            >
+              <div className="h-16 w-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
+                <Bell className="w-8 h-8 text-muted-foreground/50" />
+              </div>
+              <h4 className="font-black text-lg text-foreground mb-2">
+                No notifications
+              </h4>
+              <p className="text-sm text-muted-foreground font-medium">
+                We'll notify you when something important happens
               </p>
-            </div>
+            </motion.div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y-2 divide-border">
               <AnimatePresence mode="popLayout">
-                {notifications.map((n) => (
+                {notifications.map((n, index) => (
                   <motion.div
                     key={n.id}
                     layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                    onClick={() => !n.is_read && markRead(n.id)}
                     className={cn(
-                      "p-4 transition-colors relative group",
+                      "p-5 transition-all cursor-pointer group relative",
                       !n.is_read
-                        ? "bg-primary/[0.03] dark:bg-primary/[0.05]"
+                        ? "bg-primary/[0.04] dark:bg-primary/[0.06] hover:bg-primary/[0.08] dark:hover:bg-primary/[0.10]"
                         : "hover:bg-muted/50"
                     )}
                   >
                     <div className="flex gap-4">
-                      {/* Icon with Ring */}
-                      <div className="h-10 w-10 rounded-full bg-background border border-border flex items-center justify-center shrink-0 shadow-sm">
-                        {getIcon(n.type)}
-                      </div>
+                      {getIcon(n.type)}
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-1">
+                        <div className="flex justify-between items-start gap-3 mb-2">
                           <h4
                             className={cn(
-                              "text-sm font-bold truncate",
+                              "text-sm font-bold leading-tight",
                               n.is_read
                                 ? "text-muted-foreground"
                                 : "text-foreground"
@@ -204,16 +254,20 @@ export default function NotificationDropdown({
                             {n.title}
                           </h4>
                           {!n.is_read && (
-                            <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0 mt-1"
+                            />
                           )}
                         </div>
 
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2 leading-snug">
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3 leading-relaxed font-medium">
                           {n.message}
                         </p>
 
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-medium text-muted-foreground/70 uppercase italic">
+                          <span className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wide">
                             {formatDistanceToNow(new Date(n.created_at), {
                               addSuffix: true,
                             })}
@@ -222,9 +276,10 @@ export default function NotificationDropdown({
                             <Link
                               href={n.action_url}
                               onClick={onClose}
-                              className="text-xs font-bold text-primary flex items-center gap-1 hover:underline"
+                              className="text-xs font-bold text-primary flex items-center gap-1.5 hover:gap-2 transition-all px-3 py-1.5 rounded-lg hover:bg-primary/10"
                             >
-                              Details <ArrowRight className="h-3 w-3" />
+                              View Details
+                              <ArrowRight className="h-3 w-3" />
                             </Link>
                           )}
                         </div>
@@ -235,16 +290,16 @@ export default function NotificationDropdown({
               </AnimatePresence>
             </div>
           )}
-        </div>
+        </ScrollArea>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-border bg-muted/20">
+        <div className="p-4 border-t-2 border-border bg-gradient-to-br from-muted/20 to-transparent">
           <Link
             href="/citizen/notifications"
             onClick={onClose}
-            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-primary-brand text-white text-sm font-black hover:shadow-lg hover:scale-[1.02] transition-all"
           >
-            View All
+            <Sparkles className="h-4 w-4" />
+            View All Notifications
           </Link>
         </div>
       </motion.div>

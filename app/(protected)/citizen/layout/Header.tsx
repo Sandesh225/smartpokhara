@@ -14,13 +14,13 @@ import {
   Sun,
   Settings,
   Command,
+  Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-// Import your dropdown component here
 import NotificationDropdown from "./NotificationDropdown";
 
 interface HeaderProps {
@@ -88,7 +88,6 @@ export default function Header({
     };
   }, []);
 
-  // Real-time listener
   useEffect(() => {
     const channel = supabase
       .channel("header-notifs")
@@ -118,7 +117,7 @@ export default function Header({
       },
       {
         loading: "Signing out...",
-        success: "Signed out!",
+        success: "Signed out successfully!",
         error: "Error signing out",
       }
     );
@@ -128,87 +127,121 @@ export default function Header({
     const newDark = !isDark;
     setIsDark(newDark);
     document.documentElement.classList.toggle("dark", newDark);
+    localStorage.setItem("theme", newDark ? "dark" : "light");
   };
 
+  if (!mounted) return null;
+
   return (
-    <header className="sticky top-0 z-40 h-20 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
-      <div className="flex h-full items-center justify-between gap-4 px-6 lg:px-10">
-        {/* Search Section */}
-        <div className="flex flex-1 items-center gap-6 max-w-2xl">
-          <button
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="sticky top-0 z-40 h-20 w-full border-b-2 border-border/60 bg-card/80 backdrop-blur-2xl shadow-sm"
+    >
+      <div className="flex h-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+        <div className="flex flex-1 items-center gap-4 sm:gap-6 max-w-2xl">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl border border-border bg-card"
+            className="lg:hidden h-11 w-11 flex items-center justify-center rounded-2xl border-2 border-border bg-background hover:border-primary transition-all shadow-sm"
           >
-            <Menu className="h-5 w-5 text-muted-foreground" />
-          </button>
+            <Menu className="h-5 w-5 text-foreground" />
+          </motion.button>
 
           <div
             className={cn(
-              "hidden sm:flex flex-1 items-center rounded-2xl border-2 transition-all duration-300",
+              "hidden sm:flex flex-1 items-center rounded-2xl border-2 transition-all duration-300 shadow-sm overflow-hidden",
               searchFocused
-                ? "border-primary bg-background ring-4 ring-primary/5"
-                : "border-border bg-muted/20"
+                ? "border-primary bg-background ring-4 ring-primary/10 shadow-lg"
+                : "border-border bg-muted/30 hover:border-border/80"
             )}
           >
             <Search
               className={cn(
-                "ml-4 h-5 w-5 transition-colors",
+                "ml-4 h-5 w-5 transition-colors shrink-0",
                 searchFocused ? "text-primary" : "text-muted-foreground"
               )}
             />
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search services..."
+              placeholder="Search services, complaints, bills..."
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              className="w-full bg-transparent px-3 py-2.5 text-sm outline-none font-medium"
+              className="w-full bg-transparent px-3 py-3 text-sm outline-none font-medium placeholder:text-muted-foreground/60"
             />
-            <kbd className="mr-3 hidden items-center gap-1 rounded border bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground lg:flex">
+            <kbd className="mr-4 hidden items-center gap-1 rounded-lg border-2 border-border bg-background px-2 py-1 text-[10px] font-bold text-muted-foreground lg:flex shadow-sm">
               <Command className="h-3 w-3" />K
             </kbd>
           </div>
         </div>
 
-        {/* Action Section */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          {/* Theme Toggle */}
-          <button
+        <div className="flex items-center gap-2 sm:gap-3">
+          <motion.button
+            whileHover={{ scale: 1.05, rotate: 180 }}
+            whileTap={{ scale: 0.95 }}
             onClick={toggleTheme}
-            className="h-11 w-11 flex items-center justify-center rounded-2xl border border-border bg-card hover:border-primary transition-all"
+            className="h-11 w-11 flex items-center justify-center rounded-2xl border-2 border-border bg-background hover:border-primary transition-all shadow-sm"
           >
-            {isDark ? (
-              <Sun className="h-5 w-5 text-amber-500" />
-            ) : (
-              <Moon className="h-5 w-5 text-primary" />
-            )}
-          </button>
+            <AnimatePresence mode="wait">
+              {isDark ? (
+                <motion.div
+                  key="sun"
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0, rotate: 90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Sun className="h-5 w-5 text-amber-500" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="moon"
+                  initial={{ scale: 0, rotate: 90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0, rotate: -90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Moon className="h-5 w-5 text-primary" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
 
-          {/* Notifications Trigger */}
           <div className="relative" ref={notificationRef}>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setNotificationOpen(!notificationOpen)}
               className={cn(
-                "h-11 w-11 flex items-center justify-center rounded-2xl border transition-all relative",
+                "h-11 w-11 flex items-center justify-center rounded-2xl border-2 transition-all relative shadow-sm",
                 notificationOpen
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:border-primary"
+                  ? "border-primary bg-primary/10 text-primary shadow-lg ring-4 ring-primary/10"
+                  : "border-border bg-background text-muted-foreground hover:border-primary hover:text-primary"
               )}
             >
               <Bell
                 className={cn(
-                  "h-5 w-5",
+                  "h-5 w-5 transition-all",
                   notificationCount > 0 && !notificationOpen && "animate-pulse"
                 )}
               />
-              {notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full bg-destructive text-[10px] font-black text-white flex items-center justify-center ring-4 ring-background shadow-lg">
-                  {notificationCount > 99 ? "99+" : notificationCount}
-                </span>
-              )}
-            </button>
+              <AnimatePresence>
+                {notificationCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-[10px] font-black text-white flex items-center justify-center ring-4 ring-background shadow-lg"
+                  >
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
 
-            {/* Notification Dropdown Component */}
             <AnimatePresence>
               {notificationOpen && (
                 <NotificationDropdown
@@ -220,88 +253,123 @@ export default function Header({
             </AnimatePresence>
           </div>
 
-          <div className="h-8 w-[1px] bg-border/60 mx-1 hidden sm:block" />
+          <div className="h-8 w-[2px] bg-gradient-to-b from-transparent via-border to-transparent mx-1 hidden sm:block" />
 
-          {/* User Profile Trigger */}
           <div className="relative" ref={userMenuRef}>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className={cn(
-                "flex items-center gap-3 rounded-2xl border bg-background/50 px-2 py-1.5 transition-all",
+                "flex items-center gap-2 sm:gap-3 rounded-2xl border-2 bg-background/50 px-2 py-1.5 transition-all shadow-sm",
                 userMenuOpen
-                  ? "border-primary/40 bg-accent"
-                  : "border-border hover:border-muted-foreground/30"
+                  ? "border-primary/60 bg-accent shadow-lg ring-4 ring-primary/5"
+                  : "border-border hover:border-primary/40 hover:bg-muted/50"
               )}
             >
-              <Avatar className="h-9 w-9 border-2 border-background shadow-sm">
+              <Avatar className="h-9 w-9 border-2 border-background shadow-md ring-2 ring-border/50">
                 <AvatarImage
                   src={profilePhotoUrl || ""}
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-primary text-white text-[10px] font-bold">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-sm font-black">
                   {user.displayName?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden sm:flex flex-col items-start leading-tight">
-                <span className="text-xs font-bold text-foreground">
+              <div className="hidden sm:flex flex-col items-start leading-tight min-w-0">
+                <span className="text-sm font-bold text-foreground truncate max-w-[120px]">
                   {user.displayName?.split(" ")[0]}
                 </span>
-                <span className="text-[9px] font-semibold text-muted-foreground/70 uppercase">
-                  Member
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="h-2.5 w-2.5" />
+                  {user.roleName}
                 </span>
               </div>
               <ChevronDown
                 className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform",
+                  "h-4 w-4 text-muted-foreground transition-transform duration-300",
                   userMenuOpen && "rotate-180"
                 )}
               />
-            </button>
+            </motion.button>
 
-            {/* User Menu Dropdown Content */}
             <AnimatePresence>
               {userMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-3 w-64 rounded-[24px] border border-border/50 bg-popover/95 backdrop-blur-2xl shadow-2xl p-2 z-50"
-                >
-                  <div className="p-4 mb-2 bg-muted/40 rounded-2xl">
-                    <p className="text-sm font-black truncate">
-                      {user.displayName}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {user.email}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <Link
-                      href="/citizen/profile"
-                      className="flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-xl transition-all"
-                    >
-                      <User className="h-4 w-4" /> My Profile
-                    </Link>
-                    <Link
-                      href="/citizen/settings"
-                      className="flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-xl transition-all"
-                    >
-                      <Settings className="h-4 w-4" /> Settings
-                    </Link>
-                    <div className="h-[1px] bg-border/40 my-1 mx-2" />
-                    <button
-                      onClick={handleSignOut}
-                      className="flex w-full items-center gap-3 px-3 py-2.5 text-xs font-black text-destructive/80 hover:bg-destructive/10 rounded-xl transition-all"
-                    >
-                      <LogOut className="h-4 w-4" /> Sign Out
-                    </button>
-                  </div>
-                </motion.div>
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute right-0 top-full mt-3 w-72 rounded-3xl border-2 border-border/80 bg-card backdrop-blur-2xl shadow-2xl p-3 z-50"
+                  >
+                    <div className="p-5 mb-3 bg-gradient-to-br from-muted/50 to-muted/30 rounded-2xl border-2 border-border/50">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="h-12 w-12 border-2 border-background shadow-md">
+                          <AvatarImage src={profilePhotoUrl || ""} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white font-black">
+                            {user.displayName?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-black truncate text-foreground">
+                            {user.displayName}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-semibold truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 py-1.5 bg-background/80 rounded-lg border border-border/50">
+                          {user.roleName}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Link
+                        href="/citizen/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-2xl transition-all group"
+                      >
+                        <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                        My Profile
+                      </Link>
+                      <Link
+                        href="/citizen/settings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-2xl transition-all group"
+                      >
+                        <Settings className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
+                        Settings
+                      </Link>
+                      <div className="h-[2px] bg-gradient-to-r from-transparent via-border to-transparent my-2" />
+                      <button
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          handleSignOut();
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm font-black text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-2xl transition-all group"
+                      >
+                        <LogOut className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                </>
               )}
             </AnimatePresence>
           </div>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 
 interface SLACountdownProps {
   deadline: string | Date;
+  createdAt?: string | Date; // Added this to calculate progress correctly
   status?: string;
   variant?: "badge" | "progress";
 }
 
 export function SLACountdown({
   deadline,
+  createdAt,
   status,
   variant = "badge",
 }: SLACountdownProps) {
@@ -23,12 +25,8 @@ export function SLACountdown({
   } | null>(null);
 
   useEffect(() => {
-    // Stop if resolved/completed
-    if (
-      ["resolved", "closed", "completed"].includes(
-        status?.toLowerCase() || ""
-      )
-    ) {
+    // If resolved, show static success state
+    if (["resolved", "closed", "completed"].includes(status?.toLowerCase() || "")) {
       setTimeLeft(null);
       return;
     }
@@ -36,21 +34,18 @@ export function SLACountdown({
     const calculateTime = () => {
       const now = new Date().getTime();
       const due = new Date(deadline).getTime();
-      // Assume a 3-day standard SLA for calculation of "start" if unknown,
-      // or we can just clamp percentage based on remaining time vs generic window.
-      // For accurate progress bars, we'd need 'created_at', but we'll approximate urgency here.
+      const start = createdAt ? new Date(createdAt).getTime() : due - (72 * 60 * 60 * 1000); // Fallback to 72h window if no start date
       
       const diff = due - now;
+      const totalDuration = due - start;
+      const elapsed = now - start;
 
-      // Arbitrary max duration for progress bar context (e.g. 72 hours)
-      // In a real app, pass 'createdAt' prop for accurate progress
-      const totalDuration = 72 * 60 * 60 * 1000; 
-      const elapsed = totalDuration - diff;
+      // Calculate percentage consumed
       let percentage = (elapsed / totalDuration) * 100;
       percentage = Math.max(0, Math.min(100, percentage));
 
       if (diff <= 0) {
-        // Overdue
+        // Overdue logic
         const absDiff = Math.abs(diff);
         const hours = Math.floor(absDiff / (1000 * 60 * 60));
         const days = Math.floor(hours / 24);
@@ -63,11 +58,11 @@ export function SLACountdown({
           str: timeStr,
           urgent: true,
           overdue: true,
-          percentage: 100,
+          percentage: 100, // Bar full red
         };
       }
 
-      // Remaining
+      // Remaining logic
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const days = Math.floor(hours / 24);
@@ -78,68 +73,73 @@ export function SLACountdown({
 
       return {
         str: timeStr,
-        urgent: hours < 4,
+        urgent: hours < 24, // Urgent if less than 24h
         overdue: false,
         percentage,
       };
     };
 
+    // Initial calculation
     setTimeLeft(calculateTime());
+    
+    // Update every minute
     const timer = setInterval(() => setTimeLeft(calculateTime()), 60000);
 
     return () => clearInterval(timer);
-  }, [deadline, status]);
+  }, [deadline, createdAt, status]);
 
+  // RENDER: Completed State
   if (["resolved", "closed", "completed"].includes(status?.toLowerCase() || "")) {
     if (variant === "progress") {
       return (
         <div className="w-full">
           <div className="flex justify-between text-xs mb-1">
-            <span className="font-medium text-green-700">Completed</span>
-            <span className="text-green-600">100%</span>
+            <span className="font-medium text-emerald-700 dark:text-emerald-400">Completed</span>
+            <span className="text-emerald-600 dark:text-emerald-500">100%</span>
           </div>
-          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-green-500 w-full" />
+          <div className="h-1.5 w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 w-full" />
           </div>
         </div>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-md border border-green-200">
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-500/20 uppercase tracking-wide">
         <CheckCircle2 className="h-3 w-3" />
         SLA Met
       </span>
     );
   }
 
+  // RENDER: Loading State
   if (!timeLeft)
-    return <span className="text-xs text-gray-400 animate-pulse">Calculating...</span>;
+    return <span className="text-[10px] font-mono text-muted-foreground animate-pulse">CALC_SLA...</span>;
 
-  // Progress Bar Variant
+  // RENDER: Progress Bar Variant
   if (variant === "progress") {
     return (
       <div className="w-full">
-        <div className="flex justify-between text-xs mb-1.5">
+        <div className="flex justify-between items-end mb-1.5">
           <span
             className={cn(
-              "font-medium",
+              "text-xs font-bold font-mono",
               timeLeft.overdue
-                ? "text-red-700"
+                ? "text-red-600 dark:text-red-400"
                 : timeLeft.urgent
-                ? "text-amber-700"
-                : "text-gray-700"
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-foreground"
             )}
           >
             {timeLeft.str}
           </span>
-          <span className="text-gray-500">Deadline</span>
+          <span className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">Remaining</span>
         </div>
-        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-1.5 w-full bg-muted dark:bg-muted/50 rounded-full overflow-hidden">
           <div
             className={cn(
-              "h-full transition-all duration-500",
+              "h-full transition-all duration-500 ease-out rounded-full",
               timeLeft.overdue
-                ? "bg-red-500"
+                ? "bg-red-500 animate-pulse"
                 : timeLeft.urgent
                 ? "bg-amber-500"
                 : "bg-blue-500"
@@ -151,23 +151,23 @@ export function SLACountdown({
     );
   }
 
-  // Badge Variant (Default)
+  // RENDER: Badge Variant (Default)
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all shadow-sm border",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wide transition-all shadow-sm border",
         timeLeft.overdue
-          ? "bg-red-50 text-red-700 border-red-200 animate-pulse"
+          ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50 animate-pulse"
           : timeLeft.urgent
-          ? "bg-amber-50 text-amber-700 border-amber-200"
-          : "bg-blue-50 text-blue-700 border-blue-200"
+          ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/50"
+          : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/50"
       )}
       title={`Deadline: ${new Date(deadline).toLocaleString()}`}
     >
       {timeLeft.overdue ? (
-        <AlertOctagon className="h-3.5 w-3.5" />
+        <AlertOctagon className="h-3 w-3" />
       ) : (
-        <Timer className="h-3.5 w-3.5" />
+        <Timer className="h-3 w-3" />
       )}
       {timeLeft.str}
     </div>
