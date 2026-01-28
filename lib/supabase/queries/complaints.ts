@@ -254,9 +254,10 @@ export interface SubmitComplaintRequest {
   subcategory_id?: string | null;
   ward_id: string;
   location_point?: {
-    type: 'Point';
-    coordinates: [number, number];
+    type: "Point";
+    coordinates: [number, number]; // [Longitude, Latitude]
   } | null;
+
   address_text?: string | null;
   landmark?: string | null;
   priority?: ComplaintPriority;

@@ -96,25 +96,22 @@ export default function ComplaintForm({
 
   const handleFormSubmit = async () => {
     const isValid = await methods.trigger();
-    if (!isValid) {
-      toast.error("Please complete all required fields");
-      return;
-    }
+    if (!isValid) return;
 
     const data = methods.getValues();
-    setIsSubmitting(true);
-    const submitToast = toast.loading("Submitting complaint...");
+
+    // DEBUG: Check the console to verify coordinates before sending
+    if (data.location_point) {
+      console.log("📍 Sending GPS:", data.location_point.coordinates);
+    }
 
     try {
+      // Pass raw data; the Service layer handles the API logic
       await onSubmit({ ...data, source: "web" }, attachments);
-      toast.success("Submitted successfully!", { id: submitToast });
-    } catch (e: any) {
-      toast.error(e.message || "Submission failed", { id: submitToast });
-    } finally {
-      setIsSubmitting(false);
+    } catch (e) {
+      // Error handling
     }
   };
-
   return (
     <FormProvider {...methods}>
       <div className="space-y-6">

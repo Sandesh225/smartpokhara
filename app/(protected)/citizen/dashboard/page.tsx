@@ -7,24 +7,25 @@ import { toast } from "sonner";
 import {
   RefreshCw,
   Activity,
-  ChevronRight,
-  TrendingUp,
-  FileText,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Bell,
-  CreditCard,
-  Sparkles,
   Loader2,
   ShieldCheck,
   MapPin,
   Calendar,
+  Sparkles,
+  TrendingUp,
+  AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import DashboardStats from "./_components/DashboardStats";
+import QuickActions from "./_components/QuickActions";
+import RecentComplaints from "./_components/RecentComplaints";
+import RecentNotices from "./_components/RecentNotices";
+import PendingBills from "./_components/PendingBills";
+
 
 interface DashboardState {
   profile: {
@@ -64,10 +65,6 @@ export default function CitizenDashboard() {
     error: null,
   });
 
-  /* ---------------------------------- */
-  /* Lifecycle                           */
-  /* ---------------------------------- */
-
   useEffect(() => setIsMounted(true), []);
 
   useEffect(() => {
@@ -82,9 +79,6 @@ export default function CitizenDashboard() {
     return "Good Evening";
   }, [currentTime]);
 
-  /* ---------------------------------- */
-  /* Fetch Dashboard                     */
-  /* ---------------------------------- */
   const fetchDashboardState = useCallback(
     async (isRefresh = false) => {
       if (isRefresh) setIsRefreshing(true);
@@ -99,7 +93,6 @@ export default function CitizenDashboard() {
           return;
         }
 
-        /* ---------------- PROFILE FIRST ---------------- */
         const { data: profile, error: profileError } = await supabase
           .from("user_profiles")
           .select("full_name, ward_id, ward:wards(ward_number, name)")
@@ -110,24 +103,20 @@ export default function CitizenDashboard() {
 
         const wardId = profile?.ward_id ?? null;
 
-        /* ---------------- PARALLEL REST ---------------- */
         const [statsRes, complaintsRes, billsRes, noticesRes] =
           await Promise.all([
             supabase.rpc("rpc_get_dashboard_stats"),
-
             supabase
               .from("complaints")
               .select("*")
               .eq("citizen_id", user.id)
               .order("submitted_at", { ascending: false })
               .limit(5),
-
             supabase
               .from("bills")
               .select("*")
               .eq("citizen_id", user.id)
               .eq("status", "pending"),
-
             wardId
               ? supabase
                   .from("notices")
@@ -170,7 +159,7 @@ export default function CitizenDashboard() {
           error: null,
         });
 
-        if (isRefresh) toast.success("Dashboard refreshed");
+        if (isRefresh) toast.success("Dashboard refreshed successfully");
       } catch (err: any) {
         console.error("Dashboard load error:", err);
         toast.error("Failed to load dashboard");
@@ -190,253 +179,217 @@ export default function CitizenDashboard() {
     fetchDashboardState();
   }, [fetchDashboardState]);
 
-  /* ---------------------------------- */
-  /* Loading State                       */
-  /* ---------------------------------- */
-
   if (!isMounted || dashboardData.loading) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="w-14 h-14 animate-spin text-primary" />
-        <p className="font-bold text-lg">Loading Citizen Dashboard</p>
-        <Badge variant="outline" className="tracking-widest uppercase text-xs">
-          Pokhara Citizen Portal
-        </Badge>
+      <div className="min-h-[80vh] flex flex-col items-center justify-center gap-6 animate-fade-in">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative"
+        >
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+          <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-2xl">
+            <Loader2 className="w-10 h-10 animate-spin text-white" strokeWidth={2.5} />
+          </div>
+        </motion.div>
+        <div className="text-center space-y-3">
+          <h2 className="font-black text-2xl text-foreground tracking-tight">
+            Loading Dashboard
+          </h2>
+          <p className="text-sm text-muted-foreground font-semibold">
+            Preparing your personalized view
+          </p>
+          <Badge variant="outline" className="tracking-widest uppercase text-xs font-bold px-4 py-2 border-2">
+            <ShieldCheck className="w-3 h-3 mr-2" />
+            Pokhara Citizen Portal
+          </Badge>
+        </div>
       </div>
     );
   }
 
   const activeCount = dashboardData.stats.open + dashboardData.stats.inProgress;
-
-  /* ---------------------------------- */
-  /* Render                             */
-  /* ---------------------------------- */
+  const totalPendingAmount = dashboardData.bills.reduce((sum, bill) => sum + (bill.total_amount || 0), 0);
 
   return (
-    <div className="space-y-6 pb-12 px-4 animate-in fade-in duration-700">
-      {/* HEADER */}
-      <header className="border-b pb-6 pt-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-primary" />
-              <h1 className="text-3xl font-black tracking-tight">
-                {greeting}, {dashboardData.profile.name}
-              </h1>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background relative">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgwLDAsMCwwLjAyKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
+      
+      <div className="relative z-10 container-gov space-y-8 pb-16 pt-6 animate-fade-in">
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-card/50 backdrop-blur-sm border-2 border-border rounded-2xl p-6 sm:p-8 shadow-lg"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                  className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-xl"
+                >
+                  <ShieldCheck className="w-7 h-7 text-white" strokeWidth={2.5} />
+                </motion.div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                    {greeting}, {dashboardData.profile.name}
+                  </h1>
+                  <p className="text-sm text-muted-foreground font-semibold mt-1">
+                    Welcome to your citizen dashboard
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="outline">
-                <MapPin className="w-3 h-3 mr-1" />
-                {dashboardData.profile.wardName
-                  ? `${dashboardData.profile.wardName} · Ward ${dashboardData.profile.wardNumber}`
-                  : "Pokhara Metro"}
-              </Badge>
-              <Badge variant="outline">
-                <Calendar className="w-3 h-3 mr-1" />
-                {format(currentTime, "EEEE, MMM do")}
-              </Badge>
-            </div>
-          </div>
-
-          <button
-            onClick={() => fetchDashboardState(true)}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 px-4 py-2 border rounded-xl bg-card hover:bg-accent"
-          >
-            <RefreshCw
-              className={cn("w-4 h-4", isRefreshing && "animate-spin")}
-            />
-            Refresh
-          </button>
-        </div>
-      </header>
-
-      {/* ACTIVE ALERT */}
-      {activeCount > 0 && (
-        <Card className="border-2 border-primary/40 bg-primary/5">
-          <CardContent className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-4">
-              <Activity className="w-8 h-8 text-primary" />
-              <div>
-                <p className="font-black text-lg">Active Requests</p>
-                <p className="text-muted-foreground">
-                  {activeCount} request{activeCount !== 1 && "s"} in progress
-                </p>
+              <div className="flex flex-wrap gap-3">
+                <Badge variant="outline" className="px-4 py-2 text-sm font-bold border-2">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {dashboardData.profile.wardName
+                    ? `${dashboardData.profile.wardName} · Ward ${dashboardData.profile.wardNumber}`
+                    : "Pokhara Metropolitan"}
+                </Badge>
+                <Badge variant="outline" className="px-4 py-2 text-sm font-bold border-2">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  {format(currentTime, "EEEE, MMMM do, yyyy")}
+                </Badge>
+                <Badge variant="outline" className="px-4 py-2 text-sm font-mono font-bold border-2 tabular-nums">
+                  {format(currentTime, "hh:mm:ss a")}
+                </Badge>
               </div>
             </div>
-            <button
-              onClick={() => router.push("/citizen/complaints")}
-              className="px-5 py-3 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2"
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => fetchDashboardState(true)}
+              disabled={isRefreshing}
+              className="flex items-center gap-3 px-6 py-3 border-2 border-border rounded-xl bg-card hover:bg-accent hover:border-primary/50 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-bold"
             >
-              Track
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </CardContent>
-        </Card>
-      )}
+              <RefreshCw
+                className={cn("w-5 h-5", isRefreshing && "animate-spin")}
+              />
+              <span className="hidden sm:inline">Refresh Dashboard</span>
+              <span className="sm:hidden">Refresh</span>
+            </motion.button>
+          </div>
+        </motion.header>
 
-      {/* STATS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Total Complaints",
-            value: dashboardData.stats.total,
-            icon: FileText,
-          },
-          { label: "Open", value: dashboardData.stats.open, icon: AlertCircle },
-          {
-            label: "In Progress",
-            value: dashboardData.stats.inProgress,
-            icon: Clock,
-          },
-          {
-            label: "Resolved",
-            value: dashboardData.stats.resolved,
-            icon: CheckCircle2,
-          },
-        ].map((s, i) => (
-          <Card key={i} className="hover:shadow-2xl transition">
-            <CardContent className="p-5">
-              <s.icon className="w-5 h-5 text-primary mb-2" />
-              <p className="text-sm text-muted-foreground">{s.label}</p>
-              <p className="text-3xl font-black">{s.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LEFT */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* QUICK ACTIONS */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" /> Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid sm:grid-cols-3 gap-4">
-              {[
-                {
-                  label: "File Complaint",
-                  href: "/citizen/complaints/new",
-                  icon: FileText,
-                },
-                {
-                  label: "Pay Bills",
-                  href: "/citizen/payments",
-                  icon: CreditCard,
-                },
-                {
-                  label: "Request Service",
-                  href: "/citizen/services",
-                  icon: Sparkles,
-                },
-              ].map((a, i) => (
-                <button
-                  key={i}
-                  onClick={() => router.push(a.href)}
-                  className="p-6 border rounded-xl hover:bg-accent flex flex-col items-center gap-3"
-                >
-                  <a.icon className="w-6 h-6 text-primary" />
-                  <span className="font-bold">{a.label}</span>
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* RECENT COMPLAINTS */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Complaints</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {dashboardData.complaints.length > 0 ? (
-                dashboardData.complaints.map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => router.push(`/citizen/complaints/${c.id}`)}
-                    className="p-4 border rounded-lg hover:bg-accent cursor-pointer"
-                  >
-                    <p className="font-bold">
-                      {c.title || "Untitled Complaint"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(c.submitted_at), "MMM dd, yyyy")}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-muted-foreground py-6">
-                  No complaints yet
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* RIGHT */}
-        <div className="space-y-6">
-          {/* NOTICES */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5" /> Ward Notices
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {dashboardData.notices.length > 0 ? (
-                dashboardData.notices.map((n) => (
-                  <div
-                    key={n.id}
-                    onClick={() => router.push(`/citizen/notices/${n.id}`)}
-                    className="p-3 border rounded-lg hover:bg-accent cursor-pointer"
-                  >
-                    <p className="font-bold text-sm">{n.title}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-muted-foreground py-6">
-                  No notices
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* BILLS */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5" /> Pending Bills
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dashboardData.bills.length > 0 ? (
-                <>
-                  {dashboardData.bills.map((b) => (
-                    <div key={b.id} className="flex justify-between py-2">
-                      <span>{b.description || "Utility Bill"}</span>
-                      <span className="font-bold text-warning-amber">
-                        NPR {b.amount?.toLocaleString()}
-                      </span>
+        <AnimatePresence>
+          {activeCount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: "auto", marginTop: "2rem" }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-lg overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-5">
+                      <motion.div
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="h-14 w-14 rounded-2xl bg-primary/20 flex items-center justify-center"
+                      >
+                        <Activity className="w-7 h-7 text-primary" strokeWidth={2.5} />
+                      </motion.div>
+                      <div>
+                        <h3 className="font-black text-xl text-foreground mb-1">
+                          Active Requests
+                        </h3>
+                        <p className="text-sm text-muted-foreground font-semibold">
+                          {activeCount} {activeCount === 1 ? "request" : "requests"} currently in progress
+                        </p>
+                      </div>
                     </div>
-                  ))}
-                  <button
-                    onClick={() => router.push("/citizen/payments")}
-                    className="mt-4 w-full py-3 bg-warning-amber text-white font-bold rounded-xl"
-                  >
-                    Pay Now
-                  </button>
-                </>
-              ) : (
-                <p className="text-center text-muted-foreground py-6">
-                  All bills paid 🎉
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => router.push("/citizen/complaints")}
+                      className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+                    >
+                      Track Progress
+                      <TrendingUp className="w-4 h-4" />
+                    </motion.button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <DashboardStats
+            totalComplaints={dashboardData.stats.total}
+            openCount={dashboardData.stats.open}
+            inProgressCount={dashboardData.stats.inProgress}
+            resolvedCount={dashboardData.stats.resolved}
+            onStatClick={(status) => {
+              router.push(`/citizen/complaints?status=${status}`);
+            }}
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Sparkles className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-black text-foreground">Quick Actions</h2>
+            </div>
+            <p className="text-sm text-muted-foreground font-semibold">
+              Access frequently used services instantly
+            </p>
+          </div>
+          <QuickActions
+            complaintsCount={dashboardData.stats.total}
+            pendingBillsCount={dashboardData.bills.length}
+          />
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="lg:col-span-2"
+          >
+            <RecentComplaints complaints={dashboardData.complaints} />
+          </motion.div>
+
+          <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <RecentNotices
+                notices={dashboardData.notices}
+                wardNumber={dashboardData.profile.wardNumber}
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              <PendingBills
+                bills={dashboardData.bills}
+                totalPendingAmount={totalPendingAmount}
+              />
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>

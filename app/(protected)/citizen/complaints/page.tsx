@@ -212,12 +212,10 @@ export default function ComplaintsPage() {
   // --- Render ---
   return (
     <div className="min-h-screen bg-muted/10 pb-20">
-      
       {/* ── HEADER SECTION ── */}
       <div className="border-b bg-card/50 backdrop-blur-xl top-0 z-30">
         <div className="container mx-auto max-w-7xl px-4 py-6 md:py-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            
             {/* Title Area */}
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -227,13 +225,14 @@ export default function ComplaintsPage() {
                 </h1>
               </div>
               <p className="text-muted-foreground font-medium max-w-lg">
-                Manage your filed reports, track municipal responses, and view case history.
+                Manage your filed reports, track municipal responses, and view
+                case history.
               </p>
             </div>
 
             {/* Action Area */}
             <div className="flex items-center gap-3">
-               <Button
+              <Button
                 variant="outline"
                 onClick={() => fetchData(true)}
                 disabled={isRefreshing}
@@ -257,7 +256,6 @@ export default function ComplaintsPage() {
       </div>
 
       <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
-        
         {/* ── STATS GRID ── */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <RegistryStat
@@ -296,11 +294,9 @@ export default function ComplaintsPage() {
 
         {/* ── MAIN CONTENT CARD ── */}
         <Card className="overflow-hidden border-none shadow-xl rounded-2xl bg-card">
-          
           {/* Toolbar */}
           <div className="border-b bg-muted/30 p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              
               {/* Search */}
               <div className="relative flex-1 md:max-w-md">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -314,13 +310,20 @@ export default function ComplaintsPage() {
 
               {/* Filters / Meta */}
               <div className="flex items-center gap-3">
-                 <Badge variant="outline" className="h-10 px-4 rounded-lg border-2 font-bold text-muted-foreground bg-background">
-                    <Wifi className="w-3 h-3 mr-2 text-green-500" />
-                    Live Database
-                 </Badge>
-                 <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-2">
-                    <Filter className="w-4 h-4" />
-                 </Button>
+                <Badge
+                  variant="outline"
+                  className="h-10 px-4 rounded-lg border-2 font-bold text-muted-foreground bg-background"
+                >
+                  <Wifi className="w-3 h-3 mr-2 text-green-500" />
+                  Live Database
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-12 w-12 rounded-xl border-2"
+                >
+                  <Filter className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
@@ -329,34 +332,44 @@ export default function ComplaintsPage() {
           <CardContent className="p-0">
             <AnimatePresence mode="wait">
               {isLoading ? (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="flex h-[400px] flex-col items-center justify-center gap-4"
                 >
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
-                  <p className="font-bold text-muted-foreground animate-pulse">Retrieving records...</p>
+                  <p className="font-bold text-muted-foreground animate-pulse">
+                    Retrieving records...
+                  </p>
                 </motion.div>
               ) : complaints.length === 0 ? (
-                <motion.div 
-                   initial={{ opacity: 0, scale: 0.95 }}
-                   animate={{ opacity: 1, scale: 1 }}
-                   className="flex h-[400px] flex-col items-center justify-center gap-6 text-center"
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex h-[400px] flex-col items-center justify-center gap-6 text-center"
                 >
                   <div className="rounded-full bg-muted p-8">
                     <Inbox className="h-12 w-12 text-muted-foreground/50" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-black text-foreground">No Complaints Found</h3>
+                    <h3 className="text-xl font-black text-foreground">
+                      No Complaints Found
+                    </h3>
                     <p className="text-muted-foreground">
-                      {search ? "Try adjusting your search filters." : "You haven't filed any complaints yet."}
+                      {search
+                        ? "Try adjusting your search filters."
+                        : "You haven't filed any complaints yet."}
                     </p>
                   </div>
                   {search && (
-                     <Button variant="link" onClick={() => handleSearch("")} className="text-primary font-bold">
-                        Clear Search
-                     </Button>
+                    <Button
+                      variant="link"
+                      onClick={() => handleSearch("")}
+                      className="text-primary font-bold"
+                    >
+                      Clear Search
+                    </Button>
                   )}
                 </motion.div>
               ) : (
@@ -364,11 +377,21 @@ export default function ComplaintsPage() {
                   <Table>
                     <TableHeader className="bg-muted/50">
                       <TableRow className="border-b border-border hover:bg-transparent">
-                        <TableHead className="w-[120px] pl-6 font-bold text-foreground">Ticket ID</TableHead>
-                        <TableHead className="font-bold text-foreground">Subject</TableHead>
-                        <TableHead className="hidden font-bold text-foreground md:table-cell">Location</TableHead>
-                        <TableHead className="hidden font-bold text-foreground md:table-cell">Submitted</TableHead>
-                        <TableHead className="font-bold text-foreground">Status</TableHead>
+                        <TableHead className="w-[120px] pl-6 font-bold text-foreground">
+                          Ticket ID
+                        </TableHead>
+                        <TableHead className="font-bold text-foreground">
+                          Subject
+                        </TableHead>
+                        <TableHead className="hidden font-bold text-foreground md:table-cell">
+                          Location
+                        </TableHead>
+                        <TableHead className="hidden font-bold text-foreground md:table-cell">
+                          Submitted
+                        </TableHead>
+                        <TableHead className="font-bold text-foreground">
+                          Status
+                        </TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -379,7 +402,9 @@ export default function ComplaintsPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.05 }}
-                          onClick={() => router.push(`/citizen/complaints/${c.id}`)}
+                          onClick={() =>
+                            router.push(`/citizen/complaints/${c.id}`)
+                          }
                           className="cursor-pointer border-b border-border/50 transition-colors hover:bg-muted/40 group"
                         >
                           <TableCell className="pl-6 font-mono text-xs font-bold text-muted-foreground group-hover:text-primary">
@@ -390,15 +415,19 @@ export default function ComplaintsPage() {
                               <p className="font-bold text-foreground group-hover:text-primary transition-colors">
                                 {c.title}
                               </p>
-                              <Badge variant="secondary" className="bg-muted text-[10px] text-muted-foreground hover:bg-muted">
-                                {c.category}
+                              <Badge variant="secondary" className="...">
+                                {typeof c.category === "object"
+                                  ? c.category.name
+                                  : c.category}
                               </Badge>
                             </div>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
                             <div className="flex items-center text-sm text-muted-foreground">
-                                <MapPin className="mr-1.5 h-3.5 w-3.5 text-muted-foreground/70" />
-                                {c.ward ? `Ward ${c.ward.ward_number}` : "General"}
+                              <MapPin className="mr-1.5 h-3.5 w-3.5 text-muted-foreground/70" />
+                              {c.ward
+                                ? `Ward ${c.ward.ward_number}`
+                                : "General"}
                             </div>
                           </TableCell>
                           <TableCell className="hidden text-sm font-medium text-muted-foreground md:table-cell">
@@ -410,15 +439,27 @@ export default function ComplaintsPage() {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary">
+                                <Button
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+                                >
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 rounded-xl border-2 shadow-xl">
+                              <DropdownMenuContent
+                                align="end"
+                                className="w-48 rounded-xl border-2 shadow-xl"
+                              >
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => router.push(`/citizen/complaints/${c.id}`)} className="font-medium cursor-pointer">
-                                  <FileText className="mr-2 h-4 w-4" /> View Details
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    router.push(`/citizen/complaints/${c.id}`)
+                                  }
+                                  className="font-medium cursor-pointer"
+                                >
+                                  <FileText className="mr-2 h-4 w-4" /> View
+                                  Details
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="font-medium cursor-pointer">
                                   <Download className="mr-2 h-4 w-4" /> Receipt
