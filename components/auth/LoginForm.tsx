@@ -11,6 +11,7 @@ import {
   Lock,
   ArrowRight,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -33,6 +34,7 @@ export function LoginForm() {
 
   const supabase = createClient();
 
+  // Email validation
   useEffect(() => {
     if (email && !emailFocused) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,6 +46,7 @@ export function LoginForm() {
     }
   }, [email, emailFocused]);
 
+  // Password validation
   useEffect(() => {
     if (password && !passwordFocused && password.length > 0) {
       if (password.length < 6) {
@@ -120,14 +123,16 @@ export function LoginForm() {
       <div className="space-y-2">
         <label
           htmlFor="email"
-          className="block text-sm font-semibold text-foreground"
+          className="block text-sm font-semibold text-foreground dark:text-foreground/95"
         >
           Email Address
         </label>
         <div className="relative group">
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
-              emailFocused || email ? "text-primary" : "text-muted-foreground"
+              emailFocused || email
+                ? "text-primary dark:text-primary/90"
+                : "text-muted-foreground dark:text-muted-foreground/80"
             }`}
           >
             <Mail className="h-5 w-5" />
@@ -141,22 +146,25 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             onFocus={() => setEmailFocused(true)}
             onBlur={() => setEmailFocused(false)}
-            className={`w-full pl-12 pr-4 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
+            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
               emailError && !emailFocused
-                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/10"
+                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
                 : email && !emailError
-                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/10"
+                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
+                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
             }`}
             placeholder="name@example.com"
           />
           {email && !emailError && !emailFocused && (
-            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
+            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary dark:text-secondary/90" />
+          )}
+          {emailError && !emailFocused && (
+            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500 dark:text-red-400" />
           )}
         </div>
-        {emailError && (
-          <p className="text-xs text-destructive ml-1 flex items-center gap-1">
-            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
+        {emailError && !emailFocused && (
+          <p className="text-xs text-red-500 dark:text-red-400 ml-1 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+            <span className="inline-block w-1 h-1 rounded-full bg-red-500 dark:bg-red-400" />
             {emailError}
           </p>
         )}
@@ -167,13 +175,13 @@ export function LoginForm() {
         <div className="flex justify-between items-center">
           <label
             htmlFor="password"
-            className="block text-sm font-semibold text-foreground"
+            className="block text-sm font-semibold text-foreground dark:text-foreground/95"
           >
             Password
           </label>
           <Link
             href="/forgot-password"
-            className="text-xs font-medium text-primary hover:text-secondary transition-colors hover:underline"
+            className="text-xs font-medium text-primary dark:text-primary/90 hover:text-secondary dark:hover:text-secondary/90 transition-colors hover:underline"
           >
             Forgot password?
           </Link>
@@ -182,8 +190,8 @@ export function LoginForm() {
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
               passwordFocused || password
-                ? "text-primary"
-                : "text-muted-foreground"
+                ? "text-primary dark:text-primary/90"
+                : "text-muted-foreground dark:text-muted-foreground/80"
             }`}
           >
             <Lock className="h-5 w-5" />
@@ -197,19 +205,19 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             onFocus={() => setPasswordFocused(true)}
             onBlur={() => setPasswordFocused(false)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
+            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
               passwordError && !passwordFocused
-                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/10"
+                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
                 : password && !passwordError
-                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/10"
+                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
+                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
             }`}
             placeholder="Enter your password"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-accent"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground dark:text-muted-foreground/80 hover:text-primary dark:hover:text-primary/90 transition-colors rounded-lg hover:bg-accent dark:hover:bg-accent/80"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
@@ -219,39 +227,36 @@ export function LoginForm() {
             )}
           </button>
         </div>
-        {passwordError && (
-          <p className="text-xs text-destructive ml-1 flex items-center gap-1">
-            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
+        {passwordError && !passwordFocused && (
+          <p className="text-xs text-red-500 dark:text-red-400 ml-1 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+            <span className="inline-block w-1 h-1 rounded-full bg-red-500 dark:bg-red-400" />
             {passwordError}
           </p>
         )}
       </div>
 
       {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={loading || !isFormValid}
-        className="relative w-full group overflow-hidden rounded-xl bg-primary hover:bg-secondary transition-all duration-300 hover:shadow-xl hover:shadow-primary/25 dark:hover:shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.98]"
-      >
-        <div className="relative flex items-center justify-center gap-2 px-6 py-3.5 text-primary-foreground font-semibold">
-          {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <>
-              <span>Sign In</span>
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </>
-          )}
-        </div>
-      </button>
+        <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-primary dark:bg-primary/90 hover:bg-primary/90 dark:hover:bg-primary py-3.5 text-primary-foreground font-semibold transition-all active:scale-[0.98] shadow-lg shadow-primary/20 dark:shadow-primary/30 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-lg mt-2"
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  Sign in <ArrowRight className="h-4 w-4" />
+                </span>
+              )}
+            </button>
 
       {/* Divider */}
       <div className="relative py-4">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
+          <div className="w-full border-t border-border dark:border-border/50" />
         </div>
         <div className="relative flex justify-center">
-          <span className="px-4 text-sm font-medium text-muted-foreground bg-background dark:bg-[rgb(15,20,25)]">
+          <span className="px-4 text-sm font-medium text-muted-foreground dark:text-muted-foreground/80 bg-background dark:bg-background">
             New to Smart Pokhara?
           </span>
         </div>
@@ -260,7 +265,7 @@ export function LoginForm() {
       {/* Register Link */}
       <Link
         href="/register"
-        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border hover:border-primary bg-background dark:bg-card text-foreground font-semibold hover:bg-accent transition-all active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border dark:border-border/50 hover:border-primary dark:hover:border-primary/80 bg-background dark:bg-card text-foreground dark:text-foreground/95 font-semibold hover:bg-accent dark:hover:bg-accent/80 transition-all active:scale-[0.98]"
       >
         Create an account
         <ArrowRight className="h-5 w-5" />
