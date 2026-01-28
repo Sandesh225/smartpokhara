@@ -217,9 +217,9 @@ export default function AdminAnalyticsPage() {
     <div className="container mx-auto py-8 max-w-7xl space-y-8 px-4 sm:px-6">
       {/* Header */}
       <div className="space-y-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.back()}
+        <Button
+          variant="ghost"
+          onClick={() => router.push(`/admin/participatory-budgeting/${cycleId}`)}
           className="pl-0 hover:pl-2 transition-all duration-300"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Control Center
@@ -235,15 +235,11 @@ export default function AdminAnalyticsPage() {
                 <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   Analytics & Monitoring
                 </h1>
-                <p className="text-muted-foreground mt-1">
-                  {cycle.title}
-                </p>
+                <p className="text-muted-foreground mt-1">{cycle.title}</p>
               </div>
             </div>
 
-            <Button 
-              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md"
-            >
+            <Button className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
               <Download className="w-4 h-4 mr-2" />
               Export Report
             </Button>
@@ -268,7 +264,10 @@ export default function AdminAnalyticsPage() {
               {proposalStats.total}
             </p>
             <p className="text-xs text-blue-600 dark:text-blue-500 mt-2">
-              Avg cost: NPR {proposalStats.averageCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              Avg cost: NPR{" "}
+              {proposalStats.averageCost.toLocaleString(undefined, {
+                maximumFractionDigits: 0,
+              })}
             </p>
           </CardContent>
         </Card>
@@ -328,7 +327,8 @@ export default function AdminAnalyticsPage() {
               {(proposalStats.totalEstimatedCost / 10000000).toFixed(1)}Cr
             </p>
             <p className="text-xs text-orange-600 dark:text-orange-500 mt-2">
-              Technical: {(proposalStats.totalTechnicalCost / 10000000).toFixed(1)}Cr
+              Technical:{" "}
+              {(proposalStats.totalTechnicalCost / 10000000).toFixed(1)}Cr
             </p>
           </CardContent>
         </Card>
@@ -337,28 +337,28 @@ export default function AdminAnalyticsPage() {
       {/* Main Content Tabs */}
       <Tabs defaultValue="proposals" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 max-w-3xl bg-muted/50 dark:bg-muted/30 p-1 h-12 rounded-xl">
-          <TabsTrigger 
+          <TabsTrigger
             value="proposals"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
             <FileText className="w-4 h-4 mr-2" />
             Proposals
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="votes"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
             <ThumbsUp className="w-4 h-4 mr-2" />
             Votes
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="distribution"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
             <PieChart className="w-4 h-4 mr-2" />
             Distribution
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="timeline"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
@@ -378,14 +378,15 @@ export default function AdminAnalyticsPage() {
                     All Proposals
                   </CardTitle>
                   <CardDescription>
-                    Showing {filteredProposals.length} of {proposals.length} proposals
+                    Showing {filteredProposals.length} of {proposals.length}{" "}
+                    proposals
                   </CardDescription>
                 </div>
 
                 <div className="flex gap-2 flex-wrap w-full md:w-auto">
                   <div className="relative flex-1 md:flex-none md:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input 
+                    <Input
                       placeholder="Search proposals..."
                       className="pl-9"
                       value={searchTerm}
@@ -401,13 +402,18 @@ export default function AdminAnalyticsPage() {
                       <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="submitted">Submitted</SelectItem>
                       <SelectItem value="under_review">Under Review</SelectItem>
-                      <SelectItem value="approved_for_voting">Approved</SelectItem>
+                      <SelectItem value="approved_for_voting">
+                        Approved
+                      </SelectItem>
                       <SelectItem value="rejected">Rejected</SelectItem>
                       <SelectItem value="selected">Selected</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                  >
                     <SelectTrigger className="w-[160px]">
                       <SelectValue placeholder="Category" />
                     </SelectTrigger>
@@ -434,15 +440,24 @@ export default function AdminAnalyticsPage() {
                       <TableHead className="font-bold">Category</TableHead>
                       <TableHead className="font-bold">Department</TableHead>
                       <TableHead className="font-bold">Status</TableHead>
-                      <TableHead className="font-bold text-right">Cost</TableHead>
-                      <TableHead className="font-bold text-right">Votes</TableHead>
+                      <TableHead className="font-bold text-right">
+                        Cost
+                      </TableHead>
+                      <TableHead className="font-bold text-right">
+                        Votes
+                      </TableHead>
                       <TableHead className="font-bold">Submitted</TableHead>
-                      <TableHead className="font-bold text-right">Actions</TableHead>
+                      <TableHead className="font-bold text-right">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredProposals.map((proposal) => (
-                      <TableRow key={proposal.id} className="hover:bg-muted/50 transition-colors">
+                      <TableRow
+                        key={proposal.id}
+                        className="hover:bg-muted/50 transition-colors"
+                      >
                         <TableCell className="font-medium max-w-[300px]">
                           <div className="space-y-1">
                             <p className="font-semibold text-foreground truncate">
@@ -454,7 +469,10 @@ export default function AdminAnalyticsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="capitalize text-xs">
+                          <Badge
+                            variant="outline"
+                            className="capitalize text-xs"
+                          >
                             {proposal.category.replace(/_/g, " ")}
                           </Badge>
                         </TableCell>
@@ -492,17 +510,19 @@ export default function AdminAnalyticsPage() {
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <ThumbsUp className="w-3 h-3 text-primary" />
-                            <span className="font-bold">{proposal.vote_count}</span>
+                            <span className="font-bold">
+                              {proposal.vote_count}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(proposal.created_at), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/supervisor/participatory-budgeting/${proposal.id}`)}
+                            onClick={() => router.push(`/admin/participatory-budgeting/${cycleId}/proposals/${proposal.id}`)}
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View
@@ -543,7 +563,10 @@ export default function AdminAnalyticsPage() {
                   </TableHeader>
                   <TableBody>
                     {votes.slice(0, 50).map((vote) => (
-                      <TableRow key={vote.id} className="hover:bg-muted/50 transition-colors">
+                      <TableRow
+                        key={vote.id}
+                        className="hover:bg-muted/50 transition-colors"
+                      >
                         <TableCell className="font-mono text-xs">
                           {vote.voter_id.substring(0, 8)}...
                         </TableCell>
@@ -551,8 +574,12 @@ export default function AdminAnalyticsPage() {
                           {vote.proposal?.title || "Unknown"}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="capitalize text-xs">
-                            {vote.proposal?.category?.replace(/_/g, " ") || "N/A"}
+                          <Badge
+                            variant="outline"
+                            className="capitalize text-xs"
+                          >
+                            {vote.proposal?.category?.replace(/_/g, " ") ||
+                              "N/A"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
@@ -579,32 +606,34 @@ export default function AdminAnalyticsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
-                {Object.entries(proposalStats.byStatus).map(([status, count]) => {
-                  const percentage = (count / proposalStats.total) * 100;
-                  return (
-                    <div key={status} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold capitalize">
-                          {status.replace(/_/g, " ")}
-                        </span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {count} proposals
+                {Object.entries(proposalStats.byStatus).map(
+                  ([status, count]) => {
+                    const percentage = (count / proposalStats.total) * 100;
+                    return (
+                      <div key={status} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-semibold capitalize">
+                            {status.replace(/_/g, " ")}
                           </span>
-                          <span className="text-xs font-bold text-primary">
-                            {percentage.toFixed(1)}%
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {count} proposals
+                            </span>
+                            <span className="text-xs font-bold text-primary">
+                              {percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
                         </div>
                       </div>
-                      <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500" 
-                          style={{ width: `${percentage}%` }} 
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  }
+                )}
               </CardContent>
             </Card>
 
@@ -637,9 +666,9 @@ export default function AdminAnalyticsPage() {
                           </div>
                         </div>
                         <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500" 
-                            style={{ width: `${percentage}%` }} 
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
                           />
                         </div>
                       </div>
@@ -678,9 +707,9 @@ export default function AdminAnalyticsPage() {
                             </div>
                           </div>
                           <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500" 
-                              style={{ width: `${percentage}%` }} 
+                            <div
+                              className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500"
+                              style={{ width: `${percentage}%` }}
                             />
                           </div>
                         </div>
@@ -700,18 +729,20 @@ export default function AdminAnalyticsPage() {
                 <Calendar className="w-5 h-5 text-primary" />
                 Submission Timeline
               </CardTitle>
-              <CardDescription>
-                Proposals submitted over time
-              </CardDescription>
+              <CardDescription>Proposals submitted over time</CardDescription>
             </CardHeader>
 
             <CardContent className="pt-6">
               <div className="space-y-4">
                 {proposals
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .sort(
+                    (a, b) =>
+                      new Date(b.created_at).getTime() -
+                      new Date(a.created_at).getTime()
+                  )
                   .slice(0, 20)
                   .map((proposal, idx) => (
-                    <div 
+                    <div
                       key={proposal.id}
                       className="flex items-center gap-4 p-4 border-2 rounded-xl hover:bg-muted/50 hover:border-primary/30 transition-all group"
                     >

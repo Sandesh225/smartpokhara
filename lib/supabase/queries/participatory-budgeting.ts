@@ -503,12 +503,23 @@ export const pbService = {
     if (error) throw error;
     return data as BudgetCycle;
   },
-
   async getCycleAnalytics(cycleId: string): Promise<CycleAnalytics> {
     const supabase = createClient();
+
+    // We join the 'wards' table to get the human-readable number
     const { data: proposals, error } = await supabase
       .from("budget_proposals")
-      .select("id, ward_id, category, vote_count")
+      .select(
+        `
+        id, 
+        ward_id, 
+        category, 
+        vote_count,
+        wards (
+          ward_number
+        )
+      `
+      )
       .eq("cycle_id", cycleId);
 
     if (error) throw error;
@@ -521,11 +532,17 @@ export const pbService = {
       participationRate: 0,
     };
 
-    proposals.forEach((p) => {
+    proposals.forEach((p: any) => {
       stats.totalVotes += p.vote_count;
-      const wardKey = p.ward_id || "City-Wide";
-      stats.votesByWard[wardKey] =
-        (stats.votesByWard[wardKey] || 0) + p.vote_count;
+
+      // FIX: Use the joined ward_number if available, otherwise "City-Wide"
+      const wardName = p.wards?.ward_number
+        ? `Ward ${p.wards.ward_number}`
+        : "City-Wide / Unassigned";
+
+      stats.votesByWard[wardName] =
+        (stats.votesByWard[wardName] || 0) + p.vote_count;
+
       const catKey = p.category;
       stats.votesByCategory[catKey] =
         (stats.votesByCategory[catKey] || 0) + p.vote_count;
@@ -533,7 +550,82 @@ export const pbService = {
 
     return stats;
   },
+  async finalizeWinners(
+    cycleId: string,
+    proposalIds: string[],
+    message: string
+  ): Promise<void> {
+    const supabase = createClient();
 
+    // 1. Update winning proposals
+    const { error: propError } = await supabase
+      .from("budget_proposals")
+      .update({ status: "selected" })
+      .in("id", proposalIds);
+
+    if (propError) throw propError;
+
+    // 2. Update the cycle status
+    const { error: cycleError } = await supabase
+      .from("budget_cycles")
+      .update({
+        finalized_at: new Date().toISOString(),
+        concluding_message: message,
+      })
+      .eq("id", cycleId);
+
+    if (cycleError) throw cycleError;
+  },
+
+  async getProposalDetailsForAdmin(id: string): Promise<BudgetProposal | null> {
+    const supabase = createClient();
+
+    console.log("🛠️ Admin Fetching ID:", id);
+
+    const { data, error } = await supabase
+      .from("budget_proposals")
+      .select(
+        `
+      *,
+      author:users!author_id (
+        email,
+        user_profiles (
+          full_name
+        )
+      ),
+      department:departments!department_id (
+        name,
+        code
+      ),
+      ward:wards!ward_id (
+        ward_number,
+        name
+      )
+    `
+      )
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("❌ SQL Error Code:", error.code);
+      console.error("❌ SQL Message:", error.message);
+      return null;
+    }
+
+    if (!data) return null;
+
+    // Formatting the nested data to match your BudgetProposal interface
+    return {
+      ...data,
+      author: {
+        full_name:
+          (data.author as any)?.user_profiles?.[0]?.full_name || "Anonymous",
+        email: (data.author as any)?.email,
+      },
+      // Adding ward_number to the root for easier UI access
+      ward_number: (data.ward as any)?.ward_number,
+    } as any;
+  },
   async runWinnerSimulation(
     cycleId: string,
     totalBudgetOverride?: number

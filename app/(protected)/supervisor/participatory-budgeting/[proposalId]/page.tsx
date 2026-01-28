@@ -46,10 +46,8 @@ import {
   pbService,
   type BudgetProposal,
   type ProposalStatus,
+  type BudgetCycle,
 } from "@/lib/supabase/queries/participatory-budgeting";
-
-// Ward Budget Cap for calculations (50 Lakhs)
-const WARD_BUDGET_CAP = 5000000;
 
 export default function ReviewProposalPage() {
   const params = useParams();
@@ -58,15 +56,16 @@ export default function ReviewProposalPage() {
 
   // State Management
   const [proposal, setProposal] = useState<BudgetProposal | null>(null);
+  const [cycle, setCycle] = useState<BudgetCycle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState("");
   const [technicalCost, setTechnicalCost] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Fetch Proposal
+  // Fetch Proposal and Cycle
   useEffect(() => {
-    const fetchProposal = async () => {
+    const fetchProposalAndCycle = async () => {
       if (!proposalId) {
         setErrorMessage("Invalid proposal ID");
         setIsLoading(false);
@@ -84,27 +83,46 @@ export default function ReviewProposalPage() {
             status: data.status,
             department_id: data.department_id,
             department_name: data.department?.name,
+            cycle_id: data.cycle_id,
           });
 
           setProposal(data);
           setNotes(data.admin_notes || "");
           setTechnicalCost(data.technical_cost || data.estimated_cost);
           setErrorMessage(null);
+
+          // NEW: Fetch the cycle information using the cycle_id from the proposal
+          if (data.cycle_id) {
+            console.log("🔍 Fetching cycle:", data.cycle_id);
+            const cycleData = await pbService.getCycleById(data.cycle_id);
+            if (cycleData) {
+              console.log("✅ Cycle loaded successfully:", {
+                id: cycleData.id,
+                name: cycleData.name,
+                total_budget: cycleData.total_budget_amount,
+              });
+              setCycle(cycleData);
+            } else {
+              console.warn("⚠️ Cycle not found for ID:", data.cycle_id);
+            }
+          }
         } else {
-          console.warn("⚠️ No proposal data returned - RLS may have blocked access");
+          console.warn(
+            "⚠️ No proposal data returned - RLS may have blocked access"
+          );
           setErrorMessage(
             "You don't have permission to view this proposal. It may belong to a different department."
           );
         }
       } catch (error) {
-        console.error("❌ Error fetching proposal:", error);
+        console.error("❌ Error fetching proposal and cycle:", error);
         setErrorMessage("Failed to load proposal. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProposal();
+    fetchProposalAndCycle();
   }, [proposalId]);
 
   // Handle Status Change
@@ -148,10 +166,10 @@ export default function ReviewProposalPage() {
       router.refresh();
     } catch (error: any) {
       console.error("❌ Update failed:", error);
-      
+
       // More detailed error message
       const errorMsg = error?.message || "Unknown error occurred";
-      
+
       if (errorMsg.includes("permission") || errorMsg.includes("denied")) {
         toast.error(
           "Permission denied. You may not have access to this proposal's department."
@@ -179,7 +197,9 @@ export default function ReviewProposalPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 dark:from-primary/30 dark:to-purple-500/30 blur-3xl animate-pulse" />
           <Loader2 className="w-12 h-12 animate-spin text-primary relative z-10 mb-4" />
         </div>
-        <p className="text-muted-foreground font-medium">Loading proposal details...</p>
+        <p className="text-muted-foreground font-medium">
+          Loading proposal details...
+        </p>
         <p className="text-xs text-muted-foreground/60 mt-1">Please wait</p>
       </div>
     );
@@ -195,7 +215,7 @@ export default function ReviewProposalPage() {
             <AlertTriangle className="w-16 h-16 text-yellow-600 dark:text-yellow-500 mx-auto" />
           </div>
         </div>
-        
+
         <h3 className="text-2xl font-bold mb-3 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
           Access Denied
         </h3>
@@ -203,7 +223,7 @@ export default function ReviewProposalPage() {
           {errorMessage ||
             "This proposal may not exist, or you do not have permission to view it."}
         </p>
-        
+
         <Card className="w-full bg-gradient-to-br from-muted/50 to-muted/30 dark:from-muted/20 dark:to-muted/10 border-muted-foreground/20">
           <CardContent className="pt-6 space-y-3">
             <p className="font-semibold text-sm flex items-center gap-2 text-foreground">
@@ -217,7 +237,9 @@ export default function ReviewProposalPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span>Your supervisor profile lacks the required permissions</span>
+                <span>
+                  Your supervisor profile lacks the required permissions
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
@@ -226,9 +248,9 @@ export default function ReviewProposalPage() {
             </ul>
           </CardContent>
         </Card>
-        
-        <Button 
-          onClick={() => router.back()} 
+
+        <Button
+          onClick={() => router.back()}
           className="mt-8 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
           size="lg"
         >
@@ -238,14 +260,18 @@ export default function ReviewProposalPage() {
     );
   }
 
-  // Calculate Impact based on Technical Cost
-  const impactPercentage = Math.min(
-    (technicalCost / WARD_BUDGET_CAP) * 100,
-    100
-  );
-  const isHighImpact = impactPercentage > 30;
+  // Calculate Impact based on the ACTUAL cycle budget
+  const totalBudget = cycle?.total_budget_amount || 60000000; // Fallback to 60M if cycle not loaded yet
+  const impactPercentage = (technicalCost / totalBudget) * 100;
+
+  // Logic: If one project takes more than 25% of the WHOLE city budget, warn the supervisor
+  const isHighImpact = impactPercentage > 25;
+
   const costDifference = technicalCost - proposal.estimated_cost;
-  const costDifferencePercent = ((costDifference / proposal.estimated_cost) * 100).toFixed(1);
+  const costDifferencePercent = (
+    (costDifference / proposal.estimated_cost) *
+    100
+  ).toFixed(1);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12 px-4 sm:px-6">
@@ -256,19 +282,23 @@ export default function ReviewProposalPage() {
           onClick={() => router.back()}
           className="gap-2 hover:gap-3 transition-all duration-300 hover:bg-primary/10 dark:hover:bg-primary/20"
         >
-          <ArrowLeft className="h-4 w-4" /> 
+          <ArrowLeft className="h-4 w-4" />
           <span className="font-medium">Back to Inbox</span>
         </Button>
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="w-4 h-4" />
-            <span>Submitted {format(new Date(proposal.created_at), "MMM d, yyyy")}</span>
+            <span>
+              Submitted {format(new Date(proposal.created_at), "MMM d, yyyy")}
+            </span>
           </div>
           <Separator orientation="vertical" className="h-6 hidden sm:block" />
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground hidden sm:inline">Status:</span>
-            <Badge 
-              variant="outline" 
+            <span className="text-sm font-medium text-muted-foreground hidden sm:inline">
+              Status:
+            </span>
+            <Badge
+              variant="outline"
               className="capitalize text-sm py-1.5 px-4 bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 border-primary/20 font-medium"
             >
               {proposal.status.replace(/_/g, " ")}
@@ -290,9 +320,21 @@ export default function ReviewProposalPage() {
                       {proposal.category.replace(/_/g, " ")}
                     </Badge>
                     {proposal.department && (
-                      <Badge variant="outline" className="flex items-center gap-1.5 bg-background/50 dark:bg-background/30 backdrop-blur-sm">
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1.5 bg-background/50 dark:bg-background/30 backdrop-blur-sm"
+                      >
                         <Building className="w-3.5 h-3.5" />
                         {proposal.department.name}
+                      </Badge>
+                    )}
+                    {cycle && (
+                      <Badge
+                        variant="outline"
+                        className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        {cycle.name}
                       </Badge>
                     )}
                   </div>
@@ -341,7 +383,9 @@ export default function ReviewProposalPage() {
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                           Submitted By
                         </span>
-                        <p className="font-semibold text-foreground">{proposal.author?.full_name}</p>
+                        <p className="font-semibold text-foreground">
+                          {proposal.author?.full_name}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -405,23 +449,29 @@ export default function ReviewProposalPage() {
                     min={0}
                   />
                 </div>
-                
+
                 {/* Cost Difference Indicator */}
                 {costDifference !== 0 && (
-                  <div className={`flex items-center gap-2 text-xs p-3 rounded-lg ${
-                    costDifference > 0 
-                      ? 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' 
-                      : 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
-                  }`}>
+                  <div
+                    className={`flex items-center gap-2 text-xs p-3 rounded-lg ${
+                      costDifference > 0
+                        ? "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
+                        : "bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                    }`}
+                  >
                     <TrendingUp className="w-4 h-4" />
                     <span className="font-medium">
-                      {costDifference > 0 ? '+' : ''}{costDifference.toLocaleString()} NPR ({costDifferencePercent}% {costDifference > 0 ? 'higher' : 'lower'})
+                      {costDifference > 0 ? "+" : ""}
+                      {costDifference.toLocaleString()} NPR (
+                      {costDifferencePercent}%{" "}
+                      {costDifference > 0 ? "higher" : "lower"})
                     </span>
                   </div>
                 )}
-                
+
                 <p className="text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 p-3 rounded-lg border border-muted-foreground/10">
-                  💡 Update this if the citizen estimate is inaccurate based on department standards.
+                  💡 Update this if the citizen estimate is inaccurate based on
+                  department standards.
                 </p>
               </div>
 
@@ -433,40 +483,50 @@ export default function ReviewProposalPage() {
                     Budget Impact
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-medium px-2 py-1 rounded ${
-                      isHighImpact 
-                        ? 'bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400' 
-                        : 'bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400'
-                    }`}>
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded ${
+                        isHighImpact
+                          ? "bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400"
+                          : "bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-400"
+                      }`}
+                    >
                       {impactPercentage.toFixed(1)}%
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="relative h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
                   <div
                     className={`h-full transition-all duration-700 ease-out relative ${
-                      isHighImpact 
-                        ? 'bg-gradient-to-r from-red-500 to-red-600' 
-                        : 'bg-gradient-to-r from-green-500 to-emerald-600'
+                      isHighImpact
+                        ? "bg-gradient-to-r from-red-500 to-red-600"
+                        : "bg-gradient-to-r from-green-500 to-emerald-600"
                     }`}
-                    style={{ width: `${impactPercentage}%` }}
+                    style={{ width: `${Math.min(impactPercentage, 100)}%` }}
                   >
                     <div className="absolute inset-0 bg-white/20 animate-pulse" />
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>NPR 0</span>
-                  <span className="font-medium">Ward Cap: NPR {(WARD_BUDGET_CAP / 100000).toFixed(1)}L</span>
+                  <span className="font-medium">
+                    {cycle ? `${cycle.name} Budget` : "Cycle Budget"}: NPR{" "}
+                    {(totalBudget / 100000).toFixed(1)}L
+                  </span>
                 </div>
-                
+
                 {isHighImpact && (
                   <div className="flex items-start gap-2 text-xs bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/50 dark:to-orange-950/50 p-3 rounded-lg border border-red-200 dark:border-red-800">
                     <AlertTriangle className="w-4 h-4 shrink-0 text-red-600 dark:text-red-500 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-red-700 dark:text-red-400 mb-1">High Budget Consumption</p>
-                      <p className="text-red-600 dark:text-red-500">This proposal will consume a significant portion of the ward budget.</p>
+                      <p className="font-semibold text-red-700 dark:text-red-400 mb-1">
+                        Critical Budget Consumption
+                      </p>
+                      <p className="text-red-600 dark:text-red-500">
+                        This proposal will consume {impactPercentage.toFixed(1)}
+                        % of the total {cycle?.name || "cycle"} budget.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -521,7 +581,8 @@ export default function ReviewProposalPage() {
                   onChange={(e) => setNotes(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  💡 This note will be visible to the citizen and other stakeholders
+                  💡 This note will be visible to the citizen and other
+                  stakeholders
                 </p>
               </div>
             </CardContent>
