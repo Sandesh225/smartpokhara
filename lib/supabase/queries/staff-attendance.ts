@@ -1,120 +1,143 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+/**
+ * Staff Attendance Queries
+ * Maps directly to the 'attendance_logs' table and associated RPC functions.
+ */
 export const staffAttendanceQueries = {
   /**
-   * Get the current status.
-   * Logic: If the latest log has no check_out_time, you are ON DUTY.
+   * 1. GET TODAY'S STATUS
+   * Used to determine UI state (Show 'Check In' vs 'Check Out' button).
    */
   async getTodayStatus(client: SupabaseClient, staffId: string) {
+    // Get date string in YYYY-MM-DD format based on local time needs
+    // Note: The DB defaults date to CURRENT_DATE, so we match that string
+    const today = new Date().toISOString().split("T")[0];
+
     const { data, error } = await client
-      .from("staff_attendance_logs")
+      .from("attendance_logs")
       .select("*")
       .eq("staff_id", staffId)
-      .order("created_at", { ascending: false })
-      .limit(1)
+      .eq("date", today)
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching attendance:", error.message);
+      console.error("Error fetching today's status:", error.message);
       return null;
     }
 
-    if (!data) return null;
-
-    // 1. Active Shift (No checkout yet) -> ON DUTY
-    if (!data.check_out_time) {
-      return data;
-    }
-
-    // 2. Completed Shift (Checkout exists)
-    // Only show as "Off Duty" if it happened TODAY. Otherwise, reset to "Not Checked In".
-    const logDate = new Date(data.created_at).toDateString();
-    const today = new Date().toDateString();
-
-    if (logDate === today) {
-      return data; // Completed shift from today
-    }
-
-    return null; // Old history, ready for new day
+    return data;
   },
 
+  /**
+   * 2. CHECK IN (RPC)
+   * Calls the PostgreSQL function `rpc_staff_check_in`.
+   * Requires Latitude and Longitude for PostGIS geofencing verification.
+   */
   async checkIn(
     client: SupabaseClient,
-    location?: { lat: number; lng: number }
+    lat: number,
+    lng: number,
+    deviceId: string = "browser"
   ) {
-    const locationJson = location
-      ? { type: "Point", coordinates: [location.lng, location.lat] }
-      : null;
-
+    // The SQL function signature is: rpc_staff_check_in(p_lat, p_lng, p_device_id)
     const { data, error } = await client.rpc("rpc_staff_check_in", {
-      p_location: locationJson,
+      p_lat: lat,
+      p_lng: lng,
+      p_device_id: deviceId,
     });
 
-    if (error) throw new Error(error.message);
-
-    // Handle Logic Codes
-    if (!data.success) {
-      if (data.code === "ALREADY_COMPLETED")
-        throw new Error("ALREADY_COMPLETED");
-      if (data.code === "ALREADY_ON_DUTY") throw new Error("ALREADY_ON_DUTY");
-      throw new Error(data.message || "Check-in failed");
+    if (error) {
+      console.error("Check-in RPC Error:", error.message);
+      throw new Error(error.message || "Failed to check in.");
     }
 
     return data;
   },
 
-  async checkOut(
-    client: SupabaseClient,
-    location?: { lat: number; lng: number }
-  ) {
-    const locationJson = location
-      ? { type: "Point", coordinates: [location.lng, location.lat] }
-      : null;
-
+  /**
+   * 3. CHECK OUT (RPC)
+   * Calls the PostgreSQL function `rpc_staff_check_out`.
+   * Automatically calculates total_hours in the backend.
+   */
+  async checkOut(client: SupabaseClient, lat: number, lng: number) {
+    // The SQL function signature is: rpc_staff_check_out(p_lat, p_lng)
     const { data, error } = await client.rpc("rpc_staff_check_out", {
-      p_location: locationJson,
+      p_lat: lat,
+      p_lng: lng,
     });
 
-    if (error) throw new Error(error.message);
-    if (!data.success) throw new Error(data.message || "Check-out failed");
+    if (error) {
+      console.error("Check-out RPC Error:", error.message);
+      throw new Error(error.message || "Failed to check out.");
+    }
+
     return data;
   },
 
+  /**
+   * 4. GET HISTORY
+   * Fetches recent logs for the History List component.
+   */
   async getAttendanceHistory(
     client: SupabaseClient,
     staffId: string,
-    limit = 15
+    limit: number = 15
   ) {
-    const { data } = await client
-      .from("staff_attendance_logs")
+    const { data, error } = await client
+      .from("attendance_logs")
       .select("*")
       .eq("staff_id", staffId)
-      .order("created_at", { ascending: false })
+      .order("date", { ascending: false })
       .limit(limit);
+
+    if (error) {
+      console.error("Error fetching attendance history:", error.message);
+      return [];
+    }
+
     return data || [];
   },
 
+  /**
+   * 5. GET MONTHLY STATISTICS
+   * Aggregates data for the Dashboard Header cards (Days Worked, Total Hours, Lateness).
+   */
   async getAttendanceStats(client: SupabaseClient, staffId: string) {
-    const today = new Date();
-    const startOfMonth = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      1
-    ).toISOString();
+    const now = new Date();
+    // Calculate first day of current month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split("T")[0];
 
-    const { data } = await client
-      .from("staff_attendance_logs")
-      .select("total_hours_worked")
+    const { data, error } = await client
+      .from("attendance_logs")
+      .select("total_hours, status")
       .eq("staff_id", staffId)
-      .gte("created_at", startOfMonth);
+      .gte("date", startOfMonth);
 
-    const daysWorked = data?.length || 0;
-    const totalHours =
-      data?.reduce(
-        (acc, log) => acc + (Number(log.total_hours_worked) || 0),
+    if (error) {
+      console.error("Error calculating stats:", error.message);
+      // Return safe defaults to prevent UI crash
+      return {
+        daysWorked: 0,
+        totalHours: 0,
+        lateDays: 0,
+        presentDays: 0,
+      };
+    }
+
+    // Client-side aggregation of the raw log data
+    const stats = {
+      daysWorked: data.length,
+      totalHours: data.reduce(
+        (acc, log) => acc + (Number(log.total_hours) || 0),
         0
-      ) || 0;
+      ),
+      lateDays: data.filter((log) => log.status === "late").length,
+      presentDays: data.filter((log) => log.status === "present").length,
+    };
 
-    return { daysWorked, totalHours };
+    return stats;
   },
 };

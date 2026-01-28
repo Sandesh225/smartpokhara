@@ -3,8 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { staffLeaveQueries } from "@/lib/supabase/queries/staff-leave";
-import { Plus, Calendar, Clock, CheckCircle2, XCircle } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Calendar, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { format, differenceInDays, parseISO } from "date-fns";
 
 export const dynamic = "force-dynamic";
 
@@ -14,105 +14,110 @@ export default async function LeaveDashboardPage() {
 
   const supabase = await createClient();
 
+  // Parallel data fetching for performance
   const [balance, requests] = await Promise.all([
     staffLeaveQueries.getMyBalance(supabase, user.id),
     staffLeaveQueries.getMyRequests(supabase, user.id),
   ]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20 max-w-[1600px] mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Leave Management</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Track your time off and submit new requests.
+          <h1 className="text-2xl font-bold tracking-tight">Leave Management</h1>
+          <p className="text-muted-foreground mt-1">
+            Track your available days and submit time-off requests.
           </p>
         </div>
 
         <Link
           href="/staff/leave/request"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-200 transition-all active:scale-95"
+          className="btn-gov btn-gov-primary flex items-center gap-2 shadow-lg shadow-primary/20"
         >
           <Plus className="w-5 h-5" />
           <span>New Request</span>
         </Link>
       </div>
 
-      {/* Balance Cards */}
+      {/* Balance Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <BalanceCard
           title="Casual Leave"
-          total={balance.casual_total}
+          total={balance.casual_allowed}
           used={balance.casual_used}
           color="blue"
         />
         <BalanceCard
           title="Sick Leave"
-          total={balance.sick_total}
+          total={balance.sick_allowed}
           used={balance.sick_used}
           color="emerald"
         />
         <BalanceCard
           title="Annual Leave"
-          total={balance.annual_total}
+          total={balance.annual_allowed}
           used={balance.annual_used}
           color="purple"
         />
       </div>
 
-      {/* Request History */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="font-bold text-gray-900">Request History</h3>
+      {/* Request History List */}
+      <div className="stone-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border bg-muted/30">
+          <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Request History</h3>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-border/60">
           {requests.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              No leave requests found.
+            <div className="p-12 text-center text-muted-foreground flex flex-col items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <Calendar className="w-6 h-6 opacity-50" />
+              </div>
+              <p>No leave requests found.</p>
             </div>
           ) : (
-            requests.map((req: any) => (
-              <div
-                key={req.id}
-                className="p-4 sm:px-6 hover:bg-gray-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="flex items-start gap-4">
-                  <StatusIcon status={req.status} />
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-bold text-gray-900 capitalize">
-                        {req.leave_type} Leave
-                      </h4>
-                      <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-medium">
-                        {req.total_days} {req.total_days === 1 ? "Day" : "Days"}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-500 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {format(new Date(req.start_date), "MMM d, yyyy")} -{" "}
-                      {format(new Date(req.end_date), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                </div>
+            requests.map((req: any) => {
+               // Calculate days for display (End - Start + 1)
+               const days = differenceInDays(parseISO(req.end_date), parseISO(req.start_date)) + 1;
 
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="text-right">
-                    <p
-                      className={`font-bold uppercase text-xs tracking-wider ${getStatusColor(
-                        req.status
-                      )}`}
-                    >
-                      {req.status}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Applied {format(new Date(req.created_at), "MMM d")}
-                    </p>
+               return (
+                <div
+                  key={req.id}
+                  className="p-4 sm:px-6 hover:bg-muted/10 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div className="flex items-start gap-4">
+                    <StatusIcon status={req.status} />
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-bold capitalize text-foreground">
+                          {req.type} Leave
+                        </h4>
+                        <span className="text-xs px-2 py-0.5 bg-muted rounded-md font-medium border border-border">
+                          {days} {days === 1 ? "Day" : "Days"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1.5 font-mono">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {format(parseISO(req.start_date), "MMM d, yyyy")} -{" "}
+                        {format(parseISO(req.end_date), "MMM d, yyyy")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="text-right">
+                      <p className={`font-bold uppercase text-xs tracking-wider ${getStatusColor(req.status)}`}>
+                        {req.status}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Applied {format(parseISO(req.created_at), "MMM d")}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -120,58 +125,48 @@ export default async function LeaveDashboardPage() {
   );
 }
 
-function BalanceCard({
-  title,
-  total,
-  used,
-  color,
-}: {
-  title: string;
-  total: number;
-  used: number;
-  color: string;
-}) {
-  const remaining = total - used;
-  const percentage = (used / total) * 100;
+// --- Helper Components ---
+
+function BalanceCard({ title, total, used, color }: { title: string; total: number; used: number; color: string }) {
+  const remaining = Math.max(0, total - used);
+  const percentage = Math.min(100, (used / total) * 100);
 
   const colors: any = {
-    blue: "bg-blue-50 text-blue-700",
-    emerald: "bg-emerald-50 text-emerald-700",
-    purple: "bg-purple-50 text-purple-700",
+    blue: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+    emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+    purple: "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  };
+
+  const progressColors: any = {
+    blue: "bg-blue-500",
+    emerald: "bg-emerald-500",
+    purple: "bg-purple-500",
   };
 
   return (
-    <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+    <div className="stone-card p-6 relative overflow-hidden group">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
             {title}
           </p>
-          <h3 className="text-3xl font-bold text-gray-900 tabular-nums">
+          <h3 className="text-3xl font-bold tabular-nums">
             {remaining}
           </h3>
         </div>
-        <div
-          className={`h-10 w-10 rounded-full flex items-center justify-center ${colors[color]}`}
-        >
+        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${colors[color]}`}>
           <Calendar className="w-5 h-5 opacity-80" />
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-1000 ${
-              color === "blue"
-                ? "bg-blue-500"
-                : color === "emerald"
-                ? "bg-emerald-500"
-                : "bg-purple-500"
-            }`}
+            className={`h-full rounded-full transition-all duration-1000 ${progressColors[color]}`}
             style={{ width: `${percentage}%` }}
           />
         </div>
-        <div className="flex justify-between text-xs font-medium text-gray-500">
+        <div className="flex justify-between text-xs font-medium text-muted-foreground">
           <span>Used: {used}</span>
           <span>Total: {total}</span>
         </div>
@@ -183,33 +178,18 @@ function BalanceCard({
 function StatusIcon({ status }: { status: string }) {
   switch (status) {
     case "approved":
-      return (
-        <div className="p-2 bg-green-50 rounded-full">
-          <CheckCircle2 className="w-5 h-5 text-green-600" />
-        </div>
-      );
+      return <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-full"><CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /></div>;
     case "rejected":
-      return (
-        <div className="p-2 bg-red-50 rounded-full">
-          <XCircle className="w-5 h-5 text-red-600" />
-        </div>
-      );
+      return <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full"><XCircle className="w-5 h-5 text-red-600 dark:text-red-400" /></div>;
     default:
-      return (
-        <div className="p-2 bg-amber-50 rounded-full">
-          <Clock className="w-5 h-5 text-amber-600" />
-        </div>
-      );
+      return <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-full"><Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" /></div>;
   }
 }
 
 function getStatusColor(status: string) {
   switch (status) {
-    case "approved":
-      return "text-green-600";
-    case "rejected":
-      return "text-red-600";
-    default:
-      return "text-amber-600";
+    case "approved": return "text-emerald-600 dark:text-emerald-400";
+    case "rejected": return "text-red-600 dark:text-red-400";
+    default: return "text-amber-600 dark:text-amber-400";
   }
 }

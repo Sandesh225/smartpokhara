@@ -1,90 +1,53 @@
-"use client";
+import { Briefcase, Clock4, Star } from "lucide-react";
 
-import { Clock, CalendarDays, BarChart3 } from "lucide-react";
-import { format } from "date-fns";
-
-interface Props {
-  stats: {
-    daysWorked: number;
-    totalHours: number;
-  };
-  todayStatus: "not_checked_in" | "on_duty" | "off_duty";
+export function AttendanceHeader({
+  stats,
+  todayStatus,
+}: {
+  stats: any;
+  todayStatus: string;
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <StatCard
+        icon={<Briefcase className="text-primary" />}
+        label="Days Worked"
+        value={stats.daysWorked}
+        subText="Current Month"
+      />
+      <StatCard
+        icon={<Clock4 className="text-secondary" />}
+        label="Total Hours"
+        value={Math.round(stats.totalHours)}
+        subText="Productivity"
+      />
+      <StatCard
+        icon={<Star className="text-amber-500" />}
+        label="Status"
+        value={todayStatus.replace("_", " ")}
+        subText="Real-time"
+        isStatus
+      />
+    </div>
+  );
 }
 
-export function AttendanceHeader({ stats, todayStatus }: Props) {
-  const avgHours =
-    stats.daysWorked > 0
-      ? (stats.totalHours / stats.daysWorked).toFixed(1)
-      : "0";
-
+function StatCard({ icon, label, value, subText, isStatus }: any) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Attendance
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {format(new Date(), "EEEE, MMMM do, yyyy")}
-          </p>
-        </div>
-
-        <div
-          className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border shadow-sm transition-colors duration-300 ${
-            todayStatus === "on_duty"
-              ? "bg-green-50 text-green-700 border-green-200"
-              : todayStatus === "off_duty"
-              ? "bg-gray-50 text-gray-600 border-gray-200"
-              : "bg-blue-50 text-blue-700 border-blue-200"
-          }`}
-        >
-          {todayStatus === "on_duty"
-            ? "● Currently On Duty"
-            : todayStatus === "off_duty"
-            ? "✓ Shift Completed"
-            : "○ Not Checked In"}
-        </div>
+    <div className="stone-card p-6 flex items-center gap-5">
+      <div className="h-12 w-12 rounded-xl bg-background flex items-center justify-center shadow-sm border border-border">
+        {icon}
       </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        {/* Stat Card 1 */}
-        <div className="stone-card p-4 flex flex-col items-center justify-center text-center bg-white border border-gray-200 rounded-xl shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center mb-2">
-            <CalendarDays className="h-5 w-5 text-blue-600" />
-          </div>
-          <span className="text-2xl font-bold text-gray-900 tabular-nums">
-            {stats.daysWorked}
-          </span>
-          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wide">
-            Days (Month)
-          </span>
-        </div>
-
-        {/* Stat Card 2 */}
-        <div className="stone-card p-4 flex flex-col items-center justify-center text-center bg-white border border-gray-200 rounded-xl shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center mb-2">
-            <Clock className="h-5 w-5 text-purple-600" />
-          </div>
-          <span className="text-2xl font-bold text-gray-900 tabular-nums">
-            {Math.round(stats.totalHours)}h
-          </span>
-          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wide">
-            Total Hours
-          </span>
-        </div>
-
-        {/* Stat Card 3 */}
-        <div className="stone-card p-4 flex flex-col items-center justify-center text-center bg-white border border-gray-200 rounded-xl shadow-sm">
-          <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center mb-2">
-            <BarChart3 className="h-5 w-5 text-emerald-600" />
-          </div>
-          <span className="text-2xl font-bold text-gray-900 tabular-nums">
-            {avgHours}h
-          </span>
-          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wide">
-            Avg / Day
-          </span>
-        </div>
+      <div>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">
+          {label}
+        </p>
+        <p
+          className={`text-2xl font-bold tracking-tighter ${isStatus ? "capitalize" : ""}`}
+        >
+          {value}
+        </p>
+        <p className="text-[10px] text-muted-foreground">{subText}</p>
       </div>
     </div>
   );

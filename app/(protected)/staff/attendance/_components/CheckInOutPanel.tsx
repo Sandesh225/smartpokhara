@@ -1,18 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { LogIn, LogOut, MapPin, Loader2, RefreshCw } from "lucide-react";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+import { MapPin, Clock, LogOut, CheckCircle, Loader2 } from "lucide-react";
 import { staffAttendanceQueries } from "@/lib/supabase/queries/staff-attendance";
-import { getCurrentLocation } from "@/lib/utils/location-helpers";
+import { createClient } from "@/lib/supabase/client"; // Client-side supabase
 import { useRouter } from "next/navigation";
+import { toast } from "sonner"; // Assuming sonner for notifications
 
 interface Props {
   initialStatus: "not_checked_in" | "on_duty" | "off_duty";
-  checkInTime?: string | null;
-  checkOutTime?: string | null;
+  checkInTime?: string;
+  checkOutTime?: string;
 }
 
 export function CheckInOutPanel({
@@ -20,204 +18,111 @@ export function CheckInOutPanel({
   checkInTime,
   checkOutTime,
 }: Props) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [status, setStatus] = useState(initialStatus);
   const [loading, setLoading] = useState(false);
-
-  // Use local state for immediate feedback
-  const [localCheckIn, setLocalCheckIn] = useState<string | null | undefined>(checkInTime);
-  const [localCheckOut, setLocalCheckOut] = useState<string | null | undefined>(checkOutTime);
-
+  const router = useRouter();
   const supabase = createClient();
 
-  const handleAction = async (action: "check-in" | "check-out") => {
+  const handleAttendance = async (type: "in" | "out") => {
     setLoading(true);
-    const toastId = toast.loading(
-      action === "check-in" ? "Acquiring location..." : "Finalizing shift..."
-    );
 
-    try {
-      const location = await getCurrentLocation();
-
-      if (!location) {
-        toast.message("Location unavailable", {
-          description: "Proceeding without GPS tag.",
-        });
-      }
-
-      if (action === "check-in") {
-        toast.loading("Clocking in...", { id: toastId });
-        await staffAttendanceQueries.checkIn(supabase, location || undefined);
-
-        const now = new Date().toISOString();
-        setStatus("on_duty");
-        setLocalCheckIn(now);
-        toast.success("Checked in successfully", { id: toastId });
-      } else {
-        toast.loading("Clocking out...", { id: toastId });
-        await staffAttendanceQueries.checkOut(supabase, location || undefined);
-
-        const now = new Date().toISOString();
-        setStatus("off_duty");
-        setLocalCheckOut(now);
-        toast.success("Checked out successfully", { id: toastId });
-      }
-
-      startTransition(() => {
-        router.refresh();
-      });
-    } catch (error: any) {
-      console.error("Attendance Error:", error);
-      const msg = error.message || "";
-
-      // --- ERROR HANDLING LOGIC ---
-      
-      // 1. Handle "No active check-in" error (Self-Healing)
-      if (msg.includes("No active check-in")) {
-        setStatus("not_checked_in");
-        toast.error("Session sync error. Resetting status.", { id: toastId });
-        startTransition(() => router.refresh());
-        return;
-      }
-
-      // 2. Handle DB Logic Codes
-      if (msg === "ALREADY_COMPLETED") {
-        setStatus("off_duty");
-        toast.info("Shift already marked as complete.", { id: toastId });
-        startTransition(() => router.refresh());
-      } else if (msg === "ALREADY_ON_DUTY") {
-        setStatus("on_duty");
-        if (!localCheckIn) setLocalCheckIn(new Date().toISOString());
-        toast.info("You are already checked in.", { id: toastId });
-        startTransition(() => router.refresh());
-      } else {
-        // Generic Error
-        toast.error(msg || "Action failed", { id: toastId });
-      }
-    } finally {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
       setLoading(false);
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+
+          if (type === "in") {
+            await staffAttendanceQueries.checkIn(supabase, latitude, longitude);
+            toast.success("Namaste! Check-in successful.");
+          } else {
+            await staffAttendanceQueries.checkOut(
+              supabase,
+              latitude,
+              longitude
+            );
+            toast.success("Work completed. Have a safe journey home!");
+          }
+
+          router.refresh(); // Refresh the Server Component state
+        } catch (error: any) {
+          toast.error(error.message || "Attendance update failed");
+        } finally {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        toast.error("Please enable location to record attendance.");
+        setLoading(false);
+      },
+      { enableHighAccuracy: true }
+    );
   };
 
-  const isProcessing = loading || isPending;
-
   return (
-    <div className="stone-card bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden relative min-h-[340px] flex flex-col justify-between">
-      <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none text-gray-900">
-        <MapPin className="w-48 h-48" />
-      </div>
+    <div className="stone-card p-8 bg-grid-pattern relative overflow-hidden">
+      {/* Decorative Background for Modern Look */}
+      <div className="absolute -top-12 -right-12 h-32 w-32 bg-primary/5 rounded-full blur-3xl" />
 
-      <div className="p-6 relative z-10 flex flex-col h-full">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-bold text-gray-900">Action Center</h3>
-          {status === "on_duty" && (
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
-                Live
-              </span>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-              </span>
-            </div>
-          )}
+      <div className="relative z-10 space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold">Action Center</h3>
+          <span
+            className={`flex h-3 w-3 rounded-full ${initialStatus === "on_duty" ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`}
+          />
         </div>
 
-        <div className="flex-1 flex flex-col justify-center">
-          {/* STATE 1: NOT CHECKED IN */}
-          {status === "not_checked_in" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-100 text-sm text-blue-700 leading-relaxed">
-                <p>
-                  Ready to start your day? Ensure you are at your assigned
-                  location before punching in.
-                </p>
-              </div>
-              <button
-                onClick={() => handleAction("check-in")}
-                disabled={isProcessing}
-                className="w-full py-5 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed group"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : (
-                  <LogIn className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                )}
-                <span className="text-lg tracking-wide">PUNCH IN</span>
-              </button>
-            </div>
-          )}
+        {initialStatus === "off_duty" ? (
+          <div className="bg-muted/50 rounded-xl p-6 text-center border-2 border-dashed border-border">
+            <CheckCircle className="mx-auto text-emerald-500 mb-2" size={32} />
+            <p className="font-bold text-sm">Duty Completed</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Shift ended at {new Date(checkOutTime!).toLocaleTimeString()}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            <button
+              onClick={() =>
+                handleAttendance(
+                  initialStatus === "not_checked_in" ? "in" : "out"
+                )
+              }
+              disabled={loading}
+              className={`btn-gov h-24 flex-col gap-2 text-lg shadow-lg transition-all active:scale-95 ${
+                initialStatus === "not_checked_in"
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+            >
+              {loading ? (
+                <Loader2 className="animate-spin" size={28} />
+              ) : initialStatus === "not_checked_in" ? (
+                <>
+                  <Clock size={28} />
+                  <span>Check In</span>
+                </>
+              ) : (
+                <>
+                  <LogOut size={28} />
+                  <span>Check Out</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
-          {/* STATE 2: ON DUTY */}
-          {status === "on_duty" && (
-            <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-              <div className="flex flex-col items-center justify-center py-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-                  Shift Started
-                </span>
-                <span className="text-5xl font-mono font-bold text-gray-900 tracking-tight tabular-nums">
-                  {localCheckIn
-                    ? format(new Date(localCheckIn), "HH:mm")
-                    : "--:--"}
-                </span>
-                <span className="text-xs font-medium text-gray-400 mt-2 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-                  NPT (Local Time)
-                </span>
-              </div>
-
-              <button
-                onClick={() => handleAction("check-out")}
-                disabled={isProcessing}
-                className="w-full py-5 bg-white border-2 border-red-50 text-red-600 hover:bg-red-50 hover:border-red-100 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-70 group shadow-sm hover:shadow-md"
-              >
-                {isProcessing ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : (
-                  <LogOut className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                )}
-                <span>PUNCH OUT</span>
-              </button>
-            </div>
-          )}
-
-          {/* STATE 3: OFF DUTY */}
-          {status === "off_duty" && (
-            <div className="flex flex-col items-center justify-center py-4 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="h-20 w-20 bg-green-50 rounded-full flex items-center justify-center text-green-600 shadow-sm border border-green-100">
-                <RefreshCw className="w-8 h-8" />
-              </div>
-              <div className="text-center">
-                <p className="text-xl font-bold text-gray-900">Day Complete!</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Great job today. See you tomorrow.
-                </p>
-              </div>
-
-              <div className="w-full grid grid-cols-2 gap-px bg-gray-100 rounded-xl overflow-hidden mt-2 border border-gray-200">
-                <div className="bg-white p-3 text-center">
-                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">
-                    Clock In
-                  </p>
-                  <p className="font-mono font-bold text-gray-700 text-sm">
-                    {localCheckIn
-                      ? format(new Date(localCheckIn), "HH:mm")
-                      : "--"}
-                  </p>
-                </div>
-                <div className="bg-white p-3 text-center">
-                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">
-                    Clock Out
-                  </p>
-                  <p className="font-mono font-bold text-gray-700 text-sm">
-                    {localCheckOut
-                      ? format(new Date(localCheckOut), "HH:mm")
-                      : "--"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="flex items-start gap-3 text-xs text-muted-foreground bg-background/50 p-4 rounded-lg border border-border">
+          <MapPin size={14} className="mt-0.5 text-primary" />
+          <p>
+            Your location is verified against the{" "}
+            <strong>Pokhara Ward Office</strong> geofence. All logs are
+            timestamped in UTC+5:45.
+          </p>
         </div>
       </div>
     </div>
