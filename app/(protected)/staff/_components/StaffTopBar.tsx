@@ -16,6 +16,8 @@ import {
   ChevronDown,
   User,
   Search,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 interface StaffTopBarProps {
@@ -46,13 +48,19 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Check initial theme
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    setIsDark(isDarkMode);
+  }, []);
 
   // Dynamic Title Logic
   const pageTitle = useMemo(() => {
     if (pathname.startsWith("/staff/queue/")) return "Task Details";
     if (pathname.startsWith("/staff/messages/")) return "Chat Session";
-    // Check exact match or fallback
     return TITLE_MAP[pathname] ?? "Staff Portal";
   }, [pathname]);
 
@@ -79,6 +87,11 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
     }
   };
 
+  const toggleTheme = () => {
+    document.documentElement.classList.toggle("dark");
+    setIsDark(!isDark);
+  };
+
   const displayName = getUserDisplayName(user);
   const initials = displayName
     .split(" ")
@@ -94,7 +107,7 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
         <div className="flex items-center gap-4 lg:gap-6 min-w-0">
           <button
             type="button"
-            className="lg:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:bg-neutral-stone-100 hover:text-foreground transition-colors active:scale-95"
+            className="lg:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors active:scale-95"
             onClick={onMenuClick}
             aria-label="Open menu"
           >
@@ -123,15 +136,28 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
             <input
               type="text"
               placeholder="Search..."
-              className="h-9 pl-9 pr-4 rounded-full bg-neutral-stone-100 border-none text-sm focus:ring-2 focus:ring-primary/20 w-48 lg:w-64 transition-all"
+              className="h-9 pl-9 pr-4 rounded-full bg-muted border border-input text-sm focus:ring-2 focus:ring-ring focus:border-transparent w-48 lg:w-64 transition-all placeholder:text-muted-foreground"
             />
           </div>
+
+          {/* Theme Toggle (Desktop) */}
+          <button
+            onClick={toggleTheme}
+            className="hidden md:flex p-2.5 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors group"
+            aria-label="Toggle theme"
+          >
+            {isDark ? (
+              <Sun className="h-5 w-5 group-hover:rotate-180 transition-transform duration-500" />
+            ) : (
+              <Moon className="h-5 w-5 group-hover:-rotate-12 transition-transform duration-500" />
+            )}
+          </button>
 
           {/* Icons: Messages & Notifications */}
           <div className="flex items-center gap-1">
             <Link
               href="/staff/messages"
-              className="p-2.5 rounded-full text-muted-foreground hover:bg-neutral-stone-100 hover:text-primary transition-colors relative group"
+              className="p-2.5 rounded-full text-muted-foreground hover:bg-muted hover:text-primary transition-colors relative group"
               aria-label="Messages"
             >
               <MessageSquare className="h-5 w-5" />
@@ -139,11 +165,11 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
 
             <Link
               href="/staff/notifications"
-              className="p-2.5 rounded-full text-muted-foreground hover:bg-neutral-stone-100 hover:text-primary transition-colors relative group"
+              className="p-2.5 rounded-full text-muted-foreground hover:bg-muted hover:text-primary transition-colors relative group"
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-destructive border border-white group-hover:animate-pulse" />
+              <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-destructive border border-card group-hover:animate-pulse" />
             </Link>
           </div>
 
@@ -153,11 +179,11 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
               onClick={() => setIsUserMenuOpen((v) => !v)}
               className={`flex items-center gap-2 rounded-full pl-1.5 pr-2 py-1.5 transition-all duration-200 border ${
                 isUserMenuOpen
-                  ? "bg-neutral-stone-100 border-primary/20 ring-2 ring-primary/10"
-                  : "bg-transparent border-transparent hover:bg-neutral-stone-100/50"
+                  ? "bg-muted border-primary/20 ring-2 ring-primary/10"
+                  : "bg-transparent border-transparent hover:bg-muted/50"
               }`}
             >
-              <div className="h-8 w-8 rounded-full bg-linear-to-br from-primary to-primary-dark text-white flex items-center justify-center text-xs font-bold shadow-sm ring-2 ring-white">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center text-xs font-bold shadow-sm ring-2 ring-card">
                 {initials}
               </div>
               <div className="hidden lg:flex flex-col items-start text-left">
@@ -175,11 +201,11 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
               />
             </button>
 
-            {/* Dropdown Content (Stone Card) */}
+            {/* Dropdown Content */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 mt-3 w-72 origin-top-right rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 focus:outline-none z-50 overflow-hidden">
+              <div className="absolute right-0 mt-3 w-72 origin-top-right rounded-2xl border border-border bg-card text-card-foreground shadow-xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 focus:outline-none z-50 overflow-hidden">
                 {/* User Info Header */}
-                <div className="px-5 py-4 bg-neutral-stone-50/50 border-b border-border">
+                <div className="px-5 py-4 bg-muted/30 border-b border-border">
                   <p className="text-sm font-bold text-foreground">
                     {displayName}
                   </p>
@@ -192,10 +218,28 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
                 </div>
 
                 <div className="p-2 space-y-1">
+                  {/* Theme Toggle Mobile */}
+                  <button
+                    onClick={toggleTheme}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-xl hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    {isDark ? (
+                      <>
+                        <Sun className="h-4 w-4" />
+                        Light Mode
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="h-4 w-4" />
+                        Dark Mode
+                      </>
+                    )}
+                  </button>
+
                   <Link
                     href="/staff/settings"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-xl hover:bg-neutral-stone-50 hover:text-foreground transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-xl hover:bg-muted hover:text-foreground transition-colors"
                   >
                     <Settings className="h-4 w-4" />
                     Settings
@@ -204,7 +248,7 @@ export function StaffTopBar({ user, onMenuClick }: StaffTopBarProps) {
                   <Link
                     href="/citizen/dashboard"
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-xl hover:bg-neutral-stone-50 hover:text-foreground transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-xl hover:bg-muted hover:text-foreground transition-colors"
                   >
                     <LayoutDashboard className="h-4 w-4" />
                     Switch to Citizen View

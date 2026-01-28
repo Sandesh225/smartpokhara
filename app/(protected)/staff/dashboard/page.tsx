@@ -14,7 +14,7 @@ import { staffAttendanceQueries } from "@/lib/supabase/queries/staff-attendance"
 // Components
 import { DashboardHeader } from "./_components/DashboardHeader";
 import { TodaySummary } from "./_components/TodaySummary";
-import { QuickActions } from "./_components/QuickActions";
+
 import { MyTasksToday } from "./_components/MyTasksToday";
 import { RealTimeAlerts } from "./_components/RealTimeAlerts";
 import { UpcomingSchedule } from "./_components/UpcomingSchedule";
@@ -102,14 +102,6 @@ export default async function StaffDashboard() {
             location={location}
           />
 
-          {/* Quick Actions */}
-          <div className="bg-linear-to-br from-white to-blue-50/30 p-5 rounded-2xl border border-blue-100/50 shadow-sm">
-            <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-wider flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              Quick Actions
-            </h3>
-            <QuickActions />
-          </div>
 
           {/* Schedule Widget */}
           <UpcomingSchedule shifts={upcomingShifts} />

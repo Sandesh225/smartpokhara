@@ -12,15 +12,14 @@ import {
   MessageSquare,
   Users,
   BookOpen,
-  LifeBuoy,
-  Bell,
-  Clock,
-  PlaneTakeoff,
-  GraduationCap,
-  Settings,
   Phone,
   X,
   ShieldCheck,
+  Sparkles,
+  PlaneTakeoff,
+  GraduationCap,
+  Settings,
+  Clock,
 } from "lucide-react";
 
 interface StaffSidebarProps {
@@ -29,23 +28,16 @@ interface StaffSidebarProps {
   onClose: () => void;
 }
 
-type NavItem = {
-  name: string;
-  href: string;
-  icon: any;
-  roles: string[];
-};
-
-function isActivePath(pathname: string, href: string) {
+/* Active route matcher */
+function isActive(pathname: string, href: string) {
   if (href === "/staff/dashboard") return pathname === href;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
 export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
   const pathname = usePathname();
-  const primaryRole = user.roles?.[0] || "Staff";
+  const primaryRole = user.roles?.[0] ?? "staff";
 
-  // Navigation Data
   const SECTIONS = [
     {
       title: "Main",
@@ -54,13 +46,7 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
           name: "Dashboard",
           href: "/staff/dashboard",
           icon: LayoutDashboard,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head", "call_center"],
         },
         {
           name: "My Queue",
@@ -72,49 +58,25 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
           name: "Attendance",
           href: "/staff/attendance",
           icon: Clock,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head", "call_center"],
         },
         {
-          name: "My Schedule",
+          name: "Schedule",
           href: "/staff/schedule",
           icon: CalendarDays,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head", "call_center"],
         },
         {
           name: "Performance",
           href: "/staff/performance",
           icon: BarChart3,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head"],
         },
         {
           name: "Messages",
           href: "/staff/messages",
           icon: MessageSquare,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head", "call_center"],
         },
       ],
     },
@@ -125,31 +87,19 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
           name: "Team",
           href: "/staff/team",
           icon: Users,
-          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head"],
+          roles: ["dept_staff", "dept_head"],
         },
         {
           name: "Leave",
           href: "/staff/leave",
           icon: PlaneTakeoff,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head", "call_center"],
         },
         {
           name: "Training",
           href: "/staff/training",
           icon: GraduationCap,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head"],
         },
       ],
     },
@@ -160,13 +110,7 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
           name: "Resources",
           href: "/staff/resources",
           icon: BookOpen,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head", "call_center"],
         },
         {
           name: "Helpdesk",
@@ -178,13 +122,7 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
           name: "Settings",
           href: "/staff/settings",
           icon: Settings,
-          roles: [
-            "ward_staff",
-            "dept_staff",
-            "field_staff",
-            "dept_head",
-            "call_center",
-          ],
+          roles: ["ward_staff", "dept_staff", "field_staff", "dept_head", "call_center"],
         },
       ],
     },
@@ -192,33 +130,31 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
 
   return (
     <>
-      {/* Mobile Backdrop (Glass) */}
+      {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-neutral-stone-900/40 backdrop-blur-sm lg:hidden animate-in fade-in"
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar Container (Stone Panel) */}
+      {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-sidebar border-r border-sidebar-border shadow-2xl lg:shadow-none transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-300 lg:static lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Header - Phewa Blue Gradient */}
-        <div className="h-20 flex items-center justify-between px-6 bg-linear-to-r from-primary to-primary-dark relative overflow-hidden">
-          <div className="absolute inset-0 bg-white/5 pattern-grid opacity-20" />
-
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+        {/* Header */}
+        <div className="h-20 px-6 flex items-center justify-between bg-gradient-to-br from-primary to-primary/90">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-white shadow">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg leading-tight tracking-tight">
+              <h1 className="text-white font-bold text-lg leading-none">
                 Staff Portal
               </h1>
-              <p className="text-blue-100 text-xs font-medium capitalize opacity-90">
+              <p className="text-xs text-white/80 capitalize">
                 {primaryRole.replaceAll("_", " ")}
               </p>
             </div>
@@ -226,51 +162,55 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
 
           <button
             onClick={onClose}
-            className="lg:hidden text-white/80 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
+            className="lg:hidden text-white/90 hover:text-white"
+            aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="h-[calc(100vh-5rem)] overflow-y-auto py-6 px-4 space-y-8">
+        {/* Navigation */}
+        <nav className="h-[calc(100vh-5rem)] overflow-y-auto px-4 py-6 space-y-8">
           {SECTIONS.map((section) => {
             const visibleItems = section.items.filter((item) =>
               hasRole(user, item.roles)
             );
-            if (visibleItems.length === 0) return null;
+
+            if (!visibleItems.length) return null;
 
             return (
               <div key={section.title}>
-                <h3 className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
+                <h3 className="mb-3 px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Sparkles className="w-3 h-3 opacity-50" />
                   {section.title}
-                  <span className="h-px bg-border flex-1 ml-2 opacity-50" />
+                  <span className="flex-1 h-px bg-border ml-2" />
                 </h3>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {visibleItems.map((item) => {
-                    const active = isActivePath(pathname, item.href);
+                    const active = isActive(pathname, item.href);
                     const Icon = item.icon;
 
                     return (
                       <Link
                         key={item.name}
                         href={item.href}
-                        onClick={() => onClose()}
-                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        onClick={onClose}
+                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                           active
-                            ? "bg-primary/10 text-primary border-l-4 border-primary shadow-sm"
-                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:translate-x-1"
+                            ? "bg-primary/10 text-primary border-l-4 border-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground hover:translate-x-1"
                         }`}
                       >
                         <Icon
-                          className={`w-5 h-5 transition-colors ${
-                            active
-                              ? "text-primary"
-                              : "text-muted-foreground group-hover:text-foreground"
+                          className={`w-5 h-5 ${
+                            active ? "text-primary" : "text-muted-foreground"
                           }`}
                         />
-                        {item.name}
+                        <span className="flex-1">{item.name}</span>
+                        {active && (
+                          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        )}
                       </Link>
                     );
                   })}
@@ -279,6 +219,14 @@ export function StaffSidebar({ user, isOpen, onClose }: StaffSidebarProps) {
             );
           })}
         </nav>
+
+        {/* Footer */}
+        <div className="absolute bottom-0 inset-x-0 p-4 border-t border-border bg-muted/30">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            Online & Active
+          </div>
+        </div>
       </aside>
     </>
   );
