@@ -5,8 +5,8 @@ import React from "react";
 
 export const CTASection = () => {
   return (
-    <section className="py-20 px-4 bg-background">
-      <div className="container-gov">
+    <section className="py-16 sm:py-20 md:py-24 lg:py-28 px-4 bg-background bg-background/90 transition-colors">
+      <div className="container mx-auto max-w-7xl">
         <div className="bg-gradient-to-r from-primary to-secondary rounded-3xl p-12 md:p-16 text-center text-primary-foreground shadow-2xl relative overflow-hidden">
           {/* Decorative Blurs */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
@@ -17,12 +17,12 @@ export const CTASection = () => {
             <h2 className="text-4xl md:text-5xl font-heading font-extrabold mb-6">
               Ready to improve your neighborhood?
             </h2>
-            
+
             <p className="text-primary-foreground/90 text-lg mb-10 leading-relaxed">
-              Join your neighbors in making Pokhara cleaner, safer, and smarter. 
+              Join your neighbors in making Pokhara cleaner, safer, and smarter.
               Registration is free and takes less than 2 minutes.
             </p>
-            
+
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button className="h-14 px-8 bg-background text-primary font-bold rounded-md hover:bg-background/90 transition-colors shadow-xl">
