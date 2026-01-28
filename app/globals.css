@@ -6,17 +6,17 @@
 
 /* ═══════════════════════════════════════════════════════════
    SMART CITY POKHARA — "MACHHAPUCHHRE MODERN" DESIGN SYSTEM
-   Fixed V4 Configuration
+   Enhanced with Staff Portal Dark Mode Support
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-  /* --- 🎨 RAW RGB VALUES --- */
+  /* Brand Colors */
   --primary-brand-raw: 43 95 117;
   --primary-brand-light-raw: 67 119 141;
   --primary-brand-dark-raw: 27 47 59;
   --accent-nature-raw: 95 158 160;
   
-  /* --- 🧩 SEMANTIC TOKENS (LIGHT) --- */
+  /* Semantic Tokens - Light Mode */
   --background: 247 249 252;
   --foreground: 26 32 44;
   --card: 255 255 255;
@@ -31,12 +31,19 @@
   --input: 226 232 240;
   --ring: 43 95 117;
   --radius: 0.625rem;
+  
+  /* Staff Portal Specific */
+  --sidebar: 255 255 255;
+  --sidebar-foreground: 26 32 44;
+  --sidebar-border: 226 232 240;
+  --sidebar-accent: 237 241 247;
 }
 
 .dark {
+  /* Dark Mode - Enhanced for Staff Portal */
   --background: 15 20 25;
   --foreground: 248 250 252;
-  --card: 26 31 46;
+  --card: 26 32 46;
   --card-foreground: 248 250 252;
   --primary: 79 209 197;
   --primary-foreground: 15 20 25;
@@ -47,17 +54,20 @@
   --border: 45 55 72;
   --input: 45 55 72;
   --ring: 79 209 197;
+  
+  /* Staff Portal Dark Mode */
+  --sidebar: 20 25 35;
+  --sidebar-foreground: 248 250 252;
+  --sidebar-border: 45 55 72;
+  --sidebar-accent: 32 38 54;
 }
 
-/* --- 🚀 TAILWIND V4 THEME CONFIG --- */
+/* Tailwind V4 Theme */
 @theme inline {
-  /* Brand Colors - Now available as text-primary-brand-dark, etc. */
   --color-primary-brand: rgb(var(--primary-brand-raw));
   --color-primary-brand-light: rgb(var(--primary-brand-light-raw));
   --color-primary-brand-dark: rgb(var(--primary-brand-dark-raw));
   --color-accent-nature: rgb(var(--accent-nature-raw));
-
-  /* Semantic Mappings */
   --color-background: rgb(var(--background));
   --color-foreground: rgb(var(--foreground));
   --color-card: rgb(var(--card));
@@ -71,8 +81,10 @@
   --color-border: rgb(var(--border));
   --color-input: rgb(var(--input));
   --color-ring: rgb(var(--ring));
-
-  /* Typography */
+  --color-sidebar: rgb(var(--sidebar));
+  --color-sidebar-foreground: rgb(var(--sidebar-foreground));
+  --color-sidebar-border: rgb(var(--sidebar-border));
+  --color-sidebar-accent: rgb(var(--sidebar-accent));
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --text-xs: 0.8125rem; 
   --text-sm: 0.9375rem; 
@@ -82,21 +94,23 @@
   --text-2xl: 1.625rem;
 }
 
-/* --- 🏛️ BASE STYLES --- */
+/* Base Styles */
 @layer base {
   * { @apply border-border; }
-
+  
   html {
     font-size: 105%;
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply bg-background text-foreground text-base antialiased;
     line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* This will now work because primary-brand-dark is in @theme */
   h1, h2, h3, h4, h5, h6 {
     @apply font-sans font-bold tracking-tight text-primary-brand-dark;
   }
@@ -104,44 +118,218 @@
   .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
     @apply text-foreground;
   }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
 }
 
-/* --- 🛠️ UTILITIES --- */
+/* Utilities */
 @layer utilities {
+  /* Cards with Enhanced Dark Mode */
   .stone-card {
-    @apply bg-card border border-border rounded-xl shadow-sm transition-shadow duration-300;
+    @apply bg-card border border-border rounded-xl shadow-sm transition-all duration-300;
   }
 
+  .stone-card:hover {
+    @apply shadow-lg;
+  }
+
+  .dark .stone-card {
+    @apply shadow-lg shadow-black/20;
+  }
+
+  /* Glass Effect - Enhanced */
   .glass {
-    @apply bg-white/80 backdrop-blur-md border border-white/20;
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg;
   }
 
   .dark .glass {
-    @apply bg-neutral-900/75 backdrop-blur-xl border border-white/5;
+    @apply bg-neutral-900/75 backdrop-blur-xl border border-white/5 shadow-2xl shadow-black/30;
   }
+
+  /* Surfaces */
   .surface {
-    @apply bg-card text-card-foreground;
+    @apply bg-card text-card-foreground transition-colors duration-300;
   }
 
   .surface-elevated {
     @apply bg-card shadow-md;
   }
 
-  .dark .surface {
-    @apply bg-card/90;
-  }
-
   .dark .surface-elevated {
-    @apply bg-card shadow-lg shadow-black/20;
+    @apply shadow-lg shadow-black/20;
   }
 
+  /* Dividers */
   .section-divider {
     @apply border-t border-border/60;
   }
+
+  /* Container */
+  .container-gov {
+    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+  }
+
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-spacing {
+    @apply py-8 lg:py-12;
+  }
+
+  /* Buttons - Enhanced */
+  .btn-gov {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg;
+    @apply transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  .btn-gov-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary shadow-md hover:shadow-lg;
+  }
+
+  .dark .btn-gov-primary {
+    @apply shadow-lg shadow-primary/20 hover:shadow-primary/30;
+  }
+
+  .btn-gov-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground;
+  }
+
+  /* Scrollbar Hide */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Pattern Backgrounds */
+  .pattern-grid {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .dark .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
 }
 
-/* --- 🗺️ LEAFLET FIXES --- */
+/* Component Fixes */
 .leaflet-container {
   @apply bg-muted rounded-xl;
   font-family: var(--font-sans);
+}
+
+.dark .leaflet-container {
+  @apply bg-muted/50;
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+/* Mobile Optimization */
+@media (hover: none) and (pointer: coarse) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Dark Mode Specific Enhancements */
+.dark {
+  color-scheme: dark;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  @apply bg-muted border-input text-foreground;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  @apply text-muted-foreground;
+}
+
+/* Elevation System for Dark Mode */
+.elevation-1 {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.dark .elevation-1 {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.elevation-2 {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.dark .elevation-2 {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.elevation-3 {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dark .elevation-3 {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 3px 6px rgba(0, 0, 0, 0.4);
 }
