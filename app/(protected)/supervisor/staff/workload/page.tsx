@@ -16,18 +16,24 @@ export default async function WorkloadPage() {
 
   const supabase = await createClient();
 
-  // FIX: Pass 'supabase' client as the first argument
-  const staffList = await supervisorStaffQueries.getSupervisedStaff(supabase, user.id);
-  
-  const staffIds = staffList.map(s => s.user_id);
+  // 1. Fetch Staff List
+  const staffList = await supervisorStaffQueries.getSupervisedStaff(
+    supabase,
+    user.id
+  );
+  const staffIds = staffList.map((s) => s.user_id);
 
-  const [workloadMetrics, allAssignments] = await Promise.all([
-    supervisorStaffQueries.getTeamWorkload(supabase, staffIds),
-    supervisorStaffQueries.getTeamAssignments(supabase, staffIds)
-  ]);
+  // 2. Parallel Fetch: Assignments & Workload
+  const allAssignments = await supervisorStaffQueries.getTeamAssignments(
+    supabase,
+    staffIds
+  );
 
-  const staffCardsData = staffList.map(staff => {
-    const assignments = allAssignments.filter((a: any) => a.staffId === staff.user_id);
+  // 3. Transform Data for UI
+  const staffCardsData = staffList.map((staff) => {
+    const assignments = allAssignments.filter(
+      (a: any) => a.staffId === staff.user_id
+    );
     const currentLoad = assignments.length;
     const maxLoad = staff.max_concurrent_assignments || 10;
     const percentage = Math.round((currentLoad / maxLoad) * 100);
@@ -45,36 +51,52 @@ export default async function WorkloadPage() {
     };
   });
 
-  const distributionData = staffCardsData.map(s => ({
+  const distributionData = staffCardsData.map((s) => ({
     staffId: s.staffId,
     name: s.name,
-    workloadPercentage: s.workloadPercentage
+    workloadPercentage: s.workloadPercentage,
   }));
 
-  async function reassignItem(id: string, type: 'complaint'|'task', toStaffId: string) {
+  // --- SERVER ACTIONS ---
+  async function reassignItem(
+    assignmentId: string,
+    type: "complaint" | "task",
+    toStaffId: string,
+    fromStaffId?: string // <--- Add this parameter
+  ) {
     "use server";
     const sb = await createClient();
-    if (type === 'complaint') {
-      await supervisorComplaintsQueries.reassignComplaint(sb, id, toStaffId, "Workload Rebalancing", "Moved via Dashboard");
+
+    if (type === "complaint") {
+      await supervisorComplaintsQueries.reassignComplaint(
+        sb,
+        assignmentId,
+        toStaffId,
+        "Workload Balancing",
+        "Reassigned via Dashboard",
+        user!.id,
+        fromStaffId // <--- Pass it here
+      );
     } else {
-      await supervisorTasksQueries.reassignTask(sb, id, toStaffId);
+      await supervisorTasksQueries.reassignTask(sb, assignmentId, toStaffId);
     }
   }
 
   async function startChat(staffId: string) {
     "use server";
-    const sb = await createClient();
-    const convId = await supervisorMessagesQueries.createConversation(sb, user!.id, staffId);
-    redirect(`/supervisor/messages/${convId}`);
+    redirect(`/supervisor/messages/new?staffId=${staffId}`);
   }
-
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 pb-24">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Workload Management</h1>
-        <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg shadow-sm hover:bg-gray-50">
-          Auto-Balance Workload
-        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Workload Management
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Rebalance assignments across your active team.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -82,10 +104,10 @@ export default async function WorkloadPage() {
           <WorkloadDistribution staff={distributionData} />
         </div>
         <div className="lg:col-span-4">
-          <WorkloadCards 
-            staffCards={staffCardsData} 
+          <WorkloadCards
+            staffCards={staffCardsData}
             onReassign={reassignItem}
-            onMessage={startChat}
+            onMessage={startChat} // Pass the action
             currentSupervisorId={user.id}
           />
         </div>
