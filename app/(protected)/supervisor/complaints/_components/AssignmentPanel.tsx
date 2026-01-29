@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import {
-  UserPlus,
   RefreshCw,
   MoreHorizontal,
   Briefcase,
   CheckCircle2,
   Loader2,
   ShieldCheck,
+  UserPlus,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -31,10 +31,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/**
- * MACHHAPUCHHRE MODERN: ASSIGNMENT PANEL
- * Uses 'stone-card' for light mode stability and 'glass' for dark mode depth.
- */
 interface AssignmentPanelProps {
   complaint: any;
   currentSupervisorId: string;
@@ -48,7 +44,8 @@ export function AssignmentPanel({
   const supabase = createClient();
 
   const isAssigned = !!complaint.assigned_staff_id;
-  const assignee = complaint.assigned_staff;
+  const assignee =
+    complaint.assigned_staff_user?.profile || complaint.assigned_staff; // Handle structure variations
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [staffList, setStaffList] = useState<AssignableStaff[]>([]);
@@ -73,7 +70,9 @@ export function AssignmentPanel({
       const rankedStaff = getSuggestedStaff(staff, location);
       setStaffList(rankedStaff);
     } catch (error: any) {
-      toast.error("Failed to load staff list");
+      toast.error("Network Error", {
+        description: "Could not fetch available staff.",
+      });
     } finally {
       setLoadingStaff(false);
     }
@@ -92,6 +91,7 @@ export function AssignmentPanel({
   ) => {
     if (isProcessing) return;
     setIsProcessing(true);
+    const toastId = toast.loading("Processing Assignment...");
 
     try {
       const action = isAssigned
@@ -112,13 +112,20 @@ export function AssignmentPanel({
           );
 
       await action;
-      toast.success(
-        isAssigned ? "Assignment Updated" : "Staff Assigned Successfully"
-      );
+
+      toast.success(isAssigned ? "Staff Reassigned" : "Deployment Initiated", {
+        id: toastId,
+        description: `Task assigned to staff ID: ...${staffId.slice(-4)}`,
+      });
+
       setIsModalOpen(false);
       router.refresh();
     } catch (error: any) {
-      toast.error("Assignment Failed", { description: error?.message });
+      console.error(error);
+      toast.error("Assignment Failed", {
+        id: toastId,
+        description: error?.message || "Check your permissions or connection.",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -127,11 +134,11 @@ export function AssignmentPanel({
   return (
     <>
       <div className="stone-card dark:stone-card-elevated overflow-hidden border-border/40 transition-colors-smooth relative">
-        {/* Subtle top indicator for assignment status */}
+        {/* Status Indicator Bar */}
         <div
           className={cn(
-            "h-1 w-full absolute top-0 left-0",
-            isAssigned ? "bg-primary" : "bg-warning-amber/40"
+            "h-1 w-full absolute top-0 left-0 transition-colors duration-500",
+            isAssigned ? "bg-emerald-500" : "bg-amber-500/60"
           )}
         />
 
@@ -171,9 +178,11 @@ export function AssignmentPanel({
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar className="h-12 w-12 border-2 border-primary/20 shadow-md">
-                  <AvatarImage src={assignee?.avatar_url} />
+                  <AvatarImage
+                    src={assignee?.avatar_url || assignee?.profile_photo_url}
+                  />
                   <AvatarFallback className="bg-primary/10 text-primary font-black uppercase">
-                    {assignee?.full_name?.charAt(0)}
+                    {assignee?.full_name?.charAt(0) || "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="absolute -bottom-1 -right-1 bg-background dark:bg-dark-midnight p-0.5 rounded-full border border-primary/20">
@@ -183,20 +192,20 @@ export function AssignmentPanel({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
-                  <p className="text-sm font-black text-foreground uppercase tracking-tight dark:text-glow">
-                    {assignee?.full_name}
+                  <p className="text-sm font-black text-foreground uppercase tracking-tight dark:text-glow truncate">
+                    {assignee?.full_name || "Unknown Staff"}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-muted-foreground/60 dark:text-dark-text-tertiary">
                   <span className="bg-muted px-1.5 py-0.5 rounded dark:bg-dark-border-primary">
-                    {assignee?.staff_code || "STAFF-PROX"}
+                    {assignee?.staff_code || "ID-VERIFIED"}
                   </span>
                 </div>
 
                 {complaint.assigned_at && (
                   <div className="flex items-center gap-1.5 mt-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
-                    <CheckCircle2 className="w-3 h-3 text-primary" />
+                    <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                     Deployed{" "}
                     {formatDistanceToNow(new Date(complaint.assigned_at), {
                       addSuffix: true,

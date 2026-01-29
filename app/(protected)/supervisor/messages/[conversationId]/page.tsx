@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
 import { createClient } from "@/lib/supabase/server";
@@ -9,46 +9,83 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ conversationId: string }>;
+  searchParams: Promise<{ staffId?: string }>;
 }
 
-export default async function ConversationPage({ params }: PageProps) {
-  const { conversationId } = await params;
+export default async function ConversationPage({
+  params,
+  searchParams,
+}: PageProps) {
   const user = await getCurrentUserWithRoles();
   if (!user) redirect("/login");
 
+  const { conversationId } = await params;
+  const { staffId } = await searchParams;
   const supabase = await createClient();
-  
-  // 1. Fetch Data
-  const [conversations, messages] = await Promise.all([
-    supervisorMessagesQueries.getConversations(supabase, user.id),
-    supervisorMessagesQueries.getMessages(supabase, conversationId)
-  ]);
 
-  // 2. Determine Active Conversation Context
-  const activeConv = conversations.find(c => c.id === conversationId);
-  
-  // Security Check: Ensure user is part of this conversation
-  if (!activeConv) {
-    redirect("/supervisor/messages");
+  // ------------------------------------------------------------------
+  // 1. HANDLE "NEW" CHAT CREATION (BYPASS DB QUERY FOR "new" STRING)
+  // ------------------------------------------------------------------
+  if (conversationId === "new") {
+    if (!staffId) redirect("/supervisor/messages");
+
+    let createdId: string | null = null;
+
+    try {
+      // Find or create a conversation between the Supervisor and Staff
+      createdId = await supervisorMessagesQueries.createConversation(
+        supabase,
+        user.id,
+        staffId
+      );
+    } catch (error: any) {
+      console.error(
+        "Critical: Could not initialize conversation:",
+        error.message
+      );
+    }
+
+    // Perform redirect OUTSIDE of the try/catch block
+    if (createdId) {
+      redirect(`/supervisor/messages/${createdId}`);
+    } else {
+      redirect("/supervisor/messages");
+    }
   }
 
-  const otherUserName = activeConv.other_user.name || "Chat";
+  // ------------------------------------------------------------------
+  // 2. UUID VALIDATION & DATA FETCHING
+  // ------------------------------------------------------------------
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(conversationId)) return notFound();
 
-  // 3. Mark as Read (Server Action Pattern inside Server Component is tricky, 
-  // so we often fire-and-forget or handle it client-side on mount. 
-  // Here we do it server-side for initial load)
-  await supervisorMessagesQueries.markAsRead(supabase, conversationId, user.id);
+  const [conversations, messages] = await Promise.all([
+    supervisorMessagesQueries.getConversations(supabase, user.id),
+    supervisorMessagesQueries.getMessages(supabase, conversationId),
+  ]);
+
+  const activeConv = conversations.find((c) => c.id === conversationId);
+  if (!activeConv) redirect("/supervisor/messages");
+
+  const otherUserName = activeConv.other_user.name || "Staff Member";
+
+  // Fire-and-forget: Mark messages as read
+  supervisorMessagesQueries.markAsRead(supabase, conversationId, user.id);
 
   return (
     <div className="flex h-[calc(100vh-6rem)] bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Sidebar - Hidden on mobile when viewing thread */}
+      {/* Inbox Sidebar */}
       <div className="hidden md:block w-80 border-r border-gray-200">
-        <ConversationsList conversations={conversations} selectedId={conversationId} />
+        <ConversationsList
+          conversations={conversations}
+          selectedId={conversationId}
+        />
       </div>
-      
-      {/* Main Thread */}
+
+      {/* Real-time Message Thread */}
       <div className="flex-1 flex flex-col min-w-0">
-        <MessageThread 
+        <MessageThread
           conversationId={conversationId}
           initialMessages={messages}
           currentUserId={user.id}

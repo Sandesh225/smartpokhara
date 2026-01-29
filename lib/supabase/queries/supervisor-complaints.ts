@@ -352,18 +352,75 @@ export const supervisorComplaintsQueries = {
   async reassignComplaint(
     client: SupabaseClient,
     complaintId: string,
-    staffId: string,
+    newStaffId: string,
     reason: string,
     note: string,
-    supervisorId: string
+    supervisorId: string,
+    oldStaffId?: string // We need to know who had it before!
   ) {
-    return this.assignComplaint(
-      client,
-      complaintId,
-      staffId,
-      `[Reassigned: ${reason}] ${note}`,
-      supervisorId
-    );
+    // 1. Perform the Database Update
+    const { data: complaint, error } = await client
+      .from("complaints")
+      .update({
+        assigned_staff_id: newStaffId,
+        status: "assigned",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", complaintId)
+      .select("tracking_code, title")
+      .single();
+
+    if (error) throw error;
+
+    // 2. Log to History Table
+    await client.from("complaint_assignment_history").insert({
+      complaint_id: complaintId,
+      assigned_to: newStaffId,
+      assigned_by: supervisorId,
+      assignment_notes: `Reassigned from ${oldStaffId || "Unassigned"}: ${reason}`,
+    });
+
+    // ---------------------------------------------------------
+    // 3. THE MAGIC: Send System Messages to Chat Threads
+    // ---------------------------------------------------------
+
+    // A. Notify the NEW Staff (Staff B)
+    try {
+      const convB = await supervisorMessagesQueries.createConversation(
+        client,
+        supervisorId,
+        newStaffId
+      );
+      await supervisorMessagesQueries.sendMessage(
+        client,
+        convB,
+        supervisorId,
+        `[SYSTEM] 🟢 You have been assigned Task #${complaint.tracking_code}: "${complaint.title}". Please review ASAP.`
+      );
+    } catch (e) {
+      console.error("Failed to notify new staff", e);
+    }
+
+    // B. Notify the OLD Staff (Staff A) - If they exist
+    if (oldStaffId && oldStaffId !== newStaffId) {
+      try {
+        const convA = await supervisorMessagesQueries.createConversation(
+          client,
+          supervisorId,
+          oldStaffId
+        );
+        await supervisorMessagesQueries.sendMessage(
+          client,
+          convA,
+          supervisorId,
+          `[SYSTEM] 🔴 Task #${complaint.tracking_code} has been revoked and reassigned. Please stop work on this item.`
+        );
+      } catch (e) {
+        console.error("Failed to notify old staff", e);
+      }
+    }
+
+    return { success: true };
   },
 
   /**
