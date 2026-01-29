@@ -2,88 +2,87 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 export const staffMessagesQueries = {
   /**
-   * Finds the supervisor and returns { conversation, supervisorName }
+   * 1. GET ALL ACTIVE CONVERSATIONS (WhatsApp Style)
+   * This ignores "who is supervisor" and just shows actual chat history.
    */
-  async ensureSupervisorChat(client: SupabaseClient, staffId: string) {
-    // 1. Get Staff's Info
-    const { data: profile } = await client
-      .from("staff_profiles")
-      .select("department_id, ward_id")
-      .eq("user_id", staffId)
-      .single();
-
-    if (!profile) return null;
-
-    let supervisorId: string | null = null;
-
-    // 2. Find Supervisor (Ward first, then Dept)
-    if (profile.ward_id) {
-      const { data: wardSup } = await client
-        .from("supervisor_profiles")
-        .select("user_id")
-        .contains("assigned_wards", [profile.ward_id])
-        .limit(1)
-        .maybeSingle();
-      if (wardSup) supervisorId = wardSup.user_id;
-    }
-
-    if (!supervisorId && profile.department_id) {
-      const { data: deptSup } = await client
-        .from("supervisor_profiles")
-        .select("user_id")
-        .contains("assigned_departments", [profile.department_id])
-        .limit(1)
-        .maybeSingle();
-      if (deptSup) supervisorId = deptSup.user_id;
-    }
-
-    if (!supervisorId || supervisorId === staffId) return null;
-
-    // 3. Get Supervisor Name
-    const { data: supervisorProfile } = await client
-      .from("user_profiles")
-      .select("full_name")
-      .eq("user_id", supervisorId)
-      .single();
-
-    const supervisorName = supervisorProfile?.full_name || "Supervisor";
-
-    // 4. Find or Create Chat
-    let conversation = null;
-
-    const { data: existing } = await client
+  async getConversations(client: SupabaseClient, userId: string) {
+    // A. Fetch conversations
+    const { data: convs, error } = await client
       .from("message_conversations")
       .select("*")
-      .or(
-        `and(participant_1.eq.${staffId},participant_2.eq.${supervisorId}),and(participant_1.eq.${supervisorId},participant_2.eq.${staffId})`
-      )
-      .maybeSingle();
+      .or(`participant_1.eq.${userId},participant_2.eq.${userId}`)
+      .order("last_message_at", { ascending: false });
 
-    if (existing) {
-      conversation = existing;
-    } else {
-      const { data: newConv } = await client
-        .from("message_conversations")
-        .insert({
-          participant_1: staffId,
-          participant_2: supervisorId,
-          last_message_preview: "Conversation started",
-        })
-        .select()
-        .single();
-      conversation = newConv;
-    }
+    if (error) return [];
 
-    return { conversation, supervisorName, supervisorId };
+    // B. Get the "Other Person's" IDs
+    const otherIds = convs.map((c) =>
+      c.participant_1 === userId ? c.participant_2 : c.participant_1
+    );
+
+    if (otherIds.length === 0) return [];
+
+    // C. Hydrate Names/Avatars
+    const { data: profiles } = await client
+      .from("user_profiles")
+      .select("user_id, full_name, profile_photo_url")
+      .in("user_id", otherIds);
+
+    const profileMap = new Map(profiles?.map((p) => [p.user_id, p]));
+
+    return convs.map((c) => {
+      const otherId =
+        c.participant_1 === userId ? c.participant_2 : c.participant_1;
+      const profile = profileMap.get(otherId);
+      return {
+        id: c.id,
+        otherUserName: profile?.full_name || "Support Staff",
+        otherUserAvatar: profile?.profile_photo_url,
+        lastMessage: c.last_message_preview,
+        lastMessageTime: c.last_message_at,
+      };
+    });
   },
 
-  async getMessages(client: SupabaseClient, conversationId: string) {
-    // We use the explicit FK name we set in Step 1
+  /**
+   * 2. "EMERGENCY" CONNECT (The Fallback)
+   * If staff has NO chat, this finds ANY admin to talk to.
+   */
+  async createSupportTicket(client: SupabaseClient, staffId: string) {
+    // Try to find a senior admin first
+    const { data: admin } = await client
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin") // or 'supervisor'
+      .limit(1)
+      .maybeSingle();
+
+    if (!admin) throw new Error("No support staff available.");
+
+    // Create chat with this admin
+    const { data: newConv, error } = await client
+      .from("message_conversations")
+      .insert({
+        participant_1: staffId,
+        participant_2: admin.user_id,
+        last_message_preview: "Support request started",
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return newConv.id;
+  },
+
+  /**
+   * 3. GET MESSAGES FOR A THREAD
+   */
+  async getThreadMessages(client: SupabaseClient, conversationId: string) {
     const { data, error } = await client
       .from("supervisor_staff_messages")
       .select(
         `
-        id, conversation_id, sender_id, message_text, created_at, is_read,
+        id, sender_id, message_text, created_at,
         sender:users!supervisor_staff_messages_sender_id_fkey(
            profile:user_profiles(full_name)
         )
@@ -92,27 +91,27 @@ export const staffMessagesQueries = {
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching messages:", error);
-      return [];
-    }
+    if (error) return [];
 
-    return data.map((msg: any) => ({
-      id: msg.id,
-      content: msg.message_text,
-      senderId: msg.sender_id,
-      // Handle nested profile data safely
-      senderName: msg.sender?.profile?.full_name || "User",
-      createdAt: msg.created_at,
+    return data.map((m: any) => ({
+      id: m.id,
+      content: m.message_text,
+      senderId: m.sender_id,
+      senderName: m.sender?.profile?.full_name || "User",
+      createdAt: m.created_at,
     }));
   },
 
+  /**
+   * 4. SEND MESSAGE
+   */
   async sendMessage(
     client: SupabaseClient,
     conversationId: string,
     senderId: string,
     text: string
   ) {
+    // Insert
     const { data, error } = await client
       .from("supervisor_staff_messages")
       .insert({
@@ -125,6 +124,7 @@ export const staffMessagesQueries = {
 
     if (error) throw error;
 
+    // Update Preview
     await client
       .from("message_conversations")
       .update({

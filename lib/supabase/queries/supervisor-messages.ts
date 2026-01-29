@@ -49,17 +49,46 @@ export const supervisorMessagesQueries = {
   /**
    * Fetches messages for a specific conversation
    */
+  // 1. Check existing (Bidirectional)
+  async createConversation(
+    client: SupabaseClient,
+    user1: string,
+    user2: string
+  ) {
+    const { data: existing } = await client
+      .from("message_conversations")
+      .select("id")
+      .or(
+        `and(participant_1.eq.${user1},participant_2.eq.${user2}),and(participant_1.eq.${user2},participant_2.eq.${user1})`
+      )
+      .maybeSingle();
+
+    if (existing) return existing.id;
+
+    // 2. Create New
+    const { data: newConv, error } = await client
+      .from("message_conversations")
+      .insert({
+        participant_1: user1,
+        participant_2: user2,
+        last_message_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    return newConv.id;
+  },
+
+  /**
+   * Fetches messages with joined profile information
+   */
   async getMessages(client: SupabaseClient, conversationId: string) {
     const { data, error } = await client
       .from("supervisor_staff_messages")
       .select(
         `
-        id, 
-        conversation_id, 
-        sender_id, 
-        message_text, 
-        created_at, 
-        is_read,
+        id, conversation_id, sender_id, message_text, created_at, is_read,
         sender:users!supervisor_staff_messages_sender_id_fkey(
            profile:user_profiles(full_name, profile_photo_url)
         )
@@ -77,15 +106,13 @@ export const supervisorMessagesQueries = {
       message_text: msg.message_text,
       created_at: msg.created_at,
       is_read: msg.is_read,
-      // Safely access nested profile data
-      sender_name: msg.sender?.profile?.full_name || "Unknown",
-      // Map database column to UI property
+      sender_name: msg.sender?.profile?.full_name || "User",
       sender_avatar: msg.sender?.profile?.profile_photo_url,
     }));
   },
 
   /**
-   * Send a new message
+   * Send a new message & Update timestamp
    */
   async sendMessage(
     client: SupabaseClient,
@@ -93,6 +120,7 @@ export const supervisorMessagesQueries = {
     senderId: string,
     text: string
   ) {
+    // 1. Insert Message
     const { data, error } = await client
       .from("supervisor_staff_messages")
       .insert({
@@ -100,12 +128,12 @@ export const supervisorMessagesQueries = {
         sender_id: senderId,
         message_text: text,
       })
-      .select() // <--- CRITICAL: This ensures the new message is returned
+      .select()
       .single();
 
     if (error) throw error;
 
-    // Update conversation timestamp asynchronously
+    // 2. Update parent conversation timestamp (Fire and forget - don't await strictly)
     await client
       .from("message_conversations")
       .update({
@@ -116,38 +144,6 @@ export const supervisorMessagesQueries = {
 
     return data;
   },
-  /**
-   * Create or find a conversation
-   */
-  async createConversation(
-    client: SupabaseClient,
-    user1: string,
-    user2: string
-  ) {
-    const { data: existing } = await client
-      .from("message_conversations")
-      .select("id")
-      .or(
-        `and(participant_1.eq.${user1},participant_2.eq.${user2}),and(participant_1.eq.${user2},participant_2.eq.${user1})`
-      )
-      .maybeSingle();
-
-    if (existing) return existing.id;
-
-    const { data, error } = await client
-      .from("message_conversations")
-      .insert({
-        participant_1: user1,
-        participant_2: user2,
-        last_message_at: new Date().toISOString(),
-      })
-      .select("id")
-      .single();
-
-    if (error) throw error;
-    return data.id;
-  },
-
   /**
    * Mark messages as read
    */
