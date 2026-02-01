@@ -9,7 +9,7 @@ import { WorkProgressTimeline } from "../_components/WorkProgressTimeline";
 import { TaskActionBar } from "../_components/TaskActionBar";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 
-// ✅ IMPORT THE REAL-TIME COMMUNICATION COMPONENT
+// REAL-TIME COMMUNICATION COMPONENT
 import StaffCommunication from "@/app/(protected)/citizen/complaints/_components/CitizenStaffCommunication";
 
 export const dynamic = "force-dynamic";
@@ -28,21 +28,22 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const supabase = await createClient();
 
   // 2. Fetch Assignment
+  // Note: This assumes staffQueueQueries.getAssignmentById returns the flattened 'complaint_id'
   const assignment = await staffQueueQueries.getAssignmentById(supabase, id);
   if (!assignment) return notFound();
 
-  // 3. Determine View Mode (Assignee vs Viewer)
-  const staffIdFromAuth = staff.user_id || staff.id;
+  // 3. Determine View Mode & IDs
+  const currentUserId = staff.user_id || staff.id;
   const assignmentStaffId = assignment.staff_id;
-  const isAssignee = staffIdFromAuth === assignmentStaffId;
+  const isAssignee = currentUserId === assignmentStaffId;
 
-  // For chat component
-  const complaintId = assignment.type === "complaint" ? assignment.id : null;
-  const currentUserId = staffIdFromAuth;
+  // Extract the REAL Complaint ID for the communication component
+  // If the assignment type isn't a complaint, this remains null
+  const realComplaintId = assignment.type === "complaint" ? assignment.complaint_id : null;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Header */}
+      {/* Header Section */}
       <TaskDetailHeader
         trackingId={assignment.tracking_code}
         status={assignment.status}
@@ -53,39 +54,43 @@ export default async function TaskDetailPage({ params }: PageProps) {
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Core Info */}
+        {/* Core Task Information */}
         <TaskInfoCard assignment={assignment} />
 
-        {/* Citizen Info (If Complaint) */}
+        {/* Citizen Information Panel (Visible only for complaints) */}
         {assignment.type === "complaint" && assignment.citizen && (
           <CitizenInfoPanel citizen={assignment.citizen} />
         )}
 
-        {/* Timeline */}
+        {/* Work Progress Timeline */}
         <WorkProgressTimeline
           created_at={assignment.assigned_at}
           started_at={assignment.started_at}
           completed_at={assignment.completed_at}
         />
 
-        {/* Action Bar */}
+        {/* Floating/Bottom Action Bar */}
         <TaskActionBar
           assignmentId={assignment.id}
           status={assignment.status}
           isAssignee={isAssignee}
           assigneeId={assignmentStaffId}
-          staffId={staffIdFromAuth}
+          staffId={currentUserId}
         />
 
         {/* ----------------------------- */}
         {/* Communication Section (Chat) */}
         {/* ----------------------------- */}
-        {assignment.type === "complaint" && complaintId && currentUserId && (
-          <div className="space-y-6">
+        {/* We only render the chat if it's a complaint and we have a valid complaint ID */}
+        {assignment.type === "complaint" && realComplaintId && (
+          <div className="pt-4 border-t border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Communication History</h3>
             <StaffCommunication
-              complaintId={complaintId}
+              complaintId={realComplaintId}
               currentUserId={currentUserId}
               isStaff={true}
+              assignedStaffName={isAssignee ? "You" : (assignment.assigned_to_name || "Assigned Staff")}
+              citizenName={assignment.citizen?.name || "Citizen"}
             />
           </div>
         )}

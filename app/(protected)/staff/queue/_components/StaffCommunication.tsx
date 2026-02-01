@@ -1,34 +1,29 @@
-
-
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Send,
   MessageSquare,
+  Loader2,
   User,
   Shield,
-  Clock,
   AlertCircle,
-  Loader2,
-  CheckCircle2,
-  ChevronDown,
   Wifi,
   WifiOff,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import { createClient } from "@/lib/supabase/client";
 
 interface Message {
   id: string;
   content: string;
   created_at: string;
   is_internal: boolean;
-  author: {
-    id: string;
-    full_name: string;
-    role: string;
-    profile_photo_url: string | null;
-  };
+  author_role: string;
+  author_id: string;
+  author_name: string;
+  author_avatar: string | null;
 }
 
 interface StaffCommunicationProps {
@@ -38,209 +33,104 @@ interface StaffCommunicationProps {
   citizenName?: string;
 }
 
-export function StaffCommunication({
+export default function StaffCommunication({
   complaintId,
   currentUserId,
-  staffName = "Staff Member",
+  staffName = "Staff",
   citizenName = "Citizen",
 }: StaffCommunicationProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting');
-  
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connected" | "disconnected"
+  >("connecting");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const channelRef = useRef<any>(null);
-  const retryCountRef = useRef(0);
 
-  // Format time ago
-  const formatTimeAgo = (date: string) => {
-    const now = new Date();
-    const then = new Date(date);
-    const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
-    
-    if (seconds < 60) return "just now";
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    return `${Math.floor(seconds / 86400)}d ago`;
-  };
+  const supabase = createClient();
 
-  // Load messages function
+  // 1. Load Messages Function
   const loadMessages = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const response = await fetch("/api/supabase/rpc", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache"
-        },
-        body: JSON.stringify({
-          functionName: "rpc_get_complaint_comments",
-          params: { p_complaint_id: complaintId },
-        }),
+      const { data, error } = await supabase.rpc("rpc_get_complaint_comments", {
+        p_complaint_id: complaintId,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      if (error) throw error;
 
-      const result = await response.json();
-      
-      if (result.error) {
-        throw new Error(result.error);
+      if (data) {
+        setMessages(data as Message[]);
+        setConnectionStatus("connected");
       }
-
-      if (Array.isArray(result.data)) {
-        setMessages(result.data);
-        setConnectionStatus('connected');
-        retryCountRef.current = 0;
-      } else {
-        setMessages([]);
-      }
-    } catch (err: any) {
-      console.error("Failed to load messages:", err);
-      setError("Failed to load messages. Retrying...");
-      setConnectionStatus('disconnected');
-      
-      // Exponential backoff retry
-      if (retryCountRef.current < 5) {
-        retryCountRef.current += 1;
-        setTimeout(() => loadMessages(), Math.min(1000 * 2 ** retryCountRef.current, 30000));
-      }
+    } catch (err) {
+      console.error("Chat load failed:", err);
+      setConnectionStatus("disconnected");
     } finally {
       setIsLoading(false);
     }
-  }, [complaintId]);
+  }, [complaintId, supabase]);
 
-  // Send message
+  // 2. Send Message Function
   const sendMessage = async () => {
-    if (!newMessage.trim() || isSending) return;
+    if (!newMessage.trim()) return;
 
+    const tempContent = newMessage;
+    setNewMessage(""); // Clear input immediately
     setIsSending(true);
-    setError(null);
-
-    // Optimistic update
-    const tempMessage: Message = {
-      id: `temp-${Date.now()}`,
-      content: newMessage.trim(),
-      created_at: new Date().toISOString(),
-      is_internal: false,
-      author: {
-        id: currentUserId,
-        full_name: staffName,
-        role: "staff",
-        profile_photo_url: null,
-      },
-    };
-
-    setMessages(prev => [...prev, tempMessage]);
-    const originalMessage = newMessage;
-    setNewMessage("");
 
     try {
-      const response = await fetch("/api/supabase/rpc", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          functionName: "rpc_add_complaint_comment_v2",
-          params: {
-            p_complaint_id: complaintId,
-            p_content: originalMessage.trim(),
-            p_is_internal: false,
-          },
-        }),
+      const { error } = await supabase.rpc("rpc_add_complaint_comment_v2", {
+        p_complaint_id: complaintId,
+        p_content: tempContent,
+        p_is_internal: false, // Public message to citizen
       });
 
-      const result = await response.json();
-      
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to send message");
-      }
+      if (error) throw error;
 
-      // Remove temp message and reload
-      setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
-      await loadMessages();
-      
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
-      textareaRef.current?.focus();
-      
-    } catch (err: any) {
-      console.error("Send message error:", err);
-      setError(err.message || "Failed to send message");
-      // Remove optimistic update on error
-      setMessages(prev => prev.filter(m => m.id !== tempMessage.id));
-      setNewMessage(originalMessage);
-      toast.error("Failed to send message");
+      await loadMessages(); // Refresh list
+      toast.success("Message sent");
+    } catch (err) {
+      console.error("Send failed:", err);
+      toast.error("Failed to send. Please retry.");
+      setNewMessage(tempContent); // Restore text on error
     } finally {
       setIsSending(false);
     }
   };
 
-  // Setup real-time subscription
+  // 3. Real-time Subscription & Polling
   useEffect(() => {
-    // Initial load
     loadMessages();
 
-    // Setup Supabase real-time
-    const setupRealtime = async () => {
-      try {
-        const supabaseModule = await import("@/lib/supabase/client");
-        const supabase = supabaseModule.createClient();
-        
-        // Subscribe to new comments
-        channelRef.current = supabase
-          .channel(`complaint_comments_${complaintId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'complaint_comments',
-              filter: `complaint_id=eq.${complaintId}`,
-            },
-            (payload) => {
-              console.log('New comment received:', payload.new);
-              loadMessages(); // Reload to get full author data
-            }
-          )
-          .subscribe((status) => {
-            console.log('Realtime status:', status);
-            if (status === 'SUBSCRIBED') {
-              setConnectionStatus('connected');
-            } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-              setConnectionStatus('disconnected');
-            }
-          });
+    // Subscribe to changes for instant updates
+    const channel = supabase
+      .channel(`chat-${complaintId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "complaint_comments",
+          filter: `complaint_id=eq.${complaintId}`,
+        },
+        () => loadMessages()
+      )
+      .subscribe((status) => {
+        setConnectionStatus(
+          status === "SUBSCRIBED" ? "connected" : "disconnected"
+        );
+      });
 
-      } catch (err) {
-        console.error("Realtime setup error:", err);
-        setConnectionStatus('disconnected');
-      }
-    };
-
-    setupRealtime();
-
-    // Cleanup
     return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-      }
+      supabase.removeChannel(channel);
     };
-  }, [complaintId, loadMessages]);
+  }, [complaintId, loadMessages, supabase]);
 
-  // Auto-scroll to bottom
+  // 4. Auto-scroll
   useEffect(() => {
-    if (messagesEndRef.current && messages.length > 0) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages.length]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -250,195 +140,157 @@ export function StaffCommunication({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-300">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col h-[600px]">
       {/* Header */}
-      <div
-        className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b flex items-center justify-between cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            connectionStatus === 'connected' ? 'bg-green-500' : 
-            connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
-          }`}>
-            {connectionStatus === 'connected' ? (
-              <Wifi className="w-5 h-5 text-white" />
-            ) : connectionStatus === 'connecting' ? (
-              <Loader2 className="w-5 h-5 text-white animate-spin" />
-            ) : (
-              <WifiOff className="w-5 h-5 text-white" />
-            )}
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              Chat with Citizen
-              <span className={`text-xs px-2 py-1 rounded-full ${
-                connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
-                connectionStatus === 'connecting' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
-                {connectionStatus === 'connected' ? 'Live' :
-                 connectionStatus === 'connecting' ? 'Connecting...' : 'Offline'}
-              </span>
-            </h3>
-            <p className="text-xs text-gray-600">
-              {messages.length} messages • Auto-updates enabled
-            </p>
-          </div>
+      <div className="px-6 py-4 border-b bg-gray-50/50 flex justify-between items-center">
+        <div>
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-blue-600" />
+            Chat with {citizenName}
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Direct communication channel
+          </p>
         </div>
-        <ChevronDown
-          className={`w-5 h-5 text-gray-400 transition-transform ${
-            isExpanded ? "rotate-180" : ""
-          }`}
-        />
+        <div className="flex items-center gap-2">
+          {connectionStatus === "connected" ? (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium border border-emerald-100">
+              <Wifi className="w-3 h-3" /> Live
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-rose-50 text-rose-700 rounded-full text-xs font-medium border border-rose-100">
+              <WifiOff className="w-3 h-3" /> Offline
+            </div>
+          )}
+        </div>
       </div>
 
-      {isExpanded && (
-        <>
-          {/* Messages Container */}
-          <div className="h-[400px] overflow-y-auto p-4 space-y-4 bg-gray-50">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">Loading messages...</p>
+      {/* Message List */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-slate-50/50">
+        {isLoading ? (
+          <div className="flex justify-center pt-20">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500/50" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center text-gray-400 pt-20 flex flex-col items-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <MessageSquare className="w-8 h-8 text-gray-300" />
+            </div>
+            <p className="font-medium text-gray-600">No messages yet</p>
+            <p className="text-sm mt-1">
+              Start the conversation with the citizen.
+            </p>
+          </div>
+        ) : (
+          messages.map((msg) => {
+            const isMe = msg.author_id === currentUserId;
+            const isSystem =
+              msg.author_role === "system" ||
+              msg.content.startsWith("[SYSTEM]");
+            const isStaffMsg = msg.author_role !== "citizen";
+
+            if (isSystem) {
+              return (
+                <div key={msg.id} className="flex justify-center my-6">
+                  <span className="bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-gray-200">
+                    {msg.content.replace("[SYSTEM]:", "").trim()}
+                  </span>
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={msg.id}
+                className={`flex gap-3 ${isMe ? "justify-end" : "justify-start"} group`}
+              >
+                {!isMe && (
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border ${
+                      isStaffMsg
+                        ? "bg-blue-100 border-blue-200 text-blue-700"
+                        : "bg-white border-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {isStaffMsg ? (
+                      <Shield className="w-4 h-4" />
+                    ) : (
+                      <User className="w-4 h-4" />
+                    )}
+                  </div>
+                )}
+
+                <div
+                  className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[80%]`}
+                >
+                  <div className="flex items-center gap-2 mb-1 px-1">
+                    <span className="text-[11px] font-medium text-gray-500">
+                      {msg.author_name}
+                    </span>
+                    {isStaffMsg && !isMe && (
+                      <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 font-bold uppercase">
+                        Staff
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    className={`px-4 py-3 rounded-2xl text-sm shadow-sm leading-relaxed whitespace-pre-wrap ${
+                      isMe
+                        ? "bg-blue-600 text-white rounded-br-none"
+                        : "bg-white text-gray-800 border border-gray-200 rounded-bl-none"
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+
+                  <span className="text-[10px] text-gray-400 mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {formatDistanceToNow(new Date(msg.created_at), {
+                      addSuffix: true,
+                    })}
+                  </span>
                 </div>
               </div>
-            ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <MessageSquare className="w-12 h-12 text-gray-300 mb-3" />
-                <h4 className="text-lg font-semibold text-gray-900 mb-1">
-                  No messages yet
-                </h4>
-                <p className="text-gray-500 max-w-sm text-sm">
-                  Start the conversation by sending your first message
-                </p>
-              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 bg-white border-t">
+        <div className="flex gap-3 items-end">
+          <textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message..."
+            className="flex-1 bg-gray-50 border-gray-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none resize-none min-h-[50px] max-h-[120px]"
+            rows={1}
+            disabled={isSending}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!newMessage.trim() || isSending}
+            className={`p-3 rounded-xl transition-all shadow-sm flex-shrink-0 ${
+              !newMessage.trim() || isSending
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow active:scale-95"
+            }`}
+          >
+            {isSending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              messages.map((msg) => {
-                const isCurrentUser = msg.author.id === currentUserId;
-                const isStaff = msg.author.role !== 'citizen';
-
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex gap-3 ${isCurrentUser ? "flex-row-reverse" : ""}`}
-                  >
-                    {/* Avatar */}
-                    <div className="flex-shrink-0">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        isStaff ? "bg-blue-500" : "bg-green-500"
-                      }`}>
-                        {isStaff ? (
-                          <Shield className="w-4 h-4 text-white" />
-                        ) : (
-                          <User className="w-4 h-4 text-white" />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Message Content */}
-                    <div className={`flex-1 max-w-[75%] ${isCurrentUser ? "text-right" : ""}`}>
-                      <div className={`inline-block px-4 py-3 rounded-2xl ${
-                        isCurrentUser
-                          ? "bg-blue-500 text-white rounded-br-none"
-                          : "bg-white border rounded-bl-none"
-                      }`}>
-                        {!isCurrentUser && (
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-semibold">
-                              {msg.author.full_name}
-                            </span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              isStaff ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-                            }`}>
-                              {isStaff ? "STAFF" : "CITIZEN"}
-                            </span>
-                          </div>
-                        )}
-                        <p className="whitespace-pre-wrap break-words">
-                          {msg.content}
-                        </p>
-                        <div className={`flex items-center gap-1 mt-2 text-xs ${
-                          isCurrentUser ? "text-blue-200" : "text-gray-400"
-                        }`}>
-                          <Clock className="w-3 h-3" />
-                          <span>{formatTimeAgo(msg.created_at)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              <Send className="w-5 h-5" />
             )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Error Alert */}
-          {error && (
-            <div className="px-4 py-2 bg-red-50 border-t border-red-200">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-                <span className="text-sm text-red-700">{error}</span>
-                <button
-                  onClick={() => setError(null)}
-                  className="ml-auto text-red-700 hover:text-red-900"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Success Toast */}
-          {showSuccess && (
-            <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-right-5">
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="text-sm">Message sent!</span>
-            </div>
-          )}
-
-          {/* Input Area */}
-          <div className="border-t bg-white p-4">
-            <div className="flex gap-3">
-              <textarea
-                ref={textareaRef}
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your message here..."
-                className="flex-1 px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={3}
-                disabled={isSending || connectionStatus === 'disconnected'}
-                maxLength={1000}
-              />
-              <button
-                onClick={sendMessage}
-                disabled={!newMessage.trim() || isSending || connectionStatus === 'disconnected'}
-                className={`self-end px-6 py-3 rounded-xl font-medium text-white transition-all ${
-                  !newMessage.trim() || isSending || connectionStatus === 'disconnected'
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-blue-500 hover:bg-blue-600 active:scale-95"
-                }`}
-              >
-                {isSending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-            <div className="flex items-center justify-between mt-2 px-1">
-              <p className="text-xs text-gray-500">
-                Press <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Enter</kbd> to send
-              </p>
-              <p className={`text-xs ${newMessage.length > 900 ? "text-amber-600" : "text-gray-400"}`}>
-                {newMessage.length}/1000
-              </p>
-            </div>
-          </div>
-        </>
-      )}
+          </button>
+        </div>
+        <div className="text-[10px] text-gray-400 mt-2 px-1 text-right">
+          Press{" "}
+          <span className="font-mono bg-gray-100 px-1 rounded">Enter</span> to
+          send
+        </div>
+      </div>
     </div>
   );
 }

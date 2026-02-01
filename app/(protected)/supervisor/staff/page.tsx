@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
 import { StaffGridView } from "@/app/(protected)/supervisor/staff/_components/StaffGridView";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +33,13 @@ export default async function StaffOverviewPage() {
         >
           Manage Workload <ArrowRight className="h-4 w-4" />
         </Link>
+        <Link
+  href="/supervisor/staff/management"
+  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 shadow-sm transition-colors text-sm"
+>
+  <Calendar className="h-4 w-4 text-blue-600" />
+  Attendance & Leave Hub
+</Link>
       </div>
 
       <StaffGridView staffList={staffList} />

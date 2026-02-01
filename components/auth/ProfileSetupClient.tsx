@@ -3,10 +3,22 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { 
-  User, MapPin, Phone, FileText, 
-  Loader2, ChevronRight, Check, Languages,
-  Shield, Building2, Calendar
+import {
+  User,
+  MapPin,
+  Phone,
+  FileText,
+  Loader2,
+  ChevronRight,
+  Check,
+  Languages,
+  Shield,
+  Building2,
+  Calendar,
+  Fingerprint,
+  ArrowLeft,
+  Info,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,9 +45,13 @@ interface Ward {
 export function ProfileSetupClient() {
   const router = useRouter();
   const supabase = createClient();
+
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [wards, setWards] = useState<Ward[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const [formData, setFormData] = useState<FormData>({
     full_name: "",
     full_name_nepali: "",
@@ -47,13 +63,22 @@ export function ProfileSetupClient() {
     address_line1: "",
     address_line2: "",
     landmark: "",
-    language_preference: "en"
+    language_preference: "en",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetchWards();
-    loadExistingProfile();
+    const initialize = async () => {
+      setFetching(true);
+      // 1. Fetch Wards first so we can map IDs later
+      const wardsList = await fetchWards();
+
+      // 2. Load Profile and map data using the wards list
+      if (wardsList) {
+        await loadExistingProfile(wardsList);
+      }
+      setFetching(false);
+    };
+    initialize();
   }, []);
 
   const fetchWards = async () => {
@@ -62,36 +87,65 @@ export function ProfileSetupClient() {
       .select("*")
       .eq("is_active", true)
       .order("ward_number");
+
     setWards(data || []);
+    return data;
   };
 
-  const loadExistingProfile = async () => {
-    const { data } = await supabase.rpc("rpc_get_user_profile");
-    if (data?.profile) {
-      setFormData(prev => ({
+  const loadExistingProfile = async (currentWards: Ward[]) => {
+    try {
+      // A. Get Data from Public Profile (RPC)
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "rpc_get_user_profile"
+      );
+      if (rpcError) console.error("RPC Error:", rpcError);
+
+      // B. Get Data from Auth Metadata (Fallback for Seed Data)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Logic: Prioritize RPC Profile -> Then Auth Metadata -> Then Empty String
+      const meta = user?.user_metadata || {};
+
+      // Attempt to find Ward UUID if only Ward Number exists in metadata
+      let prefilledWardId = rpcData?.profile?.ward_id || "";
+      if (!prefilledWardId && meta.ward) {
+        const foundWard = currentWards.find(
+          (w) => w.ward_number === Number(meta.ward)
+        );
+        if (foundWard) prefilledWardId = foundWard.id;
+      }
+
+      setFormData((prev) => ({
         ...prev,
-        full_name: data.profile.full_name || "",
-        full_name_nepali: data.profile.full_name_nepali || "",
-        date_of_birth: data.profile.date_of_birth || "",
-        gender: data.profile.gender || "",
-        citizenship_number: data.profile.citizenship_number || "",
-        ward_id: data.profile.ward_id || "",
-        address_line1: data.profile.address_line1 || "",
-        address_line2: data.profile.address_line2 || "",
-        landmark: data.profile.landmark || "",
-        language_preference: data.profile.language_preference || "en"
+        // Identity
+        full_name: rpcData?.profile?.full_name || meta.full_name || "",
+        full_name_nepali: rpcData?.profile?.full_name_nepali || "",
+        phone: rpcData?.user?.phone || user?.phone || meta.phone || "",
+        gender: rpcData?.profile?.gender || meta.gender || "",
+        date_of_birth: rpcData?.profile?.date_of_birth || "",
+        citizenship_number: rpcData?.profile?.citizenship_number || "",
+
+        // Location
+        ward_id: prefilledWardId,
+        address_line1: rpcData?.profile?.address_line1 || meta.address || "",
+        address_line2: rpcData?.profile?.address_line2 || "",
+        landmark: rpcData?.profile?.landmark || "",
+        language_preference: rpcData?.profile?.language_preference || "en",
       }));
-    }
-    if (data?.user?.phone) {
-      setFormData(prev => ({ ...prev, phone: data.user.phone || "" }));
+    } catch (err) {
+      console.error("Error loading profile:", err);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -101,30 +155,22 @@ export function ProfileSetupClient() {
 
   const validateStep = (step: number) => {
     const newErrors: Record<string, string> = {};
-    
     if (step === 1) {
-      if (!formData.full_name.trim()) {
-        newErrors.full_name = "Full name is required";
-      }
-      if (!formData.gender) {
-        newErrors.gender = "Gender selection is required";
-      }
+      if (!formData.full_name.trim())
+        newErrors.full_name = "Full Name is required";
+      if (!formData.gender) newErrors.gender = "Gender is required";
+      if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
     } else if (step === 2) {
-      if (!formData.ward_id) {
-        newErrors.ward_id = "Ward selection is required";
-      }
-      if (!formData.address_line1.trim()) {
-        newErrors.address_line1 = "Primary address is required";
-      }
+      if (!formData.ward_id) newErrors.ward_id = "Ward selection is required";
+      if (!formData.address_line1.trim())
+        newErrors.address_line1 = "Address is required";
     }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     if (!validateStep(2)) return;
-    
     setLoading(true);
     const toastId = toast.loading("Finalizing your profile...");
 
@@ -140,11 +186,11 @@ export function ProfileSetupClient() {
         p_address_line1: formData.address_line1,
         p_address_line2: formData.address_line2,
         p_landmark: formData.landmark,
-        p_language_preference: formData.language_preference
+        p_language_preference: formData.language_preference,
       });
 
       if (error) throw error;
-      
+
       toast.success("Profile successfully activated!", { id: toastId });
       router.push("/citizen/dashboard");
       router.refresh();
@@ -155,350 +201,364 @@ export function ProfileSetupClient() {
     }
   };
 
-  const steps = [
-    { number: 1, label: "Identity", icon: User },
-    { number: 2, label: "Location", icon: MapPin }
-  ];
+  if (fetching) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm font-medium animate-pulse text-muted-foreground">
+            Syncing data...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgwLDAsMCwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
-      
-      <div className="relative z-10 container-gov py-8 sm:py-12 lg:py-16 flex items-center justify-center min-h-screen">
-        <div className="w-full max-w-5xl">
-          <div className="text-center mb-8 sm:mb-12 animate-fade-in">
-            <div className="inline-flex items-center justify-center h-20 w-20 sm:h-24 sm:w-24 rounded-3xl bg-gradient-to-br from-primary via-primary-brand to-secondary shadow-2xl mb-6 relative">
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary to-secondary animate-pulse opacity-20" />
-              <Shield className="h-10 w-10 sm:h-12 sm:w-12 text-white relative z-10" strokeWidth={2.5} />
-            </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-3 tracking-tight">
-              Citizen Registration
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed px-4">
-              Complete your digital identity for seamless access to Smart Pokhara Metropolitan services
-            </p>
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden transition-colors duration-300">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-from),transparent_40%)] from-primary/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] dark:opacity-[0.05] pointer-events-none" />
+
+      <div className="relative z-10 container max-w-4xl mx-auto py-12 px-4 sm:px-6">
+        {/* Header Section */}
+        <div className="text-center mb-12 space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="inline-flex p-4 rounded-3xl bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/20 mb-4 shadow-xl shadow-primary/5">
+            <Shield className="h-10 w-10 text-primary" />
           </div>
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+            Digital Identity Setup
+          </h1>
+          <p className="text-muted-foreground max-w-lg mx-auto text-lg">
+            Please verify your details to access Smart Pokhara services.
+          </p>
+        </div>
 
-          <div className="mb-10 sm:mb-14 px-4 animate-slide-in-right">
-            <div className="relative flex items-center justify-between max-w-lg mx-auto">
-              <div className="absolute top-6 left-0 w-full h-1.5 bg-muted rounded-full">
-                <div 
-                  className="h-full bg-gradient-to-r from-primary via-primary-brand to-secondary rounded-full transition-all duration-700 ease-out shadow-lg"
-                  style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
-                />
+        {/* Multi-Step Progress */}
+        <div className="mb-12 relative max-w-md mx-auto">
+          <div className="flex justify-between items-center relative z-10">
+            {[1, 2].map((step) => (
+              <div
+                key={step}
+                className="flex flex-col items-center group cursor-pointer"
+                onClick={() => step < currentStep && setCurrentStep(step)}
+              >
+                <div
+                  className={`h-12 w-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 ${
+                    currentStep >= step
+                      ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110"
+                      : "bg-card border-border text-muted-foreground group-hover:border-primary/50"
+                  }`}
+                >
+                  {step === 1 ? (
+                    <User className="h-5 w-5" />
+                  ) : (
+                    <MapPin className="h-5 w-5" />
+                  )}
+                </div>
+                <span
+                  className={`mt-3 text-xs font-bold uppercase tracking-widest transition-colors ${
+                    currentStep >= step
+                      ? "text-primary"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {step === 1 ? "Identity" : "Location"}
+                </span>
               </div>
-              
-              {steps.map((step) => {
-                const Icon = step.icon;
-                const isActive = currentStep >= step.number;
-                const isCurrent = currentStep === step.number;
-                
-                return (
-                  <div key={step.number} className="relative flex flex-col items-center gap-3 z-10">
-                    <div className={`
-                      h-12 w-12 sm:h-14 sm:w-14 rounded-2xl flex items-center justify-center
-                      transition-all duration-500 border-2 shadow-lg
-                      ${isActive 
-                        ? 'bg-gradient-to-br from-primary to-secondary border-transparent text-white scale-110' 
-                        : 'bg-card border-border text-muted-foreground'
-                      }
-                      ${isCurrent ? 'ring-4 ring-primary/20 animate-pulse shadow-2xl' : ''}
-                    `}>
-                      {currentStep > step.number ? (
-                        <Check className="h-6 w-6 sm:h-7 sm:w-7 stroke-[3]" />
-                      ) : (
-                        <Icon className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={2.5} />
-                      )}
-                    </div>
-                    <span className={`
-                      text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300
-                      ${isActive ? 'text-primary scale-105' : 'text-muted-foreground'}
-                    `}>
-                      {step.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            ))}
           </div>
+          {/* Progress Line */}
+          <div className="absolute top-6 left-0 w-full h-0.5 bg-border -z-0">
+            <div
+              className="h-full bg-primary transition-all duration-700 ease-in-out shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+              style={{ width: currentStep === 1 ? "0%" : "100%" }}
+            />
+          </div>
+        </div>
 
-          <div className="card-gov border-2 shadow-2xl overflow-hidden animate-fade-in">
-            <div className="p-6 sm:p-8 border-b border-border bg-gradient-to-r from-muted/50 to-transparent">
-              <div className="flex items-center gap-4">
-                {currentStep === 1 ? (
-                  <>
-                    <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center ring-4 ring-primary/5">
-                      <User className="h-6 w-6 text-primary" strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-foreground">Personal Details</h2>
-                      <p className="text-sm text-muted-foreground">Provide your official identity information</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="h-12 w-12 rounded-2xl bg-secondary/10 flex items-center justify-center ring-4 ring-secondary/5">
-                      <MapPin className="h-6 w-6 text-secondary" strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-foreground">Residency Information</h2>
-                      <p className="text-sm text-muted-foreground">Complete your address details</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="p-6 sm:p-8 lg:p-10">
-              {currentStep === 1 ? (
-                <div className="space-y-6 animate-slide-in-right">
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <User className="h-4 w-4 text-primary" />
-                        Full Name (English) *
-                      </label>
-                      <input 
-                        name="full_name" 
-                        value={formData.full_name} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none"
-                        placeholder="As per citizenship"
-                      />
-                      {errors.full_name && (
-                        <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-                          <span className="h-1 w-1 rounded-full bg-red-600 dark:bg-red-400" />
-                          {errors.full_name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-primary" />
-                        पूरा नाम (नेपाली)
-                      </label>
-                      <input 
-                        name="full_name_nepali" 
-                        value={formData.full_name_nepali} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none"
-                        placeholder="नागरिकता अनुसार"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-primary" />
-                        Phone Number
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <input 
-                          name="phone" 
-                          value={formData.phone} 
-                          onChange={handleChange} 
-                          className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none"
-                          placeholder="98XXXXXXXX"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <User className="h-4 w-4 text-primary" />
-                        Gender *
-                      </label>
-                      <select 
-                        name="gender" 
-                        value={formData.gender} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none"
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      {errors.gender && (
-                        <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-                          <span className="h-1 w-1 rounded-full bg-red-600 dark:bg-red-400" />
-                          {errors.gender}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-primary" />
-                        Date of Birth
-                      </label>
-                      <input 
-                        name="date_of_birth" 
-                        type="date" 
-                        value={formData.date_of_birth} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-primary" />
-                        Citizenship No.
-                      </label>
-                      <input 
-                        name="citizenship_number" 
-                        value={formData.citizenship_number} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none"
-                        placeholder="XX-XX-XX-XXXXX"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <button 
-                      onClick={() => validateStep(1) && setCurrentStep(2)} 
-                      className="w-full bg-gradient-to-r from-primary to-primary-brand text-white font-semibold py-4 px-6 rounded-xl hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 group hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      Continue to Address 
-                      <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </button>
+        {/* Form Card */}
+        <div className="bg-card/60 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[2.5rem] overflow-hidden transition-all duration-300 ring-1 ring-white/5">
+          <div className="p-8 sm:p-10">
+            {currentStep === 1 ? (
+              <div className="grid gap-8 animate-in fade-in slide-in-from-right-8 duration-500">
+                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                  <Fingerprint className="h-6 w-6 text-primary" />
+                  <div>
+                    <h2 className="text-xl font-bold">Personal Information</h2>
+                    <p className="text-xs text-muted-foreground">
+                      Official identification details
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-6 animate-slide-in-right">
+
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {/* Full Name English */}
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-secondary" />
-                      Ward Office *
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      Full Name (English){" "}
+                      <span className="text-primary">*</span>
                     </label>
-                    <select 
-                      name="ward_id" 
-                      value={formData.ward_id} 
-                      onChange={handleChange} 
-                      className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all duration-200 outline-none"
+                    <input
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleChange}
+                      placeholder="e.g. Arjun Kumar Karki"
+                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                        errors.full_name
+                          ? "border-destructive focus:border-destructive"
+                          : "border-input/50 focus:border-primary"
+                      }`}
+                    />
+                    {errors.full_name && (
+                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.full_name}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Full Name Nepali */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-muted-foreground">
+                      पूरा नाम (नेपाली)
+                    </label>
+                    <input
+                      name="full_name_nepali"
+                      value={formData.full_name_nepali}
+                      onChange={handleChange}
+                      placeholder="e.g. अर्जुन कुमार कार्की"
+                      className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      Mobile Number <span className="text-primary">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <input
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="98XXXXXXXX"
+                        className={`w-full bg-background/50 border-2 pl-11 pr-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                          errors.phone
+                            ? "border-destructive"
+                            : "border-input/50 focus:border-primary"
+                        }`}
+                      />
+                    </div>
+                    {errors.phone && (
+                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Gender */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      Gender <span className="text-primary">*</span>
+                    </label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none ${
+                        errors.gender
+                          ? "border-destructive"
+                          : "border-input/50 focus:border-primary"
+                      }`}
                     >
-                      <option value="">Select Ward</option>
-                      {wards.map(w => (
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    {errors.gender && (
+                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                        <AlertCircle className="h-3 w-3" />
+                        {errors.gender}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* DOB */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" /> Date of Birth
+                    </label>
+                    <input
+                      name="date_of_birth"
+                      type="date"
+                      value={formData.date_of_birth}
+                      onChange={handleChange}
+                      className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                    />
+                  </div>
+
+                  {/* Citizenship */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                      <FileText className="h-4 w-4" /> Citizenship Number
+                    </label>
+                    <input
+                      name="citizenship_number"
+                      value={formData.citizenship_number}
+                      onChange={handleChange}
+                      placeholder="XX-XX-XX-XXXX"
+                      className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-6">
+                  <button
+                    onClick={() => validateStep(1) && setCurrentStep(2)}
+                    className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:translate-y-[-2px] active:translate-y-[0] transition-all flex items-center justify-center gap-2 group"
+                  >
+                    Continue to Address
+                    <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-8 animate-in fade-in slide-in-from-right-8 duration-500">
+                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                  <MapPin className="h-6 w-6 text-primary" />
+                  <div>
+                    <h2 className="text-xl font-bold">Residential Details</h2>
+                    <p className="text-xs text-muted-foreground">
+                      Current living address
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-6">
+                  {/* Ward Selection */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />{" "}
+                      Ward Office
+                      <span className="text-primary">*</span>
+                    </label>
+                    <select
+                      name="ward_id"
+                      value={formData.ward_id}
+                      onChange={handleChange}
+                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                        errors.ward_id
+                          ? "border-destructive"
+                          : "border-input/50 focus:border-primary"
+                      }`}
+                    >
+                      <option value="">Select Your Ward</option>
+                      {wards.map((w) => (
                         <option key={w.id} value={w.id}>
-                          Ward {w.ward_number} — {w.name}
+                          Ward No. {w.ward_number} — {w.name}
                         </option>
                       ))}
                     </select>
                     {errors.ward_id && (
-                      <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-                        <span className="h-1 w-1 rounded-full bg-red-600 dark:bg-red-400" />
+                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                        <AlertCircle className="h-3 w-3" />
                         {errors.ward_id}
                       </p>
                     )}
                   </div>
 
+                  {/* Address Line 1 */}
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-secondary" />
-                      Primary Address *
+                    <label className="text-sm font-semibold">
+                      Primary Address <span className="text-primary">*</span>
                     </label>
-                    <input 
-                      name="address_line1" 
-                      value={formData.address_line1} 
-                      onChange={handleChange} 
-                      className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all duration-200 outline-none"
-                      placeholder="Tole, House Name/Number"
+                    <input
+                      name="address_line1"
+                      value={formData.address_line1}
+                      onChange={handleChange}
+                      placeholder="Tole, House Number or Area Name"
+                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                        errors.address_line1
+                          ? "border-destructive"
+                          : "border-input/50 focus:border-primary"
+                      }`}
                     />
                     {errors.address_line1 && (
-                      <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-                        <span className="h-1 w-1 rounded-full bg-red-600 dark:bg-red-400" />
+                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                        <AlertCircle className="h-3 w-3" />
                         {errors.address_line1}
                       </p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-secondary" />
-                      Secondary Address (Optional)
-                    </label>
-                    <input 
-                      name="address_line2" 
-                      value={formData.address_line2} 
-                      onChange={handleChange} 
-                      className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all duration-200 outline-none"
-                      placeholder="Additional address details"
-                    />
-                  </div>
-
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-secondary" />
+                      <label className="text-sm font-semibold text-muted-foreground">
                         Landmark
                       </label>
-                      <input 
-                        name="landmark" 
-                        value={formData.landmark} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all duration-200 outline-none"
-                        placeholder="Near Temple, School, etc."
+                      <input
+                        name="landmark"
+                        value={formData.landmark}
+                        onChange={handleChange}
+                        placeholder="Near Temple, School, or Chowk"
+                        className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <Languages className="h-4 w-4 text-secondary" />
-                        Language Preference
+                      <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                        <Languages className="h-4 w-4" /> Language Preference
                       </label>
-                      <select 
-                        name="language_preference" 
-                        value={formData.language_preference} 
-                        onChange={handleChange} 
-                        className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all duration-200 outline-none"
+                      <select
+                        name="language_preference"
+                        value={formData.language_preference}
+                        onChange={handleChange}
+                        className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                       >
                         <option value="en">English</option>
-                        <option value="ne">नेपाली</option>
+                        <option value="ne">नेपाली (Nepali)</option>
                       </select>
                     </div>
                   </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                    <button 
-                      onClick={() => setCurrentStep(1)} 
-                      className="sm:flex-1 bg-background border-2 border-border text-foreground font-semibold py-4 px-6 rounded-xl hover:bg-muted hover:border-primary transition-all duration-300 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      <ChevronRight className="h-5 w-5 rotate-180" />
-                      Back
-                    </button>
-                    <button 
-                      onClick={handleSubmit} 
-                      disabled={loading} 
-                      className="sm:flex-[2] bg-gradient-to-r from-secondary to-accent-nature text-white font-semibold py-4 px-6 rounded-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Check className="h-5 w-5" />
-                          Complete Registration
-                        </>
-                      )}
-                    </button>
-                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="flex-1 bg-muted/50 text-foreground font-bold py-4 rounded-xl border-2 border-border/50 hover:bg-muted transition-all flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft className="h-5 w-5" /> Back
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="flex-[2] bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        Activate Profile <Check className="h-5 w-5" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          
-          <div className="mt-8 text-center px-4 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted/50 border border-border">
-              <Shield className="h-4 w-4 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">
-                Protected under the Pokhara Metropolitan Privacy Act. Ensure all data matches your government-issued identification.
-              </p>
-            </div>
+
+          {/* Footer Info */}
+          <div className="bg-muted/30 p-6 flex gap-4 items-start border-t border-border/50">
+            <Info className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong>Data Privacy Notice:</strong> This information is
+              collected under the Smart Pokhara Digital Governance Act. Your
+              data is encrypted and used solely for identity verification and
+              municipal service delivery.
+            </p>
           </div>
         </div>
       </div>

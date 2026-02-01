@@ -7,17 +7,15 @@ import {
   User,
   Shield,
   Clock,
-  RefreshCw,
   AlertCircle,
   Loader2,
   CheckCircle2,
-  ChevronDown,
   Wifi,
   WifiOff,
   UserCircle,
+  Sparkles,
 } from "lucide-react";
 
-// FIXED: Match the actual RPC response structure (flat fields)
 interface Message {
   id: string;
   content: string;
@@ -61,7 +59,6 @@ export default function CitizenStaffCommunication({
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<
     "connected" | "disconnected" | "connecting"
   >("connecting");
@@ -132,7 +129,6 @@ export default function CitizenStaffCommunication({
     setIsSending(true);
     setError(null);
 
-    // Optimistic update
     const tempMessage: Message = {
       id: `temp-${Date.now()}`,
       content: newMessage.trim(),
@@ -172,7 +168,6 @@ export default function CitizenStaffCommunication({
         );
       }
 
-      // Remove temp message and reload
       setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
       await loadMessages();
 
@@ -198,7 +193,6 @@ export default function CitizenStaffCommunication({
     }
   };
 
-  // Setup real-time subscription
   useEffect(() => {
     loadMessages();
 
@@ -245,7 +239,6 @@ export default function CitizenStaffCommunication({
     };
   }, [complaintId, loadMessages]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (messagesEndRef.current && messages.length > 0) {
       setTimeout(() => {
@@ -254,251 +247,272 @@ export default function CitizenStaffCommunication({
     }
   }, [messages.length]);
 
-  // Determine chat partner name
   const chatPartnerName = userRole === "citizen" 
     ? (assignedStaffName || "Assigned Staff")
     : (citizenName || "Citizen");
 
   return (
-    <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-      {/* Header */}
-      <div
-        className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-5 cursor-pointer hover:from-indigo-600 hover:to-blue-700 transition-all"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {connectionStatus === "connected" ? (
-              <Wifi className="w-5 h-5" />
-            ) : connectionStatus === "disconnected" ? (
-              <WifiOff className="w-5 h-5" />
-            ) : (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            )}
-            <div>
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                {userRole === "citizen" ? (
-                  <>
-                    <Shield className="w-5 h-5" />
-                    Chat with {chatPartnerName}
-                  </>
-                ) : (
-                  <>
-                    <UserCircle className="w-5 h-5" />
-                    Chat with {chatPartnerName}
-                  </>
+    <div className="glass rounded-3xl overflow-hidden border border-white/50 shadow-2xl">
+      {/* Enhanced Header */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-20" />
+        
+        <div className="relative px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Connection Status Indicator */}
+              <div className="relative">
+                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg transition-all ${
+                  connectionStatus === "connected" 
+                    ? "bg-white text-emerald-600" 
+                    : connectionStatus === "disconnected"
+                    ? "bg-red-500 text-white"
+                    : "bg-amber-500 text-white"
+                }`}>
+                  {connectionStatus === "connected" ? (
+                    <Wifi className="w-6 h-6" />
+                  ) : connectionStatus === "disconnected" ? (
+                    <WifiOff className="w-6 h-6" />
+                  ) : (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  )}
+                </div>
+                {connectionStatus === "connected" && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-emerald-400 rounded-full border-2 border-white animate-pulse" />
                 )}
-              </h3>
-              <p className="text-xs text-white/80">
-                {connectionStatus === "connected"
-                  ? "Live • Auto-updating"
-                  : connectionStatus === "disconnected"
-                  ? "Offline • Reconnecting..."
-                  : "Connecting..."}
-              </p>
+              </div>
+
+              {/* Header Text */}
+              <div>
+                <h3 className="font-bold text-white text-xl flex items-center gap-2">
+                  {userRole === "citizen" ? (
+                    <Shield className="w-5 h-5" />
+                  ) : (
+                    <UserCircle className="w-5 h-5" />
+                  )}
+                  Chat with {chatPartnerName}
+                </h3>
+                <p className="text-sm text-white/80 font-medium">
+                  {connectionStatus === "connected"
+                    ? "🟢 Live • Real-time updates enabled"
+                    : connectionStatus === "disconnected"
+                    ? "🔴 Offline • Reconnecting..."
+                    : "🟡 Connecting..."}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right text-sm">
-              <p className="font-medium">{messages.length} messages</p>
-              <p className="text-xs text-white/70">Direct conversation</p>
+
+            {/* Stats Badge */}
+            <div className="hidden sm:flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-2xl px-5 py-3">
+              <MessageSquare className="w-5 h-5 text-white" />
+              <div className="text-right">
+                <p className="font-bold text-white text-lg">{messages.length}</p>
+                <p className="text-xs text-white/70 font-medium">Messages</p>
+              </div>
             </div>
-            <ChevronDown
-              className={`w-5 h-5 transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-            />
           </div>
         </div>
       </div>
 
-      {isExpanded && (
-        <>
-          {/* Messages Container */}
-          <div className="h-[500px] overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center space-y-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mx-auto" />
-                  <p className="text-sm text-gray-500">Loading conversation...</p>
+      {/* Messages Container */}
+      <div className="h-[600px] overflow-y-auto p-8 space-y-6 bg-gradient-to-b from-slate-50 to-white relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
+        
+        <div className="relative z-10">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full" />
+                  <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto relative" />
                 </div>
+                <p className="text-sm text-slate-600 font-medium">Loading conversation...</p>
               </div>
-            ) : messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center space-y-3 max-w-xs">
-                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto" />
-                  <div>
-                    <p className="font-medium text-gray-700">Start the conversation</p>
-                    <p className="text-sm text-gray-500">
-                      {userRole === "citizen" 
-                        ? "Send a message to the assigned staff member"
-                        : "Send a message to the citizen about their complaint"}
-                    </p>
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center space-y-4 max-w-sm">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-purple-500/20 blur-3xl rounded-full" />
+                  <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center mx-auto">
+                    <Sparkles className="w-10 h-10 text-purple-600" />
                   </div>
                 </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-lg mb-2">Start the conversation</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {userRole === "citizen" 
+                      ? "Send a message to the assigned staff member about your complaint"
+                      : "Reach out to the citizen regarding their complaint"}
+                  </p>
+                </div>
               </div>
-            ) : (
-              messages.map((msg) => {
-                const isCurrentUser = msg.author_id === currentUserId;
-                const isStaffMessage = msg.author_role !== "citizen";
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const isCurrentUser = msg.author_id === currentUserId;
+              const isStaffMessage = msg.author_role !== "citizen";
 
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex gap-3 ${
-                      isCurrentUser ? "flex-row-reverse" : ""
-                    }`}
-                  >
-                    {/* Avatar */}
-                    <div className="flex-shrink-0">
-                      {msg.author_avatar ? (
-                        <img
-                          src={msg.author_avatar}
-                          alt={msg.author_name}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-white shadow"
-                        />
-                      ) : isStaffMessage ? (
-                        <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold border-2 border-white shadow">
-                          <Shield className="w-5 h-5" />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold border-2 border-white shadow">
-                          <User className="w-5 h-5" />
-                        </div>
-                      )}
-                    </div>
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex gap-4 ${isCurrentUser ? "flex-row-reverse" : ""} animate-in slide-in-from-bottom-2`}
+                >
+                  {/* Avatar */}
+                  <div className="flex-shrink-0">
+                    {msg.author_avatar ? (
+                      <img
+                        src={msg.author_avatar}
+                        alt={msg.author_name}
+                        className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-lg"
+                      />
+                    ) : isStaffMessage ? (
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold border-2 border-white shadow-lg">
+                        <Shield className="w-6 h-6" />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold border-2 border-white shadow-lg">
+                        <User className="w-6 h-6" />
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Message Bubble */}
+                  {/* Message Bubble */}
+                  <div className={`flex-1 max-w-[75%] ${isCurrentUser ? "items-end" : ""}`}>
+                    {!isCurrentUser && (
+                      <div className="flex items-center gap-2 mb-2 px-2">
+                        <span className="text-sm font-bold text-slate-800">
+                          {msg.author_name}
+                        </span>
+                        {isStaffMessage && (
+                          <span className="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-full font-bold shadow-md">
+                            STAFF
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <div
-                      className={`flex-1 max-w-[75%] ${
-                        isCurrentUser ? "items-end" : ""
+                      className={`rounded-3xl px-6 py-4 shadow-lg transition-all hover:shadow-xl ${
+                        isCurrentUser
+                          ? "bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-white"
+                          : "bg-white border-2 border-slate-200 text-slate-900"
                       }`}
                     >
-                      {!isCurrentUser && (
-                        <div className="flex items-center gap-2 mb-1 px-1">
-                          <span className="text-xs font-semibold text-gray-700">
-                            {msg.author_name}
-                          </span>
-                          {isStaffMessage && (
-                            <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
-                              STAFF
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {msg.content}
+                      </p>
+                    </div>
 
-                      <div
-                        className={`rounded-2xl px-4 py-3 shadow-sm ${
-                          isCurrentUser
-                            ? "bg-gradient-to-br from-indigo-500 to-blue-600 text-white"
-                            : "bg-white border"
-                        }`}
-                      >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                          {msg.content}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`flex items-center gap-1 mt-1 px-1 ${
-                          isCurrentUser ? "justify-end" : ""
-                        }`}
-                      >
-                        <Clock className="w-3 h-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">
-                          {formatTimeAgo(msg.created_at)}
-                        </span>
-                      </div>
+                    <div
+                      className={`flex items-center gap-2 mt-2 px-2 ${
+                        isCurrentUser ? "justify-end" : ""
+                      }`}
+                    >
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-xs text-slate-500 font-medium">
+                        {formatTimeAgo(msg.created_at)}
+                      </span>
                     </div>
                   </div>
-                );
-              })
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Success Toast */}
-          {showSuccess && (
-            <div className="mx-6 mb-3 bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-              <p className="text-sm font-medium text-green-800">
-                Message sent successfully!
-              </p>
-            </div>
+                </div>
+              );
+            })
           )}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="mx-6 mb-3 bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <p className="text-sm text-red-800 flex-1">{error}</p>
-              <button
-                onClick={() => setError(null)}
-                className="ml-auto text-red-700 hover:text-red-900 font-bold text-lg"
-              >
-                ×
-              </button>
-            </div>
-          )}
+      {/* Success Toast */}
+      {showSuccess && (
+        <div className="mx-8 mb-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl p-4 flex items-center gap-3 shadow-lg animate-in slide-in-from-bottom-2">
+          <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+          <p className="text-sm font-bold text-emerald-900">
+            Message sent successfully!
+          </p>
+        </div>
+      )}
 
-          {/* Input Area */}
-          <div className="p-6 bg-gray-50 border-t">
-            <div className="flex gap-3">
-              <textarea
-                ref={textareaRef}
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={`Message ${chatPartnerName}...`}
-                className="flex-1 px-4 py-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                rows={3}
-                disabled={isSending || connectionStatus === "disconnected"}
-                maxLength={1000}
-              />
-              <button
-                onClick={sendMessage}
-                disabled={
-                  !newMessage.trim() ||
-                  isSending ||
-                  connectionStatus === "disconnected"
-                }
-                className={`self-end px-5 py-3 rounded-xl font-medium text-white transition-all flex items-center gap-2 ${
-                  !newMessage.trim() ||
-                  isSending ||
-                  connectionStatus === "disconnected"
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-indigo-500 hover:bg-indigo-600 active:scale-95"
-                }`}
-              >
-                {isSending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    <span className="hidden sm:inline">Send</span>
-                  </>
-                )}
-              </button>
-            </div>
-            <div className="flex items-center justify-between mt-3 px-1">
-              <p className="text-xs text-gray-500">
-                Press{" "}
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">
-                  Enter
-                </kbd>{" "}
-                to send
-              </p>
-              <p
-                className={`text-xs ${
-                  newMessage.length > 800 ? "text-orange-600" : "text-gray-400"
+      {/* Error Alert */}
+      {error && (
+        <div className="mx-8 mb-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-lg">
+          <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
+          <p className="text-sm text-red-900 flex-1 font-medium">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="ml-auto text-red-700 hover:text-red-900 font-bold text-xl transition-colors"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div className="p-8 bg-gradient-to-b from-slate-50 to-white border-t-2 border-slate-200">
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={`Message ${chatPartnerName}...`}
+              className="w-full px-6 py-4 pr-16 border-2 border-slate-300 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all shadow-sm"
+              rows={3}
+              disabled={isSending || connectionStatus === "disconnected"}
+              maxLength={1000}
+            />
+            <div className="absolute bottom-4 right-4">
+              <span
+                className={`text-xs font-mono font-bold ${
+                  newMessage.length > 800 ? "text-orange-600" : "text-slate-400"
                 }`}
               >
                 {newMessage.length}/1000
-              </p>
+              </span>
             </div>
           </div>
-        </>
-      )}
+          <button
+            onClick={sendMessage}
+            disabled={
+              !newMessage.trim() ||
+              isSending ||
+              connectionStatus === "disconnected"
+            }
+            className={`self-end px-8 py-4 rounded-2xl font-bold text-white transition-all flex items-center gap-3 shadow-lg ${
+              !newMessage.trim() ||
+              isSending ||
+              connectionStatus === "disconnected"
+                ? "bg-slate-300 cursor-not-allowed"
+                : "bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 hover:shadow-2xl hover:scale-105 active:scale-95"
+            }`}
+          >
+            {isSending ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Send className="w-5 h-5" />
+                <span className="hidden sm:inline">Send</span>
+              </>
+            )}
+          </button>
+        </div>
+        <div className="flex items-center justify-between mt-4 px-2">
+          <p className="text-xs text-slate-500 font-medium">
+            Press{" "}
+            <kbd className="px-3 py-1.5 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono font-bold">
+              Enter
+            </kbd>{" "}
+            to send • {" "}
+            <kbd className="px-3 py-1.5 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono font-bold">
+              Shift + Enter
+            </kbd>{" "}
+            for new line
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

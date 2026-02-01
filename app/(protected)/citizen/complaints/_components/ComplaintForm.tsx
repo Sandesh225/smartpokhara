@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { toast } from "sonner"; // Using Sonner for toasts
 import { ChevronRight, ChevronLeft, Send, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -63,7 +63,7 @@ export default function ComplaintForm({
 
   const nextStep = async () => {
     const fields = STEPS[currentStep].fields;
-    const isValid = await methods.trigger(fields);
+    const isValid = await methods.trigger(fields as any);
 
     if (isValid) {
       setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
@@ -83,7 +83,7 @@ export default function ComplaintForm({
 
     if (step > currentStep) {
       for (let i = currentStep; i < step; i++) {
-        const valid = await methods.trigger(STEPS[i].fields);
+        const valid = await methods.trigger(STEPS[i].fields as any);
         if (!valid) {
           toast.error("Complete previous steps first");
           return;
@@ -98,9 +98,12 @@ export default function ComplaintForm({
     const isValid = await methods.trigger();
     if (!isValid) return;
 
+    setIsSubmitting(true);
+    // Create a loading toast ID so we can dismiss or update it later
+    const toastId = toast.loading("Submitting your complaint...");
+
     const data = methods.getValues();
 
-    // DEBUG: Check the console to verify coordinates before sending
     if (data.location_point) {
       console.log("📍 Sending GPS:", data.location_point.coordinates);
     }
@@ -108,10 +111,27 @@ export default function ComplaintForm({
     try {
       // Pass raw data; the Service layer handles the API logic
       await onSubmit({ ...data, source: "web" }, attachments);
-    } catch (e) {
-      // Error handling
+
+      // FIX: Show success toast
+      toast.success("Complaint submitted successfully!", {
+        id: toastId,
+        description: "You can track its status in your dashboard.",
+        duration: 5000,
+      });
+
+      // Optional: Reset form or redirect handled by parent
+    } catch (e: any) {
+      console.error("Submission error:", e);
+      // FIX: Show error toast
+      toast.error("Failed to submit complaint", {
+        id: toastId,
+        description: e.message || "Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
   return (
     <FormProvider {...methods}>
       <div className="space-y-6">

@@ -11,20 +11,19 @@ import {
   Clock,
   FileText,
   Activity,
-  X,
   ShieldCheck,
   Wifi,
   Inbox,
-  AlertCircle,
   MapPin,
   MoreHorizontal,
   Download,
-  Filter
+  Filter,
+  FileIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -45,9 +44,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { createClient } from "@/lib/supabase/client";
 import { complaintsService } from "@/lib/supabase/queries/complaints";
-import type { Complaint } from "@/lib/supabase/queries/complaints";
+import type { ComplaintListItem } from "@/lib/supabase/queries/complaints"; // Ensure you import the correct type
 import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────────────────────
@@ -57,8 +55,8 @@ function RegistryStat({
   label,
   value,
   icon: Icon,
-  colorClass, // e.g., "bg-primary"
-  textColorClass, // e.g., "text-primary"
+  colorClass,
+  textColorClass,
   delay = 0,
 }: {
   label: string;
@@ -85,7 +83,12 @@ function RegistryStat({
             {value}
           </h3>
         </div>
-        <div className={cn("rounded-xl bg-muted/50 p-3 transition-colors group-hover:bg-white", textColorClass)}>
+        <div
+          className={cn(
+            "rounded-xl bg-muted/50 p-3 transition-colors group-hover:bg-white",
+            textColorClass
+          )}
+        >
           <Icon className="h-6 w-6" />
         </div>
       </div>
@@ -94,29 +97,37 @@ function RegistryStat({
 }
 
 /* ─────────────────────────────────────────────────────────────
-   2. PREMIUM COMPONENT: Status Badge
+   2. PREMIUM COMPONENT: Status Badge (Fixed for DB Enums)
    ───────────────────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: string }) {
+  // Map your Database ENUMs to colors
   const styles: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    open: "bg-blue-100 text-blue-700 border-blue-200",
-    in_progress: "bg-purple-100 text-purple-700 border-purple-200",
+    received: "bg-blue-100 text-blue-700 border-blue-200",
+    under_review: "bg-amber-100 text-amber-700 border-amber-200",
+    assigned: "bg-purple-100 text-purple-700 border-purple-200",
+    in_progress: "bg-indigo-100 text-indigo-700 border-indigo-200",
     resolved: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    closed: "bg-gray-100 text-gray-700 border-gray-200",
     rejected: "bg-red-100 text-red-700 border-red-200",
+    reopened: "bg-orange-100 text-orange-700 border-orange-200",
   };
 
+  // Map your Database ENUMs to Readable Text
   const labels: Record<string, string> = {
-    pending: "In Review",
-    open: "Ticket Open",
-    in_progress: "Processing",
+    received: "Received",
+    under_review: "Under Review",
+    assigned: "Staff Assigned",
+    in_progress: "In Progress",
     resolved: "Resolved",
-    rejected: "Closed",
+    closed: "Closed",
+    rejected: "Rejected",
+    reopened: "Re-Opened",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide transition-colors",
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide transition-colors whitespace-nowrap",
         styles[status] || "bg-gray-100 text-gray-700 border-gray-200"
       )}
     >
@@ -135,11 +146,11 @@ export default function ComplaintsPage() {
   const searchRef = useRef<NodeJS.Timeout | null>(null);
 
   // --- State ---
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [complaints, setComplaints] = useState<ComplaintListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+
   const [stats, setStats] = useState({
     total: 0,
     open: 0,
@@ -314,7 +325,7 @@ export default function ComplaintsPage() {
                   variant="outline"
                   className="h-10 px-4 rounded-lg border-2 font-bold text-muted-foreground bg-background"
                 >
-                  <Wifi className="w-3 h-3 mr-2 text-green-500" />
+                  <Wifi className="w-3 h-3 mr-2 text-green-500 animate-pulse" />
                   Live Database
                 </Badge>
                 <Button
@@ -377,20 +388,20 @@ export default function ComplaintsPage() {
                   <Table>
                     <TableHeader className="bg-muted/50">
                       <TableRow className="border-b border-border hover:bg-transparent">
-                        <TableHead className="w-[120px] pl-6 font-bold text-foreground">
+                        <TableHead className="w-[140px] pl-6 font-bold text-foreground">
                           Ticket ID
                         </TableHead>
                         <TableHead className="font-bold text-foreground">
-                          Subject
+                          Subject & Category
                         </TableHead>
                         <TableHead className="hidden font-bold text-foreground md:table-cell">
                           Location
                         </TableHead>
                         <TableHead className="hidden font-bold text-foreground md:table-cell">
-                          Submitted
+                          Submitted On
                         </TableHead>
                         <TableHead className="font-bold text-foreground">
-                          Status
+                          Current Status
                         </TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
@@ -407,35 +418,64 @@ export default function ComplaintsPage() {
                           }
                           className="cursor-pointer border-b border-border/50 transition-colors hover:bg-muted/40 group"
                         >
+                          {/* 1. FIXED TICKET ID */}
                           <TableCell className="pl-6 font-mono text-xs font-bold text-muted-foreground group-hover:text-primary">
-                            #{c.ticket_number?.slice(-6) || "---"}
+                            <span className="bg-muted/50 px-2 py-1 rounded">
+                              {c.tracking_code || "PENDING"}
+                            </span>
                           </TableCell>
+
                           <TableCell>
-                            <div className="space-y-1">
-                              <p className="font-bold text-foreground group-hover:text-primary transition-colors">
+                            <div className="space-y-1 py-1">
+                              <p className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                                 {c.title}
                               </p>
-                              <Badge variant="secondary" className="...">
-                                {typeof c.category === "object"
-                                  ? c.category.name
-                                  : c.category}
-                              </Badge>
+                              {/* Show Subcategory if available, else Category */}
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] h-5 px-1.5"
+                                  style={{
+                                    backgroundColor:
+                                      c.category?.color || "#e5e7eb",
+                                    color: "#000",
+                                  }}
+                                >
+                                  {c.category?.name || "Uncategorized"}
+                                </Badge>
+                                {c.subcategory && (
+                                  <span className="text-xs text-muted-foreground flex items-center">
+                                    <span className="mx-1 text-muted-foreground/30">
+                                      /
+                                    </span>
+                                    {c.subcategory.name}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
+
                           <TableCell className="hidden md:table-cell">
                             <div className="flex items-center text-sm text-muted-foreground">
                               <MapPin className="mr-1.5 h-3.5 w-3.5 text-muted-foreground/70" />
                               {c.ward
-                                ? `Ward ${c.ward.ward_number}`
-                                : "General"}
+                                ? `Ward ${c.ward.ward_number} - ${c.ward.name}`
+                                : "Unassigned Ward"}
                             </div>
                           </TableCell>
+
                           <TableCell className="hidden text-sm font-medium text-muted-foreground md:table-cell">
                             {format(new Date(c.submitted_at), "MMM dd, yyyy")}
+                            <div className="text-[10px] text-muted-foreground/60">
+                              {format(new Date(c.submitted_at), "h:mm a")}
+                            </div>
                           </TableCell>
+
+                          {/* 2. FIXED STATUS BADGE */}
                           <TableCell>
                             <StatusBadge status={c.status} />
                           </TableCell>
+
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>

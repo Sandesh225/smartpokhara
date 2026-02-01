@@ -14,6 +14,9 @@ import {
   Sparkles,
   TrendingUp,
   AlertCircle,
+  Sun,
+  Moon,
+  CloudSun,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +28,6 @@ import QuickActions from "./_components/QuickActions";
 import RecentComplaints from "./_components/RecentComplaints";
 import RecentNotices from "./_components/RecentNotices";
 import PendingBills from "./_components/PendingBills";
-
 
 interface DashboardState {
   profile: {
@@ -74,9 +76,29 @@ export default function CitizenDashboard() {
 
   const greeting = useMemo(() => {
     const hour = currentTime.getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
+
+    if (hour < 12) {
+      return (
+        <div className="flex items-center gap-3">
+          <Sun className="w-8 h-8 text-yellow-500 animate-pulse" />
+          <span>Good Morning</span>
+        </div>
+      );
+    }
+    if (hour < 18) {
+      return (
+        <div className="flex items-center gap-3">
+          <Sun className="w-8 h-8 text-orange-500" />
+          <span>Good Afternoon</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-3">
+        <Moon className="w-8 h-8 text-indigo-400" />
+        <span>Good Evening</span>
+      </div>
+    );
   }, [currentTime]);
 
   const fetchDashboardState = useCallback(
@@ -190,7 +212,10 @@ export default function CitizenDashboard() {
         >
           <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
           <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-2xl">
-            <Loader2 className="w-10 h-10 animate-spin text-white" strokeWidth={2.5} />
+            <Loader2
+              className="w-10 h-10 animate-spin text-white"
+              strokeWidth={2.5}
+            />
           </div>
         </motion.div>
         <div className="text-center space-y-3">
@@ -200,7 +225,10 @@ export default function CitizenDashboard() {
           <p className="text-sm text-muted-foreground font-semibold">
             Preparing your personalized view
           </p>
-          <Badge variant="outline" className="tracking-widest uppercase text-xs font-bold px-4 py-2 border-2">
+          <Badge
+            variant="outline"
+            className="tracking-widest uppercase text-xs font-bold px-4 py-2 border-2"
+          >
             <ShieldCheck className="w-3 h-3 mr-2" />
             Pokhara Citizen Portal
           </Badge>
@@ -210,12 +238,15 @@ export default function CitizenDashboard() {
   }
 
   const activeCount = dashboardData.stats.open + dashboardData.stats.inProgress;
-  const totalPendingAmount = dashboardData.bills.reduce((sum, bill) => sum + (bill.total_amount || 0), 0);
+  const totalPendingAmount = dashboardData.bills.reduce(
+    (sum, bill) => sum + (bill.total_amount || 0),
+    0
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background relative">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgwLDAsMCwwLjAyKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
-      
+
       <div className="relative z-10 container-gov space-y-8 pb-16 pt-6 animate-fade-in">
         <motion.header
           initial={{ opacity: 0, y: -20 }}
@@ -226,17 +257,11 @@ export default function CitizenDashboard() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                  className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-xl"
-                >
-                  <ShieldCheck className="w-7 h-7 text-white" strokeWidth={2.5} />
-                </motion.div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
-                    {greeting}, {dashboardData.profile.name}
+                    <div className="flex flex-wrap items-center gap-x-3">
+                      {greeting}, {dashboardData.profile.name}
+                    </div>
                   </h1>
                   <p className="text-sm text-muted-foreground font-semibold mt-1">
                     Welcome to your citizen dashboard
@@ -245,17 +270,26 @@ export default function CitizenDashboard() {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <Badge variant="outline" className="px-4 py-2 text-sm font-bold border-2">
+                <Badge
+                  variant="outline"
+                  className="px-4 py-2 text-sm font-bold border-2"
+                >
                   <MapPin className="w-4 h-4 mr-2" />
                   {dashboardData.profile.wardName
                     ? `${dashboardData.profile.wardName} · Ward ${dashboardData.profile.wardNumber}`
                     : "Pokhara Metropolitan"}
                 </Badge>
-                <Badge variant="outline" className="px-4 py-2 text-sm font-bold border-2">
+                <Badge
+                  variant="outline"
+                  className="px-4 py-2 text-sm font-bold border-2"
+                >
                   <Calendar className="w-4 h-4 mr-2" />
                   {format(currentTime, "EEEE, MMMM do, yyyy")}
                 </Badge>
-                <Badge variant="outline" className="px-4 py-2 text-sm font-mono font-bold border-2 tabular-nums">
+                <Badge
+                  variant="outline"
+                  className="px-4 py-2 text-sm font-mono font-bold border-2 tabular-nums"
+                >
                   {format(currentTime, "hh:mm:ss a")}
                 </Badge>
               </div>
@@ -294,14 +328,19 @@ export default function CitizenDashboard() {
                         transition={{ duration: 2, repeat: Infinity }}
                         className="h-14 w-14 rounded-2xl bg-primary/20 flex items-center justify-center"
                       >
-                        <Activity className="w-7 h-7 text-primary" strokeWidth={2.5} />
+                        <Activity
+                          className="w-7 h-7 text-primary"
+                          strokeWidth={2.5}
+                        />
                       </motion.div>
                       <div>
                         <h3 className="font-black text-xl text-foreground mb-1">
                           Active Requests
                         </h3>
                         <p className="text-sm text-muted-foreground font-semibold">
-                          {activeCount} {activeCount === 1 ? "request" : "requests"} currently in progress
+                          {activeCount}{" "}
+                          {activeCount === 1 ? "request" : "requests"} currently
+                          in progress
                         </p>
                       </div>
                     </div>
@@ -345,7 +384,9 @@ export default function CitizenDashboard() {
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
               <Sparkles className="w-6 h-6 text-primary" />
-              <h2 className="text-2xl font-black text-foreground">Quick Actions</h2>
+              <h2 className="text-2xl font-black text-foreground">
+                Quick Actions
+              </h2>
             </div>
             <p className="text-sm text-muted-foreground font-semibold">
               Access frequently used services instantly

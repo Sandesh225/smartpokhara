@@ -22,46 +22,42 @@ export function CheckInOutPanel({
   const router = useRouter();
   const supabase = createClient();
 
-  const handleAttendance = async (type: "in" | "out") => {
-    setLoading(true);
+const handleAttendance = async (type: "in" | "out") => {
+  setLoading(true);
 
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.");
-      setLoading(false);
-      return;
-    }
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-
-          if (type === "in") {
-            await staffAttendanceQueries.checkIn(supabase, latitude, longitude);
-            toast.success("Namaste! Check-in successful.");
-          } else {
-            await staffAttendanceQueries.checkOut(
-              supabase,
-              latitude,
-              longitude
-            );
-            toast.success("Work completed. Have a safe journey home!");
-          }
-
-          router.refresh(); // Refresh the Server Component state
-        } catch (error: any) {
-          toast.error(error.message || "Attendance update failed");
-        } finally {
-          setLoading(false);
+        if (type === "in") {
+          // Pass all three required arguments
+          await staffAttendanceQueries.checkIn(
+            supabase,
+            latitude,
+            longitude,
+            "browser-id" // This maps to p_device_id
+          );
+          toast.success("Namaste! Check-in successful.");
+        } else {
+          await staffAttendanceQueries.checkOut(supabase, latitude, longitude);
+          toast.success("Work completed. Have a safe journey home!");
         }
-      },
-      (error) => {
-        toast.error("Please enable location to record attendance.");
+
+        router.refresh();
+      } catch (error: any) {
+        toast.error(error.message || "Attendance update failed");
+      } finally {
         setLoading(false);
-      },
-      { enableHighAccuracy: true }
-    );
-  };
+      }
+    },
+    (error) => {
+      toast.error("Please enable location to record attendance.");
+      setLoading(false);
+    },
+    { enableHighAccuracy: true }
+  );
+};
 
   return (
     <div className="stone-card p-8 bg-grid-pattern relative overflow-hidden">
