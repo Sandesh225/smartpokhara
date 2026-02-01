@@ -129,6 +129,8 @@ export const staffQueueQueries = {
     return {
       id: data.id,
       staff_id: data.staff_id,
+      // ✅ ADD THIS LINE: Pass the actual complaint ID through
+      complaint_id: data.complaint?.id,
       type: data.complaint ? "complaint" : "task",
       title: base.title,
       description: base.description,

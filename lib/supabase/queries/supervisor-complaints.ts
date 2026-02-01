@@ -1,10 +1,6 @@
-
-// ============================================================================
-// FILE 2: lib/supabase/queries/supervisor-complaints.ts
-// Complete fixed version with proper relationship handling
-// ============================================================================
-
 import { SupabaseClient } from "@supabase/supabase-js";
+// ✅ FIX 1: Added missing import
+import { supervisorMessagesQueries } from "./supervisor-messages";
 
 interface SupervisorJurisdiction {
   assigned_wards: string[];
@@ -23,16 +19,12 @@ export const supervisorComplaintsQueries = {
       const { data, error } = await client
         .rpc("get_supervisor_jurisdiction")
         .single();
-
-      if (error || !data) {
-        console.error("Jurisdiction RPC Error:", error);
+      if (error || !data)
         return {
           assigned_wards: [],
           assigned_departments: [],
           is_senior: false,
         };
-      }
-
       return {
         assigned_wards: data.assigned_wards || [],
         assigned_departments: data.assigned_departments || [],
@@ -40,11 +32,7 @@ export const supervisorComplaintsQueries = {
       };
     } catch (err) {
       console.error("Failed to get jurisdiction:", err);
-      return {
-        assigned_wards: [],
-        assigned_departments: [],
-        is_senior: false,
-      };
+      return { assigned_wards: [], assigned_departments: [], is_senior: false };
     }
   },
 
@@ -324,7 +312,7 @@ export const supervisorComplaintsQueries = {
         throw new Error("Failed to update complaint record.");
       }
 
-      // 2. Insert into History Log (This triggered your RLS error)
+      // 2. Insert into History Log
       const { error: historyError } = await client
         .from("complaint_assignment_history")
         .insert({
@@ -335,9 +323,7 @@ export const supervisorComplaintsQueries = {
         });
 
       if (historyError) {
-        // We log it but don't fail the whole operation if the assignment worked
         console.error("Assignment History Insert Error:", historyError);
-        // Optional: throw new Error("Assignment worked, but history log failed.");
       }
 
       return { success: true };
@@ -346,6 +332,7 @@ export const supervisorComplaintsQueries = {
       throw err;
     }
   },
+
   /**
    * Reassign complaint
    */
@@ -356,9 +343,9 @@ export const supervisorComplaintsQueries = {
     reason: string,
     note: string,
     supervisorId: string,
-    oldStaffId?: string // We need to know who had it before!
+    oldStaffId?: string
   ) {
-    // 1. Perform the Database Update
+    // 1. Update Complaint Record
     const { data: complaint, error } = await client
       .from("complaints")
       .update({
@@ -381,16 +368,19 @@ export const supervisorComplaintsQueries = {
     });
 
     // ---------------------------------------------------------
-    // 3. THE MAGIC: Send System Messages to Chat Threads
+    // 3. SEND SYSTEM MESSAGES (Now works because imported)
     // ---------------------------------------------------------
 
-    // A. Notify the NEW Staff (Staff B)
+    // A. Notify the NEW Staff (Green Message)
     try {
+      // Create/Get chat with new staff
       const convB = await supervisorMessagesQueries.createConversation(
         client,
         supervisorId,
         newStaffId
       );
+
+      // Send message
       await supervisorMessagesQueries.sendMessage(
         client,
         convB,
@@ -398,17 +388,20 @@ export const supervisorComplaintsQueries = {
         `[SYSTEM] 🟢 You have been assigned Task #${complaint.tracking_code}: "${complaint.title}". Please review ASAP.`
       );
     } catch (e) {
-      console.error("Failed to notify new staff", e);
+      console.error("Failed to notify new staff:", e);
     }
 
-    // B. Notify the OLD Staff (Staff A) - If they exist
+    // B. Notify the OLD Staff (Red Message) - Only if different
     if (oldStaffId && oldStaffId !== newStaffId) {
       try {
+        // Create/Get chat with old staff
         const convA = await supervisorMessagesQueries.createConversation(
           client,
           supervisorId,
           oldStaffId
         );
+
+        // Send message
         await supervisorMessagesQueries.sendMessage(
           client,
           convA,
@@ -416,8 +409,20 @@ export const supervisorComplaintsQueries = {
           `[SYSTEM] 🔴 Task #${complaint.tracking_code} has been revoked and reassigned. Please stop work on this item.`
         );
       } catch (e) {
-        console.error("Failed to notify old staff", e);
+        console.error("Failed to notify old staff:", e);
       }
+    }
+
+    // C. Optional: Add System Comment to the Complaint Thread itself
+    // This ensures the audit trail is visible in the "Task Details" view too.
+    try {
+      await client.rpc("rpc_add_complaint_comment_v2", {
+        p_complaint_id: complaintId,
+        p_content: `[SYSTEM]: 🔄 Task reassigned to new staff. Reason: ${reason}`,
+        p_is_internal: true,
+      });
+    } catch (e) {
+      console.error("Failed to add system comment:", e);
     }
 
     return { success: true };
@@ -580,7 +585,8 @@ export const supervisorComplaintsQueries = {
     isInternal: boolean = false
   ) {
     try {
-      const { error } = await client.rpc("rpc_add_complaint_comment", {
+      // ✅ FIX 2: Switched to `rpc_add_complaint_comment_v2` to match DB Schema
+      const { error } = await client.rpc("rpc_add_complaint_comment_v2", {
         p_complaint_id: complaintId,
         p_content: content,
         p_is_internal: isInternal,

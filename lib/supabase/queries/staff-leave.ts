@@ -1,5 +1,4 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { differenceInBusinessDays, parseISO } from "date-fns";
 
 export type LeaveBalance = {
   annual_allowed: number;
@@ -20,7 +19,7 @@ export const staffLeaveQueries = {
     staffId: string
   ): Promise<LeaveBalance> {
     const { data, error } = await client
-      .from("leave_balances") // Matches SQL schema
+      .from("leave_balances")
       .select("*")
       .eq("staff_id", staffId)
       .maybeSingle();
@@ -29,39 +28,43 @@ export const staffLeaveQueries = {
       console.error("Error fetching balances:", error.message);
     }
 
-    // Default defaults for Pokhara Municipality Staff
-    return (
-      (data as LeaveBalance) || {
+    // Default values if database row is missing (must match SQL defaults)
+    if (!data) {
+      return {
         annual_allowed: 15,
         annual_used: 0,
         sick_allowed: 12,
         sick_used: 0,
         casual_allowed: 6,
         casual_used: 0,
-      }
-    );
-  },
+      };
+    }
 
+    return data;
+  },
   /**
-   * Fetch request history ordered by newest first.
+   * Fetch pending requests only (Active)
    */
-  async getMyRequests(client: SupabaseClient, staffId: string) {
-    const { data, error } = await client
-      .from("leave_requests") // Matches SQL schema
+  async getActiveRequests(client: SupabaseClient, staffId: string) {
+    const { data } = await client
+      .from("leave_requests")
       .select("*")
       .eq("staff_id", staffId)
+      .eq("status", "pending")
       .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching requests:", error.message);
-      return [];
-    }
     return data || [];
   },
 
-  /**
-   * Submit a new leave request.
-   */
+  async getRequestHistory(client: SupabaseClient, staffId: string) {
+    const { data } = await client
+      .from("leave_requests")
+      .select("*")
+      .eq("staff_id", staffId)
+      .in("status", ["approved", "rejected"])
+      .order("updated_at", { ascending: false });
+    return data || [];
+  },
+
   async requestLeave(
     client: SupabaseClient,
     payload: {
@@ -76,7 +79,7 @@ export const staffLeaveQueries = {
       .from("leave_requests")
       .insert({
         staff_id: payload.staffId,
-        type: payload.type, // 'casual', 'sick', etc.
+        type: payload.type,
         start_date: payload.startDate,
         end_date: payload.endDate,
         reason: payload.reason,

@@ -3,14 +3,13 @@ import type { StaffProfile } from "@/lib/types/supervisor.types";
 
 export const supervisorStaffQueries = {
   /**
-   * 1. GET SUPERVISED STAFF
-   * Fetches team members based on Supervisor's Ward/Dept jurisdiction.
+   * 1. GET SUPERVISED STAFF LIST
+   * Returns basic profile info for all staff under this supervisor
    */
   async getSupervisedStaff(
     client: SupabaseClient,
     supervisorId: string
   ): Promise<StaffProfile[]> {
-    // A. Get Scope
     const { data: scope } = await client
       .from("supervisor_profiles")
       .select("assigned_wards, assigned_departments, supervisor_level")
@@ -19,9 +18,6 @@ export const supervisorStaffQueries = {
 
     if (!scope) return [];
 
-    const isSenior = scope.supervisor_level === "senior";
-
-    // B. Query Staff
     let query = client
       .from("staff_profiles")
       .select(
@@ -31,31 +27,24 @@ export const supervisorStaffQueries = {
       .eq("is_active", true)
       .neq("user_id", supervisorId);
 
-    // C. Apply Jurisdiction Filters (if not Senior)
-    if (!isSenior) {
+    if (scope.supervisor_level !== "senior") {
       const filters = [];
-      if (scope.assigned_wards?.length > 0) {
+      if (scope.assigned_wards?.length)
         filters.push(`ward_id.in.(${scope.assigned_wards.join(",")})`);
-      }
-      if (scope.assigned_departments?.length > 0) {
+      if (scope.assigned_departments?.length)
         filters.push(
           `department_id.in.(${scope.assigned_departments.join(",")})`
         );
-      }
 
-      if (filters.length > 0) {
-        query = query.or(filters.join(","));
-      } else {
-        return [];
-      }
+      if (filters.length > 0) query = query.or(filters.join(","));
+      else return [];
     }
 
-    const { data: staffData, error } = await query;
-    if (error || !staffData) return [];
+    const { data: staffData } = await query;
+    if (!staffData) return [];
 
-    // D. Hydrate User Details (Name, Avatar, Email)
     const userIds = staffData.map((s) => s.user_id);
-    const [profilesRes, usersRes] = await Promise.all([
+    const [profiles, users] = await Promise.all([
       client
         .from("user_profiles")
         .select("user_id, full_name, profile_photo_url")
@@ -63,161 +52,144 @@ export const supervisorStaffQueries = {
       client.from("users").select("id, email, phone").in("id", userIds),
     ]);
 
-    const profileMap = new Map(
-      (profilesRes.data || []).map((p) => [p.user_id, p])
-    );
-    const userMap = new Map((usersRes.data || []).map((u) => [u.id, u]));
+    const pMap = new Map(profiles.data?.map((p) => [p.user_id, p]));
+    const uMap = new Map(users.data?.map((u) => [u.id, u]));
 
     return staffData.map((s: any) => ({
       ...s,
-      full_name: profileMap.get(s.user_id)?.full_name || "Staff Member",
-      avatar_url: profileMap.get(s.user_id)?.profile_photo_url,
-      email: userMap.get(s.user_id)?.email,
-      phone: userMap.get(s.user_id)?.phone,
+      full_name: pMap.get(s.user_id)?.full_name || "Staff Member",
+      avatar_url: pMap.get(s.user_id)?.profile_photo_url,
+      email: uMap.get(s.user_id)?.email,
+      phone: uMap.get(s.user_id)?.phone,
       role: s.staff_role,
     }));
   },
 
   /**
-   * 2. GET STAFF ASSIGNMENTS (For Details Page & Workload Cards)
+   * 2. ATTENDANCE OVERVIEW (Hub Page)
+   * Returns staff list merged with today's attendance logs
    */
-  async getTeamAssignments(client: SupabaseClient, staffIds: string[]) {
-    // Fetch Complaints
-    const { data: complaints } = await client
-      .from("staff_work_assignments")
+  async getStaffAttendanceOverview(
+    client: SupabaseClient,
+    supervisorId: string
+  ) {
+    const staff = await this.getSupervisedStaff(client, supervisorId);
+    if (!staff.length) return [];
+
+    const staffIds = staff.map((s) => s.user_id);
+    const today = new Date().toISOString().split("T")[0];
+
+    const { data: logs } = await client
+      .from("attendance_logs")
+      .select("*")
+      .in("staff_id", staffIds)
+      .eq("date", today);
+
+    const logMap = new Map(logs?.map((l) => [l.staff_id, l]));
+
+    return staff.map((s) => {
+      const log = logMap.get(s.user_id);
+      let status = "absent"; // Default
+
+      if (log) {
+        if (log.check_out_time) status = "checked_out";
+        else if (log.check_in_time) status = "on_duty";
+      }
+      // You could also check if they are on approved leave here
+
+      return {
+        ...s,
+        attendance: log || null,
+        computedStatus: status,
+      };
+    });
+  },
+  /**
+   * 3. PENDING LEAVES (Hub Page)
+   */
+  async getPendingLeaves(client: SupabaseClient, staffIds: string[]) {
+    if (!staffIds.length) return [];
+
+    const { data, error } = await client
+      .from("leave_requests")
       .select(
         `
-        id, staff_id, assignment_status, priority, due_at,
-        complaint:complaints(id, tracking_code, title)
+        *,
+        staff:users!leave_requests_staff_id_fkey(
+           profile:user_profiles(full_name, profile_photo_url)
+        )
       `
       )
       .in("staff_id", staffIds)
-      .neq("assignment_status", "completed");
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
 
-    // Map to Unified Structure
-    return (complaints || []).map((c: any) => ({
-      id: c.id,
-      staffId: c.staff_id,
-      type: "complaint",
-      label: c.complaint?.tracking_code || "INCIDENT",
-      title: c.complaint?.title || "Untitled Issue",
-      priority: c.priority,
-      status: c.assignment_status,
-      deadline: c.due_at,
+    if (error) {
+      console.error("Error fetching leaves:", error);
+      return [];
+    }
+
+    return data.map((l: any) => ({
+      id: l.id,
+      staffId: l.staff_id,
+      staffName: l.staff?.profile?.full_name || "Unknown Staff",
+      staffAvatar: l.staff?.profile?.profile_photo_url,
+      type: l.type,
+      reason: l.reason,
+      startDate: l.start_date,
+      endDate: l.end_date,
+      status: l.status,
+      createdAt: l.created_at,
     }));
   },
 
   /**
-   * 3. GET STAFF DETAILS (Single Profile)
+   * 4. SINGLE STAFF DETAILS (Detail Page)
    */
-  async getStaffById(client: SupabaseClient, staffId: string) {
-    const { data: staff, error } = await client
+  async getStaffDetails(client: SupabaseClient, staffId: string) {
+    const { data: staff } = await client
       .from("staff_profiles")
-      .select(
-        `
-        *,
-        ward:wards(id, ward_number, name),
-        department:departments(name)
-      `
-      )
+      .select(`*, ward:wards(name, ward_number), department:departments(name)`)
       .eq("user_id", staffId)
       .single();
 
-    if (error || !staff) return null;
+    if (!staff) return null;
 
-    const { data: profile } = await client
+    const { data: user } = await client
       .from("user_profiles")
       .select("full_name, profile_photo_url")
       .eq("user_id", staffId)
       .single();
 
-    const { data: user } = await client
-      .from("users")
-      .select("email, phone")
-      .eq("id", staffId)
-      .single();
-
-    return {
-      ...staff,
-      full_name: profile?.full_name || "Unknown Staff",
-      avatar_url: profile?.profile_photo_url,
-      email: user?.email,
-      phone: user?.phone,
-      role: staff.staff_role,
-      ward_number: staff.ward?.ward_number,
-      ward_name: staff.ward?.name,
-    };
-  },
-  async getStaffPerformance(client: SupabaseClient, staffId: string) {
-    const { data, error } = await client
-      .from("staff_work_assignments")
-      .select(
-        `
-        id, created_at, completed_at, due_at,
-        complaint:complaints(sla_due_at)
-      `
-      )
+    const today = new Date().toISOString().split("T")[0];
+    const { data: attendance } = await client
+      .from("attendance_logs")
+      .select("*")
       .eq("staff_id", staffId)
-      .eq("assignment_status", "completed");
+      .eq("date", today)
+      .maybeSingle();
 
-    if (error) return { resolved: [] };
-
-    return {
-      resolved: data.map((item) => ({
-        submitted_at: item.created_at,
-        resolved_at: item.completed_at,
-        sla_due_at: item.complaint?.sla_due_at || item.due_at,
-      })),
-    };
-  },
-  /**
-   * 4. LEAVE & ATTENDANCE MANAGEMENT
-   */
-  async getPendingLeaves(client: SupabaseClient, staffIds: string[]) {
-    const { data, error } = await client
+    const { data: leaves } = await client
       .from("leave_requests")
       .select("*")
-      .in("staff_id", staffIds)
-      .eq("status", "pending")
-      .order("created_at", { ascending: true });
+      .eq("staff_id", staffId)
+      .eq("status", "pending");
 
-    if (error) return [];
-    return data;
+    return {
+      profile: {
+        ...staff,
+        full_name: user?.full_name,
+        avatar_url: user?.profile_photo_url,
+        ward_name: staff.ward ? `Ward ${staff.ward.ward_number}` : "HQ",
+      },
+      attendance,
+      pending_leaves: leaves || [],
+    };
   },
 
-  async approveLeave(
-    client: SupabaseClient,
-    leaveId: string,
-    supervisorId: string
-  ) {
-    const { error } = await client
-      .from("leave_requests")
-      .update({
-        status: "approved",
-        approved_by: supervisorId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", leaveId);
-
-    if (error) throw error;
-  },
-
-  async rejectLeave(
-    client: SupabaseClient,
-    leaveId: string,
-    supervisorId: string
-  ) {
-    const { error } = await client
-      .from("leave_requests")
-      .update({
-        status: "rejected",
-        approved_by: supervisorId, // Tracks who rejected it
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", leaveId);
-
-    if (error) throw error;
-  },
+  /**
+   * 5. STAFF ASSIGNMENTS (Detail Page)
+   */
   async getStaffAssignments(client: SupabaseClient, staffId: string) {
     const { data, error } = await client
       .from("staff_work_assignments")
@@ -229,7 +201,8 @@ export const supervisorStaffQueries = {
       `
       )
       .eq("staff_id", staffId)
-      .neq("assignment_status", "completed");
+      .neq("assignment_status", "completed")
+      .order("priority", { ascending: true });
 
     if (error) return { complaints: [], tasks: [] };
 
@@ -249,5 +222,45 @@ export const supervisorStaffQueries = {
           priority: i.priority,
         })),
     };
+  },
+
+  /**
+   * 6. LEAVE ACTIONS (Approve/Reject)
+   */
+  async approveLeave(
+    client: SupabaseClient,
+    leaveId: string,
+    supervisorId: string
+  ) {
+    // 1. Update Status (Trigger handles balance)
+    const { error } = await client
+      .from("leave_requests")
+      .update({
+        status: "approved",
+        approved_by: supervisorId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", leaveId);
+
+    if (error) throw error;
+
+    // 2. Optional: Create an "On Leave" attendance log for today if applicable
+    // (This logic can be added if you want immediate attendance board reflection)
+  },
+  async rejectLeave(
+    client: SupabaseClient,
+    leaveId: string,
+    supervisorId: string
+  ) {
+    const { error } = await client
+      .from("leave_requests")
+      .update({
+        status: "rejected",
+        approved_by: supervisorId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", leaveId);
+
+    if (error) throw error;
   },
 };

@@ -1,15 +1,20 @@
+// lib/supabase/queries/admin/complaints.ts
+
 import { SupabaseClient } from "@supabase/supabase-js";
-import { AdminComplaintListItem, ComplaintFiltersState } from "@/types/admin-complaints";
+import {
+  AdminComplaintListItem,
+  ComplaintFiltersState,
+} from "@/types/admin-complaints";
 
 /**
- * Utility to handle Supabase's tendency to return objects as single-item arrays 
+ * Utility to handle Supabase's tendency to return objects as single-item arrays
  * when performing certain joins.
  */
 const unwrap = (val: any) => (Array.isArray(val) ? val[0] : val);
 
 export const adminComplaintQueries = {
   /**
-   * Fetches a paginated list of complaints with full relational data 
+   * Fetches a paginated list of complaints with full relational data
    * for the Admin Dashboard.
    */
   async getAllComplaints(
@@ -21,8 +26,9 @@ export const adminComplaintQueries = {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    // We use explicit foreign key hints (e.g., !complaints_citizen_id_fkey)
-    // to resolve ambiguity when multiple relationships exist between tables.
+    // ✅ FIX: The query now uses the constraints we just created in SQL
+    // 1. assigned_staff_profile links to user_profiles
+    // 2. staff_link nested inside links user_profiles to staff_profiles
     let query = client.from("complaints").select(
       `
         id, 
@@ -42,15 +48,15 @@ export const adminComplaintQueries = {
           phone, 
           profile:user_profiles(full_name, profile_photo_url)
         ),
-        assigned_user:users!complaints_assigned_staff_id_fkey(
-           profile:user_profiles(full_name),
-           staff_profile:staff_profiles(staff_code)
+        assigned_staff_profile:user_profiles!complaints_assigned_staff_profile_fkey(
+           full_name,
+           staff_link:staff_profiles!staff_profiles_user_profile_fkey(staff_code)
         )
       `,
       { count: "exact" }
     );
 
-    // Filter Logic
+    // --- Filter Logic ---
     if (filters?.search) {
       const term = filters.search.trim();
       query = query.or(`tracking_code.ilike.%${term}%,title.ilike.%${term}%`);
@@ -60,7 +66,10 @@ export const adminComplaintQueries = {
       query = query.in("status", filters.status);
     }
 
-    if (filters?.priority?.length > 0 && !filters.priority.includes("all" as any)) {
+    if (
+      filters?.priority?.length > 0 &&
+      !filters.priority.includes("all" as any)
+    ) {
       query = query.in("priority", filters.priority);
     }
 
@@ -69,11 +78,17 @@ export const adminComplaintQueries = {
     }
 
     if (filters?.date_range?.from) {
-      query = query.gte("submitted_at", new Date(filters.date_range.from).toISOString());
+      query = query.gte(
+        "submitted_at",
+        new Date(filters.date_range.from).toISOString()
+      );
     }
 
     if (filters?.date_range?.to) {
-      query = query.lte("submitted_at", new Date(filters.date_range.to).toISOString());
+      query = query.lte(
+        "submitted_at",
+        new Date(filters.date_range.to).toISOString()
+      );
     }
 
     const { data, error, count } = await query
@@ -81,56 +96,70 @@ export const adminComplaintQueries = {
       .range(from, to);
 
     if (error) {
-      console.error("Supabase Error (getAllComplaints):", JSON.stringify(error, null, 2));
+      console.error(
+        "Supabase Error (getAllComplaints):",
+        JSON.stringify(error, null, 2)
+      );
       throw new Error(error.message);
     }
 
-    // Mapping raw database response to the AdminComplaintListItem frontend type
-    const complaints: AdminComplaintListItem[] = (data || []).map((item: any) => {
-      const citizenUser = unwrap(item.citizen_data);
-      const citizenProfile = unwrap(citizenUser?.profile);
-      const staffUser = unwrap(item.assigned_user);
-      const staffProfile = unwrap(staffUser?.staff_profile);
-      const staffUserProfile = unwrap(staffUser?.profile);
+    // --- Data Mapping ---
+    const complaints: AdminComplaintListItem[] = (data || []).map(
+      (item: any) => {
+        // Safe unwrapping logic
+        const citizenUser = unwrap(item.citizen_data);
+        const citizenProfile = unwrap(citizenUser?.profile);
 
-      return {
-        id: item.id,
-        tracking_code: item.tracking_code,
-        title: item.title,
-        description: item.description,
-        status: item.status,
-        priority: item.priority,
-        submitted_at: item.submitted_at,
-        sla_due_at: item.sla_due_at,
-        ward_id: item.ward_id,
-        category: { name: unwrap(item.category)?.name || "Uncategorized" },
-        ward: {
-          ward_number: unwrap(item.ward)?.ward_number || 0,
-          name: unwrap(item.ward)?.name || "Unknown",
-        },
-        department: { name: unwrap(item.department)?.name || "Unassigned" },
-        citizen: {
-          full_name: citizenProfile?.full_name || "Anonymous",
-          avatar_url: citizenProfile?.profile_photo_url,
-          phone: citizenUser?.phone,
-          email: citizenUser?.email,
-        },
-        assigned_staff: staffUser
-          ? {
-              full_name: staffUserProfile?.full_name || "Staff",
-              staff_code: staffProfile?.staff_code || "N/A",
-            }
-          : undefined,
-      };
-    });
+        // Staff Mapping
+        const staffProfile = unwrap(item.assigned_staff_profile);
+        const staffLink = unwrap(staffProfile?.staff_link);
+
+        // Department Mapping
+        const deptInfo = unwrap(item.department);
+
+        return {
+          id: item.id,
+          tracking_code: item.tracking_code,
+          title: item.title,
+          description: item.description,
+          status: item.status,
+          priority: item.priority,
+          submitted_at: item.submitted_at,
+          sla_due_at: item.sla_due_at,
+          ward_id: item.ward_id,
+
+          category: { name: unwrap(item.category)?.name || "Uncategorized" },
+
+          ward: {
+            ward_number: unwrap(item.ward)?.ward_number || 0,
+            name: unwrap(item.ward)?.name || "Unknown",
+          },
+
+          // ✅ FIX: Dept name mapping
+          department: { name: deptInfo?.name || "Unassigned" },
+
+          citizen: {
+            full_name: citizenProfile?.full_name || "Anonymous",
+            avatar_url: citizenProfile?.profile_photo_url,
+            phone: citizenUser?.phone,
+            email: citizenUser?.email,
+          },
+
+          assigned_staff: staffProfile
+            ? {
+                full_name: staffProfile.full_name || "Staff",
+                staff_code: staffLink?.staff_code || "N/A",
+              }
+            : undefined,
+        };
+      }
+    );
 
     return { data: complaints, count: count || 0 };
   },
 
   /**
    * Updates multiple complaints to a new status.
-   * Note: The database trigger 'trigger_complaint_status_changed' handles
-   * the status history and citizen notifications automatically.
    */
   async bulkUpdateStatus(
     client: SupabaseClient,
@@ -140,9 +169,9 @@ export const adminComplaintQueries = {
   ) {
     const { error } = await client
       .from("complaints")
-      .update({ 
-        status, 
-        updated_at: new Date().toISOString() 
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
       })
       .in("id", ids);
 
@@ -168,10 +197,10 @@ export const adminComplaintQueries = {
               id, email, phone,
               profile:user_profiles(full_name, profile_photo_url)
           ),
-          assigned_staff:users!complaints_assigned_staff_id_fkey(
-              id, email, phone,
-              profile:user_profiles(full_name, profile_photo_url),
-              staff_profile:staff_profiles(staff_code)
+          /* ✅ FIX: Consistent Join for Single View */
+          assigned_staff_profile:user_profiles!complaints_assigned_staff_profile_fkey(
+              user_id, full_name, profile_photo_url,
+              staff_link:staff_profiles!staff_profiles_user_profile_fkey(staff_code, staff_role)
           ),
           timeline:complaint_status_history(
               id, old_status, new_status, created_at, note, changed_by,
@@ -184,12 +213,34 @@ export const adminComplaintQueries = {
       .single();
 
     if (error) throw error;
-    return data;
+
+    // ✅ FIX: Map detail view data safely
+    const citizenUser = unwrap(data.citizen);
+    const citizenProfile = unwrap(citizenUser?.profile);
+    const staffProfile = unwrap(data.assigned_staff_profile);
+    const staffLink = unwrap(staffProfile?.staff_link);
+
+    return {
+      ...data,
+      citizen: {
+        ...citizenUser,
+        full_name: citizenProfile?.full_name || "Anonymous",
+        avatar_url: citizenProfile?.profile_photo_url,
+      },
+      assigned_staff: staffProfile
+        ? {
+            id: staffProfile.user_id,
+            full_name: staffProfile.full_name,
+            avatar_url: staffProfile.profile_photo_url,
+            staff_code: staffLink?.staff_code || "N/A",
+            staff_role: staffLink?.staff_role || "Staff",
+          }
+        : null,
+    };
   },
 
   /**
    * Assigns (or reassigns) a complaint to a staff member.
-   * This updates the assigned_staff_id and changes status to 'assigned'.
    */
   async assignComplaint(
     client: SupabaseClient,
@@ -212,13 +263,12 @@ export const adminComplaintQueries = {
 
     if (error) throw error;
 
-    // If you need to manually log the assignment notes to history:
     if (notes) {
       await client.from("complaint_assignment_history").insert({
         complaint_id: complaintId,
         assigned_to: staffId,
         assigned_by: adminId,
-        assignment_notes: notes
+        assignment_notes: notes,
       });
     }
   },
