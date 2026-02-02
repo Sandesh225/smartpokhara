@@ -1,40 +1,16 @@
-// src/components/landing/HeroSection.tsx
 "use client";
 
 import React from "react";
-import {
-  ArrowRight,
-  ShieldCheck,
-  Users,
-  Activity,
-  Sparkles,
-} from "lucide-react";
-
-const TRUST_INDICATORS = [
-  {
-    icon: ShieldCheck,
-    label: "Gov Verified",
-    color: "text-secondary dark:text-secondary/90",
-  },
-  {
-    icon: Users,
-    label: "250k+ Citizens",
-    color: "text-primary dark:text-primary/90",
-  },
-  {
-    icon: Activity,
-    label: "Real-time Data",
-    color: "text-secondary dark:text-secondary/90",
-  },
-];
+import { ArrowRight, Sparkles } from "lucide-react";
+import { TRUST_INDICATORS } from "@/lib/constants";
 
 export const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden py-6 sm:py-10 md:py-12 lg:py-19 xl:py-20 bg-background dark:bg-background transition-colors">
-      {/* Animated Background Grid Pattern */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(43,95,117,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(43,95,117,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(79,209,197,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(79,209,197,0.03)_1px,transparent_1px)] bg-[size:24px_24px] sm:bg-[size:32px_32px]" />
+    <section className="relative overflow-hidden py-8 sm:py-12 md:py-16 lg:py-20 bg-background dark:bg-background transition-colors">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 -z-10 pattern-grid-light pattern-grid-dark opacity-30" />
 
-      {/* Gradient Blur Effects */}
+      {/* Gradient Blur Effects - Preserved exactly as provided */}
       <div className="absolute left-1/4 top-0 -z-10 h-[200px] w-[200px] sm:h-[250px] sm:w-[250px] md:h-[310px] md:w-[310px] rounded-full bg-primary/10 dark:bg-primary/20 blur-[80px] md:blur-[100px] animate-pulse" />
       <div
         className="absolute right-1/4 bottom-0 -z-10 h-[200px] w-[200px] sm:h-[250px] sm:w-[250px] md:h-[310px] md:w-[310px] rounded-full bg-secondary/10 dark:bg-secondary/20 blur-[80px] md:blur-[100px] animate-pulse"
@@ -62,11 +38,13 @@ export const HeroSection = () => {
                 <span className="text-primary dark:text-primary/90">
                   Your Voice
                 </span>
+                {/* Decorative Underline SVG */}
                 <svg
                   className="absolute -bottom-2 left-0 w-full h-3 sm:h-4"
                   viewBox="0 0 200 12"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
                 >
                   <path
                     d="M2 10C60 4 140 4 198 10"
@@ -81,7 +59,7 @@ export const HeroSection = () => {
           </h1>
 
           {/* Subheadline */}
-          <p className="mx-auto max-w-2xl text-base sm:text-lg md:text-xl text-muted-foreground dark:text-muted-foreground/90 mb-8 sm:mb-10 md:mb-12 leading-relaxed px-4">
+          <p className="mx-auto max-w-2xl text-base sm:text-lg md:text-xl text-muted-foreground dark:text-muted-foreground/90 mb-8 sm:mb-10 leading-relaxed px-4">
             The official platform for Pokhara Metropolitan City. Report
             infrastructure issues, pay taxes securely, and track municipal
             projects with complete transparency.
@@ -89,20 +67,25 @@ export const HeroSection = () => {
 
           {/* Primary CTAs */}
           <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 sm:gap-4 mb-12 sm:mb-16 md:mb-20 px-4 sm:px-0">
-            <button className="group relative h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold bg-primary dark:bg-primary/90 text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary rounded-full shadow-lg shadow-primary/20 dark:shadow-primary/30 hover:shadow-xl hover:shadow-primary/30 dark:hover:shadow-primary/40 transition-all duration-300 hover:scale-105 overflow-hidden">
+            <button
+              className="group relative h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold bg-primary dark:bg-primary/90 text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary rounded-full shadow-lg shadow-primary/20 dark:shadow-primary/30 hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
+              aria-label="Report an issue to the municipality"
+            >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 Report an Issue
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-brand-light to-primary opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
 
-            <button className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold border-2 border-border dark:border-border/50 text-foreground dark:text-foreground/90 bg-background/50 dark:bg-card/50 backdrop-blur hover:bg-accent dark:hover:bg-accent/80 hover:border-primary dark:hover:border-primary/70 rounded-full transition-all duration-300 hover:scale-105 shadow-sm hover:shadow-md">
+            <button
+              className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold border-2 border-border dark:border-border/50 text-foreground dark:text-foreground/90 bg-background/50 dark:bg-card/50 backdrop-blur hover:bg-accent dark:hover:bg-accent/80 hover:border-primary dark:hover:border-primary/70 rounded-full transition-all duration-300 hover:scale-105 shadow-sm"
+              aria-label="Track your application status"
+            >
               Track Application
             </button>
           </div>
 
-          {/* Trust Indicators */}
+          {/* Trust Indicators - Pulled from @/lib/constants */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 px-4">
             {TRUST_INDICATORS.map((item, idx) => (
               <div
@@ -111,6 +94,7 @@ export const HeroSection = () => {
               >
                 <item.icon
                   className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${item.color}`}
+                  aria-hidden="true"
                 />
                 <span className="text-xs sm:text-sm font-semibold text-foreground dark:text-foreground/90 whitespace-nowrap">
                   {item.label}
@@ -121,7 +105,7 @@ export const HeroSection = () => {
         </div>
       </div>
 
-      {/* Bottom fade to next section */}
+      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-20 sm:h-32 bg-gradient-to-t from-background dark:from-background/50 to-transparent pointer-events-none" />
     </section>
   );

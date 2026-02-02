@@ -1,83 +1,48 @@
-// src/components/layout/Footer.tsx
 "use client";
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   MapPin,
   Phone,
   Mail,
-  Landmark,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
   ExternalLink,
   Send,
   ArrowRight,
 } from "lucide-react";
-
-const QUICK_LINKS = [
-  { label: "Staff Login", href: "/staff", icon: "👤" },
-  { label: "Citizen Registration", href: "/register", icon: "📝" },
-  { label: "Report Issue", href: "/report", icon: "📢" },
-  { label: "Track Status", href: "/track", icon: "🔍" },
-];
-
-const LEGAL_LINKS = [
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms of Service", href: "/terms" },
-  { label: "Accessibility", href: "/accessibility" },
-  { label: "Data Protection", href: "/data-protection" },
-];
-
-const SOCIAL_LINKS = [
-  {
-    icon: Facebook,
-    href: "https://facebook.com/pokharamun",
-    label: "Facebook",
-    color: "hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-500",
-  },
-  {
-    icon: Twitter,
-    href: "https://twitter.com/pokharamun",
-    label: "Twitter",
-    color: "hover:bg-sky-500/10 hover:border-sky-500 hover:text-sky-500",
-  },
-  {
-    icon: Instagram,
-    href: "https://instagram.com/pokharamun",
-    label: "Instagram",
-    color: "hover:bg-pink-500/10 hover:border-pink-500 hover:text-pink-500",
-  },
-  {
-    icon: Youtube,
-    href: "https://youtube.com/@pokharamun",
-    label: "YouTube",
-    color: "hover:bg-red-500/10 hover:border-red-500 hover:text-red-500",
-  },
-];
+import {
+  QUICK_LINKS,
+  LEGAL_LINKS,
+  SOCIAL_LINKS,
+  CONTACT_INFO,
+} from "@/lib/constants";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-muted/50 dark:bg-card/50 border-t border-border dark:border-border/50 mt-auto no-print transition-colors">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <footer className="w-full bg-muted/50 dark:bg-card/50 border-t border-border dark:border-border/50 mt-auto no-print">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Main Footer Content */}
-        <div className="pt-12 sm:pt-16 pb-10 sm:pb-12">
+        <div className="pt-10 sm:pt-12 pb-10 sm:pb-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12">
-            {/* Brand Column - Spans 4 columns on lg */}
+            {/* Brand Column */}
             <div className="lg:col-span-4">
               <Link
                 href="/"
                 className="inline-flex items-center gap-2 sm:gap-2.5 mb-5 sm:mb-6 group"
               >
-                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-primary dark:bg-primary/90 flex items-center justify-center text-primary-foreground shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105">
-                  <Landmark className="h-6 w-6 sm:h-7 sm:w-7" />
+                <div className="relative h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-primary dark:bg-primary/90 flex items-center justify-center text-primary-foreground shadow-lg group-hover:shadow-xl transition-all duration-200 group-hover:scale-105 overflow-hidden">
+                  <Image
+                    src="/logo.svg"
+                    alt="Smart Pokhara"
+                    fill
+                    className="object-contain p-2"
+                  />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-heading font-bold text-lg sm:text-xl text-foreground dark:text-foreground/95 leading-none uppercase tracking-tight">
+                  <span className="font-bold text-lg sm:text-xl text-foreground dark:text-foreground/95 leading-none uppercase tracking-tight">
                     Smart Pokhara
                   </span>
                   <span className="text-[10px] sm:text-[11px] font-bold text-secondary dark:text-secondary/90 uppercase tracking-widest mt-1">
@@ -91,7 +56,7 @@ export const Footer = () => {
                 civic engagement in Pokhara Metropolitan City.
               </p>
 
-              {/* Social Links */}
+              {/* Social Links - Pulled from constants */}
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
                 {SOCIAL_LINKS.map((social) => (
                   <a
@@ -107,7 +72,7 @@ export const Footer = () => {
                 ))}
               </div>
 
-              {/* Newsletter Signup */}
+              {/* Newsletter */}
               <div className="hidden sm:block">
                 <p className="text-sm font-semibold text-foreground dark:text-foreground/95 mb-3">
                   Stay Updated
@@ -125,7 +90,7 @@ export const Footer = () => {
               </div>
             </div>
 
-            {/* Quick Links - Spans 2 columns on lg */}
+            {/* Quick Links - Pulled from constants */}
             <div className="lg:col-span-2">
               <h3 className="font-bold text-foreground dark:text-foreground/95 mb-4 sm:mb-5 text-sm uppercase tracking-wider">
                 Quick Links
@@ -148,7 +113,7 @@ export const Footer = () => {
               </ul>
             </div>
 
-            {/* Legal - Spans 3 columns on lg */}
+            {/* Legal - Pulled from constants */}
             <div className="lg:col-span-3">
               <h3 className="font-bold text-foreground dark:text-foreground/95 mb-4 sm:mb-5 text-sm uppercase tracking-wider">
                 Legal & Policies
@@ -170,7 +135,7 @@ export const Footer = () => {
               </ul>
             </div>
 
-            {/* Contact - Spans 3 columns on lg */}
+            {/* Contact - Pulled from constants */}
             <div className="lg:col-span-3">
               <h3 className="font-bold text-foreground dark:text-foreground/95 mb-4 sm:mb-5 text-sm uppercase tracking-wider">
                 Get in Touch
@@ -178,40 +143,39 @@ export const Footer = () => {
               <ul className="space-y-3 sm:space-y-4">
                 <li>
                   <a
-                    href="https://maps.google.com/?q=New+Road+Pokhara"
+                    href={CONTACT_INFO.mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex gap-3 text-sm sm:text-base text-muted-foreground dark:text-muted-foreground/90 hover:text-primary dark:hover:text-primary/90 transition-colors group"
                   >
                     <MapPin className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-primary dark:text-primary/90 mt-0.5 group-hover:scale-110 transition-transform" />
                     <span className="leading-relaxed">
-                      New Road, Pokhara-8, Kaski, Nepal
+                      {CONTACT_INFO.address}
                     </span>
                   </a>
                 </li>
                 <li>
                   <a
-                    href="tel:+977615521105"
+                    href={`tel:${CONTACT_INFO.phone}`}
                     className="flex gap-3 text-sm sm:text-base font-mono text-muted-foreground dark:text-muted-foreground/90 hover:text-primary dark:hover:text-primary/90 transition-colors group"
                   >
                     <Phone className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-primary dark:text-primary/90 mt-0.5 group-hover:rotate-12 transition-transform" />
-                    <span>+977-61-521105</span>
+                    <span>{CONTACT_INFO.phone}</span>
                   </a>
                 </li>
                 <li>
                   <a
-                    href="mailto:info@pokharamun.gov.np"
+                    href={`mailto:${CONTACT_INFO.email}`}
                     className="flex gap-3 text-sm sm:text-base text-muted-foreground dark:text-muted-foreground/90 hover:text-primary dark:hover:text-primary/90 transition-colors break-all group"
                   >
                     <Mail className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-primary dark:text-primary/90 mt-0.5 group-hover:scale-110 transition-transform" />
-                    <span>info@pokharamun.gov.np</span>
+                    <span>{CONTACT_INFO.email}</span>
                   </a>
                 </li>
               </ul>
 
-              {/* Official Website Link */}
               <a
-                href="https://pokharamun.gov.np"
+                href={CONTACT_INFO.website}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-5 sm:mt-6 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-secondary dark:text-secondary/90 hover:text-secondary/80 dark:hover:text-secondary bg-secondary/10 dark:bg-secondary/20 rounded-lg hover:bg-secondary/20 dark:hover:bg-secondary/30 transition-all hover:shadow-md"
@@ -226,11 +190,9 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-border dark:border-border/50 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
-            {/* Copyright */}
             <div className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground/80 text-center sm:text-left">
               <p className="mb-1 sm:mb-0">
-                &copy; {currentYear} Pokhara Metropolitan City. All rights
-                reserved.
+                © {currentYear} Pokhara Metropolitan City. All rights reserved.
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground/70 dark:text-muted-foreground/60">
                 Government of Nepal | Gandaki Pradesh
@@ -238,7 +200,6 @@ export const Footer = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
-              {/* System Status */}
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card dark:bg-muted/30 border border-border dark:border-border/50">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary dark:bg-secondary/80 opacity-75"></span>
@@ -249,10 +210,9 @@ export const Footer = () => {
                 </span>
               </div>
 
-              {/* Made with love */}
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground dark:text-muted-foreground/70">
                 <span>Built with</span>
-                <span className="text-base animate-pulse">💚</span>
+                <span className="text-base">💚</span>
                 <span>for Pokhara</span>
               </div>
             </div>
