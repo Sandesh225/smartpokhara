@@ -4,13 +4,14 @@ import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
 import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
-import { QueueFilterTabs } from "@/components/staff/queue/QueueFilterTabs";
-import { QueueSearch } from "@/components/staff/queue/QueueSearch";
-import { ViewToggle, ViewMode } from "@/components/staff/queue/ViewToggle";
-import { QueueListView } from "@/components/staff/queue/QueueListView";
-import { QueueCardView } from "@/components/staff/queue/QueueCardView";
+
 import { EmptyState } from "@/components/staff/shared/EmptyState";
 import { Users } from "lucide-react";
+import { ViewMode, ViewToggle } from "../_components/ViewToggle";
+import { QueueSearch } from "../_components/QueueSearch";
+import { QueueFilterTabs } from "../_components/QueueFilterTabs";
+import { QueueCardView } from "../_components/QueueCardView";
+import { QueueListView } from "../_components/QueueListView";
 
 export default function TeamQueuePage() {
   const [items, setItems] = useState<any[]>([]);
