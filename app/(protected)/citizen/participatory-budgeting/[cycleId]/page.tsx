@@ -25,7 +25,8 @@ import {
   Award,
   Clock,
   PieChart,
-  Megaphone
+  Megaphone,
+  Vote,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

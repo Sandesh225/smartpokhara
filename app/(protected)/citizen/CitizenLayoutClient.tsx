@@ -48,7 +48,7 @@ export default function CitizenLayoutClient({
         counts={counts}
       />
 
-      <div className="flex flex-1 flex-col min-w-0 lg:ml-72">
+      <div className="flex flex-1 flex-col min-w-0 lg:ml-74">
         <Header
           user={user}
           setSidebarOpen={setSidebarOpen}
