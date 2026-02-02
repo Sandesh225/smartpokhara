@@ -7,7 +7,6 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/flowbite-react/dist/**/*.js",
   ],
   theme: {
     extend: {
@@ -67,7 +66,6 @@ const config: Config = {
         input: "rgb(var(--input))",
         ring: "rgb(var(--ring))",
 
-        // Direct utility access
         "primary-brand": "rgb(var(--primary-brand-raw))",
         "primary-brand-light": "rgb(var(--primary-brand-light-raw))",
         "primary-brand-dark": "rgb(var(--primary-brand-dark-raw))",
@@ -182,8 +180,6 @@ const config: Config = {
     },
   },
   plugins: [
-    require("flowbite/plugin"),
-    // Add custom plugin for utilities
     function ({ addUtilities }: any) {
       addUtilities({
         ".scrollbar-hide": {

@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
-import withFlowbiteReact from "flowbite-react/plugin/nextjs";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  // If you are using Next.js 15, keep this. If older, remove 'experimental'.
+  experimental: {
+    reactCompiler: true,
+  },
 };
 
-export default withFlowbiteReact(nextConfig);
+export default nextConfig;
