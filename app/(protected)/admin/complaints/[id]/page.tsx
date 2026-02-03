@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════
 // ADMIN COMPLAINT DETAIL PAGE (Server Component)
-// FIXED: Removed non-existent query methods (getMessages, getInternalNotes)
+// FIXED: Updated for Next.js 15 & Safe Query Handling
 // ═══════════════════════════════════════════════════════════
 
 import { notFound, redirect } from "next/navigation";
@@ -22,29 +22,26 @@ import { ShieldCheck, Fingerprint, Database, Info } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function AdminComplaintDetail({ params }: PageProps) {
-  const { id } = params;
+  // 1. Resolve Params (Next.js 15+)
+  const { id } = await params;
 
-  // 1. Auth Check
+  // 2. Auth Check
   const user = await getCurrentUserWithRoles();
   if (!user || !isAdmin(user)) redirect("/login");
 
-  // 2. Initialize Supabase
+  // 3. Initialize Supabase
   const supabase = await createClient();
 
-  // 3. Fetch Data
-  // We fetch the complaint individually first to ensure it exists.
+  // 4. Fetch Data
   const complaint = await adminComplaintQueries.getComplaintById(supabase, id);
 
   if (!complaint) return notFound();
 
-  // 4. Initialize Sub-data
-  // Since getMessages and getInternalNotes do not exist on adminComplaintQueries yet,
-  // we pass empty arrays to satisfy the component props and allow the build to pass.
-  // TODO: Implement fetch logic for messages/notes when backend queries are ready.
+  // 5. Initialize Sub-data (Placeholders until API exists)
   const messages: any[] = []; 
   const notes: any[] = [];
 

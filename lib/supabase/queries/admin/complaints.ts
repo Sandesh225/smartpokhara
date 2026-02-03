@@ -1,4 +1,7 @@
+// ═══════════════════════════════════════════════════════════
+// ADMIN COMPLAINT QUERIES
 // lib/supabase/queries/admin/complaints.ts
+// ═══════════════════════════════════════════════════════════
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -14,8 +17,7 @@ const unwrap = (val: any) => (Array.isArray(val) ? val[0] : val);
 
 export const adminComplaintQueries = {
   /**
-   * Fetches a paginated list of complaints with full relational data
-   * for the Admin Dashboard.
+   * Fetches a paginated list of complaints with full relational data.
    */
   async getAllComplaints(
     client: SupabaseClient,
@@ -26,9 +28,6 @@ export const adminComplaintQueries = {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    // ✅ FIX: The query now uses the constraints we just created in SQL
-    // 1. assigned_staff_profile links to user_profiles
-    // 2. staff_link nested inside links user_profiles to staff_profiles
     let query = client.from("complaints").select(
       `
         id, 
@@ -106,15 +105,10 @@ export const adminComplaintQueries = {
     // --- Data Mapping ---
     const complaints: AdminComplaintListItem[] = (data || []).map(
       (item: any) => {
-        // Safe unwrapping logic
         const citizenUser = unwrap(item.citizen_data);
         const citizenProfile = unwrap(citizenUser?.profile);
-
-        // Staff Mapping
         const staffProfile = unwrap(item.assigned_staff_profile);
         const staffLink = unwrap(staffProfile?.staff_link);
-
-        // Department Mapping
         const deptInfo = unwrap(item.department);
 
         return {
@@ -127,24 +121,18 @@ export const adminComplaintQueries = {
           submitted_at: item.submitted_at,
           sla_due_at: item.sla_due_at,
           ward_id: item.ward_id,
-
           category: { name: unwrap(item.category)?.name || "Uncategorized" },
-
           ward: {
             ward_number: unwrap(item.ward)?.ward_number || 0,
             name: unwrap(item.ward)?.name || "Unknown",
           },
-
-          // ✅ FIX: Dept name mapping
           department: { name: deptInfo?.name || "Unassigned" },
-
           citizen: {
             full_name: citizenProfile?.full_name || "Anonymous",
             avatar_url: citizenProfile?.profile_photo_url,
             phone: citizenUser?.phone,
             email: citizenUser?.email,
           },
-
           assigned_staff: staffProfile
             ? {
                 full_name: staffProfile.full_name || "Staff",
@@ -159,30 +147,7 @@ export const adminComplaintQueries = {
   },
 
   /**
-   * Updates multiple complaints to a new status.
-   */
-  async bulkUpdateStatus(
-    client: SupabaseClient,
-    ids: string[],
-    status: string,
-    adminId: string
-  ) {
-    const { error } = await client
-      .from("complaints")
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
-      .in("id", ids);
-
-    if (error) {
-      console.error("Bulk Update Error:", JSON.stringify(error));
-      throw error;
-    }
-  },
-
-  /**
-   * Fetches detailed information for a single complaint including timeline.
+   * Fetches detailed information for a single complaint.
    */
   async getComplaintById(client: SupabaseClient, id: string) {
     const { data, error } = await client
@@ -197,7 +162,6 @@ export const adminComplaintQueries = {
               id, email, phone,
               profile:user_profiles(full_name, profile_photo_url)
           ),
-          /* ✅ FIX: Consistent Join for Single View */
           assigned_staff_profile:user_profiles!complaints_assigned_staff_profile_fkey(
               user_id, full_name, profile_photo_url,
               staff_link:staff_profiles!staff_profiles_user_profile_fkey(staff_code, staff_role)
@@ -214,7 +178,6 @@ export const adminComplaintQueries = {
 
     if (error) throw error;
 
-    // ✅ FIX: Map detail view data safely
     const citizenUser = unwrap(data.citizen);
     const citizenProfile = unwrap(citizenUser?.profile);
     const staffProfile = unwrap(data.assigned_staff_profile);
@@ -270,6 +233,29 @@ export const adminComplaintQueries = {
         assigned_by: adminId,
         assignment_notes: notes,
       });
+    }
+  },
+
+  /**
+   * Updates multiple complaints to a new status.
+   */
+  async bulkUpdateStatus(
+    client: SupabaseClient,
+    ids: string[],
+    status: string,
+    adminId: string
+  ) {
+    const { error } = await client
+      .from("complaints")
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .in("id", ids);
+
+    if (error) {
+      console.error("Bulk Update Error:", JSON.stringify(error));
+      throw error;
     }
   },
 };
