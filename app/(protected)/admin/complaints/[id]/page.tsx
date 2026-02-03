@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════
 // ADMIN COMPLAINT DETAIL PAGE (Server Component)
-// FIXED: Removed non-existent query methods
+// FIXED: Removed non-existent query methods (getMessages, getInternalNotes)
 // ═══════════════════════════════════════════════════════════
 
 import { notFound, redirect } from "next/navigation";
@@ -28,18 +28,24 @@ interface PageProps {
 export default async function AdminComplaintDetail({ params }: PageProps) {
   const { id } = params;
 
+  // 1. Auth Check
   const user = await getCurrentUserWithRoles();
   if (!user || !isAdmin(user)) redirect("/login");
 
+  // 2. Initialize Supabase
   const supabase = await createClient();
 
-  
+  // 3. Fetch Data
+  // We fetch the complaint individually first to ensure it exists.
   const complaint = await adminComplaintQueries.getComplaintById(supabase, id);
 
   if (!complaint) return notFound();
 
-  
-  const messages: any[] = [];
+  // 4. Initialize Sub-data
+  // Since getMessages and getInternalNotes do not exist on adminComplaintQueries yet,
+  // we pass empty arrays to satisfy the component props and allow the build to pass.
+  // TODO: Implement fetch logic for messages/notes when backend queries are ready.
+  const messages: any[] = []; 
   const notes: any[] = [];
 
   return (
@@ -51,12 +57,15 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
 
       {/* GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 items-start">
-        {/* LEFT */}
+        {/* LEFT MAIN CONTENT */}
         <div className="lg:col-span-8 space-y-4 md:space-y-6">
+          
+          {/* Main Info */}
           <section className="stone-card overflow-hidden">
             <ComplaintInfoCard complaint={complaint} />
           </section>
 
+          {/* Messages */}
           <section className="stone-card overflow-hidden">
             <CommunicationThread
               complaintId={complaint.id}
@@ -65,6 +74,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
             />
           </section>
 
+          {/* Internal Notes */}
           <section className="stone-card overflow-hidden">
             <InternalNotes
               complaintId={complaint.id}
@@ -72,6 +82,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
             />
           </section>
 
+          {/* Timeline */}
           <section className="stone-card p-4 md:p-6">
             <h3 className="text-sm md:text-base font-bold mb-4 flex items-center gap-2 text-primary">
               <Info className="w-4 h-4 md:w-5 md:h-5" />
@@ -81,8 +92,10 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
           </section>
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT SIDEBAR */}
         <aside className="lg:col-span-4 space-y-4 md:space-y-6 lg:sticky lg:top-6">
+          
+          {/* SLA Tracker */}
           <div className="stone-card overflow-hidden elevation-2">
             <SLATracker
               deadline={complaint.sla_due_at}
@@ -91,6 +104,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
             />
           </div>
 
+          {/* Citizen Info & Badges */}
           <div className="relative">
             <div className="absolute -top-2 -right-2 z-10">
               {complaint.is_anonymous ? (
@@ -112,6 +126,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
             </div>
           </div>
 
+          {/* Metadata */}
           <div className="glass rounded-xl border border-border overflow-hidden">
             <div className="px-4 py-3 bg-muted/30 border-b border-border flex items-center gap-2">
               <Database className="w-4 h-4 text-primary" />
