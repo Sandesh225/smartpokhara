@@ -33,15 +33,12 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
 
   const supabase = await createClient();
 
-  // ✅ ONLY call methods that actually exist
-  const complaint = await adminComplaintQueries.getComplaintById(
-    supabase,
-    id
-  );
+  
+  const complaint = await adminComplaintQueries.getComplaintById(supabase, id);
 
   if (!complaint) return notFound();
 
-  // ✅ Safe defaults (until real queries are implemented)
+  
   const messages: any[] = [];
   const notes: any[] = [];
 
