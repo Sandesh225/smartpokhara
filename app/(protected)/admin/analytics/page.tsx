@@ -26,9 +26,9 @@ interface ComplaintRow {
   resolved_at: string | null;
   sla_due_at: string | null;
   complaint_categories: { name: string }[] | null;
-  wards: { ward_number: number; name: string } | null;
+  // Change this line to an array
+  wards: { ward_number: number; name: string }[] | null;
 }
-
 interface AnalyticsData {
   totalComplaints: number;
   resolvedComplaints: number;
@@ -59,8 +59,9 @@ export default function StaffAnalyticsPage() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] =
-    useState<"7days" | "30days" | "90days" | "1year">("30days");
+  const [timeRange, setTimeRange] = useState<
+    "7days" | "30days" | "90days" | "1year"
+  >("30days");
 
   useEffect(() => {
     loadAnalytics();
@@ -91,14 +92,16 @@ export default function StaffAnalyticsPage() {
 
       const { data, error } = await supabase
         .from("complaints")
-        .select(`
+        .select(
+          `
           status,
           submitted_at,
           resolved_at,
           sla_due_at,
           complaint_categories(name),
           wards(ward_number, name)
-        `)
+        `
+        )
         .gte("submitted_at", startDate.toISOString());
 
       if (error) throw error;
@@ -142,9 +145,7 @@ export default function StaffAnalyticsPage() {
           ? 0
           : (resolvedComplaints.filter((c) => {
               if (!c.sla_due_at) return true;
-              return (
-                new Date(c.resolved_at!) <= new Date(c.sla_due_at)
-              );
+              return new Date(c.resolved_at!) <= new Date(c.sla_due_at);
             }).length /
               resolvedComplaints.length) *
             100;
@@ -153,13 +154,16 @@ export default function StaffAnalyticsPage() {
       /*                      COMPLAINTS BY CATEGORY (FIX)                   */
       /* ------------------------------------------------------------------ */
 
-      const categoryCounts = complaints.reduce((acc, complaint) => {
-        const category =
-          complaint.complaint_categories?.[0]?.name ?? "Unknown";
+      const categoryCounts = complaints.reduce(
+        (acc, complaint) => {
+          const category =
+            complaint.complaint_categories?.[0]?.name ?? "Unknown";
 
-        acc[category] = (acc[category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+          acc[category] = (acc[category] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
       const complaintsByCategory = Object.entries(categoryCounts)
         .map(([category, count]) => ({ category, count }))
@@ -170,14 +174,22 @@ export default function StaffAnalyticsPage() {
       /*                          COMPLAINTS BY WARD                         */
       /* ------------------------------------------------------------------ */
 
-      const wardCounts = complaints.reduce((acc, complaint) => {
-        const ward = complaint.wards?.ward_number
-          ? `Ward ${complaint.wards.ward_number}`
-          : "Unknown";
+      const wardCounts = complaints.reduce(
+        (acc, complaint) => {
+          // Update this line to access the first element of the array
+          const wardData = Array.isArray(complaint.wards)
+            ? complaint.wards[0]
+            : null;
 
-        acc[ward] = (acc[ward] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+          const ward = wardData?.ward_number
+            ? `Ward ${wardData.ward_number}`
+            : "Unknown";
+
+          acc[ward] = (acc[ward] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
       const complaintsByWard = Object.entries(wardCounts)
         .map(([ward, count]) => ({ ward, count }))
@@ -188,22 +200,23 @@ export default function StaffAnalyticsPage() {
       /*                             MONTHLY TREND                           */
       /* ------------------------------------------------------------------ */
 
-      const monthlyCounts = complaints.reduce((acc, complaint) => {
-        const month = new Date(complaint.submitted_at).toLocaleDateString(
-          "en-US",
-          { year: "numeric", month: "short" }
-        );
+      const monthlyCounts = complaints.reduce(
+        (acc, complaint) => {
+          const month = new Date(complaint.submitted_at).toLocaleDateString(
+            "en-US",
+            { year: "numeric", month: "short" }
+          );
 
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+          acc[month] = (acc[month] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
       const monthlyTrend = Object.entries(monthlyCounts)
         .map(([month, count]) => ({ month, count }))
         .sort(
-          (a, b) =>
-            new Date(a.month).getTime() -
-            new Date(b.month).getTime()
+          (a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()
         );
 
       setAnalytics({
@@ -240,9 +253,7 @@ export default function StaffAnalyticsPage() {
         <div className="flex gap-2">
           <select
             value={timeRange}
-            onChange={(e) =>
-              setTimeRange(e.target.value as any)
-            }
+            onChange={(e) => setTimeRange(e.target.value as any)}
             className="border px-3 py-2 rounded-md"
           >
             <option value="7days">Last 7 days</option>
