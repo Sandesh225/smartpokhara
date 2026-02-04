@@ -1,5 +1,4 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-// ✅ FIX 1: Added missing import
 import { supervisorMessagesQueries } from "./supervisor-messages";
 
 interface SupervisorJurisdiction {
@@ -10,7 +9,7 @@ interface SupervisorJurisdiction {
 
 export const supervisorComplaintsQueries = {
   /**
-   * Get supervisor jurisdiction (reused from analytics)
+   * Get supervisor jurisdiction
    */
   async getJurisdiction(
     client: SupabaseClient
@@ -38,6 +37,7 @@ export const supervisorComplaintsQueries = {
 
   /**
    * Get complaints within jurisdiction with filters
+   * FIX: Updated FK relationship to point to user_profiles
    */
   async getJurisdictionComplaints(
     client: SupabaseClient,
@@ -50,18 +50,17 @@ export const supervisorComplaintsQueries = {
     const to = from + pageSize - 1;
 
     try {
-      // Get jurisdiction
       const scope = await this.getJurisdiction(client);
 
-      // Build query with correct FK hint
+      // FIX: Changed 'assigned_staff:users!...' to 'assigned_staff:user_profiles!complaints_assigned_staff_profile_fkey'
       let query = client.from("complaints").select(
         `
           *,
           ward:wards(id, name, ward_number),
           category:complaint_categories(id, name),
-          assigned_staff:users!complaints_assigned_staff_id_fkey(
-            id,
-            profile:user_profiles(full_name)
+          assigned_staff:user_profiles!complaints_assigned_staff_profile_fkey(
+            user_id,
+            full_name
           )
         `,
         { count: "exact" }
@@ -83,12 +82,14 @@ export const supervisorComplaintsQueries = {
           );
         }
 
+        // Also allow complaints specifically assigned to this supervisor
+        jurisdictionParts.push(`assigned_staff_id.eq.${supervisorId}`);
+
         if (jurisdictionParts.length === 0) {
-          console.warn("Supervisor has no assigned jurisdiction");
           return {
             data: [],
             count: 0,
-            message: "No jurisdiction assigned. Contact administrator.",
+            message: "No jurisdiction assigned.",
           };
         }
 
@@ -97,21 +98,11 @@ export const supervisorComplaintsQueries = {
 
       // Apply user filters
       if (filters) {
-        if (filters.status?.length) {
-          query = query.in("status", filters.status);
-        }
-        if (filters.priority?.length) {
-          query = query.in("priority", filters.priority);
-        }
-        if (filters.category?.length) {
-          query = query.in("category_id", filters.category);
-        }
-        if (filters.ward_id?.length) {
-          query = query.in("ward_id", filters.ward_id);
-        }
-        if (filters.assigned_staff_id) {
-          query = query.eq("assigned_staff_id", filters.assigned_staff_id);
-        }
+        if (filters.status?.length) query = query.in("status", filters.status);
+        if (filters.priority?.length) query = query.in("priority", filters.priority);
+        if (filters.category?.length) query = query.in("category_id", filters.category);
+        if (filters.ward_id?.length) query = query.in("ward_id", filters.ward_id);
+        if (filters.assigned_staff_id) query = query.eq("assigned_staff_id", filters.assigned_staff_id);
         if (filters.search) {
           query = query.or(
             `title.ilike.%${filters.search}%,tracking_code.ilike.%${filters.search}%`
@@ -119,7 +110,6 @@ export const supervisorComplaintsQueries = {
         }
       }
 
-      // Execute with pagination
       const { data, error, count } = await query
         .order("submitted_at", { ascending: false })
         .range(from, to);
@@ -129,14 +119,14 @@ export const supervisorComplaintsQueries = {
         throw new Error(`Failed to fetch complaints: ${error.message}`);
       }
 
-      // Transform data
+      // FIX: Transform data using flat profile structure
       return {
         data: (data || []).map((c: any) => ({
           ...c,
-          assigned_staff: c.assigned_staff?.profile
+          assigned_staff: c.assigned_staff
             ? {
-                id: c.assigned_staff.id,
-                full_name: c.assigned_staff.profile.full_name,
+                id: c.assigned_staff.user_id,
+                full_name: c.assigned_staff.full_name,
               }
             : null,
         })),
@@ -150,9 +140,12 @@ export const supervisorComplaintsQueries = {
 
   /**
    * Get single complaint by ID
+   * FIX: Updated FK relationships for citizen and staff
    */
   async getComplaintById(client: SupabaseClient, id: string) {
     try {
+      // Note: Citizen FK usually still points to users, but Staff FK now points to user_profiles
+      // We join user_profiles -> staff_profiles to get role info
       const { data, error } = await client
         .from("complaints")
         .select(
@@ -165,9 +158,10 @@ export const supervisorComplaintsQueries = {
             id, email, phone, 
             profile:user_profiles(full_name, profile_photo_url)
           ),
-          assigned_staff_user:users!complaints_assigned_staff_id_fkey(
-            id,
-            profile:user_profiles(full_name, profile_photo_url),
+          assigned_staff_profile:user_profiles!complaints_assigned_staff_profile_fkey(
+            user_id,
+            full_name, 
+            profile_photo_url,
             staff:staff_profiles(staff_code, staff_role)
           ),
           history:complaint_status_history(
@@ -195,11 +189,10 @@ export const supervisorComplaintsQueries = {
       }
 
       // Transform data
+      const assignedProfile = data.assigned_staff_profile;
       const staffCode =
-        data.assigned_staff_user?.staff?.[0]?.staff_code ||
-        (data.assigned_staff_user
-          ? `EMP-${data.assigned_staff_user.id.substring(0, 4).toUpperCase()}`
-          : "UNASSIGNED");
+        assignedProfile?.staff?.[0]?.staff_code ||
+        (assignedProfile ? `EMP-${assignedProfile.user_id.substring(0, 4).toUpperCase()}` : "UNASSIGNED");
 
       const flattenedComments = (data.comments || [])
         .map((c: any) => ({
@@ -230,12 +223,11 @@ export const supervisorComplaintsQueries = {
                 avatar_url: data.citizen.profile.profile_photo_url,
               }
             : null,
-          assigned_staff: data.assigned_staff_user?.profile
+          assigned_staff: assignedProfile
             ? {
-                id: data.assigned_staff_user.id,
-                full_name:
-                  data.assigned_staff_user.profile.full_name || "Staff Member",
-                avatar_url: data.assigned_staff_user.profile.profile_photo_url,
+                id: assignedProfile.user_id,
+                full_name: assignedProfile.full_name || "Staff Member",
+                avatar_url: assignedProfile.profile_photo_url,
                 staff_code: staffCode,
               }
             : null,
@@ -301,7 +293,7 @@ export const supervisorComplaintsQueries = {
         .from("complaints")
         .update({
           assigned_staff_id: staffId,
-          status: "assigned", // Automatically move status
+          status: "assigned",
           assigned_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -367,20 +359,15 @@ export const supervisorComplaintsQueries = {
       assignment_notes: `Reassigned from ${oldStaffId || "Unassigned"}: ${reason}`,
     });
 
-    // ---------------------------------------------------------
-    // 3. SEND SYSTEM MESSAGES (Now works because imported)
-    // ---------------------------------------------------------
-
+    // 3. SEND SYSTEM MESSAGES
     // A. Notify the NEW Staff (Green Message)
     try {
-      // Create/Get chat with new staff
       const convB = await supervisorMessagesQueries.createConversation(
         client,
         supervisorId,
         newStaffId
       );
 
-      // Send message
       await supervisorMessagesQueries.sendMessage(
         client,
         convB,
@@ -394,14 +381,12 @@ export const supervisorComplaintsQueries = {
     // B. Notify the OLD Staff (Red Message) - Only if different
     if (oldStaffId && oldStaffId !== newStaffId) {
       try {
-        // Create/Get chat with old staff
         const convA = await supervisorMessagesQueries.createConversation(
           client,
           supervisorId,
           oldStaffId
         );
 
-        // Send message
         await supervisorMessagesQueries.sendMessage(
           client,
           convA,
@@ -413,8 +398,7 @@ export const supervisorComplaintsQueries = {
       }
     }
 
-    // C. Optional: Add System Comment to the Complaint Thread itself
-    // This ensures the audit trail is visible in the "Task Details" view too.
+    // C. Add System Comment
     try {
       await client.rpc("rpc_add_complaint_comment_v2", {
         p_complaint_id: complaintId,
@@ -558,10 +542,7 @@ export const supervisorComplaintsQueries = {
         )
         .single();
 
-      if (error) {
-        console.error("addInternalNote error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       return {
         ...data,
@@ -585,7 +566,6 @@ export const supervisorComplaintsQueries = {
     isInternal: boolean = false
   ) {
     try {
-      // ✅ FIX 2: Switched to `rpc_add_complaint_comment_v2` to match DB Schema
       const { error } = await client.rpc("rpc_add_complaint_comment_v2", {
         p_complaint_id: complaintId,
         p_content: content,
@@ -649,6 +629,7 @@ export const supervisorComplaintsQueries = {
 
   /**
    * Get SLA complaints (at risk or overdue)
+   * FIX: Updated FK to user_profiles
    */
   async getSLAComplaints(client: SupabaseClient, type: "at_risk" | "overdue") {
     try {
@@ -659,8 +640,8 @@ export const supervisorComplaintsQueries = {
           `
           id, tracking_code, title, status, priority, sla_due_at, submitted_at,
           ward:wards(name, ward_number),
-          assigned_staff:users!complaints_assigned_staff_id_fkey(
-            profile:user_profiles(full_name)
+          assigned_staff:user_profiles!complaints_assigned_staff_profile_fkey(
+            full_name
           )
         `
         )
@@ -684,8 +665,7 @@ export const supervisorComplaintsQueries = {
 
       return (data || []).map((c: any) => ({
         ...c,
-        assigned_staff_name:
-          c.assigned_staff?.profile?.full_name || "Unassigned",
+        assigned_staff_name: c.assigned_staff?.full_name || "Unassigned",
       }));
     } catch (err) {
       console.error("getSLAComplaints error:", err);
