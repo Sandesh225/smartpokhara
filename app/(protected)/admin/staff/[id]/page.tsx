@@ -36,21 +36,40 @@ export default function StaffProfilePage() {
   const [performance, setPerformance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
-
   useEffect(() => {
     if (id) {
       const load = async () => {
         try {
-          const [p, a, perf] = await Promise.all([
+          const [rawStaff, a, perf] = await Promise.all([
             adminStaffQueries.getStaffById(supabase, id as string),
             adminStaffQueries.getStaffAttendance(supabase, id as string),
             adminStaffQueries.getStaffPerformance(supabase, id as string),
           ]);
-          setProfile(p);
+
+          if (rawStaff) {
+            // ✅ FIX: Flatten the nested DB structure into the 'profile' state
+            const flattenedProfile = {
+              ...rawStaff,
+              // Map from the 'user' join
+              email: rawStaff.user?.email,
+              phone: rawStaff.user?.phone,
+              // Map from the 'profile' (user_profiles) join
+              full_name: rawStaff.profile?.full_name || "Unknown Staff",
+              avatar_url: rawStaff.profile?.profile_photo_url,
+              address: rawStaff.profile?.address_line1,
+              // Department and Ward are already objects, so they usually work fine
+            };
+
+            setProfile(flattenedProfile);
+          } else {
+            setProfile(null);
+          }
+
           setAttendance(a || []);
           setPerformance(perf);
-        } catch (e) {
-          console.error(e);
+        } catch (e: any) {
+          // Better logging to avoid the "{}" mystery
+          console.error("Staff Load Error:", e.message || e);
         } finally {
           setLoading(false);
         }
