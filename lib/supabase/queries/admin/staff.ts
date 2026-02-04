@@ -55,20 +55,16 @@ export const adminStaffQueries = {
       .from("staff_profiles")
       .select(
         `
-      *,
-      -- Points to the public.users table
-      user:users!staff_profiles_user_id_fkey(email, phone),
-      
-      -- Points to user_profiles table using the constraint we just created
-      profile:user_profiles!user_profiles_staff_link_fkey(
-        full_name, 
-        profile_photo_url, 
-        address_line1
-      ),
-      
-      department:departments(name, id),
-      ward:wards(name, ward_number, id)
-    `
+        *,
+        user:users!staff_profiles_user_id_fkey(email, phone),
+        profile:user_profiles!staff_profiles_user_profile_fkey(
+          full_name, 
+          profile_photo_url, 
+          address_line1
+        ),
+        department:departments(name, id),
+        ward:wards(name, ward_number, id)
+      `
       )
       .eq("user_id", id)
       .maybeSingle();
