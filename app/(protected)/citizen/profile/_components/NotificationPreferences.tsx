@@ -33,11 +33,10 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
-import {
-  profileService,
-  type UserPreferences,
-} from "@/lib/supabase/queries/profile";
+import { userApi } from "@/features/users/api";
+import type { UserPreferences } from "@/features/users/types";
 
 interface NotificationPreferencesProps {
   userId: string;
@@ -52,6 +51,7 @@ export default function NotificationPreferences({
     initialPreferences
   );
   const [isSaving, setIsSaving] = useState(false);
+  const supabase = createClient();
 
   const safePrefs: UserPreferences =
     preferences ||
@@ -79,16 +79,16 @@ export default function NotificationPreferences({
 
   const handleSave = async () => {
     setIsSaving(true);
-    const { id, user_id, ...updates } = safePrefs;
-    const result = await profileService.updatePreferences(userId, updates);
-    setIsSaving(false);
-
-    if (result.success) {
+    try {
+      const { id, user_id, ...updates } = safePrefs;
+      await userApi.updatePreferences(supabase, userId, updates);
       toast.success("Preferences updated", {
         description: "Your notification settings are now active.",
       });
-    } else {
+    } catch (error) {
       toast.error("Failed to save preferences");
+    } finally {
+      setIsSaving(false);
     }
   };
 

@@ -48,7 +48,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 
-import { profileService, UserProfile, UserPreferences } from "@/lib/supabase/queries/profile";
+import { userApi } from "@/features/users/api";
+import { UserProfile, UserPreferences } from "@/features/users/types";
 
 // --- VALIDATION SCHEMAS ---
 const profileSchema = z.object({
@@ -101,9 +102,9 @@ export default function SettingsPage() {
 
         // Fetch data directly where service might fail
         const [profileData, prefsData, wardsRes] = await Promise.all([
-          profileService.getUserProfile(user.id),
-          profileService.getUserPreferences(user.id),
-          supabase.from("wards").select("id, ward_number, name").eq("is_active", true).order("ward_number")
+          userApi.getProfile(supabase, user.id),
+          userApi.getPreferences(supabase, user.id),
+          userApi.getWards(supabase)
         ]);
 
         if (profileData) {
@@ -122,8 +123,8 @@ export default function SettingsPage() {
             setPreferences(prefsData);
         }
 
-        if (wardsRes.data) {
-            setWards(wardsRes.data);
+        if (wardsRes) {
+            setWards(wardsRes);
         }
 
       } catch (error) {
@@ -143,15 +144,11 @@ export default function SettingsPage() {
     if (!userId) return;
     setSavingProfile(true);
     try {
-      const result = await profileService.updateProfile(userId, data);
+      const result = await userApi.updateProfile(supabase, userId, data);
       
-      if (result.success) {
-          toast.success("Profile updated successfully");
-          setUserProfile(prev => prev ? { ...prev, ...data } : null);
-          router.refresh();
-      } else {
-          throw new Error(result.error);
-      }
+      toast.success("Profile updated successfully");
+      setUserProfile(prev => prev ? { ...prev, ...data } : null);
+      router.refresh();
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to update profile");
@@ -175,14 +172,10 @@ export default function SettingsPage() {
 
     setUploading(true);
     try {
-      const result = await profileService.uploadProfilePhoto(userId, file);
-      if (result.success && result.url) {
-          setUserProfile(prev => prev ? { ...prev, profile_photo_url: result.url } : null);
-          toast.success("Profile photo updated");
-          router.refresh();
-      } else {
-          throw new Error(result.error);
-      }
+      const url = await userApi.uploadProfilePhoto(supabase, userId, file);
+      setUserProfile(prev => prev ? { ...prev, profile_photo_url: url } : null);
+      toast.success("Profile photo updated");
+      router.refresh();
     } catch (error: any) {
       toast.error(error.message || "Failed to upload image");
     } finally {
@@ -198,12 +191,7 @@ export default function SettingsPage() {
       
       // We don't block UI but we show saving state if needed
       try {
-          const result = await profileService.updatePreferences(userId, { [key]: value });
-          if (!result.success) {
-              // Revert on failure
-              setPreferences(preferences); 
-              toast.error("Failed to update preference");
-          }
+          await userApi.updatePreferences(supabase, userId, { [key]: value });
       } catch (error) {
           setPreferences(preferences);
           toast.error("Failed to update preference");
@@ -384,14 +372,14 @@ export default function SettingsPage() {
             </CardContent>
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center border-t bg-slate-50/50 p-6 gap-4">
               <div className="text-xs text-slate-500 flex items-center gap-2 bg-blue-50/50 px-3 py-2 rounded-md border border-blue-100 w-full sm:w-auto">
-                  <Info className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                  <Info className="h-4 w-4 text-blue-500 shrink-0" />
                   <span>Some fields may require verification to change later.</span>
               </div>
               <Button 
                 type="submit" 
                 form="profile-form" 
                 disabled={savingProfile || !isDirty} 
-                className="w-full sm:w-auto min-w-[140px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md"
+                className="w-full sm:w-auto min-w-[140px] bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md"
               >
                 {savingProfile ? (
                   <>

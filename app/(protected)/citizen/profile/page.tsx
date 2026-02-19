@@ -14,12 +14,8 @@ import ProfileEditForm from "./_components/ProfileEditForm";
 import ChangePasswordForm from "./_components/ChangePasswordForm";
 import NotificationPreferences from "./_components/NotificationPreferences";
 
-import {
-  profileService,
-  type UserProfile,
-  type UserPreferences,
-} from "@/lib/supabase/queries/profile";
-import { complaintsService } from "@/lib/supabase/queries/complaints";
+import { userApi } from "@/features/users/api";
+import type { UserProfile, UserPreferences, Ward } from "@/features/users/types";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -30,9 +26,7 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
-  const [wards, setWards] = useState<
-    { id: string; name: string; ward_number: number }[]
-  >([]);
+  const [wards, setWards] = useState<Ward[]>([]);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -53,9 +47,9 @@ export default function ProfilePage() {
       setUserId(user.id);
 
       const [profileData, prefsData, wardsList] = await Promise.all([
-        profileService.getUserProfile(user.id),
-        profileService.getUserPreferences(user.id),
-        complaintsService.getWards(),
+        userApi.getProfile(supabase, user.id),
+        userApi.getPreferences(supabase, user.id),
+        userApi.getWards(supabase),
       ]);
 
       if (!profileData) {
@@ -65,7 +59,7 @@ export default function ProfilePage() {
 
       setProfile(profileData);
       setPreferences(prefsData);
-      setWards(wardsList as any);
+      setWards(wardsList);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load account information.");
