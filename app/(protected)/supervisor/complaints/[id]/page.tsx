@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { complaintsApi } from "@/features/complaints";
 
 // Machhapuchhre Modern Shared Components
 import { AssignmentPanel } from "@/app/(protected)/supervisor/complaints/_components/AssignmentPanel";
@@ -29,16 +29,16 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
 
   // 1. Parallel Handshake: Fetching Core Ledger Data
   const [complaintResult, notesResult, attachmentsResult] = await Promise.all([
-    supervisorComplaintsQueries.getComplaintById(supabase, id),
-    supervisorComplaintsQueries.getInternalNotes(supabase, id).catch(() => []),
-    supervisorComplaintsQueries
+    complaintsApi.getComplaintById(supabase, id),
+    complaintsApi.getInternalNotes(supabase, id).catch(() => []),
+    complaintsApi
       .getComplaintAttachments(supabase, id)
       .catch(() => ({ citizenUploads: [], staffUploads: [] })),
   ]);
 
-  const { data: complaint, error } = complaintResult;
+  const complaint = complaintResult;
 
-  if (error || !complaint) {
+  if (!complaint) {
     return notFound();
   }
 

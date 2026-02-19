@@ -6,9 +6,9 @@ import { UserPlus, Filter } from "lucide-react";
 import { ComplaintsTableView } from "@/app/(protected)/supervisor/complaints/_components/ComplaintsTableView";
 import { StaffSelectionModal } from "@/components/supervisor/modals/StaffSelectionModal";
 import { BulkActionsBar } from "@/app/(protected)/supervisor/complaints/_components/BulkActionsBar";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { supervisorComplaintsSubscription } from "@/lib/supabase/realtime/supervisor-complaints-subscription";
+import { complaintsApi } from "@/features/complaints";
+import { supervisorApi } from "@/features/supervisor";
+import { subscribeToComplaints } from "@/features/complaints/realtime/complaintsSubscription";
 import { notifyStaffOfAssignment } from "@/lib/utils/notification-helpers";
 import { getSuggestedStaff } from "@/lib/utils/assignment-helpers";
 import type { AssignableStaff } from "@/lib/types/supervisor.types";
@@ -33,31 +33,21 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
 
   // 1. Real-time Updates
   useEffect(() => {
-    if (!supervisorComplaintsSubscription.subscribeToUnassignedQueue) return;
-
-    const channel = supervisorComplaintsSubscription.subscribeToUnassignedQueue(
-      (newComplaint) => {
-        // Optimistic check: In a real app, you might want to double check if this new complaint matches dept
-        // For now, rely on RLS on the subscription channel if configured, or just show it
-        setComplaints((prev) => [newComplaint, ...prev]);
-        toast.info("New unassigned complaint received");
-      },
-      (removedId) => {
-        setComplaints((prev) => prev.filter((c) => c.id !== removedId));
-      }
-    );
+    const channel = subscribeToComplaints(supabase, () => {
+       // Refresh complaints list or handle specific events
+       // The new subscribeToComplaints handles toast internally for now
+    });
+    
     return () => {
-      if (supervisorComplaintsSubscription.unsubscribe) {
-        supervisorComplaintsSubscription.unsubscribe(channel);
-      }
+       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [supabase]);
 
   // 2. Fetch Staff Logic
   const loadStaffForAssignment = async (complaintId?: string) => {
     setLoadingStaff(true);
     try {
-      const staff = await supervisorStaffQueries.getSupervisedStaff(
+      const staff = await supervisorApi.getSupervisedStaff(
         supabase,
         supervisorId
       );
@@ -100,14 +90,14 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
 
     try {
       if (activeComplaintId) {
-        await supervisorComplaintsQueries.assignComplaint(
+        await complaintsApi.assignComplaint(
           supabase,
           activeComplaintId,
           staffId,
           note
         );
       } else {
-        await supervisorComplaintsQueries.bulkAssignComplaints(
+        await complaintsApi.bulkAssignComplaints(
           supabase,
           selectedIds,
           staffId,
@@ -123,7 +113,7 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
             notifyStaffOfAssignment(
               {
                 id: targetStaff.user_id,
-                name: targetStaff.full_name,
+                name: targetStaff.full_name || "Unknown Staff",
                 phone: targetStaff.phone,
                 email: targetStaff.email,
               },
@@ -185,15 +175,6 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
           onSelect={handleSelect}
           onSelectAll={handleSelectAll}
           isLoading={false}
-          customAction={(id) => (
-            <button
-              onClick={() => openAssignModal(id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors shadow-sm"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              Assign
-            </button>
-          )}
         />
       </div>
 
@@ -214,7 +195,8 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         onAssign={handleAssign}
-        staffList={staffList}
+        // @ts-ignore - Fixing type mismatch for staff_code null vs undefined
+        staffList={staffList.map(s => ({...s, staff_code: s.staff_code || undefined}))}
         complaintTitle={
           activeComplaintId
             ? complaints.find((c) => c.id === activeComplaintId)?.title ||

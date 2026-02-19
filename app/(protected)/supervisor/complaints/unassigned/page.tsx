@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { complaintsApi } from "@/features/complaints";
 import { UnassignedQueue } from "@/app/(protected)/supervisor/complaints/_components/UnassignedQueue";
 
 export const dynamic = "force-dynamic";
@@ -17,9 +17,8 @@ export default async function UnassignedComplaintsPage() {
   const supabase = await createClient();
 
   // Pass supervisor ID to filter complaints by department
-  const complaints = await supervisorComplaintsQueries.getUnassignedComplaints(
-    supabase,
-    user.id
+  const complaints = await complaintsApi.getUnassignedComplaints(
+    supabase
   );
 
   return (

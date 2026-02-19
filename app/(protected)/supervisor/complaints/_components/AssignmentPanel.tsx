@@ -15,10 +15,10 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { supervisorApi } from "@/features/supervisor";
+import { complaintsApi } from "@/features/complaints";
 import { getSuggestedStaff } from "@/lib/utils/assignment-helpers";
-import type { AssignableStaff } from "@/lib/types/supervisor.types";
+import type { AssignableStaff, StaffProfile } from "@/lib/types/supervisor.types";
 import { cn } from "@/lib/utils";
 
 import { StaffSelectionModal } from "@/components/supervisor/modals/StaffSelectionModal";
@@ -45,7 +45,7 @@ export function AssignmentPanel({
 
   const isAssigned = !!complaint.assigned_staff_id;
   const assignee =
-    complaint.assigned_staff_user?.profile || complaint.assigned_staff; // Handle structure variations
+    complaint.assigned_staff_user?.profile || complaint.assigned_staff;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [staffList, setStaffList] = useState<AssignableStaff[]>([]);
@@ -55,10 +55,34 @@ export function AssignmentPanel({
   const loadStaff = async () => {
     setLoadingStaff(true);
     try {
-      const staff = await supervisorStaffQueries.getSupervisedStaff(
+      const rawStaff = await supervisorApi.getSupervisedStaff(
         supabase,
         currentSupervisorId
       );
+
+      // Map the raw supervisor API response to the full StaffProfile shape
+      // that getSuggestedStaff expects. Fields not returned by the API
+      // (last_known_location, last_active_at) are defaulted to null so the
+      // ranking helper can handle them gracefully.
+      const staff: StaffProfile[] = rawStaff.map((s: any) => ({
+        user_id: s.user_id,
+        staff_code: s.staff_code || null,
+        department_id: s.department_id || null,
+        ward_id: s.ward_id || null,
+        staff_role: s.role || "staff",
+        is_supervisor: s.is_supervisor || false,
+        current_workload: s.workload || 0,
+        max_concurrent_assignments: s.max_concurrent_assignments || 5,
+        performance_rating: s.performance_rating || 0,
+        availability_status: (s.availability_status as any) || "available",
+        last_known_location: s.last_known_location || null,
+        last_active_at: s.last_active_at || null,
+        is_active: s.is_active ?? true,
+        full_name: s.full_name,
+        avatar_url: s.avatar_url ?? undefined,
+        role: s.role,
+        computedStatus: s.computedStatus,
+      }));
 
       const location = complaint.location_point?.coordinates
         ? {
@@ -95,7 +119,7 @@ export function AssignmentPanel({
 
     try {
       const action = isAssigned
-        ? supervisorComplaintsQueries.reassignComplaint(
+        ? complaintsApi.reassignComplaint(
             supabase,
             complaint.id,
             staffId,
@@ -103,12 +127,12 @@ export function AssignmentPanel({
             note,
             currentSupervisorId
           )
-        : supervisorComplaintsQueries.assignComplaint(
+        : complaintsApi.assignComplaint(
             supabase,
             complaint.id,
             staffId,
-            note,
-            currentSupervisorId
+            currentSupervisorId,
+            note
           );
 
       await action;

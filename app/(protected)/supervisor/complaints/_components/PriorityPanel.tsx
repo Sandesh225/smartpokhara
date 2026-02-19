@@ -6,7 +6,7 @@ import { AlertTriangle, ArrowUpRight, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { complaintsApi } from "@/features/complaints";
 import { PriorityChangeModal } from "@/components/supervisor/modals/PriorityChangeModal";
 import { PriorityIndicator } from "../../../../../components/supervisor/shared/PriorityIndicator";
 
@@ -26,7 +26,7 @@ export function PriorityPanel({ complaintId, currentPriority }: PriorityPanelPro
 
   const handleUpdatePriority = async (newPriority: string, reason: string) => {
     try {
-      await supervisorComplaintsQueries.updateComplaintPriority(
+      await complaintsApi.updateComplaintPriority(
         supabase,
         complaintId,
         newPriority,

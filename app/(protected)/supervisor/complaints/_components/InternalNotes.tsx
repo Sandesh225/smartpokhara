@@ -6,7 +6,7 @@ import { Lock, Plus, Users, Tag, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { complaintsApi } from "@/features/complaints";
 import { AddNoteModal } from "@/components/supervisor/modals/AddNoteModal";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,7 +53,7 @@ export function InternalNotes({
     visibility: string
   ) => {
     try {
-      const result = await supervisorComplaintsQueries.addInternalNote(
+      const result = await complaintsApi.addInternalNote(
         supabase,
         complaintId,
         text,

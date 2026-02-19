@@ -23,8 +23,8 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
 import { ConfirmationDialog } from "@/components/supervisor/shared/ConfirmationDialog";
 import { StaffSelectionModal } from "@/components/supervisor/modals/StaffSelectionModal";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
+import { supervisorApi } from "@/features/supervisor";
+import { complaintsApi } from "@/features/complaints";
 import { getSuggestedStaff } from "@/lib/utils/assignment-helpers";
 import type { AssignableStaff } from "@/lib/types/supervisor.types";
 import { cn } from "@/lib/utils";
@@ -57,7 +57,7 @@ export function ComplaintDetailHeader({
 
   const handleCloseComplaint = async () => {
     try {
-      await supervisorComplaintsQueries.closeComplaint(
+      await complaintsApi.closeComplaint(
         supabase,
         complaint.id,
         "Closed via header action"
@@ -73,7 +73,7 @@ export function ComplaintDetailHeader({
   const loadStaffForAssignment = async () => {
     setIsLoadingStaff(true);
     try {
-      const staff = await supervisorStaffQueries.getSupervisedStaff(
+      const staff = await supervisorApi.getSupervisedStaff(
         supabase,
         userId
       );
@@ -100,7 +100,7 @@ export function ComplaintDetailHeader({
   ) => {
     try {
       if (isAssigned) {
-        await supervisorComplaintsQueries.reassignComplaint(
+        await complaintsApi.reassignComplaint(
           supabase,
           complaint.id,
           staffId,
@@ -110,12 +110,12 @@ export function ComplaintDetailHeader({
         );
         toast.success("Staff reassigned successfully");
       } else {
-        await supervisorComplaintsQueries.assignComplaint(
+        await complaintsApi.assignComplaint(
           supabase,
           complaint.id,
           staffId,
-          note,
-          userId
+          userId,
+          note
         );
         toast.success("Staff assigned successfully");
       }
@@ -136,7 +136,7 @@ export function ComplaintDetailHeader({
             {/* Back Button */}
             <Link
               href="/supervisor/complaints"
-              className="flex-shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
+              className="shrink-0 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
               aria-label="Back to complaints"
             >
               <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -146,7 +146,7 @@ export function ComplaintDetailHeader({
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Badge - Hidden on very small screens */}
-                <span className="hidden xs:flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded bg-primary/10 text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-tighter flex-shrink-0">
+                <span className="hidden xs:flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded bg-primary/10 text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-tighter shrink-0">
                   <Command className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   <span className="hidden sm:inline">Ledger</span>
                 </span>
@@ -157,8 +157,8 @@ export function ComplaintDetailHeader({
                 </h1>
 
                 {/* Status Badge */}
-                <div className="flex-shrink-0">
-                  <StatusBadge status={complaint.status} variant="complaint" />
+                <div className="shrink-0">
+                  <StatusBadge status={complaint.status} />
                 </div>
               </div>
 
@@ -174,7 +174,7 @@ export function ComplaintDetailHeader({
           </div>
 
           {/* RIGHT SECTION - Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 shrink-0">
             {/* Desktop Utility Actions */}
             <div className="hidden lg:flex items-center gap-1 px-2 lg:px-3 border-r border-border">
               {[Printer, Share2, Download].map((Icon, i) => (
@@ -278,7 +278,8 @@ export function ComplaintDetailHeader({
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         onAssign={handleAssign}
-        staffList={staffList}
+        // @ts-ignore - Fixing type mismatch for staff_code null vs undefined
+        staffList={staffList.map(s => ({...s, staff_code: s.staff_code || undefined}))}
         complaintTitle={complaint.title}
         mode={isAssigned ? "reassign" : "assign"}
         currentStaff={isAssigned ? { name: currentStaffName } : undefined}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { supervisorLeaveQueries } from "@/lib/supabase/queries/supervisor-leave";
+import { supervisorApi } from "@/features/supervisor";
 import { Check, X, Calendar, Clock, History, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -26,8 +26,8 @@ export default function SupervisorApprovalsPage() {
     if (!user) return;
 
     const [pending, history] = await Promise.all([
-      supervisorLeaveQueries.getPendingRequests(supabase, user.id),
-      supervisorLeaveQueries.getLeaveHistory(supabase, user.id)
+      supervisorApi.getPendingRequests(supabase, user.id),
+      supervisorApi.getLeaveHistory(supabase, user.id)
     ]);
 
     setPendingRequests(pending);
@@ -40,7 +40,7 @@ export default function SupervisorApprovalsPage() {
     if (!user) return;
 
     try {
-      await supervisorLeaveQueries.processRequest(supabase, id, user.id, action);
+      await supervisorApi.processRequest(supabase, id, user.id, action);
       toast.success(`Request ${action} successfully`);
       
       // Move item from pending to history locally to update UI instantly
