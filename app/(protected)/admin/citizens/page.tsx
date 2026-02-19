@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════
 
 import { createClient } from "@/lib/supabase/server";
-import { citizenQueries } from "@/lib/supabase/queries/admin/citizens";
+import { userApi } from "@/features/users/api";
 import { Search } from "lucide-react";
 import CitizensTable from "./_components/CitizensTable";
 
@@ -20,7 +20,7 @@ export default async function CitizensPage({
   const { q } = await searchParams;
   const search = q || "";
 
-  const { data } = await citizenQueries.getCitizens(supabase, search);
+  const { data } = await userApi.getCitizens(supabase, search);
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
