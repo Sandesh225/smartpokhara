@@ -1,6 +1,6 @@
 "use client";
 
-import { ComplaintFiltersState } from "@/types/admin-complaints";
+import { AdminComplaintFilters } from "@/features/complaints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,8 +14,8 @@ import { X, Search, RotateCcw, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ComplaintFiltersProps {
-  filters: ComplaintFiltersState;
-  onFilterChange: (filters: ComplaintFiltersState) => void;
+  filters: AdminComplaintFilters;
+  onFilterChange: (filters: AdminComplaintFilters) => void;
   categories?: any[];
   wards?: any[];
   onClear?: () => void;
@@ -29,7 +29,7 @@ export function ComplaintFilters({
 }: ComplaintFiltersProps) {
   if (!filters) return null;
 
-  const updateFilter = (key: keyof ComplaintFiltersState, value: any) => {
+  const updateFilter = (key: keyof AdminComplaintFilters, value: any) => {
     onFilterChange({ ...filters, [key]: value });
   };
 

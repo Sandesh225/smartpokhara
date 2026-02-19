@@ -15,9 +15,10 @@ import {
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { Complaint } from "@/features/complaints";
 
 interface ComplaintsTableProps {
-  data: any[];
+  data: Complaint[];
   loading: boolean;
   selectedIds: string[];
   onSelect: (id: string, checked: boolean) => void;
@@ -138,26 +139,26 @@ export function ComplaintsTable({
                         {row.title}
                       </span>
                       <span className="text-xs text-muted-foreground truncate mt-0.5">
-                        {row.category_name}
+                        {row.category?.name || "Uncategorized"}
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-7 w-7 border border-border">
-                        <AvatarImage src={row.citizen_avatar} />
+                        <AvatarImage src={(row.citizen as any)?.profile?.profile_photo_url || (row as any).author?.avatar_url} />
                         <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
-                          {row.citizen_name?.[0]}
+                          {(row.citizen as any)?.profile?.full_name?.[0] || (row as any).author?.full_name?.[0] || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <span className="truncate text-xs font-medium text-foreground">
-                        {row.citizen_name}
+                        {(row.citizen as any)?.profile?.full_name || (row as any).author?.full_name || "Anonymous"}
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant="outline" className="text-[10px] font-bold">
-                      WARD {row.ward_number}
+                      WARD {row.ward?.ward_number || "N/A"}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">
@@ -210,7 +211,7 @@ export function ComplaintsTable({
                     {row.title}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {row.category_name}
+                    {row.category?.name || "Uncategorized"}
                   </p>
                 </div>
               </div>
@@ -222,7 +223,7 @@ export function ComplaintsTable({
               <BadgeStatus status={row.status} />
               <BadgePriority priority={row.priority} />
               <Badge variant="outline" className="text-[9px] font-bold">
-                WARD {row.ward_number}
+                WARD {row.ward?.ward_number || "N/A"}
               </Badge>
             </div>
 
@@ -230,13 +231,13 @@ export function ComplaintsTable({
             <div className="flex items-center justify-between gap-3 pt-3 border-t border-border">
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6 border border-border">
-                  <AvatarImage src={row.citizen_avatar} />
+                  <AvatarImage src={row.citizen?.profile?.profile_photo_url || row.author?.avatar_url} />
                   <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
-                    {row.citizen_name?.[0]}
+                    {row.citizen?.profile?.full_name?.[0] || row.author?.full_name?.[0] || "?"}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-xs font-medium text-foreground truncate">
-                  {row.citizen_name}
+                  {row.citizen?.profile?.full_name || row.author?.full_name || "Anonymous"}
                 </span>
               </div>
               {row.sla_due_at && (
