@@ -3,8 +3,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Download, History, Search, Filter, FileText, CreditCard } from "lucide-react";
-import { paymentsService } from "@/lib/supabase/queries/payments";
+import { paymentsApi } from "@/features/payments";
 import PaymentHistoryTable from "@/app/(protected)/citizen/payments/_components/PaymentHistoryTable";
 import PaymentFilters from "@/app/(protected)/citizen/payments/_components/PaymentFilters";
 import {
@@ -30,6 +31,8 @@ export default function PaymentHistoryPage() {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
   
   // Parse URL params
   const page = parseInt(searchParams.get('page') || '1');
@@ -47,25 +50,27 @@ export default function PaymentHistoryPage() {
     try {
       setIsLoading(true);
       
-      const data = await paymentsService.getPaymentHistory({
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
+      setUser(currentUser);
+      
+      const { data, count } = await paymentsApi.getPayments(supabase, {
+        userId: currentUser.id,
         search: search || undefined,
-        billType,
-        status: status ? [status] : undefined,
-        dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-        dateTo: dateTo ? new Date(dateTo) : undefined,
+        status: status ? (status as any) : undefined,
         limit,
         offset
       });
       
-      setPayments(data.payments);
-      setTotal(data.total);
+      setPayments(data);
+      setTotal(count || 0);
     } catch (error: any) {
       console.error('Error fetching payment history:', error);
       toast.error('Failed to load payment history');
     } finally {
       setIsLoading(false);
     }
-  }, [page, search, billType, status, dateFrom, dateTo, limit, offset]);
+  }, [supabase, search, status, limit, offset]);
 
   // Initial fetch
   useEffect(() => {
@@ -99,27 +104,16 @@ export default function PaymentHistoryPage() {
       setIsExporting(true);
       toast.info('Preparing CSV export...');
       
-      const csvContent = await paymentsService.exportPaymentHistory({
+      /*
+      const csvContent = await paymentsApi.exportPaymentHistory({
         search: search || undefined,
         billType,
         status: status ? [status] : undefined,
         dateFrom: dateFrom ? new Date(dateFrom) : undefined,
         dateTo: dateTo ? new Date(dateTo) : undefined
       });
-      
-      // Create download link
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `payment-history-${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
-      
-      toast.success('CSV exported successfully');
+      */
+      toast.error('Export feature is currently undergoing maintenance');
     } catch (error: any) {
       console.error('Error exporting CSV:', error);
       toast.error('Failed to export CSV');

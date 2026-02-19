@@ -12,7 +12,9 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react";
-import { paymentsService } from "@/lib/supabase/queries/payments";
+import { paymentsApi } from "@/features/payments";
+import { subscribeToPayments } from "@/features/payments/realtime/paymentsSubscription";
+import { createClient } from "@/lib/supabase/client";
 import BillsList from "@/app/(protected)/citizen/payments/_components/BillsList";
 import PaymentHistoryTable from "@/app/(protected)/citizen/payments/_components/PaymentHistoryTable";
 import WalletCard from "@/app/(protected)/citizen/payments/_components/WalletCard";
@@ -57,38 +59,39 @@ export default function PaymentsPage() {
 
   // Load data
   const loadData = useCallback(async () => {
+    const supabase = createClient();
     try {
       setIsLoading(true);
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setUserId(user.id);
+
       const [billsData, paymentHistoryData, balance, stats] = await Promise.all(
         [
-          paymentsService.getUserBills({
-            status: billStatus ? [billStatus] : undefined,
+          paymentsApi.getBills(supabase, {
+            userId: user.id,
+            status: billStatus ? [billStatus as any] : undefined,
             limit,
             offset,
           }),
-          paymentsService.getPaymentHistory({
+          paymentsApi.getPayments(supabase, {
+            userId: user.id,
             search: paymentSearch,
             limit,
             offset,
           }),
-          paymentsService.getWalletBalance(),
-          paymentsService.getBillStatistics(),
+          paymentsApi.getWalletBalance(supabase, user.id),
+          paymentsApi.getBillStatistics(supabase, user.id),
         ]
       );
 
-      setBills(billsData.bills);
-      setTotalBills(billsData.total);
-      setPayments(paymentHistoryData.payments);
-      setTotalPayments(paymentHistoryData.total);
+      setBills(billsData.data);
+      setTotalBills(billsData.count);
+      setPayments(paymentHistoryData.data);
+      setTotalPayments(paymentHistoryData.count);
       setWalletBalance(balance);
       setStatistics(stats);
-
-      // Get user ID for real-time subscriptions
-      const {
-        data: { user },
-      } = await paymentsService.supabase.auth.getUser();
-      setUserId(user?.id || null);
     } catch (error: any) {
       console.error("Error loading payment data:", error);
       toast.error("Failed to load payment data");
@@ -110,38 +113,12 @@ export default function PaymentsPage() {
     let cleanupFunctions: (() => void)[] = [];
 
     try {
-      // Subscribe to bill updates
-      const billSubscription = paymentsService.subscribeToBills(
-        userId,
-        (payload) => {
-          console.log("Bill update:", payload);
-          loadData();
-
-          if (payload.eventType === "INSERT") {
-            toast.info("New bill generated");
-          } else if (payload.eventType === "UPDATE") {
-            const newStatus = payload.new.status;
-            if (newStatus === "completed") {
-              toast.success("Bill payment completed");
-            }
-          }
-        }
-      );
-
-      cleanupFunctions.push(() => {
-        billSubscription.unsubscribe();
-      });
-
+      const supabase = createClient();
       // Subscribe to payment updates
-      const paymentSubscription = paymentsService.subscribeToPayments(
-        userId,
-        (payload) => {
-          console.log("Payment update:", payload);
+      const paymentSubscription = subscribeToPayments(
+        supabase,
+        () => {
           loadData();
-
-          if (payload.eventType === "INSERT") {
-            toast.success("Payment recorded successfully");
-          }
         }
       );
 
