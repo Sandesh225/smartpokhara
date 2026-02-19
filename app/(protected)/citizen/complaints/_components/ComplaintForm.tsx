@@ -3,18 +3,21 @@
 import { useState, useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createClient } from "@/lib/supabase/client";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner"; // Using Sonner for toasts
 import { ChevronRight, ChevronLeft, Send, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
-  formSchema,
-  FormData,
-} from "../../../../../components/citizen/complaints/schema";
-import type {
+  complaintSchema as formSchema,
+  ComplaintFormData as FormData,
+  Complaint,
   ComplaintCategory,
   Ward,
-} from "@/lib/supabase/queries/complaints";
+} from "@/features/complaints";
+
+
 
 import { CategoryStep } from "./form-steps/CategoryStep";
 import { LocationStep } from "./form-steps/LocationStep";

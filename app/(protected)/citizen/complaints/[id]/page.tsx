@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -10,22 +10,14 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-  MapPin,
-  MessageSquare,
-  Printer,
-  RefreshCw,
+  Activity,
   User,
   AlertCircle,
   CheckCircle,
   XCircle,
-  Loader2,
-  Shield,
-  Activity,
   Eye,
   TrendingUp,
   Paperclip,
-  X,
-  Info,
   BarChart3,
   FileCheck,
   Zap,
@@ -34,22 +26,21 @@ import {
   BadgeCheck,
   Camera,
   Image as ImageIcon,
-  Download,
+  Printer,
+  RefreshCw,
+  MessageSquare,
+  MapPin,
+  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { useComplaint } from "@/features/complaints/hooks/useComplaint";
+import { useCurrentUser } from "@/features/users/hooks/useCurrentUser";
 
-import { complaintsService } from "@/lib/supabase/queries/complaints";
-import type {
-  ComplaintComment,
-  ComplaintStatusHistory,
-} from "@/lib/supabase/queries/complaints";
-
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 
 import CitizenStaffCommunication from "../_components/CitizenStaffCommunication";
 import StaffCommunication from "../_components/StaffCommunication";
@@ -155,79 +146,72 @@ const COMPLAINT_PRIORITY_CONFIG = {
   },
 };
 
+function DetailSkeleton() {
+    return (
+        <div className="min-h-screen bg-muted/10 p-4 md:p-8 animate-pulse">
+            <div className="h-64 bg-muted rounded-3xl mb-8" />
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <div className="xl:col-span-2 space-y-8">
+                    <div className="h-40 bg-muted rounded-3xl" />
+                    <div className="h-96 bg-muted rounded-3xl" />
+                </div>
+                <div className="h-96 bg-muted rounded-3xl" />
+            </div>
+        </div>
+    )
+}
+
 export default function ComplaintDetailPage() {
   const params = useParams();
   const router = useRouter();
   const complaintId = params.id as string;
+  const supabase = createClient();
 
-  const [complaint, setComplaint] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [comments, setComments] = useState<ComplaintComment[]>([]);
-  const [statusHistory, setStatusHistory] = useState<ComplaintStatusHistory[]>([]);
+  const { data: user } = useCurrentUser();
+  const { 
+    data: complaint, 
+    isLoading, 
+    isRefetching, 
+    refetch 
+  } = useComplaint(complaintId);
+
   const [activeView, setActiveView] = useState<"overview" | "timeline" | "communication">("overview");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [workPhotos, setWorkPhotos] = useState<string[]>([]);
 
-  const subsRef = useRef<any[]>([]);
-
+  // Real-time Subscriptions
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setCurrentUserId(data.user?.id || null);
-    });
-  }, []);
+    if (!complaintId) return;
 
-  const loadComplaintData = useCallback(
-    async (isSilent = false) => {
-      if (!isSilent) setIsLoading(true);
-      else setIsRefreshing(true);
-
-      try {
-        const data = await complaintsService.getComplaintById(complaintId);
-        if (!data) throw new Error("Complaint not found");
-
-        setComplaint(data);
-        setComments(data.comments || []);
-        setStatusHistory(data.status_history || []);
-        
-        // Extract work photos from resolution_photos if available
-        if (data.resolution_photos && Array.isArray(data.resolution_photos)) {
-          setWorkPhotos(data.resolution_photos);
+    const channel = supabase.channel(`complaint-detail-${complaintId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "complaints", filter: `id=eq.${complaintId}` },
+        () => {
+          toast.info("Complaint updated");
+          refetch();
         }
-      } catch (err: any) {
-        toast.error(err.message || "Failed to load complaint");
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    },
-    [complaintId]
-  );
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "complaint_comments", filter: `complaint_id=eq.${complaintId}` },
+        () => {
+          toast.success("New comment received");
+          refetch();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "complaint_status_history", filter: `complaint_id=eq.${complaintId}` },
+        () => {
+          refetch();
+        }
+      )
+      .subscribe();
 
-  useEffect(() => {
-    loadComplaintData();
-
-    const sub1 = complaintsService.subscribeToComplaint(complaintId, (payload) => {
-      if (payload.eventType === "UPDATE") {
-        loadComplaintData(true);
-        toast.info("Complaint updated");
-      }
-    });
-
-    const sub2 = complaintsService.subscribeToComments(complaintId, (payload) => {
-      if (payload.eventType === "INSERT") {
-        setComments((prev) =>
-          prev.some((c) => c.id === payload.new.id) ? prev : [...prev, payload.new]
-        );
-        toast.success("New comment received");
-      }
-    });
-
-    subsRef.current = [sub1, sub2];
-    return () => subsRef.current.forEach((s) => s.unsubscribe());
-  }, [complaintId, loadComplaintData]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [complaintId, refetch, supabase]);
 
   const computed = useMemo(() => {
     if (!complaint) return null;
@@ -245,17 +229,23 @@ export default function ComplaintDetailPage() {
       100
     );
     const isOverdue = Date.now() > due && !isResolved;
-    const daysRemaining = Math.ceil((due - Date.now()) / (24 * 60 * 60 * 1000));
+    const daysRemaining = Math.max(0, Math.ceil((due - Date.now()) / (24 * 60 * 60 * 1000)));
 
     return { isResolved, isOverdue, slaProgress, due, daysRemaining };
+  }, [complaint]);
+
+  const workPhotos = useMemo(() => {
+      if(!complaint?.workLogs) return [];
+      // Flatten urls from work logs
+      return (complaint.workLogs as any[]).flatMap(log => log.photo_urls || []);
   }, [complaint]);
 
   if (isLoading) return <DetailSkeleton />;
 
   if (!complaint) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 surface">
-        <div className="text-center space-y-6 max-w-md glass p-12 rounded-3xl">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-muted/10">
+        <div className="text-center space-y-6 max-w-md bg-card p-12 rounded-3xl border shadow-lg">
           <div className="relative">
             <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full" />
             <AlertCircle className="h-20 w-20 text-red-600 dark:text-red-400 mx-auto relative" strokeWidth={1.5} />
@@ -278,43 +268,46 @@ export default function ComplaintDetailPage() {
     );
   }
 
-  const statusConfig =
-    COMPLAINT_STATUS_CONFIG[complaint.status as keyof typeof COMPLAINT_STATUS_CONFIG] || {
-      label: complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1),
-      icon: AlertCircle,
-      color: "bg-gradient-to-br from-gray-500 to-gray-600",
-      dotColor: "bg-gray-500",
-      borderColor: "border-gray-200 dark:border-gray-700",
-      bgLight: "bg-gray-50 dark:bg-gray-950/30",
-      textColor: "text-gray-900 dark:text-gray-100",
-      ringColor: "ring-gray-500/20",
-    };
-
-  const priorityConfig =
-    COMPLAINT_PRIORITY_CONFIG[complaint.priority as keyof typeof COMPLAINT_PRIORITY_CONFIG] || {
-      label: complaint.priority.charAt(0).toUpperCase() + complaint.priority.slice(1) + " Priority",
-      color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200",
-      icon: AlertCircle,
-      borderColor: "border-gray-300 dark:border-gray-600",
-    };
+ const statusConfig =
+  COMPLAINT_STATUS_CONFIG[complaint.status as keyof typeof COMPLAINT_STATUS_CONFIG] || {
+    // FIX: Use optional chaining and a fallback string
+    label: (complaint.status || "unknown").charAt(0).toUpperCase() + (complaint.status || "unknown").slice(1),
+    icon: AlertCircle,
+    color: "bg-gradient-to-br from-gray-500 to-gray-600",
+    dotColor: "bg-gray-500",
+    borderColor: "border-gray-200 dark:border-gray-700",
+    bgLight: "bg-gray-50 dark:bg-gray-950/30",
+    textColor: "text-gray-900 dark:text-gray-100",
+    ringColor: "ring-gray-500/20",
+  };
+ const priorityConfig =
+  COMPLAINT_PRIORITY_CONFIG[complaint.priority as keyof typeof COMPLAINT_PRIORITY_CONFIG] || {
+    // FIX: Safely handle undefined/null priority
+    label: (complaint.priority || "Normal").charAt(0).toUpperCase() + 
+           (complaint.priority || "Normal").slice(1) + " Priority",
+    color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200",
+    icon: AlertCircle,
+    borderColor: "border-gray-300 dark:border-gray-600",
+  };
 
   const StatusIcon = statusConfig.icon || AlertCircle;
+  const assignedStaff = complaint.assigned_staff_profile;
 
   return (
-    <div className="min-h-screen surface">
+    <div className="min-h-screen bg-muted/10 pb-20">
       {/* Hero Header Section */}
-      <div className="relative overflow-hidden border-b">
+      <div className="relative overflow-hidden border-b bg-card">
         {/* Decorative Background */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-30" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/50 to-transparent" />
         
-        <div className="relative container-gov py-8 lg:py-12">
+        <div className="relative container mx-auto max-w-7xl px-4 py-8 lg:py-12">
           {/* Back Navigation */}
           <div className="mb-6">
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="gap-2 hover:gap-3 transition-all -ml-2"
+              className="gap-2 hover:gap-3 transition-all -ml-2 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="font-medium">Back to Complaints</span>
@@ -346,11 +339,11 @@ export default function ComplaintDetailPage() {
 
                 {/* Title */}
                 <div className="space-y-3">
-                  <h1 className="text-3xl lg:text-4xl font-bold leading-tight">
+                  <h1 className="text-3xl lg:text-4xl font-bold leading-tight text-foreground">
                     {complaint.title}
                   </h1>
                   <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2 px-3 py-1.5 surface-elevated rounded-lg border">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border">
                       <FileCheck className="w-4 h-4 text-primary" />
                       <span className="font-mono font-semibold">
                         {complaint.tracking_code}
@@ -359,7 +352,11 @@ export default function ComplaintDetailPage() {
                     <span className="text-muted-foreground/50">•</span>
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      <span>Updated {formatDistanceToNow(new Date(complaint.updated_at))} ago</span>
+                      <span>
+  Updated {complaint.updated_at && !isNaN(new Date(complaint.updated_at).getTime()) 
+    ? formatDistanceToNow(new Date(complaint.updated_at)) 
+    : "recently"} ago
+</span>
                     </div>
                   </div>
                 </div>
@@ -370,14 +367,19 @@ export default function ComplaintDetailPage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => loadComplaintData(true)}
-                  disabled={isRefreshing}
-                  className="rounded-xl border-2"
+                  onClick={() => refetch()}
+                  disabled={isRefetching}
+                  className="rounded-xl border-2 font-bold"
                 >
-                  <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
+                  <RefreshCw className={cn("w-4 h-4 mr-2", isRefetching && "animate-spin")} />
                   Refresh
                 </Button>
-                <Button variant="outline" size="lg" onClick={() => window.print()} className="rounded-xl border-2">
+                <Button 
+                    variant="outline" 
+                    size="lg" 
+                    onClick={() => window.print()} 
+                    className="rounded-xl border-2 font-bold"
+                >
                   <Printer className="w-4 h-4 mr-2" />
                   Print
                 </Button>
@@ -418,7 +420,7 @@ export default function ComplaintDetailPage() {
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="group stone-card hover:shadow-xl transition-all duration-300 rounded-2xl p-5"
+                  className="group bg-card hover:shadow-xl transition-all duration-300 rounded-2xl p-5 border"
                 >
                   <div className="flex items-start gap-4">
                     <div className={cn("p-3 rounded-xl shadow-sm", item.bgColor)}>
@@ -441,13 +443,13 @@ export default function ComplaintDetailPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="container-gov py-8 space-y-8">
+      <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
         {/* View Tabs */}
-        <div className="stone-card rounded-2xl p-2 shadow-lg inline-flex gap-1">
+        <div className="bg-card rounded-2xl p-2 shadow-lg inline-flex gap-1 border">
           {[
-            { id: "overview", label: "Overview", icon: Info },
-            { id: "timeline", label: "Timeline", icon: BarChart3 },
-            { id: "communication", label: "Communication", icon: MessageSquare },
+            { id: "overview", label: "Overview", icon: convertToIcon(FileText) },
+            { id: "timeline", label: "Timeline", icon: convertToIcon(BarChart3) },
+            { id: "communication", label: "Communication", icon: convertToIcon(MessageSquare) },
           ].map((view) => (
             <button
               key={view.id}
@@ -459,7 +461,7 @@ export default function ComplaintDetailPage() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
             >
-              <view.icon className="w-4 h-4" />
+              {view.icon}
               {view.label}
             </button>
           ))}
@@ -472,7 +474,7 @@ export default function ComplaintDetailPage() {
             {activeView === "overview" && (
               <>
                 {/* Description Card */}
-                <div className="stone-card rounded-3xl overflow-hidden shadow-xl">
+                <div className="bg-card rounded-3xl overflow-hidden shadow-xl border">
                   <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
                     <h3 className="font-bold text-white flex items-center gap-2 text-lg">
                       <FileText className="w-5 h-5" />
@@ -487,8 +489,8 @@ export default function ComplaintDetailPage() {
                 </div>
 
                 {/* Attachments */}
-                {complaint.attachments?.length > 0 && (
-                  <div className="stone-card rounded-3xl overflow-hidden shadow-xl">
+                {(complaint.attachments || []).length > 0 && (
+                  <div className="bg-card rounded-3xl overflow-hidden shadow-xl border">
                     <div className="bg-gradient-to-r from-purple-500 to-pink-600 px-6 py-4">
                       <h3 className="font-bold text-white flex items-center gap-2 text-lg">
                         <Paperclip className="w-5 h-5" />
@@ -522,7 +524,7 @@ export default function ComplaintDetailPage() {
 
                 {/* Staff Work Photos Section */}
                 {workPhotos.length > 0 && (
-                  <div className="stone-card rounded-3xl overflow-hidden shadow-xl">
+                  <div className="bg-card rounded-3xl overflow-hidden shadow-xl border">
                     <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
                       <h3 className="font-bold text-white flex items-center gap-2 text-lg">
                         <Camera className="w-5 h-5" />
@@ -559,7 +561,7 @@ export default function ComplaintDetailPage() {
                 )}
 
                 {/* SLA Timeline */}
-                <div className="stone-card rounded-3xl overflow-hidden shadow-xl">
+                <div className="bg-card rounded-3xl overflow-hidden shadow-xl border">
                   <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4">
                     <h3 className="font-bold text-white flex items-center gap-2 text-lg">
                       <Clock className="w-5 h-5" />
@@ -604,7 +606,7 @@ export default function ComplaintDetailPage() {
             )}
 
             {activeView === "timeline" && (
-              <div className="stone-card rounded-3xl overflow-hidden shadow-xl">
+              <div className="bg-card rounded-3xl overflow-hidden shadow-xl border">
                 <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
                   <h3 className="font-bold text-white flex items-center gap-2 text-lg">
                     <BarChart3 className="w-5 h-5" />
@@ -613,8 +615,8 @@ export default function ComplaintDetailPage() {
                 </div>
                 <div className="p-8">
                   <div className="space-y-8">
-                    {statusHistory.map((h, i) => {
-                      const isLast = i === statusHistory.length - 1;
+                    {(complaint.history || []).map((h: any, i: number) => {
+                      const isLast = i === (complaint.history?.length || 0) - 1;
                       const config =
                         COMPLAINT_STATUS_CONFIG[h.new_status as keyof typeof COMPLAINT_STATUS_CONFIG] || {
                           label: h.new_status.charAt(0).toUpperCase() + h.new_status.slice(1),
@@ -642,14 +644,14 @@ export default function ComplaintDetailPage() {
                           <div className="flex-1 pb-8">
                             <div className="flex items-start justify-between mb-3">
                               <h4 className="font-bold text-lg capitalize">
-                                {h.new_status.replace("_", " ")}
+                                {h.new_status.replace(/_/g, " ")}
                               </h4>
-                              <span className="text-xs font-mono font-semibold text-muted-foreground surface-elevated px-3 py-1 rounded-lg">
+                              <span className="text-xs font-mono font-semibold text-muted-foreground bg-muted px-3 py-1 rounded-lg">
                                 {format(new Date(h.created_at), "MMM dd, HH:mm")}
                               </span>
                             </div>
                             {h.note && (
-                              <p className="text-sm text-muted-foreground leading-relaxed surface-elevated p-4 rounded-xl border">
+                              <p className="text-sm text-muted-foreground leading-relaxed bg-muted/50 p-4 rounded-xl border">
                                 {h.note}
                               </p>
                             )}
@@ -664,15 +666,14 @@ export default function ComplaintDetailPage() {
 
             {activeView === "communication" && (
               <>
-                {complaint.assigned_staff_id && currentUserId ? (
+                {assignedStaff && user?.id ? (
                   <div className="space-y-8">
                     <CitizenStaffCommunication
                       complaintId={complaintId}
-                      currentUserId={currentUserId}
+                      currentUserId={user.id}
                       userRole="citizen"
                       assignedStaffName={
-                        complaint.staff?.profile?.full_name ||
-                        complaint.staff?.user?.email ||
+                        assignedStaff.full_name ||
                         "Assigned Staff"
                       }
                       citizenName={complaint.citizen?.profile?.full_name || "Citizen"}
@@ -688,14 +689,14 @@ export default function ComplaintDetailPage() {
                         </div>
                         <StaffCommunication
                           complaintId={complaintId}
-                          currentUserId={currentUserId}
+                          currentUserId={user.id}
                           isStaff={false}
                         />
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="stone-card rounded-3xl overflow-hidden shadow-xl">
+                  <div className="bg-card rounded-3xl overflow-hidden shadow-xl border">
                     <div className="p-16 text-center">
                       <div className="flex flex-col items-center gap-6 max-w-md mx-auto">
                         <div className="relative">
@@ -724,7 +725,7 @@ export default function ComplaintDetailPage() {
           {/* Sidebar Column - Only Assigned Staff Info */}
           <div className="space-y-6">
             {/* Assigned Staff Details */}
-            <div className="stone-card rounded-3xl overflow-hidden shadow-xl">
+            <div className="bg-card rounded-3xl overflow-hidden shadow-xl border">
               <div className="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Shield className="w-4 h-4" />
@@ -732,116 +733,41 @@ export default function ComplaintDetailPage() {
                 </h3>
               </div>
               <div className="p-6">
-                {complaint.assigned_staff_id && complaint.staff ? (
+                {assignedStaff ? (
                   <div className="space-y-6">
                     {/* Staff Avatar and Basic Info */}
                     <div className="flex items-center gap-4">
                       <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg flex-shrink-0">
-                        {complaint.staff.profile?.full_name?.charAt(0) || "S"}
+                        {assignedStaff.full_name?.charAt(0) || "S"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-xl truncate mb-1">
-                          {complaint.staff.profile?.full_name ||
-                            complaint.staff.user?.email ||
+                          {assignedStaff.full_name ||
                             "Assigned Staff"}
                         </p>
                         <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1">
                           <BadgeCheck className="w-3.5 h-3.5" />
-                          {complaint.staff.staff_role?.replace(/_/g, " ") || "Staff Member"}
+                          {assignedStaff.staff?.staff_role?.replace(/_/g, " ") || "Staff Member"}
                         </p>
                       </div>
                     </div>
 
                     {/* Staff ID */}
-                    {complaint.staff.staff_code && (
-                      <div className="surface-elevated p-4 rounded-xl border">
+                    {assignedStaff.staff?.staff_code && (
+                      <div className="bg-muted/50 p-4 rounded-xl border">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-semibold text-muted-foreground">Staff ID</span>
                           <span className="font-mono font-bold text-lg">
-                            {complaint.staff.staff_code}
+                            {assignedStaff.staff.staff_code}
                           </span>
                         </div>
                       </div>
                     )}
-
-                    {/* Contact Information */}
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
-                        Contact Information
-                      </h4>
-                      
-                      {complaint.staff.user?.phone && (
-                        <div className="flex items-center gap-3 surface-elevated p-4 rounded-xl border group hover:border-primary transition-colors">
-                          <div className="p-2 bg-blue-50 dark:bg-blue-950/50 rounded-lg">
-                            <Phone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-muted-foreground font-semibold mb-0.5">Phone</p>
-                            <p className="font-semibold truncate">{complaint.staff.user.phone}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {complaint.staff.user?.email && (
-                        <div className="flex items-center gap-3 surface-elevated p-4 rounded-xl border group hover:border-primary transition-colors">
-                          <div className="p-2 bg-purple-50 dark:bg-purple-950/50 rounded-lg">
-                            <Mail className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-muted-foreground font-semibold mb-0.5">Email</p>
-                            <p className="font-semibold text-sm truncate">{complaint.staff.user.email}</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Department Info */}
-                    {complaint.department && (
-                      <div className="surface-elevated p-4 rounded-xl border">
-                        <div className="flex items-center gap-3">
-                          <Building2 className="w-5 h-5 text-muted-foreground" />
-                          <div className="flex-1">
-                            <p className="text-xs text-muted-foreground font-semibold mb-0.5">Department</p>
-                            <p className="font-bold">{complaint.department.name}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Assignment Date */}
-                    <div className="surface-elevated p-4 rounded-xl border">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-5 h-5 text-muted-foreground" />
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground font-semibold mb-0.5">Assigned On</p>
-                          <p className="font-bold">
-                            {complaint.assigned_at 
-                              ? format(new Date(complaint.assigned_at), "MMM dd, yyyy 'at' HH:mm")
-                              : "Recently assigned"
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : complaint.assigned_department_id ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center mx-auto mb-4">
-                      <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <p className="text-sm text-muted-foreground font-medium">
-                      Awaiting staff assignment
-                    </p>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-900/50 flex items-center justify-center mx-auto mb-4">
-                      <User className="w-8 h-8 text-slate-400" />
+                    <div className="text-center py-6 text-muted-foreground">
+                        <p>No staff assigned yet.</p>
                     </div>
-                    <p className="text-sm text-muted-foreground font-medium">
-                      Not yet assigned
-                    </p>
-                  </div>
                 )}
               </div>
             </div>
@@ -849,62 +775,32 @@ export default function ComplaintDetailPage() {
         </div>
       </div>
 
-      {/* Image Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in"
-          onClick={() => setSelectedImage(null)}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-6 right-6 text-white hover:bg-white/20 rounded-2xl h-14 w-14"
-          >
-            <X className="h-6 w-6" />
-          </Button>
-          <img
-            src={selectedImage}
-            alt="Full view"
-            className="max-w-full max-h-[90vh] object-contain rounded-3xl shadow-2xl animate-in zoom-in"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+      {/* Image Preview Modal */}
+        {selectedImage && (
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                onClick={() => setSelectedImage(null)}
+            >
+                <div className="relative max-w-4xl max-h-[90vh] w-full">
+                    <button 
+                        onClick={() => setSelectedImage(null)}
+                        className="absolute -top-12 right-0 p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                    >
+                        <XCircle className="w-8 h-8" />
+                    </button>
+                    <img
+                        src={selectedImage}
+                        alt="Preview"
+                        className="w-full h-full object-contain rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            </div>
+        )}
     </div>
   );
 }
 
-function DetailSkeleton() {
-  return (
-    <div className="min-h-screen surface">
-      <div className="container-gov py-12 space-y-8">
-        <div className="space-y-6">
-          <div className="h-12 w-32 bg-muted rounded-xl animate-pulse" />
-          <div className="h-20 bg-muted rounded-2xl animate-pulse" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-muted rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 w-32 bg-muted rounded-xl animate-pulse" />
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <div className="xl:col-span-2 space-y-8">
-            <div className="h-64 bg-muted rounded-3xl animate-pulse" />
-            <div className="h-96 bg-muted rounded-3xl animate-pulse" />
-          </div>
-          <div className="space-y-6">
-            <div className="h-96 bg-muted rounded-3xl animate-pulse" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function convertToIcon(LuIcon: any) {
+    return <LuIcon className="w-4 h-4" />
 }
