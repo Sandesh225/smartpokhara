@@ -5,11 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isStaff } from "@/lib/auth/role-helpers";
 
-// Queries
-import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
-import { staffPerformanceQueries } from "@/lib/supabase/queries/staff-performance";
-import { staffScheduleQueries } from "@/lib/supabase/queries/staff-schedule";
-import { staffAttendanceQueries } from "@/lib/supabase/queries/staff-attendance"; // Using Attendance Query for robust status
+// API
+import { staffApi } from "@/features/staff/api";
 
 // Components
 import { DashboardHeader } from "./_components/DashboardHeader";
@@ -39,11 +36,11 @@ export default async function StaffDashboard() {
     upcomingShifts,
     todayAttendanceLog,
   ] = await Promise.all([
-    staffQueueQueries.getMyAssignments(supabase, userId),
-    staffPerformanceQueries.getMyPerformance(supabase, userId),
-    staffPerformanceQueries.getCompletionStats(supabase, userId),
-    staffScheduleQueries.getUpcomingShifts(supabase, userId), // This was the missing function
-    staffAttendanceQueries.getTodayStatus(supabase, userId),
+    staffApi.getStaffAssignments(supabase, userId),
+    staffApi.getMyPerformance(supabase, userId),
+    staffApi.getCompletionStats(supabase, userId),
+    staffApi.getUpcomingShifts(supabase, userId),
+    staffApi.getTodayStatus(supabase, userId),
   ]);
 
   const dashboardStats = {
@@ -56,21 +53,26 @@ export default async function StaffDashboard() {
     "not_checked_in";
   let checkInTime = null;
   let checkOutTime = null;
-  let location = null;
+  let location: string | null = null; // Fix type
 
   if (todayAttendanceLog) {
+    if (todayAttendanceLog.on_duty) {
+        attendanceStatus = "on_duty";
+    } else if (todayAttendanceLog.check_out_time) {
+        attendanceStatus = "off_duty";
+    }
+
     checkInTime = todayAttendanceLog.check_in_time;
     checkOutTime = todayAttendanceLog.check_out_time;
 
-    if (todayAttendanceLog.check_in_location) location = "GPS Logged";
-
-    if (!todayAttendanceLog.check_out_time) {
-      attendanceStatus = "on_duty";
-    } else {
-      attendanceStatus = "off_duty";
+    // Handle check_in_location if it's a JSON object or string
+    // In api.ts it returns `check_in_location` from DB which might be GeoJSON or null.
+    // The previous code had `if (todayAttendanceLog.check_in_location) location = "GPS Logged";`
+    if (todayAttendanceLog.check_in_location) {
+        location = "GPS Logged";
     }
   }
-
+  
   // Header status
   const headerStatus = {
     isCheckedIn: attendanceStatus === "on_duty",
@@ -102,13 +104,12 @@ export default async function StaffDashboard() {
             location={location}
           />
 
-
           {/* Schedule Widget */}
           <UpcomingSchedule shifts={upcomingShifts} />
 
           {/* Alerts */}
           <div className="min-h-[200px]">
-            <RealTimeAlerts userId={userId} />
+             <RealTimeAlerts userId={userId} />
           </div>
         </div>
       </div>

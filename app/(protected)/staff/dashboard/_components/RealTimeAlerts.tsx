@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AlertCircle, X, Bell } from "lucide-react";
-import { staffNotificationsSubscription } from "@/lib/supabase/realtime/staff-notifications-subscription";
+import { useNotifications, useNotificationRealtime } from "@/features/notifications";
 
 export function RealTimeAlerts({ userId }: { userId: string }) {
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const { data: notifications = [], isLoading } = useNotifications(userId);
+  useNotificationRealtime(userId);
 
-  useEffect(() => {
-    const channel = staffNotificationsSubscription.subscribeToStaffNotifications(userId, (newAlert) => {
-      setAlerts(prev => [newAlert, ...prev]);
-    });
-    return () => { staffNotificationsSubscription.unsubscribe(channel); };
-  }, [userId]);
+  // Filter for urgent/alert-like notifications if needed, 
+  // or just show recent ones. 
+  const alerts = notifications.slice(0, 5); // Show latest 5 as alerts
+
+  if (isLoading) return <div className="p-6 text-center text-muted-foreground animate-pulse">Monitoring alerts...</div>;
 
   if (alerts.length === 0) {
     return (
@@ -51,12 +50,6 @@ export function RealTimeAlerts({ userId }: { userId: string }) {
               <p className="font-medium text-red-900 dark:text-red-300">{alert.title}</p>
               <p className="text-xs text-red-700 dark:text-red-400/80 mt-0.5">{alert.message}</p>
             </div>
-            <button 
-              onClick={() => setAlerts(prev => prev.filter((_, idx) => idx !== i))} 
-              className="text-red-400 dark:text-red-500 hover:text-red-700 dark:hover:text-red-300 transition-colors p-1 rounded hover:bg-red-100 dark:hover:bg-red-500/20"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
         ))}
       </div>

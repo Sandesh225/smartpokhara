@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { staffAttendanceQueries } from "@/lib/supabase/queries/staff-attendance"; // Ensure this path matches
+import { staffApi } from "@/features/staff"; // Updated
 import { getCurrentLocation } from "@/lib/utils/location-helpers"; // Ensure this util exists
 
 export function QuickActions() {
@@ -29,7 +29,7 @@ export function QuickActions() {
       if (!coords) throw new Error("Location permission denied");
 
       // Pass lat/lng individually as per your RPC signature
-      await staffAttendanceQueries.checkIn(supabase, coords.lat, coords.lng);
+      await staffApi.checkIn(supabase, coords.lat, coords.lng);
       
       toast.success("Attendance recorded successfully!", { id: tid });
 
