@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // If you are using Next.js 15, keep this. If older, remove 'experimental'.
-  experimental: {
-    reactCompiler: true,
-  },
+  // React Compiler is not yet supported in this version's experimental config
+  experimental: {},
 };
 
 export default nextConfig;

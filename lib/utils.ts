@@ -44,3 +44,11 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-NP', {
+    style: 'currency',
+    currency: 'NPR',
+    minimumFractionDigits: 0,
+  }).format(amount);
+}

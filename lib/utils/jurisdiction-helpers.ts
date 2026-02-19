@@ -86,7 +86,7 @@ async function fetchSupervisorProfile(
     throw error;
   }
 
-  return data as SupervisorProfileRow;
+  return data as unknown as SupervisorProfileRow;
 }
 
 /**
@@ -137,10 +137,10 @@ export async function isInJurisdiction(
 
     if (error || !complaint) return false;
 
-    const matchesWard = jurisdiction.assigned_wards.includes(complaint.ward_id);
-    const matchesDept = jurisdiction.assigned_departments.includes(
+    const matchesWard = complaint.ward_id ? jurisdiction.assigned_wards.includes(complaint.ward_id) : false;
+    const matchesDept = complaint.assigned_department_id ? jurisdiction.assigned_departments.includes(
       complaint.assigned_department_id
-    );
+    ) : false;
 
     // OR logic: ward OR department
     return matchesWard || matchesDept;
@@ -153,10 +153,10 @@ export async function isInJurisdiction(
 
     if (error || !staff) return false;
 
-    const matchesWard = jurisdiction.assigned_wards.includes(staff.ward_id);
-    const matchesDept = jurisdiction.assigned_departments.includes(
+    const matchesWard = staff.ward_id ? jurisdiction.assigned_wards.includes(staff.ward_id) : false;
+    const matchesDept = staff.department_id ? jurisdiction.assigned_departments.includes(
       staff.department_id
-    );
+    ) : false;
 
     return matchesWard || matchesDept;
   }

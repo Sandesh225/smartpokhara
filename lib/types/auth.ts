@@ -95,3 +95,5 @@ export interface ResetPasswordFormData {
   password: string;
   confirmPassword: string;
 }
+
+export type DashboardType = "admin" | "supervisor" | "staff" | "citizen";

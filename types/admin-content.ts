@@ -44,13 +44,13 @@ export interface Notice {
 export interface NoticeInput {
   title: string;
   content: string;
-  excerpt: string;
+  excerpt?: string | null;
   notice_type: NoticeType;
   ward_id?: string | null;
   is_public: boolean;
   is_urgent: boolean;
   published_at?: string;
-  expires_at?: string;
+  expires_at?: string | null;
 }
 
 export interface PageInput {

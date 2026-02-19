@@ -1,6 +1,6 @@
 // ============================================================================
 // FILE: lib/types.ts
-// TypeScript types (unchanged)
+// Shared TypeScript types — aligned with SQL schema
 // ============================================================================
 
 export interface User {
@@ -23,7 +23,8 @@ export type UserRole =
   | "field_staff"
   | "citizen"
   | "business_owner"
-  | "tourist";
+  | "tourist"
+  | "call_center";
 
 export interface Complaint {
   id: string;
@@ -41,37 +42,41 @@ export interface Complaint {
   submittedAt: Date;
   resolvedAt?: Date;
   closedAt?: Date;
-  slaUeAt?: Date;
-  isEscalated: boolean;
+  slaDueAt?: Date;
+  source?: string;
   resolutionNotes?: string;
-  citizenSatisfactionRating?: number;
-  citizenFeedback?: string;
+  commentCount?: number;
+  attachmentCount?: number;
+  upvoteCount?: number;
 }
 
 export type ComplaintStatus =
-  | "draft"
-  | "submitted"
+  | "pending"
   | "received"
+  | "under_review"
   | "assigned"
   | "in_progress"
   | "resolved"
   | "closed"
   | "rejected"
-  | "escalated";
+  | "reopened";
 
-export type Priority = "low" | "medium" | "high" | "critical";
+export type Priority = "low" | "medium" | "high" | "urgent" | "critical";
 
 export interface Notice {
   id: string;
   title: string;
-  body: string;
-  status: NoticeStatus;
-  priority: Priority;
-  audienceScope: string;
-  publishedAt?: Date;
-  expiredAt?: Date;
-  authorUserId: string;
-  viewCount: number;
+  content: string;
+  notice_type: string;
+  is_public: boolean;
+  is_urgent: boolean;
+  excerpt?: string;
+  ward_id?: string | null;
+  published_at?: string;
+  expires_at?: string | null;
+  created_by?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export type NoticeStatus =
@@ -90,4 +95,34 @@ export interface DashboardMetrics {
   wardHeatmap: Array<{ ward: number; complaints: number }>;
   departmentWorkload: Array<{ name: string; open: number; overdue: number }>;
   tasksOverview: { open: number; overdue: number; dueToday: number };
+}
+
+export interface CurrentUser {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name: string;
+  phone?: string | null;
+  role: UserRole;
+  ward_id?: string | null;
+  department_id?: string | null;
+  is_active: boolean;
+  avatar_url?: string | null;
+  staff_profile?: any;
+  permissions?: string[];
+}
+
+export type ComplaintScope = "all" | "assigned" | "ward" | "department";
+
+export interface SearchComplaintsParams {
+  search?: string;
+  status?: string[];
+  priority?: string[];
+  ward_id?: string;
+  category_id?: string;
+  scope?: ComplaintScope;
+  assignee_id?: string;
+  dateRange?: { from?: Date; to?: Date };
+  page?: number;
+  pageSize?: number;
 }

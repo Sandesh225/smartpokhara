@@ -36,6 +36,38 @@ export type StaffAvailability =
   | "training";
 export type ReportFormat = "pdf" | "excel" | "csv" | "html";
 
+export interface StaffProfile {
+  user_id: string;
+  staff_code: string | null;
+  department_id: string | null;
+  ward_id: string | null;
+  staff_role: string;
+  is_supervisor: boolean;
+  current_workload: number;
+  max_concurrent_assignments: number;
+  performance_rating: number;
+  availability_status: StaffAvailability;
+  last_known_location: string | null;
+  last_active_at: string | null;
+  is_active: boolean;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  avatar_url?: string;
+  role?: string;
+  computedStatus?: string;
+  staff_name?: string;
+  staff_avatar_url?: string;
+}
+
+export interface AssignableStaff extends StaffProfile {
+  capacity_percentage: number;
+  distance_km: number | null;
+  is_available: boolean;
+  recommendation_rank: number;
+}
+
+
 export interface Database {
   public: {
     Tables: {
@@ -235,4 +267,17 @@ export interface Database {
       };
     };
   };
+}
+
+export interface SupervisorNotification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: string;
+  action_url?: string;
+  is_read: boolean;
+  created_at: string;
+  priority?: "low" | "medium" | "high" | "urgent" | "critical";
+  metadata?: Record<string, any>;
 }

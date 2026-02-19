@@ -1,4 +1,4 @@
-import { Database } from "@/types/database.types";
+import { Database } from "@/lib/types/database.types";
 
 export type TaskStatus = 'not_started' | 'in_progress' | 'completed' | 'overdue' | 'cancelled';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
@@ -46,7 +46,7 @@ export interface CreateTaskInput {
   description: string;
   task_type: TaskType;
   priority: TaskPriority;
-  due_date: Date;
+  due_date: string;
   primary_assigned_to: string;
   ward_id?: string;
 }

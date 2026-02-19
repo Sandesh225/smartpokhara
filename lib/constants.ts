@@ -218,14 +218,11 @@ export const BEAUTY_IMAGES = [
 
 // Navigation
 export const NAV_ITEMS = [
-  {
-    label: "Public Services",
-    href: "#services",
-    desc: "Civic services & utilities",
-  },
-  { label: "Ward Directory", href: "#wards", desc: "Find your ward office" },
-  { label: "City Projects", href: "#projects", desc: "Ongoing developments" },
-  { label: "Notices", href: "#notices", desc: "Official announcements" },
+  { label: "Home", desc: "Back to starting page" },
+  { label: "Public Services", desc: "Civic services & utilities" },
+  { label: "Ward Directory", desc: "Find your ward office" },
+  { label: "City Projects", desc: "Ongoing developments" },
+  { label: "Notices", desc: "Official announcements" },
 ] as const;
 
 // Footer Links
