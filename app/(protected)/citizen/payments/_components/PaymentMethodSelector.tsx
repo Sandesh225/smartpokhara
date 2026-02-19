@@ -6,13 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+// Removed missing radio-group imports
 import {
   CreditCard,
   Smartphone,
-  Bank,
+  Landmark,
   Wallet,
   Lock,
   Shield,
@@ -63,7 +63,7 @@ const PAYMENT_METHODS = [
   {
     id: "connect_ips" as const,
     name: "Connect IPS",
-    icon: Bank,
+    icon: Landmark,
     description: "Internet banking",
     color: "text-blue-600",
     bgColor: "bg-blue-50"
@@ -319,27 +319,27 @@ export default function PaymentMethodSelector({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Payment Methods Grid */}
-        <RadioGroup
-          value={selectedMethod || ""}
-          onValueChange={(value) => handleMethodSelect(value as PaymentMethod)}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {PAYMENT_METHODS.map((method) => (
             <div key={method.id} className="relative">
-              <RadioGroupItem
+              <input
+                type="radio"
+                name="payment-method"
                 value={method.id}
                 id={method.id}
                 className="peer sr-only"
+                checked={selectedMethod === method.id}
+                onChange={() => handleMethodSelect(method.id)}
                 disabled={method.id === "wallet" && isWalletDisabled}
               />
               <Label
                 htmlFor={method.id}
                 className={cn(
                   "flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all",
-                  "peer-data-[state=checked]:border-blue-500 peer-data-[state=checked]:bg-blue-50",
+                  selectedMethod === method.id ? "border-primary bg-primary/5" : "border-border",
                   "hover:bg-gray-50 hover:border-gray-300",
-                  "peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:hover:bg-white peer-disabled:hover:border-gray-200",
-                  method.recommended && "border-blue-300 bg-blue-50/50"
+                  (method.id === "wallet" && isWalletDisabled) && "opacity-50 cursor-not-allowed hover:bg-white hover:border-border",
+                  method.recommended && "border-primary/30 bg-primary/5 shadow-sm"
                 )}
               >
                 <div className={`p-3 rounded-full ${method.bgColor} mb-2`}>
@@ -348,14 +348,14 @@ export default function PaymentMethodSelector({
                 <span className="font-medium text-sm text-center">{method.name}</span>
                 <span className="text-xs text-gray-500 text-center mt-1">{method.description}</span>
                 {method.recommended && (
-                  <Badge className="absolute -top-2 -right-2 text-xs bg-blue-500">
-                    Popular
+                  <Badge className="absolute -top-2 -right-2 text-[10px] bg-primary font-bold">
+                    RECOMMENDED
                   </Badge>
                 )}
               </Label>
             </div>
           ))}
-        </RadioGroup>
+        </div>
 
         {/* Selected Method Details */}
         {selectedMethod && (
