@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ComplaintStatusData } from "@/types/admin";
+import { ComplaintStatusData } from "@/features/admin-dashboard/types";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { PieChart as PieChartIcon, Activity } from "lucide-react";
 

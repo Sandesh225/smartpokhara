@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DepartmentWorkload as DeptType } from "@/lib/types/admin";
+import { DepartmentWorkload as DeptType } from "@/features/admin-dashboard/types";
 import { Building2, AlertTriangle, ChevronRight, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
