@@ -32,8 +32,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 
-// Backend Service
-import { pbService, type BudgetCycle } from "@/lib/supabase/queries/participatory-budgeting";
+// Domain Features
+import { useBudgetCycles, type BudgetCycle } from "@/features/participatory-budgeting";
 
 // --- Utility: Safe Date Formatting ---
 const formatDateSafe = (dateString: string, formatStr: string = "MMM d, yyyy") => {
@@ -50,31 +50,18 @@ const getTimeRemaining = (dateString: string) => {
 };
 
 export default function ParticipatoryBudgetingPage() {
-  const [cycles, setCycles] = useState<BudgetCycle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: cycles = [], isLoading } = useBudgetCycles();
 
-  useEffect(() => {
-    async function loadCycles() {
-      try {
-        const data = await pbService.getActiveCycles();
-        // Sort: Finalized & Active first, then by creation date
-        const sorted = data.sort((a, b) => {
-          if (a.finalized_at && !b.finalized_at) return -1;
-          if (a.is_active && !b.is_active) return -1;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
-        setCycles(sorted);
-      } catch (error) {
-        console.error("Failed to load cycles", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadCycles();
-  }, []);
+  // Sort cycles: Finalized & Active first, then by creation date
+  const sortedCycles = [...cycles].sort((a, b) => {
+    if (a.finalized_at && !b.finalized_at) return -1;
+    if (a.is_active && !b.is_active) return -1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
 
   // --- Loading State ---
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container max-w-6xl mx-auto px-4 py-12">
         <div className="mb-12 space-y-4">
@@ -93,7 +80,7 @@ export default function ParticipatoryBudgetingPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-primary/5 to-background pt-16 pb-12 px-4 border-b border-primary/10">
+      <div className="bg-linear-to-b from-primary/5 to-background pt-16 pb-12 px-4 border-b border-primary/10">
         <div className="container max-w-6xl mx-auto">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4">
@@ -111,7 +98,7 @@ export default function ParticipatoryBudgetingPage() {
       </div>
 
       <div className="container max-w-6xl mx-auto px-4 -mt-8">
-        {cycles.length === 0 ? (
+        {sortedCycles.length === 0 ? (
           // --- Empty State ---
           <Card className="border-2 border-dashed bg-card/50 backdrop-blur-sm">
             <CardContent className="flex flex-col items-center justify-center py-20 text-center">
@@ -128,7 +115,7 @@ export default function ParticipatoryBudgetingPage() {
         ) : (
           // --- Cycles Grid ---
           <div className="grid gap-8 lg:grid-cols-2">
-            {cycles.map((cycle) => {
+            {sortedCycles.map((cycle) => {
               const now = new Date();
               
               // Phase Calculations
@@ -147,25 +134,25 @@ export default function ParticipatoryBudgetingPage() {
 
               if (isFinalized) {
                 cardStyle = "border-amber-400 border-2 shadow-amber-100/50 dark:shadow-amber-900/20 hover:shadow-xl hover:scale-[1.01]";
-                headerStyle = "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/20";
+                headerStyle = "bg-linear-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/20";
                 statusIcon = <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
                 statusText = "Winners Announced";
                 statusColor = "text-amber-700 dark:text-amber-400";
               } else if (isVotingOpen) {
                 cardStyle = "border-blue-500 border-2 shadow-blue-100/50 dark:shadow-blue-900/20 hover:shadow-xl hover:scale-[1.01]";
-                headerStyle = "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/20";
+                headerStyle = "bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/20";
                 statusIcon = <Vote className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
                 statusText = "Voting Active";
                 statusColor = "text-blue-700 dark:text-blue-400";
               } else if (isSubmissionOpen) {
                 cardStyle = "border-emerald-500 border-2 shadow-emerald-100/50 dark:shadow-emerald-900/20 hover:shadow-xl hover:scale-[1.01]";
-                headerStyle = "bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/20";
+                headerStyle = "bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/20";
                 statusIcon = <Plus className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
                 statusText = "Submissions Open";
                 statusColor = "text-emerald-700 dark:text-emerald-400";
               } else if (isReviewPhase) {
                 cardStyle = "border-purple-300 shadow-purple-100/50 dark:shadow-purple-900/20";
-                headerStyle = "bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/20";
+                headerStyle = "bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/20";
                 statusIcon = <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
                 statusText = "In Review";
                 statusColor = "text-purple-700 dark:text-purple-400";
@@ -197,7 +184,7 @@ export default function ParticipatoryBudgetingPage() {
 
                   <CardContent className="flex-1 pt-6 px-6">
                     {/* Budget Highlight */}
-                    <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent border border-muted-foreground/10">
+                    <div className="mb-6 p-4 rounded-xl bg-linear-to-r from-muted/50 to-transparent border border-muted-foreground/10">
                       <p className="text-xs font-bold uppercase text-muted-foreground mb-1 flex items-center gap-1">
                         <DollarSign className="w-3 h-3" /> Total Fiscal Allocation
                       </p>
@@ -244,13 +231,13 @@ export default function ParticipatoryBudgetingPage() {
                     {/* Dynamic Action Buttons */}
                     <div className="w-full grid grid-cols-1 gap-3">
                       {isFinalized ? (
-                        <Button asChild size="lg" className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold shadow-md">
+                        <Button asChild size="lg" className="w-full bg-linear-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold shadow-md">
                           <Link href={`/citizen/participatory-budgeting/${cycle.id}`} className="flex items-center justify-center">
                             <Trophy className="mr-2 h-5 w-5" /> View Winners & Results
                           </Link>
                         </Button>
                       ) : isVotingOpen ? (
-                        <Button asChild size="lg" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-md">
+                        <Button asChild size="lg" className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-md">
                           <Link href={`/citizen/participatory-budgeting/${cycle.id}`} className="flex items-center justify-center">
                             <Vote className="mr-2 h-5 w-5" /> Cast Your Votes
                           </Link>
