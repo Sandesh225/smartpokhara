@@ -1,8 +1,10 @@
-import { CalendarDays, MapPinned, Timer } from "lucide-react";
+// app/(protected)/staff/attendance/_components/AttendanceHistoryList.tsx
+
+import { CalendarDays, Timer } from "lucide-react";
 import { format } from "date-fns";
 
 export function AttendanceHistoryList({ logs }: { logs: any[] }) {
-  if (logs.length === 0) {
+  if (!logs || logs.length === 0) {
     return (
       <div className="stone-card p-12 text-center text-muted-foreground">
         No attendance records found for this period.
@@ -26,10 +28,10 @@ export function AttendanceHistoryList({ logs }: { logs: any[] }) {
           >
             <div className="min-w-[120px]">
               <p className="font-bold text-lg">
-                {format(new Date(log.date), "MMM dd")}
+                {format(new Date(log.created_at || log.date), "MMM dd")}
               </p>
               <p className="text-xs text-muted-foreground uppercase">
-                {format(new Date(log.date), "eeee")}
+                {format(new Date(log.created_at || log.date), "eeee")}
               </p>
             </div>
 
@@ -59,7 +61,8 @@ export function AttendanceHistoryList({ logs }: { logs: any[] }) {
             <div className="flex items-center gap-2 bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
               <Timer size={14} className="text-primary" />
               <p className="font-bold text-sm text-primary">
-                {log.total_hours || 0} hrs
+                {/* FIX: Ensure hours never show NaN */}
+                {log.total_hours ? Number(log.total_hours).toFixed(2) : "0.00"} hrs
               </p>
             </div>
 

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { staffAttendanceQueries } from "@/lib/supabase/queries/staff-attendance";
+import { staffApi } from "@/features/staff";
 import { CheckInOutPanel } from "./_components/CheckInOutPanel";
 import { AttendanceHistoryList } from "./_components/AttendanceHistoryList";
 import { AttendanceHeader } from "./_components/AttendanceHeader";
@@ -18,9 +18,9 @@ export default async function AttendancePage() {
 
   // 3. Parallel Data Fetching
   const [todayStatus, history, stats] = await Promise.all([
-    staffAttendanceQueries.getTodayStatus(supabase, user.id),
-    staffAttendanceQueries.getAttendanceHistory(supabase, user.id),
-    staffAttendanceQueries.getAttendanceStats(supabase, user.id),
+    staffApi.getTodayStatus(supabase, user.id),
+    staffApi.getAttendanceHistory(supabase, user.id),
+    staffApi.getAttendanceStats(supabase, user.id),
   ]);
 
   // 4. Logic: Determine Current Status

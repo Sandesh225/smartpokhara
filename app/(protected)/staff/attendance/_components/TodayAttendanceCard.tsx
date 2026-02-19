@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { staffAttendanceQueries } from "@/lib/supabase/queries/staff-attendance";
+import { staffApi } from "@/features/staff";
 import { getCurrentLocation } from "@/lib/utils/location-helpers";
 
 interface Props {
@@ -44,11 +44,11 @@ export function TodayAttendanceCard({
       // 2. Database Action
       if (action === "check-in") {
         toast.loading("Clocking in...", { id: toastId });
-        await staffAttendanceQueries.checkIn(supabase, coords || undefined);
+        await staffApi.checkIn(supabase, coords?.lat || 0, coords?.lng || 0);
         toast.success("Checked in successfully", { id: toastId });
       } else {
         toast.loading("Clocking out...", { id: toastId });
-        await staffAttendanceQueries.checkOut(supabase, coords || undefined);
+        await staffApi.checkOut(supabase, coords?.lat || 0, coords?.lng || 0);
         toast.success("Checked out successfully", { id: toastId });
       }
 
