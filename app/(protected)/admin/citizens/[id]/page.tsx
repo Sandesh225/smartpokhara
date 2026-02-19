@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════
 
 import { createClient } from "@/lib/supabase/server";
-import { citizenQueries } from "@/lib/supabase/queries/admin/citizens";
+import { userApi } from "@/features/users/api";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -27,9 +27,9 @@ export default async function CitizenDetailPage({
   const { id: userId } = await params;
 
   const [profile, complaints, payments] = await Promise.all([
-    citizenQueries.getCitizenDetails(supabase, userId),
-    citizenQueries.getCitizenComplaints(supabase, userId),
-    citizenQueries.getCitizenPayments(supabase, userId),
+    userApi.getCitizenDetails(supabase, userId),
+    userApi.getCitizenComplaints(supabase, userId),
+    userApi.getCitizenPayments(supabase, userId),
   ]);
 
   if (!profile) return notFound();

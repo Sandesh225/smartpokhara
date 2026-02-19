@@ -2,7 +2,7 @@
 // app/admin/citizens/_components/ComplaintHistory.tsx
 // ═══════════════════════════════════════════════════════════
 
-import { ComplaintHistoryItem } from "@/types/admin-citizens";
+import { ComplaintHistoryItem } from "@/features/users/types";
 import { format } from "date-fns";
 import Link from "next/link";
 import { FileText } from "lucide-react";
