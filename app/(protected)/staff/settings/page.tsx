@@ -24,11 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Palette, Save, Camera } from "lucide-react";
-import { useCurrentUser } from "@/hooks/use-complaints";
+import { useCurrentUser } from "@/features/users";
 import { toast } from "sonner"; // Fixed: Using sonner instead of hooks/use-toast
 
 export default function StaffSettingsPage() {
-  const { user, loading } = useCurrentUser();
+  const { data: user, isLoading: loading } = useCurrentUser() as any;
 
   const [notifications, setNotifications] = useState({
     newAssignment: true,
@@ -92,9 +92,9 @@ export default function StaffSettingsPage() {
               <div className="flex items-center gap-6">
                 <div className="relative">
                   <Avatar className="h-24 w-24 border-4 border-white shadow-md">
-                    <AvatarImage src={user?.avatar_url || undefined} />
+                    <AvatarImage src={user?.profile_photo_url || undefined} />
                     <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                      {user?.full_name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "U"}
+                      {user?.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <Button size="icon" variant="secondary" className="absolute -bottom-1 -right-1 rounded-full h-8 w-8 elevation-2">

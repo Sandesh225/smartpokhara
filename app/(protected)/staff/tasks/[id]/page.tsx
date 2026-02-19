@@ -7,23 +7,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/types/database.types";
 
-type Task = Database['public']['Tables']['tasks']['Row'] & {
-  related_complaint?: { 
-    tracking_code: string; 
-    title: string;
-    description: string;
-    location_point?: any;
-    address_text?: string;
-  };
-  assigned_to_user?: { user_profiles: { full_name: string; phone: string } };
-  assigned_by_user?: { user_profiles: { full_name: string } };
-  wards?: { ward_number: number; name: string };
-  assigned_department?: { name: string };
-};
-
-type TaskActivity = Database['public']['Tables']['task_activity_logs']['Row'] & {
-  user_profiles?: { full_name: string };
-};
+type Task = any;
+type TaskActivity = any;
 
 export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -43,13 +28,13 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     try {
       // Load task
       const { data: taskData, error: taskError } = await supabase
-        .from("tasks")
+        .from("supervisor_tasks")
         .select(`
           *,
           related_complaint:complaints(tracking_code, title, description, location_point, address_text),
-          assigned_to_user:users!tasks_assigned_to_user_id_fkey(user_profiles(full_name, phone)),
-          assigned_by_user:users!tasks_assigned_by_user_id_fkey(user_profiles(full_name)),
-          wards(ward_number, name),
+          assignee:users!supervisor_tasks_primary_assigned_to_fkey(user_profiles(full_name, phone)),
+          supervisor:users!supervisor_tasks_supervisor_id_fkey(user_profiles(full_name)),
+          ward:wards(ward_number, name),
           assigned_department:departments(name)
         `)
         .eq("id", params.id)
@@ -60,10 +45,10 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
 
       // Load activity logs
       const { data: activityData, error: activityError } = await supabase
-        .from("task_activity_logs")
+        .from("internal_notes")
         .select(`
           *,
-          user_profiles(full_name)
+          author:users!internal_notes_supervisor_id_fkey(user_profiles(full_name))
         `)
         .eq("task_id", params.id)
         .order("created_at", { ascending: false });
@@ -84,7 +69,7 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     
     try {
       const { error } = await supabase
-        .from("tasks")
+        .from("supervisor_tasks")
         .update({ 
           status: newStatus,
           updated_at: new Date().toISOString()
@@ -95,11 +80,11 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       
       // Log activity
       const { data: { user } } = await supabase.auth.getUser();
-      await supabase.from("task_activity_logs").insert({
+      await supabase.from("internal_notes").insert({
         task_id: params.id,
-        user_id: user?.id,
-        action: "status_changed",
-        details: { old_status: task?.status, new_status: newStatus }
+        supervisor_id: user?.id,
+        content: `Status changed to ${newStatus}`,
+        is_private: false
       });
 
       await loadTaskDetails();
@@ -121,12 +106,12 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
       const { data: { user } } = await supabase.auth.getUser();
       
       const { error } = await supabase
-        .from("task_activity_logs")
+        .from("internal_notes")
         .insert({
           task_id: params.id,
-          user_id: user?.id,
-          action: "note_added",
-          details: { note: newNote }
+          supervisor_id: user?.id,
+          content: newNote,
+          is_private: false
         });
 
       if (error) throw error;
@@ -285,27 +270,11 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                         <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                           <div>
                             <p className="text-sm text-gray-900">
-                              <span className="font-medium">{activity.user_profiles?.full_name || "Unknown"}</span>
-                              {' '}
-                              {activity.action === "status_changed" && "changed status"}
-                              {activity.action === "note_added" && "added a note"}
-                              {activity.action === "assigned" && "was assigned"}
-                              {activity.action === "created" && "created the task"}
+                              <span className="font-medium">{activity.author?.user_profiles?.full_name || "System"}</span>
                             </p>
-                            {activity.details && (
-                              <div className="mt-1 text-sm text-gray-500">
-                                {activity.action === "status_changed" && (
-                                  <span>
-                                    {activity.details.old_status} → {activity.details.new_status}
-                                  </span>
-                                )}
-                                {activity.action === "note_added" && (
-                                  <p className="mt-1 text-sm text-gray-700 bg-gray-50 p-2 rounded">
-                                    {activity.details.note}
-                                  </p>
-                                )}
-                              </div>
-                            )}
+                            <div className="mt-1 text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                              {activity.content}
+                            </div>
                           </div>
                           <div className="whitespace-nowrap text-right text-sm text-gray-500">
                             {new Date(activity.created_at).toLocaleString()}

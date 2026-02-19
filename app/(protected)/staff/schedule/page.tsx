@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { staffScheduleQueries } from "@/lib/supabase/queries/staff-schedule";
+import { staffApi } from "@/features/staff";
 import {
   ScheduleHeader,
   ViewMode,
@@ -42,8 +42,8 @@ export default function SchedulePage() {
       try {
         const [scheduleData, upcomingData] = await Promise.all([
           // Calling the newly added function
-          staffScheduleQueries.getFullSchedule(supabase, user.id, start, end),
-          staffScheduleQueries.getUpcomingTasks(supabase, user.id),
+          staffApi.getFullSchedule(supabase, user.id, start, end),
+          staffApi.getUpcomingTasks(supabase, user.id),
         ]);
 
         setData(scheduleData);
@@ -98,7 +98,7 @@ export default function SchedulePage() {
 
         {/* Right Sidebar: Upcoming Tasks */}
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
+          <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
             <h3 className="font-bold text-lg mb-1">Quick Note</h3>
             <p className="text-blue-100 text-sm leading-relaxed">
               Shift timings are subject to change by ward supervisors. Check
