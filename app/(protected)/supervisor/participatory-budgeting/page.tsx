@@ -18,9 +18,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { pbService, type BudgetCycle, type BudgetProposal } from "@/lib/supabase/queries/participatory-budgeting";
+import { createClient } from "@/lib/supabase/client";
+import { pbApi } from "@/features/participatory-budgeting/api";
+import { type BudgetCycle, type BudgetProposal } from "@/features/participatory-budgeting/types";
 
 export default function SupervisorProposalsPage() {
+  const supabase = createClient();
   const [cycles, setCycles] = useState<BudgetCycle[]>([]);
   const [selectedCycle, setSelectedCycle] = useState<string>("");
   const [proposals, setProposals] = useState<BudgetProposal[]>([]);
@@ -28,7 +31,7 @@ export default function SupervisorProposalsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    pbService.getActiveCycles().then(data => {
+    pbApi.getActiveCycles(supabase).then(data => {
       setCycles(data);
       if (data.length > 0) setSelectedCycle(data[0].id);
     });
@@ -38,7 +41,8 @@ export default function SupervisorProposalsPage() {
     if (!selectedCycle) return;
     setLoading(true);
     // Pass NULL to fetch ALL proposals visible via RLS
-    pbService.getProposals(selectedCycle, null)
+    // Note: features api getProposals takes (client, cycleId, statusFilter)
+    pbApi.getProposals(supabase, selectedCycle, null)
       .then(setProposals)
       .catch(console.error)
       .finally(() => setLoading(false));

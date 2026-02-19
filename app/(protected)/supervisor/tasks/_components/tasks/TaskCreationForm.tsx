@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, User, MapPin, Plus, Trash2, Save, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
+import { tasksApi } from "@/features/tasks/api";
 import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
 import { toast } from "sonner";
-import type { StaffProfile } from "@/lib/types/supervisor.types";
+import type { ManagedStaffMember } from "@/features/supervisor/types";
 
 interface Props {
-  supervisedStaff: StaffProfile[];
+  supervisedStaff: ManagedStaffMember[];
   supervisorId: string;
 }
 
@@ -53,18 +53,16 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
     try {
       const trackingCode = `TSK-${Date.now().toString().slice(-6)}`;
       
-      await supervisorTasksQueries.createTask(supabase, {
+      await tasksApi.createTask(supabase, {
         title,
         description,
-        task_type: type,
+        task_type: type as any,
         priority,
         primary_assigned_to: assignedTo,
-        assigned_to: [assignedTo], // Array format support
         due_date: new Date(dueDate).toISOString(),
         supervisor_id: supervisorId,
         tracking_code: trackingCode,
         status: 'not_started',
-        // ward_id: wardId || null, // Uncomment if you have Ward selector logic
       }, checklist);
 
       toast.success("Task created successfully");

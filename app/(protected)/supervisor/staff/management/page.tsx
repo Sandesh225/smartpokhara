@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
+import { supervisorApi } from "@/features/supervisor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, UserCheck, ShieldCheck, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -18,13 +18,13 @@ export default async function StaffManagementPage() {
   const supabase = await createClient();
   
   // 1. Get Team & IDs
-  const team = await supervisorStaffQueries.getSupervisedStaff(supabase, user.id);
+  const team = await supervisorApi.getSupervisedStaff(supabase, user.id);
   const staffIds = team.map(s => s.user_id);
 
   // 2. Fetch Data
   const [attendanceList, pendingLeaves] = await Promise.all([
-    supervisorStaffQueries.getStaffAttendanceOverview(supabase, user.id),
-    supervisorStaffQueries.getPendingLeaves(supabase, staffIds)
+    supervisorApi.getStaffAttendanceOverview(supabase, user.id),
+    supervisorApi.getPendingLeaves(supabase, staffIds)
   ]);
 
   return (

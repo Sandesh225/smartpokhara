@@ -29,7 +29,7 @@ interface Assignment {
 interface WorkloadStaffCard {
   staffId: string;
   name: string;
-  photoUrl?: string;
+  photoUrl?: string | null;
   roleTitle: string;
   status: string;
   workloadPercentage: number;
@@ -43,7 +43,8 @@ interface WorkloadCardsProps {
   onReassign: (
     assignmentId: string,
     type: "complaint" | "task",
-    toStaffId: string
+    toStaffId: string,
+    currentOwnerId: string
   ) => Promise<void>;
   onMessage: (staffId: string) => void;
   currentSupervisorId: string;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckSquare, Square } from "lucide-react";
-import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
+import { tasksApi } from "@/features/tasks/api";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ export function TaskChecklist({ items }: { items: ChecklistItem[] }) {
     setLocalItems(prev => prev.map(i => i.id === id ? { ...i, is_completed: !currentStatus } : i));
     
     try {
-      await supervisorTasksQueries.toggleChecklistItem(supabase, id, !currentStatus);
+      await tasksApi.toggleChecklistItem(supabase, id, !currentStatus);
     } catch {
       // Revert if failed
       setLocalItems(prev => prev.map(i => i.id === id ? { ...i, is_completed: currentStatus } : i));

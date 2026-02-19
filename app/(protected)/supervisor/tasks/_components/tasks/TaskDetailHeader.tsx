@@ -6,7 +6,7 @@ import { ArrowLeft, CheckCircle, Trash2, Printer } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
 import { ConfirmationDialog } from "@/components/supervisor/shared/ConfirmationDialog";
-import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
+import { tasksApi } from "@/features/tasks/api";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -18,7 +18,7 @@ export function TaskDetailHeader({ task }: { task: any }) {
   const handleComplete = async () => {
     const supabase = createClient();
     try {
-      await supervisorTasksQueries.updateTask(supabase, task.id, { status: "completed" });
+      await tasksApi.updateTask(supabase, task.id, { status: "completed" });
       toast.success("Task marked as complete");
       router.refresh();
     } catch {
@@ -29,7 +29,7 @@ export function TaskDetailHeader({ task }: { task: any }) {
   const handleDelete = async () => {
     const supabase = createClient();
     try {
-      await supervisorTasksQueries.deleteTask(supabase, task.id);
+      await tasksApi.deleteTask(supabase, task.id);
       toast.success("Task deleted");
       router.push("/supervisor/tasks");
     } catch {

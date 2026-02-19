@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
 import { format } from "date-fns";
+import { ProjectTask } from "@/features/tasks/types";
 
 const COLUMNS = [
   { id: 'not_started', label: 'To Do', color: 'bg-gray-100' },
@@ -12,7 +13,7 @@ const COLUMNS = [
   { id: 'completed', label: 'Completed', color: 'bg-green-50' }
 ];
 
-export function TasksKanbanBoard({ tasks }: { tasks: any[] }) {
+export function TasksKanbanBoard({ tasks }: { tasks: ProjectTask[] }) {
   return (
     <div className="flex gap-6 overflow-x-auto pb-4 h-[calc(100vh-14rem)]">
       {COLUMNS.map(col => {
@@ -39,7 +40,7 @@ export function TasksKanbanBoard({ tasks }: { tasks: any[] }) {
                     <PriorityIndicator priority={task.priority} size="sm" showLabel={false} />
                   </div>
                   <h4 className="text-sm font-medium text-gray-900 mb-1">{task.title}</h4>
-                  <p className="text-xs text-gray-500 mb-3 line-clamp-2">{task.primary_assigned?.full_name}</p>
+                  <p className="text-xs text-gray-500 mb-3 line-clamp-2">{task.assignee?.full_name}</p>
                   <div className="flex justify-between items-center text-xs text-gray-400 pt-2 border-t border-gray-50">
                     <span>{format(new Date(task.due_date), "MMM d")}</span>
                     <span className="capitalize">{task.task_type.split('_')[0]}</span>

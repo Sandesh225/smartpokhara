@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
+import { supervisorApi } from "@/features/supervisor";
 import { StaffGridView } from "@/app/(protected)/supervisor/staff/_components/StaffGridView";
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
@@ -13,10 +13,7 @@ export default async function StaffOverviewPage() {
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const staffList = await supervisorStaffQueries.getSupervisedStaff(
-    supabase,
-    user.id
-  );
+  const staffList = await supervisorApi.getSupervisedStaff(supabase, user.id);
 
   return (
     <div className="space-y-6 p-6">

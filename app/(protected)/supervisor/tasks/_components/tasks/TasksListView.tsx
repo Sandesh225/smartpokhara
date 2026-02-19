@@ -7,18 +7,9 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
 import { SLACountdown } from "@/components/supervisor/shared/SLACountdown";
 
-interface Task {
-  id: string;
-  tracking_code: string;
-  title: string;
-  task_type: string;
-  status: string;
-  priority: string;
-  due_date: string;
-  primary_assigned: { full_name: string } | null;
-}
+import { ProjectTask } from "@/features/tasks/types";
 
-export function TasksListView({ tasks }: { tasks: Task[] }) {
+export function TasksListView({ tasks }: { tasks: ProjectTask[] }) {
   if (tasks.length === 0) {
     return <div className="text-center py-12 text-gray-500">No tasks found matching your criteria.</div>;
   }
@@ -50,7 +41,7 @@ export function TasksListView({ tasks }: { tasks: Task[] }) {
                   {task.task_type.replace(/_/g, ' ')}
                 </td>
                 <td className="px-6 py-4 text-gray-600">
-                  {task.primary_assigned?.full_name || "Unassigned"}
+                  {task.assignee?.full_name || "Unassigned"}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">

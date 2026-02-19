@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
+import { tasksApi } from "@/features/tasks/api";
 import { TaskDetailHeader } from "@/app/(protected)/supervisor/tasks/_components/tasks/TaskDetailHeader";
 import { TaskInformation } from "@/app/(protected)/supervisor/tasks/_components/tasks/TaskInformation";
 import { TaskChecklist } from "@/app/(protected)/supervisor/tasks/_components/tasks/TaskChecklist";
@@ -18,7 +18,7 @@ export default async function TaskDetailPage({ params }: PageProps) {
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const task = await supervisorTasksQueries.getTaskById(supabase, taskId);
+  const task = await tasksApi.getTaskById(supabase, taskId);
 
   if (!task) return notFound();
 

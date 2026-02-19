@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
-import { supervisorComplaintsQueries } from "@/lib/supabase/queries/supervisor-complaints";
-import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
-import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
+import { supervisorApi } from "@/features/supervisor";
+import { complaintsApi } from "@/features/complaints";
+import { tasksApi } from "@/features/tasks/api";
 import { WorkloadDistribution } from "../_components/WorkloadDistribution";
 import { WorkloadCards } from "../_components/WorkloadCards";
 
@@ -17,37 +16,50 @@ export default async function WorkloadPage() {
   const supabase = await createClient();
 
   // 1. Fetch Staff List
-  const staffList = await supervisorStaffQueries.getSupervisedStaff(
+  const staffList = await supervisorApi.getSupervisedStaff(
     supabase,
     user.id
   );
   const staffIds = staffList.map((s) => s.user_id);
 
-  // 2. Parallel Fetch: Assignments & Workload
-  const allAssignments = await supervisorStaffQueries.getTeamAssignments(
-    supabase,
-    staffIds
+  // 2. Fetch Assignments for each staff
+  const staffAssignmentsResults = await Promise.all(
+    staffList.map(async (staff) => {
+      const assignments = await tasksApi.getStaffAssignments(supabase, staff.user_id);
+      return { staffId: staff.user_id, assignments };
+    })
   );
 
   // 3. Transform Data for UI
   const staffCardsData = staffList.map((staff) => {
-    const assignments = allAssignments.filter(
-      (a: any) => a.staffId === staff.user_id
-    );
-    const currentLoad = assignments.length;
+    const result = staffAssignmentsResults.find(r => r.staffId === staff.user_id);
+    const rawAssignments = result?.assignments || [];
+    
+    // Normalize to Assignment interface expected by WorkloadCards
+    const normalizedAssignments = rawAssignments.map(a => ({
+      id: a.id,
+      type: a.type,
+      label: a.tracking_code,
+      title: a.title,
+      priority: a.priority,
+      status: a.status,
+      deadline: a.due_at
+    }));
+
+    const currentLoad = normalizedAssignments.length;
     const maxLoad = staff.max_concurrent_assignments || 10;
     const percentage = Math.round((currentLoad / maxLoad) * 100);
 
     return {
       staffId: staff.user_id,
-      name: staff.full_name,
+      name: staff.full_name || "Unknown Staff",
       photoUrl: staff.avatar_url,
-      roleTitle: staff.role,
-      status: staff.availability_status,
+      roleTitle: staff.role || "Staff",
+      status: staff.availability_status || "offline",
       workloadPercentage: percentage,
       currentWorkload: currentLoad,
       maxWorkload: maxLoad,
-      assignments: assignments,
+      assignments: normalizedAssignments,
     };
   });
 
@@ -68,7 +80,7 @@ export default async function WorkloadPage() {
     const sb = await createClient();
 
     if (type === "complaint") {
-      await supervisorComplaintsQueries.reassignComplaint(
+      await complaintsApi.reassignComplaint(
         sb,
         assignmentId,
         toStaffId,
@@ -78,7 +90,7 @@ export default async function WorkloadPage() {
         fromStaffId // <--- Pass it here
       );
     } else {
-      await supervisorTasksQueries.reassignTask(sb, assignmentId, toStaffId);
+      await tasksApi.assignTask(sb, assignmentId, toStaffId);
     }
   }
 

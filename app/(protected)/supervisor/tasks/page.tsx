@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorTasksQueries } from "@/lib/supabase/queries/supervisor-tasks";
+import { tasksApi } from "@/features/tasks/api";
 import { TasksListView } from "@/app/(protected)/supervisor/tasks/_components/tasks/TasksListView";
 import { TasksKanbanBoard } from "@/app/(protected)/supervisor/tasks/_components/tasks/TasksKanbanBoard";
 import { Plus } from "lucide-react";
@@ -15,7 +15,7 @@ export default async function TaskDashboard({ searchParams }: { searchParams: Pr
 
   const { view = "list" } = await searchParams;
   const supabase = await createClient();
-  const tasks = await supervisorTasksQueries.getSupervisorTasks(supabase, user.id);
+  const { data: tasks } = await tasksApi.getTasks(supabase, { scope: "supervisor_view", userId: user.id });
 
   return (
     <div className="space-y-6 p-6">

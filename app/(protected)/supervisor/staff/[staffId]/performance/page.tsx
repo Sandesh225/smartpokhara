@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
+import { staffApi } from "@/features/staff/api";
 import { StaffPerformanceMetrics } from "@/app/(protected)/supervisor/staff/_components/StaffPerformanceMetrics";
 import { PerformanceCharts } from "@/app/(protected)/supervisor/staff/_components/PerformanceCharts";
 import { calculateResolutionTime, calculateSLACompliance } from "@/lib/utils/performance-helpers";
@@ -20,8 +20,8 @@ export default async function StaffPerformancePage({ params }: PageProps) {
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const staffPerf = await supervisorStaffQueries.getStaffPerformance(supabase, staffId);
-  const staffProfile = await supervisorStaffQueries.getStaffById(supabase, staffId);
+  const staffPerf = await staffApi.getStaffPerformance(supabase, staffId);
+  const staffProfile = await staffApi.getStaffById(supabase, staffId);
 
   // Calculate Metrics
   const totalResolved = staffPerf.resolved.length;

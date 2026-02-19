@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
+import { supervisorApi } from "@/features/supervisor";
+import { staffApi } from "@/features/staff/api";
 import { StaffProfileCard } from "@/app/(protected)/supervisor/staff/_components/StaffProfileCard";
 import { CurrentAssignments } from "@/app/(protected)/supervisor/staff/_components/CurrentAssignments";
 import { ActivityTimeline } from "@/app/(protected)/supervisor/staff/_components/ActivityTimeline";
@@ -23,13 +24,16 @@ export default async function StaffDetailPage({ params }: PageProps) {
   const supabase = await createClient();
 
   // 1. Fetch All Necessary Data
-  const [details, assignmentsData] = await Promise.all([
-    supervisorStaffQueries.getStaffDetails(supabase, staffId),
-    supervisorStaffQueries.getStaffAssignments(supabase, staffId),
+  const [profile, assignmentsData, attendanceOverview, pending_leaves] = await Promise.all([
+    supervisorApi.getSupervisedStaff(supabase, user.id).then(list => list.find(s => s.user_id === staffId)),
+    staffApi.getStaffAssignments(supabase, staffId),
+    supervisorApi.getStaffAttendanceOverview(supabase, user.id).then(list => list.find(s => s.user_id === staffId)),
+    staffApi.getPendingLeaves(supabase, [staffId])
   ]);
 
-  if (!details) return notFound();
-  const { profile, attendance, pending_leaves } = details;
+  if (!profile) return notFound();
+  // attendance is from attendanceOverview now
+  const attendance = attendanceOverview;
 
   // 2. Normalize Assignments
   const unifiedAssignments = [
@@ -58,9 +62,9 @@ export default async function StaffDetailPage({ params }: PageProps) {
     "use server";
     const sb = await createClient();
     if (action === "approve") {
-      await supervisorStaffQueries.approveLeave(sb, leaveId, user!.id);
+      await supervisorApi.updateLeaveStatus(sb, leaveId, "approved", user!.id);
     } else {
-      await supervisorStaffQueries.rejectLeave(sb, leaveId, user!.id);
+      await supervisorApi.updateLeaveStatus(sb, leaveId, "rejected", user!.id);
     }
     redirect(`/supervisor/staff/${staffId}`);
   }
@@ -97,13 +101,13 @@ export default async function StaffDetailPage({ params }: PageProps) {
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Clock className="h-4 w-4" /> Today's Status
             </h3>
-            {attendance ? (
+            {attendance?.attendance ? (
               <div className="text-center p-4 bg-emerald-50 rounded-lg border border-emerald-100">
                 <p className="text-emerald-700 font-bold text-lg">
-                  {attendance.check_out_time ? "Shift Completed" : "On Duty"}
+                  {attendance.attendance.check_out_time ? "Shift Completed" : "On Duty"}
                 </p>
                 <p className="text-emerald-600 text-xs mt-1">
-                  Checked in at {format(new Date(attendance.check_in_time), "h:mm a")}
+                  Checked in at {format(new Date(attendance.attendance.check_in_time), "h:mm a")}
                 </p>
               </div>
             ) : (

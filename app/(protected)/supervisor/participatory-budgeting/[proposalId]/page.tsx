@@ -42,12 +42,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 
-import {
-  pbService,
-  type BudgetProposal,
-  type ProposalStatus,
-  type BudgetCycle,
-} from "@/lib/supabase/queries/participatory-budgeting";
+import { createClient } from "@/lib/supabase/client";
+import { 
+  pbApi, 
+  type BudgetProposal, 
+  type ProposalStatus, 
+  type BudgetCycle 
+} from "@/features/participatory-budgeting";
 
 export default function ReviewProposalPage() {
   const params = useParams();
@@ -55,6 +56,7 @@ export default function ReviewProposalPage() {
   const proposalId = params.proposalId as string;
 
   // State Management
+  const supabase = createClient();
   const [proposal, setProposal] = useState<BudgetProposal | null>(null);
   const [cycle, setCycle] = useState<BudgetCycle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,7 +76,7 @@ export default function ReviewProposalPage() {
 
       try {
         console.log("🔍 Fetching proposal:", proposalId);
-        const data = await pbService.getProposalById(proposalId);
+        const data = await pbApi.getProposalById(supabase, proposalId);
 
         if (data) {
           console.log("✅ Proposal loaded successfully:", {
@@ -94,7 +96,7 @@ export default function ReviewProposalPage() {
           // NEW: Fetch the cycle information using the cycle_id from the proposal
           if (data.cycle_id) {
             console.log("🔍 Fetching cycle:", data.cycle_id);
-            const cycleData = await pbService.getCycleById(data.cycle_id);
+            const cycleData = await pbApi.getCycleById(supabase, data.cycle_id);
             if (cycleData) {
               console.log("✅ Cycle loaded successfully:", {
                 id: cycleData.id,
@@ -150,7 +152,8 @@ export default function ReviewProposalPage() {
         technicalCost,
       });
 
-      await pbService.updateProposalStatus(
+      await pbApi.updateProposalStatus(
+        supabase,
         proposal.id,
         newStatus,
         notes,
