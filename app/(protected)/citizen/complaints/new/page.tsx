@@ -1,29 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
-import {
-  complaintsService,
-  type SubmitComplaintRequest,
-  type ComplaintCategory,
-  type Ward,
-} from "@/lib/supabase/queries/complaints";
-import ComplaintForm from "@/app/(protected)/citizen/complaints/_components/ComplaintForm";
+import { FileText, Shield, Zap, ArrowLeft, Loader2, AlertCircle, CheckCircle2, ChevronRight, MapPin, Clock } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Clock,
-  Shield,
-  AlertCircle,
-  ChevronRight,
-  Loader2,
-  MapPin,
-  FileText,
-  Zap,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -31,69 +15,45 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+
+import ComplaintForm from "@/app/(protected)/citizen/complaints/_components/ComplaintForm";
+
+import { useCategories, useWards } from "@/features/complaints/hooks/useComplaintOptions";
+import { useCreateComplaint } from "@/features/complaints/hooks/useComplaintMutations";
+import { useCurrentUser } from "@/features/users/hooks/useCurrentUser";
 
 export default function NewComplaintPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState<ComplaintCategory[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<{
     tracking_code: string;
     complaint_id: string;
   } | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  // Hooks
+  const { data: user, isLoading: isLoadingUser } = useCurrentUser();
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+  const { data: wards = [], isLoading: isLoadingWards } = useWards();
+  const { mutateAsync: createComplaint, isPending: isSubmitting } = useCreateComplaint();
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        toast.error("Authentication required");
-        router.push("/auth/signin?redirect=/citizen/complaints/new");
-        return;
-      }
-
-      const [categoriesData, wardsData] = await Promise.all([
-        complaintsService.getCategories(),
-        complaintsService.getWards(),
-      ]);
-
-      setCategories(categoriesData);
-      setWards(wardsData);
-    } catch (err: any) {
-      console.error("Error fetching data:", err);
-      setError(err.message || "Failed to load form data.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
+  const isLoading = isLoadingUser || isLoadingCategories || isLoadingWards;
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!isLoadingUser && !user) {
+      toast.error("Authentication required");
+      router.push("/auth/signin?redirect=/citizen/complaints/new");
+    }
+  }, [user, isLoadingUser, router]);
 
   const handleSubmitComplaint = async (
-    formData: SubmitComplaintRequest,
+    formData: any,
     attachments: File[]
   ) => {
     try {
-      const result = await complaintsService.submitComplaint(formData);
-
-      if (attachments.length > 0) {
-        const uploadPromises = attachments.map((file) =>
-          complaintsService.uploadAttachment(result.complaint_id, file)
-        );
-        await Promise.all(uploadPromises);
-      }
+      const result = await createComplaint({
+        ...formData,
+        media: attachments, // Pass files to mutation which handles upload
+      });
 
       setSubmissionResult({
         tracking_code: result.tracking_code,
@@ -101,7 +61,8 @@ export default function NewComplaintPage() {
       });
       setShowSuccessModal(true);
     } catch (err: any) {
-      throw new Error(err.message || "Submission failed");
+      // Error handled by mutation onError
+      throw err;
     }
   };
 
@@ -114,36 +75,7 @@ export default function NewComplaintPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-6 text-center">
-            <div className="mx-auto h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-              <AlertCircle className="h-6 w-6 text-destructive" />
-            </div>
-            <h2 className="text-xl font-bold mb-2">Error Loading Form</h2>
-            <p className="text-sm text-muted-foreground mb-6">{error}</p>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.back()}
-              >
-                Go Back
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={() => window.location.reload()}
-              >
-                Retry
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (!user) return null; // Handled by useEffect redirect
 
   return (
     <div className="space-y-6 pb-12">
