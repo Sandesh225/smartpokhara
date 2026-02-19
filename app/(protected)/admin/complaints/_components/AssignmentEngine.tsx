@@ -6,22 +6,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { assignmentEngine } from "@/lib/admin/assignment-engine";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { adminComplaintQueries } from "@/lib/supabase/queries/admin/complaints";
+import { complaintsApi } from "@/features/complaints";
 
-export function AssignmentEngine({ complaintId, currentAssignee, wardId, categoryId }: any) {
-  const [staffList, setStaffList] = useState<any[]>([]);
+interface Staff {
+  user_id: string;
+  staff_code: string;
+  current_workload: number;
+  user?: {
+    profile?: {
+      full_name: string;
+      avatar_url?: string;
+    };
+  };
+}
+
+interface AssignmentEngineProps {
+  complaintId: string;
+  currentAssignee?: Staff | null;
+  wardId: string | null;
+  categoryId: string | null;
+}
+
+export function AssignmentEngine({ complaintId, currentAssignee, wardId, categoryId }: AssignmentEngineProps) {
+  const [staffList, setStaffList] = useState<Staff[]>([]);
   const [selectedStaff, setSelectedStaff] = useState<string>("");
-  const [suggestion, setSuggestion] = useState<any>(null);
+  const [suggestion, setSuggestion] = useState<{ id: string; name: string } | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
     // Load suggestion and staff
     const load = async () => {
-      const dept = await assignmentEngine.suggestDepartment(supabase, categoryId);
+      const dept = await assignmentEngine.suggestDepartment(supabase, categoryId as string);
       setSuggestion(dept);
       
-      const staff = await assignmentEngine.findAvailableStaff(supabase, wardId, dept?.id || null);
-      setStaffList(staff);
+      const staff: any[] = await assignmentEngine.findAvailableStaff(supabase, wardId, dept?.id || null);
+      setStaffList(staff.map(s => ({
+          user_id: s.user_id,
+          staff_code: s.staff_code,
+          current_workload: s.current_workload,
+          user: Array.isArray(s.user) ? s.user[0] : s.user
+      })));
     };
     if (wardId && categoryId) load();
   }, [wardId, categoryId]);
@@ -30,9 +54,9 @@ export function AssignmentEngine({ complaintId, currentAssignee, wardId, categor
      try {
        // In real app, get current admin ID from session
        const { data: { user } } = await supabase.auth.getUser();
-       if(!user) return;
+       if (!user || !wardId) return;
        
-       await adminComplaintQueries.assignComplaint(supabase, complaintId, selectedStaff, user.id, "Manual Assignment via Admin Console");
+       await complaintsApi.assignComplaint(supabase, complaintId, selectedStaff, user.id, "Manual Assignment via Admin Console");
        toast.success("Staff assigned successfully");
      } catch(e) {
        toast.error("Assignment failed");
@@ -69,11 +93,14 @@ export function AssignmentEngine({ complaintId, currentAssignee, wardId, categor
                 <SelectValue placeholder="Select Staff Member" />
               </SelectTrigger>
               <SelectContent>
-                {staffList.map((s) => (
-                   <SelectItem key={s.user_id} value={s.user_id}>
-                      {s.user?.profile?.full_name} (Load: {s.current_workload})
-                   </SelectItem>
-                ))}
+                {staffList.map((s) => {
+                   const profile = (s.user as any)?.profile || (s.user as any)?.[0]?.profile || (s.user as any)?.[0]?.profile?.[0];
+                   return (
+                     <SelectItem key={s.user_id} value={s.user_id}>
+                        {profile?.full_name} (Load: {s.current_workload})
+                     </SelectItem>
+                   );
+                })}
               </SelectContent>
             </Select>
             <Button onClick={handleAssign} disabled={!selectedStaff}>Assign</Button>

@@ -5,7 +5,7 @@
 
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { adminComplaintQueries } from "@/lib/supabase/queries/admin/complaints";
+import { complaintsApi } from "@/features/complaints";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/role-helpers";
 
@@ -37,13 +37,13 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
   const supabase = await createClient();
 
   // 4. Fetch Data
-  const complaint = await adminComplaintQueries.getComplaintById(supabase, id);
+  const [complaint, details, internalNotes] = await Promise.all([
+    complaintsApi.getComplaintById(supabase, id),
+    complaintsApi.getComplaintDetails(supabase, id),
+    complaintsApi.getInternalNotes(supabase, id)
+  ]);
 
   if (!complaint) return notFound();
-
-  // 5. Initialize Sub-data (Placeholders until API exists)
-  const messages: any[] = []; 
-  const notes: any[] = [];
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-6 py-4 md:py-6 lg:py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -66,7 +66,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
           <section className="stone-card overflow-hidden">
             <CommunicationThread
               complaintId={complaint.id}
-              initialMessages={messages}
+              initialMessages={details.comments}
               currentUserId={user.id}
             />
           </section>
@@ -75,7 +75,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
           <section className="stone-card overflow-hidden">
             <InternalNotes
               complaintId={complaint.id}
-              initialNotes={notes}
+              initialNotes={internalNotes}
             />
           </section>
 
@@ -85,7 +85,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
               <Info className="w-4 h-4 md:w-5 md:h-5" />
               Resolution Timeline
             </h3>
-            <StatusTimeline history={complaint.timeline || []} />
+            <StatusTimeline history={details.history || []} />
           </section>
         </div>
 
