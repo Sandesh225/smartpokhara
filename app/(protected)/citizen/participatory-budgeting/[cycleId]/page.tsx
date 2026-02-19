@@ -47,46 +47,28 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import {
-  pbService,
+// Domain Features
+import { 
+  useBudgetCycle, 
+  usePBProposals, 
+  usePBVotes, 
+  usePBMutations,
   type BudgetCycle,
-  type BudgetProposal,
-} from "@/lib/supabase/queries/participatory-budgeting";
+  type BudgetProposal
+} from "@/features/participatory-budgeting";
 
 export default function CycleDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const cycleId = params.cycleId as string;
 
-  // --- State Management ---
-  const [cycle, setCycle] = useState<BudgetCycle | null>(null);
-  const [proposals, setProposals] = useState<BudgetProposal[]>([]);
-  const [userVotes, setUserVotes] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [votingId, setVotingId] = useState<string | null>(null);
+  // --- Data Fetching Hooks ---
+  const { data: cycle, isLoading: cycleLoading } = useBudgetCycle(cycleId);
+  const { data: proposals = [], isLoading: proposalsLoading } = usePBProposals(cycleId, null);
+  const { data: userVotes = [], isLoading: votesLoading } = usePBVotes(cycleId);
+  const { vote: voteMutation } = usePBMutations();
 
-  // --- Data Fetching ---
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [cycleData, proposalsData, votesData] = await Promise.all([
-          pbService.getCycleById(cycleId),
-          pbService.getProposals(cycleId, null), // Fetch ALL status types
-          pbService.getUserVotes(cycleId),
-        ]);
-
-        setCycle(cycleData);
-        setProposals(proposalsData);
-        setUserVotes(votesData);
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to load cycle data");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [cycleId]);
+  const loading = cycleLoading || proposalsLoading || votesLoading;
 
   // --- Voting Logic ---
   const handleVote = async (proposalId: string) => {
@@ -97,24 +79,9 @@ export default function CycleDetailsPage() {
       return;
     }
 
-    setVotingId(proposalId);
-    try {
-      const response = await pbService.voteForProposal(proposalId);
-      if (response.success) {
-        toast.success("Vote cast successfully! 🎉");
-        setUserVotes([...userVotes, proposalId]);
-        setProposals((current) =>
-          current.map((p) =>
-            p.id === proposalId ? { ...p, vote_count: p.vote_count + 1 } : p
-          )
-        );
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to cast vote");
-    } finally {
-      setVotingId(null);
-    }
+    voteMutation.mutate(proposalId);
   };
+
 
   // --- Loading State ---
   if (loading) {
@@ -222,7 +189,7 @@ export default function CycleDetailsPage() {
         {/* 2. Official Announcement (If Finalized) */}
         {isFinalized && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-2xl p-8 md:p-10 mb-8">
+             <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-amber-500 to-orange-600 text-white shadow-2xl p-8 md:p-10 mb-8">
                 <div className="absolute top-0 right-0 -mt-10 -mr-10 opacity-20">
                   <Sparkles className="w-64 h-64 text-white rotate-12" />
                 </div>
@@ -327,7 +294,7 @@ export default function CycleDetailsPage() {
                 votingOpen={votingOpen}
                 handleVote={handleVote}
                 votesRemaining={votesRemaining}
-                votingId={votingId}
+                votingId={voteMutation.isPending ? voteMutation.variables : null}
              />
           </TabsContent>
 
@@ -340,7 +307,7 @@ export default function CycleDetailsPage() {
                 votingOpen={false} // Voting always closed for winners tab visual
                 handleVote={handleVote}
                 votesRemaining={votesRemaining}
-                votingId={votingId}
+                votingId={voteMutation.isPending ? voteMutation.variables : null}
               />
             ) : (
               <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed">
@@ -359,7 +326,7 @@ export default function CycleDetailsPage() {
                 votingOpen={votingOpen}
                 handleVote={handleVote}
                 votesRemaining={votesRemaining}
-                votingId={votingId}
+                votingId={voteMutation.isPending ? voteMutation.variables : null}
              />
           </TabsContent>
         </Tabs>

@@ -30,13 +30,18 @@ import {
   CardHeader,
   CardTitle,
 } from "../../../../../../components/ui/card";
-import {
-  pbService,
+// Domain Features
+import { 
+  useBudgetCycle, 
+  usePBDepartments, 
+  usePBMutations,
   type BudgetCycle,
   type ProposalCategory,
-  type Department,
-} from "../../../../../../lib/supabase/queries/participatory-budgeting";
-import { complaintsService } from "../../../../../../lib/supabase/queries/complaints";
+  type Department
+} from "@/features/participatory-budgeting";
+
+import { complaintsApi } from "@/features/complaints";
+import { createClient } from "@/lib/supabase/client";
 
 interface ProposalFormData {
   title: string;
@@ -53,12 +58,15 @@ export default function NewProposalPage() {
   const router = useRouter();
   const cycleId = params.cycleId as string;
 
-  const [cycle, setCycle] = useState<BudgetCycle | null>(null);
+  // --- Data Fetching & Mutations ---
+  const { data: cycle, isLoading: cycleLoading } = useBudgetCycle(cycleId);
+  const { data: departments = [], isLoading: deptsLoading } = usePBDepartments();
   const [wards, setWards] = useState<any[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [wardsLoading, setWardsLoading] = useState(true);
+  const { submitProposal: submitMutation } = usePBMutations();
   const [coverImage, setCoverImage] = useState<File | null>(null);
+
+  const loading = cycleLoading || deptsLoading || wardsLoading;
 
   const form = useForm<ProposalFormData>({
     defaultValues: {
@@ -72,24 +80,18 @@ export default function NewProposalPage() {
   });
 
   useEffect(() => {
-    async function init() {
+    async function loadWards() {
       try {
-        const [cycleData, wardsData, departmentsData] = await Promise.all([
-          pbService.getCycleById(cycleId),
-          complaintsService.getWards(),
-          pbService.getDepartments(),
-        ]);
-        setCycle(cycleData);
+        const wardsData = await complaintsApi.getWards(createClient());
         setWards(wardsData);
-        setDepartments(departmentsData);
       } catch (error) {
-        toast.error("Failed to load required data");
+        toast.error("Failed to load wards");
       } finally {
-        setLoading(false);
+        setWardsLoading(false);
       }
     }
-    init();
-  }, [cycleId]);
+    loadWards();
+  }, []);
 
   // Helper to map department code to category enum
   const getCategoryFromCode = (code: string): ProposalCategory => {
@@ -112,6 +114,7 @@ export default function NewProposalPage() {
         return "other";
     }
   };
+
   const onSubmit = async (data: ProposalFormData) => {
     if (!cycle) return;
 
@@ -122,7 +125,7 @@ export default function NewProposalPage() {
     }
 
     // Get the selected department
-    const selectedDept = departments.find((d) => d.id === data.department_id);
+    const selectedDept = departments.find((d: any) => d.id === data.department_id);
     if (!selectedDept) {
       toast.error("Invalid department selected");
       return;
@@ -151,32 +154,26 @@ export default function NewProposalPage() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      await pbService.submitProposal(
-        {
-          cycle_id: cycleId,
-          title: data.title,
-          description: data.description,
-          category: derivedCategory,
-          department_id: data.department_id, // ✅ This is the key!
-          ward_id: data.ward_id === "city-wide" ? null : data.ward_id,
-          estimated_cost: data.estimated_cost,
-          address_text: data.address_text,
-          location_point: null,
-        },
-        coverImage || undefined
-      );
-
-      toast.success("Proposal submitted successfully!");
-      router.push(`/citizen/participatory-budgeting/${cycleId}`);
-    } catch (error: any) {
-      console.error("Submission error:", error);
-      toast.error(error.message || "Failed to submit proposal");
-    } finally {
-      setSubmitting(false);
-    }
+    submitMutation.mutate({
+      data: {
+        cycle_id: cycleId,
+        title: data.title,
+        description: data.description,
+        category: derivedCategory,
+        department_id: data.department_id,
+        ward_id: data.ward_id === "city-wide" ? null : data.ward_id,
+        estimated_cost: data.estimated_cost,
+        address_text: data.address_text,
+        location_point: null,
+      },
+      coverImage: coverImage || undefined
+    }, {
+      onSuccess: () => {
+        router.push(`/citizen/participatory-budgeting/${cycleId}`);
+      }
+    });
   };
+
 
   if (loading) {
     return (
@@ -389,8 +386,8 @@ export default function NewProposalPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={submitting}>
-                  {submitting && (
+                <Button type="submit" disabled={submitMutation.isPending}>
+                  {submitMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
                   Submit Proposal
