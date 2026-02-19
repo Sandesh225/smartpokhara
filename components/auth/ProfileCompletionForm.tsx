@@ -20,11 +20,32 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
+interface Ward {
+  id: string;
+  ward_number: number;
+  name: string;
+  name_nepali: string | null;
+}
+
+interface ProfileFormData {
+  full_name: string;
+  full_name_nepali: string;
+  phone: string;
+  date_of_birth: string;
+  gender: string;
+  citizenship_number: string;
+  ward_id: string;
+  address_line1: string;
+  address_line2: string;
+  landmark: string;
+  language_preference: string;
+}
+
 export default function ProfileCompletion() {
   const [loading, setLoading] = useState(false);
-  const [wards, setWards] = useState([]);
+  const [wards, setWards] = useState<Ward[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileFormData>({
     full_name: "",
     full_name_nepali: "",
     phone: "",
@@ -37,7 +58,7 @@ export default function ProfileCompletion() {
     landmark: "",
     language_preference: "en"
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -53,20 +74,20 @@ export default function ProfileCompletion() {
         .order("ward_number");
 
       if (error) throw error;
-      setWards(data || []);
+      setWards((data as unknown as Ward[]) || []);
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  const validateStep = (step) => {
-    const newErrors = {};
+  const validateStep = (step: number) => {
+    const newErrors: Record<string, string> = {};
 
     if (step === 1) {
       if (!formData.full_name || formData.full_name.trim().length < 3) {
@@ -141,7 +162,7 @@ export default function ProfileCompletion() {
         window.location.href = "/citizen/dashboard";
       }, 2000);
 
-    } catch (error) {
+    } catch (error: any) {
       setErrors({ submit: error.message });
     } finally {
       setLoading(false);

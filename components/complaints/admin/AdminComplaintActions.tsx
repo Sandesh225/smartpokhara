@@ -296,10 +296,10 @@ export function AdminComplaintActions({ complaint, departments, staffUsers }: Ad
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Status: <ComplaintStatusBadge status={status} size="sm" />
+                  Current Status: <ComplaintStatusBadge status={status as any} size="sm" />
                 </label>
                 <div className="space-y-2">
-                  {['submitted', 'received', 'assigned', 'in_progress', 'resolved', 'closed', 'rejected'].map((statusOption) => (
+                  {['pending', 'received', 'assigned', 'in_progress', 'resolved', 'closed', 'rejected'].map((statusOption) => (
                     <button
                       key={statusOption}
                       onClick={() => handleStatusChange(statusOption)}

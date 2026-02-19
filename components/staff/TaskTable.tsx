@@ -6,12 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/types/database.types";
 
-type Task = Database['public']['Tables']['tasks']['Row'] & {
-  related_complaint?: { tracking_code: string; title: string };
-  assigned_to_user?: { user_profiles: { full_name: string } };
-  wards?: { ward_number: number; name: string };
-  assigned_department?: { name: string };
-};
+type Task = any;
 
 interface TaskTableProps {
   tasks: Task[];
@@ -27,7 +22,7 @@ export function TaskTable({ tasks, onTaskUpdate }: TaskTableProps) {
     
     try {
       const { error } = await supabase
-        .from("tasks")
+        .from("supervisor_tasks")
         .update({ 
           status: newStatus,
           updated_at: new Date().toISOString()
@@ -110,7 +105,7 @@ export function TaskTable({ tasks, onTaskUpdate }: TaskTableProps) {
               <td className="px-6 py-4 text-sm text-gray-900">
                 {task.related_complaint ? (
                   <Link
-                    href={`/staff/complaints/${task.related_complaint_id}`}
+                    href={`/staff/complaints/${task.complaint_id}`}
                     className="text-blue-600 hover:text-blue-900"
                   >
                     {task.related_complaint.tracking_code}
@@ -120,10 +115,10 @@ export function TaskTable({ tasks, onTaskUpdate }: TaskTableProps) {
                 )}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500">
-                {task.assigned_department?.name || task.wards?.name || "N/A"}
+                {task.assigned_department?.name || task.ward?.name || "N/A"}
               </td>
               <td className="px-6 py-4 text-sm text-gray-500">
-                {task.assigned_to_user?.user_profiles?.full_name || "Unassigned"}
+                {task.assignee?.profile?.full_name || "Unassigned"}
               </td>
               <td className="px-6 py-4">
                 <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getPriorityColor(task.priority)}`}>

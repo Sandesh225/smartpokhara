@@ -1,13 +1,14 @@
+// components/staff/AttendanceTable.tsx
+
 "use client";
 
 import { format } from "date-fns";
-import { MapPin, Clock, LogOut, CheckCircle2, UserX } from "lucide-react";
+import { MapPin, Clock, LogOut, UserX } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AttendanceTable({ staff }: { staff: any[] }) {
   
-  // Helper to render badge based on computed status
   const renderStatus = (s: any) => {
     if (s.computedStatus === 'checked_out') {
       return (
@@ -52,11 +53,16 @@ export function AttendanceTable({ staff }: { staff: any[] }) {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9 border border-gray-200">
                         <AvatarImage src={s.avatar_url} />
-                        <AvatarFallback className="bg-blue-50 text-blue-600 font-bold">{s.full_name[0]}</AvatarFallback>
+                        {/* FIX: Safely fallback if full_name is missing */}
+                        <AvatarFallback className="bg-blue-50 text-blue-600 font-bold">
+                          {s.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-bold text-gray-900">{s.full_name}</p>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wide">{s.role.replace(/_/g, ' ')}</p>
+                      <p className="font-bold text-gray-900">{s.full_name || "Unknown Staff"}</p>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wide">
+                        {s.role?.replace(/_/g, ' ') || "Staff"}
+                      </p>
                     </div>
                   </div>
                 </td>

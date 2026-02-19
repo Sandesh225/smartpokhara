@@ -21,6 +21,8 @@ export const Header = () => {
   // Map the navigation labels from constants to your actual file routes
   const getRoute = (label: string) => {
     switch (label) {
+      case "Home":
+        return "/";
       case "Public Services":
         return "/services";
       case "Ward Directory":

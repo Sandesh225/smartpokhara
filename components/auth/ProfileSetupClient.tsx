@@ -176,18 +176,20 @@ export function ProfileSetupClient() {
 
     try {
       const { error } = await supabase.rpc("rpc_update_user_profile", {
-        p_full_name: formData.full_name,
-        p_full_name_nepali: formData.full_name_nepali,
-        p_phone: formData.phone,
-        p_date_of_birth: formData.date_of_birth || null,
-        p_gender: formData.gender,
-        p_citizenship_number: formData.citizenship_number,
-        p_ward_id: formData.ward_id,
-        p_address_line1: formData.address_line1,
-        p_address_line2: formData.address_line2,
-        p_landmark: formData.landmark,
-        p_language_preference: formData.language_preference,
-      });
+  p_full_name: formData.full_name,
+  p_full_name_nepali: formData.full_name_nepali,
+  p_phone: formData.phone,
+  // FIX: Convert empty string to null for Date
+  p_date_of_birth: formData.date_of_birth ? formData.date_of_birth : null, 
+  p_gender: formData.gender,
+  p_citizenship_number: formData.citizenship_number,
+  // FIX: Convert empty string to null for UUID
+  p_ward_id: formData.ward_id ? formData.ward_id : null, 
+  p_address_line1: formData.address_line1,
+  p_address_line2: formData.address_line2,
+  p_landmark: formData.landmark,
+  p_language_preference: formData.language_preference,
+});
 
       if (error) throw error;
 

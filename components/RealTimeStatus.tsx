@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { 
+  subscribeToUserNotices, 
+  subscribeToUserBills, 
+  subscribeToUserPayments 
+} from '@/lib/supabase/realtime-helpers';
 
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { Bell, CreditCard, FileText } from 'lucide-react';

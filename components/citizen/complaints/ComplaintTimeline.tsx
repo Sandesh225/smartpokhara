@@ -1,7 +1,8 @@
 "use client";
 
 import { ComplaintStatusBadge } from "./ComplaintStatusBadge";
-import type { ComplaintStatusHistoryItem } from "@/lib/types/complaints";
+import { ComplaintStatusHistory } from "@/features/complaints";
+
 import { User, Calendar } from "lucide-react";
 
 interface ComplaintTimelineProps {

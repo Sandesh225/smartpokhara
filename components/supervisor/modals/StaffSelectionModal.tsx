@@ -36,7 +36,7 @@ export interface StaffMember {
   full_name?: string;
   staff_role?: string;
   role?: string;
-  staff_code?: string;
+  staff_code?: string | null;
   department_id?: string | null;
   department_name?: string | null;
   availability_status?: string;

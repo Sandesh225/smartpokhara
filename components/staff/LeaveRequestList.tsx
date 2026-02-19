@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"; // Added Router
 import { format } from "date-fns";
 import { CheckCircle, XCircle, MessageSquare } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
+import { supervisorApi } from "@/features/supervisor";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -22,10 +22,10 @@ export function LeaveRequestList({ initialLeaves, supervisorId }: { initialLeave
     try {
       // 2. Perform DB Action
       if (action === 'approve') {
-        await supervisorStaffQueries.approveLeave(supabase, leaveId, supervisorId);
+        await supervisorApi.updateLeaveStatus(supabase, leaveId, 'approved', supervisorId);
         toast.success("Leave approved & balance updated");
       } else {
-        await supervisorStaffQueries.rejectLeave(supabase, leaveId, supervisorId);
+        await supervisorApi.updateLeaveStatus(supabase, leaveId, 'rejected', supervisorId);
         toast.error("Leave rejected");
       }
       

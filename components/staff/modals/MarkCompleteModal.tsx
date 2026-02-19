@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X, Upload, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
+import { staffApi } from "@/features/staff";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MarkCompleteModalProps {
@@ -92,7 +92,7 @@ export function MarkCompleteModal({
           toast.loading(`Uploading ${i + 1} of ${photos.length} photos...`, {
             id: toastId,
           });
-          const url = await staffQueueQueries.uploadWorkPhoto(
+          const url = await staffApi.uploadWorkPhoto(
             supabase,
             resolvedStaffId,
             photos[i]
@@ -103,7 +103,7 @@ export function MarkCompleteModal({
 
       // Step B: Call RPC to update database
       toast.loading("Finalizing task details...", { id: toastId });
-      await staffQueueQueries.completeAssignment(
+      await staffApi.completeAssignment(
         supabase,
         assignmentId,
         notes.trim(),

@@ -1,7 +1,7 @@
 "use client";
 
 import { ComplaintStatusBadge } from "./ComplaintStatusBadge";
-import { ComplaintPriorityBadge } from "./ComplaintPriorityBadge";
+import { PriorityBadge as ComplaintPriorityBadge } from "@/components/staff/shared/PriorityBadge";
 import { MapPin, Tag } from "lucide-react";
 
 interface ComplaintDetailsHeaderProps {
@@ -36,7 +36,6 @@ export function ComplaintDetailsHeader({
                 />
                 <ComplaintPriorityBadge
                   priority={complaint.priority as any}
-                  size="lg"
                 />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
@@ -82,7 +81,7 @@ export function ComplaintDetailsHeader({
           </div>
 
           {/* Status Indicator Circle */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl animate-pulse-scale">
                 <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center">
@@ -103,7 +102,6 @@ export function ComplaintDetailsHeader({
 function getStatusIcon(status: string): string {
   const icons: Record<string, string> = {
     draft: "📝",
-    submitted: "📤",
     received: "📨",
     assigned: "👤",
     in_progress: "⚙️",

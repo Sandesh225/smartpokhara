@@ -5,8 +5,8 @@ import { Timer, AlertOctagon, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SLACountdownProps {
-  deadline: string | Date;
-  createdAt?: string | Date; // Added this to calculate progress correctly
+  deadline?: string | Date | null;
+  createdAt?: string | Date | null;
   status?: string;
   variant?: "badge" | "progress";
 }
@@ -32,9 +32,10 @@ export function SLACountdown({
     }
 
     const calculateTime = () => {
+      if (!deadline) return null;
       const now = new Date().getTime();
       const due = new Date(deadline).getTime();
-      const start = createdAt ? new Date(createdAt).getTime() : due - (72 * 60 * 60 * 1000); // Fallback to 72h window if no start date
+      const start = createdAt ? new Date(createdAt).getTime() : due - (72 * 60 * 60 * 1000); 
       
       const diff = due - now;
       const totalDuration = due - start;
@@ -162,7 +163,7 @@ export function SLACountdown({
           ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/50"
           : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/50"
       )}
-      title={`Deadline: ${new Date(deadline).toLocaleString()}`}
+      title={deadline ? `Deadline: ${new Date(deadline).toLocaleString()}` : "No Deadline"}
     >
       {timeLeft.overdue ? (
         <AlertOctagon className="h-3 w-3" />

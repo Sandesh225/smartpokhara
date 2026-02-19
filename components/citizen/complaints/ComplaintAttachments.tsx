@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import type { ComplaintAttachment } from "@/lib/types/complaints";
+import { ComplaintAttachment } from "@/features/complaints";
 import {
   Upload,
   FileText,
