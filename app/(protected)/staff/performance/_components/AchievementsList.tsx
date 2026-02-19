@@ -1,7 +1,7 @@
 "use client";
 
 import { Star, Zap, Award, Medal, Trophy } from "lucide-react";
-import { Achievement } from "@/types/staff";
+import { Achievement } from "@/features/staff/types";
 import { format } from "date-fns";
 
 // Map database 'icon_key' strings to Lucide Components

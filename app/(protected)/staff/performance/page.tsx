@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { staffPerformanceQueries } from "@/lib/supabase/queries/staff-performance";
+import { staffApi } from "@/features/staff";
 
 import { BarChart2 } from "lucide-react";
 import { PerformanceOverview } from "./_components/PerformanceOverview";
@@ -20,8 +20,8 @@ export default async function PerformancePage() {
   const supabase = await createClient();
 
   const [metrics, achievements] = await Promise.all([
-    staffPerformanceQueries.getMyPerformance(supabase, staffId),
-    staffPerformanceQueries.getAchievements(supabase, staffId),
+    staffApi.getMyPerformance(supabase, staffId),
+    staffApi.getAchievements(supabase, staffId),
   ]);
 
   return (
