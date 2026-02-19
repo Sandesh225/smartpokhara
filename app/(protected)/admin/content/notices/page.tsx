@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useContentManagement } from "@/hooks/admin/useContentManagement";
+import { useNotices, useNoticeMutations } from "@/features/notices";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,9 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function NoticesPage() {
-  const { notices, loading, deleteNotice } = useContentManagement();
+  const { data, isLoading: loading } = useNotices({ publishedOnly: false });
+  const notices = data?.data || [];
+  const { deleteNotice } = useNoticeMutations();
 
   const getNoticeTypeColor = (type: string) => {
     const colors: Record<string, string> = {
@@ -185,7 +187,7 @@ export default function NoticesPage() {
                             "Are you sure you want to delete this notice?"
                           )
                         ) {
-                          deleteNotice(notice.id);
+                          deleteNotice.mutate(notice.id);
                         }
                       }}
                       className="hover:bg-error-red/10 hover:text-error-red"
