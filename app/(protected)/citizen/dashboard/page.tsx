@@ -161,11 +161,13 @@ export default function CitizenDashboard() {
 
         const stats = statsRes.data?.complaints || {};
 
+        const wardInfo = Array.isArray(profile?.ward) ? profile?.ward[0] : profile?.ward;
+
         setDashboardData({
           profile: {
             name: profile?.full_name?.split(" ")[0] || "Citizen",
-            wardNumber: profile?.ward?.ward_number ?? null,
-            wardName: profile?.ward?.name || "",
+            wardNumber: (wardInfo as any)?.ward_number ?? null,
+            wardName: (wardInfo as any)?.name || "",
             wardId,
           },
           complaints: complaintsRes.data || [],

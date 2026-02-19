@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/format";
 
 interface Bill {
   id: string;
@@ -97,13 +98,7 @@ export default function PendingBills({
 }: PendingBillsProps) {
   const [selectedBill, setSelectedBill] = useState<string | null>(null);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NP", {
-      style: "currency",
-      currency: "NPR",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  /* Local formatCurrency removed to use global utility */
 
   const getDaysUntilDue = (dueDate: string) => {
     const today = new Date();
@@ -179,7 +174,7 @@ export default function PendingBills({
                 Outstanding municipal payments and fees
               </CardDescription>
             </div>
-            <div className="text-right space-y-1.5 flex-shrink-0">
+            <div className="text-right space-y-1.5 shrink-0">
               <Badge
                 variant="outline"
                 className="gap-1.5 justify-center font-semibold px-3 py-1"
@@ -287,7 +282,7 @@ export default function PendingBills({
                       className="flex items-start gap-2 mt-4 p-3 bg-rose-50 border-2 border-rose-200 rounded-xl"
                     >
                       <AlertCircle
-                        className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5 animate-pulse"
+                        className="h-4 w-4 text-rose-600 shrink-0 mt-0.5 animate-pulse"
                         aria-hidden="true"
                       />
                       <p className="text-xs text-rose-700 font-medium leading-relaxed">
@@ -351,7 +346,7 @@ export default function PendingBills({
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div
                             className={cn(
-                              "p-2.5 rounded-xl flex-shrink-0 shadow-sm",
+                              "p-2.5 rounded-xl shrink-0 shadow-sm",
                               `${billTypeConfig.color}/10`
                             )}
                           >
@@ -397,7 +392,7 @@ export default function PendingBills({
                             )}
                           </div>
                         </div>
-                        <div className="text-right min-w-[130px] flex-shrink-0 space-y-2">
+                        <div className="text-right min-w-[130px] shrink-0 space-y-2">
                           <div className="font-black text-base sm:text-lg tabular-nums">
                             {formatCurrency(Number(bill.total_amount))}
                           </div>

@@ -7,15 +7,9 @@ import { FileText, ArrowRight, Clock, MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Complaint } from "@/features/complaints";
 
-interface Complaint {
-  id: string;
-  tracking_code: string;
-  title: string;
-  submitted_at: string;
-  status: string;
-  location?: string;
-}
+// Local Complaint interface removed
 
 export default function RecentComplaints({
   complaints,
@@ -47,7 +41,7 @@ export default function RecentComplaints({
 
   return (
     <Card className="stone-card elevation-3 overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between p-7 pb-5 bg-gradient-to-br from-neutral-stone-50 to-white dark:from-dark-midnight dark:to-dark-surface">
+      <CardHeader className="flex flex-row items-center justify-between p-7 pb-5 bg-linear-to-br from-neutral-stone-50 to-white dark:from-dark-midnight dark:to-dark-surface">
         <CardTitle className="text-2xl font-black tracking-tight text-foreground flex items-center gap-4">
           <div className="h-12 w-12 rounded-xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center text-primary elevation-1">
             <FileText className="w-6 h-6" />
@@ -100,13 +94,13 @@ export default function RecentComplaints({
                           <Clock className="w-3.5 h-3.5" />{" "}
                           {formatDistanceToNow(new Date(item.submitted_at))} ago
                         </p>
-                        {item.location && (
+                        {item.address_text && (
                           <>
                             <span className="text-neutral-stone-300 dark:text-dark-border-primary">
                               •
                             </span>
                             <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5" /> {item.location}
+                              <MapPin className="w-3.5 h-3.5" /> {item.address_text}
                             </p>
                           </>
                         )}
