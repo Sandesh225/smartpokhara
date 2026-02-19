@@ -53,7 +53,7 @@ export function CreateTaskForm({ staffList, onSubmit }: CreateTaskFormProps) {
   });
 
   const onFormSubmit = (data: any) => {
-    onSubmit({ ...data, due_date: new Date(data.due_date) });
+    onSubmit({ ...data, due_date: new Date(data.due_date).toISOString() });
   };
 
   return (
@@ -100,7 +100,7 @@ export function CreateTaskForm({ staffList, onSubmit }: CreateTaskFormProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-sm font-bold">Priority *</Label>
-          <Select onValueChange={(v) => setValue("priority", v)}>
+          <Select onValueChange={(v) => setValue("priority", v as any)}>
             <SelectTrigger>
               <SelectValue placeholder="Select Priority" />
             </SelectTrigger>
@@ -120,7 +120,7 @@ export function CreateTaskForm({ staffList, onSubmit }: CreateTaskFormProps) {
 
         <div className="space-y-2">
           <Label className="text-sm font-bold">Type *</Label>
-          <Select onValueChange={(v) => setValue("task_type", v)}>
+          <Select onValueChange={(v) => setValue("task_type", v as any)}>
             <SelectTrigger>
               <SelectValue placeholder="Task Type" />
             </SelectTrigger>

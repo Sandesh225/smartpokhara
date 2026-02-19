@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { TaskComment } from "@/types/admin-tasks";
+import { TaskComment } from "@/features/tasks";
 import { Send } from "lucide-react";
 
 interface TaskCommentsProps {
@@ -38,15 +38,15 @@ export function TaskComments({ comments, onAddComment }: TaskCommentsProps) {
             className={`flex gap-2 md:gap-3 ${c.is_private ? "opacity-75" : ""}`}
           >
             <Avatar className="h-7 w-7 md:h-8 md:w-8 flex-shrink-0">
-              <AvatarImage src={c.author.avatar_url} />
+              <AvatarImage src={c.author?.avatar_url} />
               <AvatarFallback className="text-xs">
-                {c.author.full_name[0]}
+                {c.author?.full_name?.[0] || "?"}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 bg-card p-2 md:p-3 rounded-lg border border-border shadow-sm min-w-0">
               <div className="flex justify-between items-center mb-1 gap-2">
                 <span className="font-bold text-xs md:text-sm truncate">
-                  {c.author.full_name}
+                  {c.author?.full_name || "Unknown"}
                 </span>
                 <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
                   {formatDistanceToNow(new Date(c.created_at))} ago
