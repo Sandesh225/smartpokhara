@@ -119,8 +119,8 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   let filteredUsers = users;
 
   if (roleFilter) {
-    filteredUsers = users.filter((user) =>
-      user.user_roles?.some((ur) => String(ur.role?.id) === roleFilter)
+    filteredUsers = users.filter((user: any) =>
+      user.user_roles?.some((ur: any) => String(ur.role?.id) === roleFilter)
     );
   }
 
@@ -138,7 +138,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
         currentPage={page}
         itemsPerPage={itemsPerPage}
         searchParams={params}
-        roles={roles}
+        roles={roles as any}
       />
     </div>
   );
