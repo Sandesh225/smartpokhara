@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { adminTaskQueries } from "@/lib/supabase/queries/admin/tasks";
+import { useTask, useTaskMutations, TaskStatus } from "@/features/tasks";
 import { TaskStatusUpdater } from "../_components/TaskStatusUpdater";
 import { TaskComments } from "../_components/TaskComments";
 import { Button } from "@/components/ui/button";
@@ -18,43 +18,24 @@ import { Badge } from "@/components/ui/badge";
 
 export default function TaskDetailPage() {
   const { id } = useParams();
-  const [task, setTask] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
-
-  const fetchTask = async () => {
-    try {
-      const data = await adminTaskQueries.getTaskById(supabase, id as string);
-      setTask(data);
-    } catch (error) {
-      toast.error("Failed to load task");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTask();
-  }, [id]);
+  const { data: task, isLoading: loading, refetch: fetchTask } = useTask(id as string);
+  const { updateTask, addComment } = useTaskMutations();
 
   const handleUpdateStatus = async (status: string) => {
     try {
-      await adminTaskQueries.updateTask(supabase, task.id, {
-        status: status as any,
-      });
-      toast.success("Status updated successfully");
+      await updateTask.mutateAsync({ id: id as string, updates: { status: status as TaskStatus } });
       fetchTask();
     } catch (e) {
-      toast.error("Failed to update status");
+      // Error handled in mutation
     }
   };
 
   const handleAddComment = async (text: string) => {
     try {
-      await adminTaskQueries.addComment(supabase, task.id, text);
+      await addComment.mutateAsync({ taskId: id as string, content: text });
       fetchTask();
     } catch (e) {
-      toast.error("Failed to add comment");
+      // Error handled in mutation
     }
   };
 

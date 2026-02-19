@@ -6,8 +6,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { adminStaffQueries } from "@/lib/supabase/queries/admin/staff";
-import { adminTaskQueries } from "@/lib/supabase/queries/admin/tasks";
+import { staffApi } from "@/features/staff";
+import { useTaskMutations } from "@/features/tasks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -20,14 +20,14 @@ export default function AssignTaskPage() {
   const { id } = useParams();
   const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [assigning, setAssigning] = useState<string | null>(null);
+  const { assignTask } = useTaskMutations();
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
     async function loadStaff() {
       try {
-        const data = await adminStaffQueries.getAllStaff(supabase);
+        const data = await staffApi.getAllStaff(supabase);
         setStaff(data);
       } catch (err) {
         toast.error("Failed to load staff");
@@ -39,14 +39,11 @@ export default function AssignTaskPage() {
   }, []);
 
   const handleAssign = async (staffId: string) => {
-    setAssigning(staffId);
     try {
-      await adminTaskQueries.assignTask(supabase, id as string, staffId);
-      toast.success("Task reassigned successfully");
+      await assignTask.mutateAsync({ taskId: id as string, staffId });
       router.push(`/admin/tasks/${id}`);
     } catch (e) {
-      toast.error("Failed to reassign task");
-      setAssigning(null);
+      // Error handled in mutation
     }
   };
 
@@ -87,7 +84,7 @@ export default function AssignTaskPage() {
           <Card
             key={s.user_id}
             className={`cursor-pointer hover:border-primary hover:shadow-md transition-all ${
-              assigning === s.user_id ? "opacity-50 pointer-events-none" : ""
+              assignTask.isPending ? "opacity-50 pointer-events-none" : ""
             }`}
             onClick={() => handleAssign(s.user_id)}
           >
