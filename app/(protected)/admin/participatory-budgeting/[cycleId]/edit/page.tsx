@@ -16,15 +16,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { pbService, type BudgetCycle } from "@/lib/supabase/queries/participatory-budgeting";
+// Domain Features
+import { 
+  useBudgetCycle, 
+  usePBMutations,
+  type BudgetCycle 
+} from "@/features/participatory-budgeting";
 
 export default function EditCyclePage() {
   const router = useRouter();
   const params = useParams();
   const cycleId = params.cycleId as string;
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  // Domain Hooks
+  const { data: cycle, isLoading: loading } = useBudgetCycle(cycleId);
+  const mutations = usePBMutations();
 
   const form = useForm({
     defaultValues: {
@@ -41,48 +47,35 @@ export default function EditCyclePage() {
     }
   });
 
-  // 1. Fetch Existing Data
+  // Fetch Existing Data - Sync with Form
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await pbService.getCycleById(cycleId);
-        if (!data) {
-          toast.error("Cycle not found");
-          router.push("/admin/participatory-budgeting");
-          return;
-        }
-
-        // Helper to format DB timestamp to HTML datetime-local input format (YYYY-MM-DDThh:mm)
-        const formatForInput = (dateString: string) => {
-          if (!dateString) return "";
+    if (cycle) {
+      // Helper to format DB timestamp to HTML datetime-local input format (YYYY-MM-DDThh:mm)
+      const formatForInput = (dateString: string) => {
+        if (!dateString) return "";
+        try {
           return new Date(dateString).toISOString().slice(0, 16);
-        };
+        } catch (e) {
+          return "";
+        }
+      };
 
-        // Pre-fill form
-        form.reset({
-          title: data.title,
-          description: data.description || "",
-          total_budget_amount: data.total_budget_amount,
-          min_project_cost: data.min_project_cost,
-          max_project_cost: data.max_project_cost || 0,
-          submission_start_at: formatForInput(data.submission_start_at),
-          submission_end_at: formatForInput(data.submission_end_at),
-          voting_start_at: formatForInput(data.voting_start_at),
-          voting_end_at: formatForInput(data.voting_end_at),
-          max_votes_per_user: data.max_votes_per_user,
-        });
-      } catch (error) {
-        console.error("Load Error:", error);
-        toast.error("Failed to load cycle data");
-      } finally {
-        setLoading(false);
-      }
-    };
+      // Pre-fill form
+      form.reset({
+        title: cycle.title,
+        description: cycle.description || "",
+        total_budget_amount: cycle.total_budget_amount,
+        min_project_cost: cycle.min_project_cost,
+        max_project_cost: cycle.max_project_cost || 0,
+        submission_start_at: formatForInput(cycle.submission_start_at),
+        submission_end_at: formatForInput(cycle.submission_end_at),
+        voting_start_at: formatForInput(cycle.voting_start_at),
+        voting_end_at: formatForInput(cycle.voting_end_at),
+        max_votes_per_user: cycle.max_votes_per_user,
+      });
+    }
+  }, [cycle, form]);
 
-    if (cycleId) loadData();
-  }, [cycleId, form, router]);
-
-  // 2. Handle Update
   const onSubmit = async (data: any) => {
     // Basic validation
     const submissionStart = new Date(data.submission_start_at);
@@ -94,9 +87,9 @@ export default function EditCyclePage() {
     if (votingStart <= submissionEnd) return toast.error("Voting should start after submission period ends");
     if (votingEnd <= votingStart) return toast.error("Voting end date must be after start date");
 
-    setSubmitting(true);
-    try {
-      await pbService.updateBudgetCycle(cycleId, {
+    mutations.updateCycle.mutate({
+      id: cycleId,
+      data: {
         title: data.title,
         description: data.description,
         total_budget_amount: data.total_budget_amount,
@@ -107,16 +100,12 @@ export default function EditCyclePage() {
         submission_end_at: submissionEnd.toISOString(),
         voting_start_at: votingStart.toISOString(),
         voting_end_at: votingEnd.toISOString(),
-      });
-      
-      toast.success("✅ Cycle updated successfully!");
-      router.push(`/admin/participatory-budgeting/${cycleId}`);
-    } catch (error: any) {
-      console.error("Update error:", error);
-      toast.error(error.message || "Failed to update cycle");
-    } finally {
-      setSubmitting(false);
-    }
+      }
+    }, {
+      onSuccess: () => {
+        router.push(`/admin/participatory-budgeting/${cycleId}`);
+      }
+    });
   };
 
   if (loading) {
@@ -135,7 +124,7 @@ export default function EditCyclePage() {
           <ArrowLeft className="mr-2 h-4 w-4" /> Cancel & Back
         </Button>
 
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6">
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-primary/20 rounded-xl">
               <Settings className="w-6 h-6 text-primary" />
@@ -306,9 +295,9 @@ export default function EditCyclePage() {
                 <Button 
                   type="submit" 
                   className="flex-1 bg-primary hover:bg-primary/90" 
-                  disabled={submitting}
+                  disabled={mutations.updateCycle.isPending}
                 >
-                  {submitting ? (
+                  {mutations.updateCycle.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving...

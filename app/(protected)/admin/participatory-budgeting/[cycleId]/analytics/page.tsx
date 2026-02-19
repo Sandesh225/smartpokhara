@@ -32,7 +32,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { pbService, type BudgetProposal, type BudgetCycle } from "@/lib/supabase/queries/participatory-budgeting";
+// Domain Features
+import { 
+  useBudgetCycle, 
+  usePBProposals, 
+  usePBAnalytics,
+  type BudgetProposal, 
+  type BudgetCycle 
+} from "@/features/participatory-budgeting";
 
 interface VoteData {
   id: string;
@@ -71,88 +78,32 @@ export default function AdminAnalyticsPage() {
   const router = useRouter();
   const cycleId = params.cycleId as string;
 
-  const [cycle, setCycle] = useState<BudgetCycle | null>(null);
-  const [proposals, setProposals] = useState<BudgetProposal[]>([]);
-  const [votes, setVotes] = useState<VoteData[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Domain Hooks
+  const { data: cycle, isLoading: cycleLoading, error: cycleError } = useBudgetCycle(cycleId);
+  const { data: proposals = [], isLoading: proposalsLoading } = usePBProposals(cycleId);
+  
+  const loading = cycleLoading || proposalsLoading;
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
-  useEffect(() => {
-    loadData();
-  }, [cycleId]);
-
-  const loadData = async () => {
-    if (!cycleId) {
-      toast.error("No cycle ID provided");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      console.log("📊 Loading analytics for cycle:", cycleId);
-      
-      // Load cycle data first
-      const cycleData = await pbService.getCycleById(cycleId);
-      
-      if (!cycleData) {
-        console.error("❌ Cycle not found");
-        toast.error("Cycle not found");
-        router.push("/admin/participatory-budgeting");
-        return;
-      }
-
-      console.log("✅ Cycle loaded:", cycleData.title);
-      setCycle(cycleData);
-
-      // Load proposals
-      let proposalsData: BudgetProposal[] = [];
-      try {
-        proposalsData = await pbService.getProposals(cycleId, null);
-        console.log(`✅ Loaded ${proposalsData.length} proposals`);
-      } catch (propError: any) {
-        console.error("⚠️ Error loading proposals:", propError);
-        // Continue with empty proposals array
-        proposalsData = [];
-      }
-
-      setProposals(proposalsData);
-
-      // Generate vote data from proposals
-      const allVotes: VoteData[] = [];
-      proposalsData.forEach(p => {
-        // Generate mock vote entries based on vote_count
-        for (let i = 0; i < p.vote_count; i++) {
-          allVotes.push({
-            id: `${p.id}-vote-${i}`,
-            voter_id: `voter-${i}`,
-            proposal_id: p.id,
-            voted_at: p.created_at, // Use proposal creation date as fallback
-            proposal: {
-              title: p.title,
-              category: p.category
-            }
-          });
+  const votes: VoteData[] = [];
+  proposals.forEach(p => {
+    // Generate mock vote entries based on vote_count if needed for the table
+    for (let i = 0; i < p.vote_count; i++) {
+      votes.push({
+        id: `${p.id}-vote-${i}`,
+        voter_id: `voter-${i}`,
+        proposal_id: p.id,
+        voted_at: p.created_at,
+        proposal: {
+          title: p.title,
+          category: p.category
         }
       });
-      
-      console.log(`✅ Generated ${allVotes.length} vote entries`);
-      setVotes(allVotes);
-
-    } catch (error: any) {
-      console.error("❌ Failed to load analytics:", error);
-      const errorMessage = error?.message || error?.toString() || "Unknown error";
-      toast.error(`Failed to load data: ${errorMessage}`);
-      
-      // Set empty defaults to show UI
-      setCycle(null);
-      setProposals([]);
-      setVotes([]);
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
   // Calculate statistics
   const proposalStats: ProposalStats = {
@@ -225,21 +176,21 @@ export default function AdminAnalyticsPage() {
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Control Center
         </Button>
 
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 p-6 shadow-lg">
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 p-6 shadow-lg">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-primary/20 dark:bg-primary/30 rounded-xl">
                 <BarChart3 className="w-7 h-7 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-black tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                   Analytics & Monitoring
                 </h1>
                 <p className="text-muted-foreground mt-1">{cycle.title}</p>
               </div>
             </div>
 
-            <Button className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
+            <Button className="bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md">
               <Download className="w-4 h-4 mr-2" />
               Export Report
             </Button>
@@ -249,7 +200,7 @@ export default function AdminAnalyticsPage() {
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-200 dark:border-blue-800 shadow-lg">
+        <Card className="bg-linear-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-200 dark:border-blue-800 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-200 dark:bg-blue-900 rounded-xl">
@@ -339,28 +290,28 @@ export default function AdminAnalyticsPage() {
         <TabsList className="grid w-full grid-cols-4 max-w-3xl bg-muted/50 dark:bg-muted/30 p-1 h-12 rounded-xl">
           <TabsTrigger
             value="proposals"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
+            className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
             <FileText className="w-4 h-4 mr-2" />
             Proposals
           </TabsTrigger>
           <TabsTrigger
             value="votes"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
+            className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
             <ThumbsUp className="w-4 h-4 mr-2" />
             Votes
           </TabsTrigger>
           <TabsTrigger
             value="distribution"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
+            className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
             <PieChart className="w-4 h-4 mr-2" />
             Distribution
           </TabsTrigger>
           <TabsTrigger
             value="timeline"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
+            className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-300"
           >
             <Calendar className="w-4 h-4 mr-2" />
             Timeline
@@ -626,7 +577,7 @@ export default function AdminAnalyticsPage() {
                         </div>
                         <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500"
+                            className="h-full bg-linear-to-r from-primary to-primary/70 transition-all duration-500"
                             style={{ width: `${percentage}%` }}
                           />
                         </div>
@@ -667,7 +618,7 @@ export default function AdminAnalyticsPage() {
                         </div>
                         <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500"
+                            className="h-full bg-linear-to-r from-blue-500 to-blue-600 transition-all duration-500"
                             style={{ width: `${percentage}%` }}
                           />
                         </div>
@@ -708,7 +659,7 @@ export default function AdminAnalyticsPage() {
                           </div>
                           <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500"
+                              className="h-full bg-linear-to-r from-purple-500 to-purple-600 transition-all duration-500"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -749,7 +700,7 @@ export default function AdminAnalyticsPage() {
                       <div className="text-xs font-bold text-muted-foreground w-24 shrink-0">
                         {format(new Date(proposal.created_at), "MMM d, HH:mm")}
                       </div>
-                      <div className="h-8 w-0.5 bg-gradient-to-b from-primary to-primary/30" />
+                      <div className="h-8 w-0.5 bg-linear-to-b from-primary to-primary/30" />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
                           {proposal.title}
