@@ -14,7 +14,7 @@ import {
   Home,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { UserProfile } from "@/lib/supabase/queries/profile";
+import type { UserProfile } from "@/features/users/types";
 
 interface ProfileViewProps {
   profile: UserProfile;

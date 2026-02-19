@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { profileService } from "@/lib/supabase/queries/profile";
+import { userApi } from "@/features/users/api";
+import { createClient } from "@/lib/supabase/client";
 
 const profileSchema = z.object({
   full_name: z.string().min(2, "Name required"),
@@ -29,6 +30,7 @@ export default function ProfileEditForm({ profile, wards, onCancel, onSave }: an
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(profile.profile_photo_url);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const supabase = createClient();
 
   const [selectedWardId, setSelectedWardId] = useState(profile.ward_id || "");
 
@@ -50,23 +52,29 @@ export default function ProfileEditForm({ profile, wards, onCancel, onSave }: an
 
   const onSubmit = async (data: any) => {
     setIsSaving(true);
-    const result = await profileService.updateProfile(profile.user_id, data);
-    setIsSaving(false);
-    if (result.success) {
+    try {
+      await userApi.updateProfile(supabase, profile.user_id, data);
       toast.success("Profile updated successfully");
       onSave();
-    } else toast.error("Failed to update profile");
+    } catch (error) {
+       toast.error("Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsUploading(true);
-    const result = await profileService.uploadProfilePhoto(profile.user_id, file);
-    setIsUploading(false);
-    if (result.success) {
-      setPreviewImage(result.url);
+    try {
+      const url = await userApi.uploadProfilePhoto(supabase, profile.user_id, file);
+      setPreviewImage(url);
       toast.success("Photo updated successfully");
+    } catch (error) {
+      toast.error("Failed to upload photo");
+    } finally {
+      setIsUploading(false);
     }
   };
 
