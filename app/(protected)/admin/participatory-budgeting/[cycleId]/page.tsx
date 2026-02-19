@@ -55,115 +55,93 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  pbService,
+// Domain Features
+import { 
+  useBudgetCycle, 
+  usePBAnalytics, 
+  usePBMutations,
   type BudgetCycle,
   type CycleAnalytics,
-  type SimulationResult,
-} from "@/lib/supabase/queries/participatory-budgeting";
+  type SimulationResult 
+} from "@/features/participatory-budgeting";
 
 export default function AdminCycleControlCenter() {
   const params = useParams();
   const router = useRouter();
   const cycleId = params.cycleId as string;
 
-  // Core state
-  const [cycle, setCycle] = useState<BudgetCycle | null>(null);
-  const [analytics, setAnalytics] = useState<CycleAnalytics | null>(null);
+  // Domain Hooks
+  const { data: cycle, isLoading: cycleLoading, error: cycleError } = useBudgetCycle(cycleId);
+  const { data: analytics } = usePBAnalytics(cycleId);
+  const mutations = usePBMutations();
+
+  // local simulation state (persists during admin session)
   const [simulation, setSimulation] = useState<SimulationResult | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [simulating, setSimulating] = useState(false);
   const [budgetOverride, setBudgetOverride] = useState<string>("");
 
   // Finalization state
-  const [finalizing, setFinalizing] = useState(false);
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
   const [concludingMessage, setConcludingMessage] = useState("");
   const [notifyCitizens, setNotifyCitizens] = useState(true);
 
-  // --- Initial Load ---
+  // Sync budget override when cycle loads
   useEffect(() => {
-    loadData();
-  }, [cycleId]);
-
-  const loadData = async () => {
-    try {
-      const [cycleData, analyticsData] = await Promise.all([
-        pbService.getCycleById(cycleId),
-        pbService.getCycleAnalytics(cycleId),
-      ]);
-
-      if (!cycleData) {
-        toast.error("Cycle not found or access denied.");
-        router.push("/admin/participatory-budgeting");
-        return;
+    if (cycle) {
+      setBudgetOverride(cycle.total_budget_amount.toString());
+      if (cycle.concluding_message) {
+        setConcludingMessage(cycle.concluding_message);
       }
-
-      setCycle(cycleData);
-      setAnalytics(analyticsData);
-      setBudgetOverride(cycleData.total_budget_amount.toString());
-
-      // Load existing concluding message if any
-      if (cycleData.concluding_message) {
-        setConcludingMessage(cycleData.concluding_message);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Security error: Could not load control center.");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [cycle]);
+
+  // Error handling
+  useEffect(() => {
+    if (cycleError) {
+      toast.error("Cycle not found or access denied.");
+      router.push("/admin/participatory-budgeting");
+    }
+  }, [cycleError, router]);
 
   // --- Actions ---
 
   const handleToggleActive = async (checked: boolean) => {
-    if (!cycle) return;
-    try {
-      const updated = await pbService.updateBudgetCycle(cycle.id, {
-        is_active: checked,
-      });
-      setCycle(updated);
-      toast.success(checked ? "✅ Cycle Activated" : "⏸️ Cycle Paused");
-    } catch (error) {
-      toast.error("Failed to update cycle state");
-    }
+    if (!cycleId) return;
+    mutations.updateCycle.mutate({
+      id: cycleId,
+      data: { is_active: checked }
+    }, {
+      onSuccess: () => {
+        toast.success(checked ? "✅ Cycle Activated" : "⏸️ Cycle Paused");
+      }
+    });
   };
 
   const runSimulation = async () => {
-    setSimulating(true);
-    try {
-      const budget = parseFloat(budgetOverride) || 0;
-      const result = await pbService.runWinnerSimulation(cycleId, budget);
-      setSimulation(result);
-      toast.success("🎯 Winner simulation complete");
-    } catch (error) {
-      toast.error("Simulation engine failed");
-    } finally {
-      setSimulating(false);
-    }
+    const budget = parseFloat(budgetOverride) || 0;
+    mutations.runSimulation.mutate({
+      cycleId,
+      budget
+    }, {
+      onSuccess: (result) => {
+        setSimulation(result);
+        toast.success("🎯 Winner simulation complete");
+      }
+    });
   };
 
   const handleFinalize = async () => {
-    if (!simulation) return;
+    if (!simulation || !cycleId) return;
 
-    setFinalizing(true);
-    try {
-      const winnerIds = simulation.selectedProposals.map((p) => p.id);
-
-      // Call the updated service function
-      await pbService.finalizeWinners(cycleId, winnerIds, concludingMessage);
-
-      toast.success("🏆 Winners officially announced!");
-      setShowFinalizeDialog(false);
-      await loadData(); // Refresh the UI
-    } catch (error: any) {
-      // THIS WILL SHOW YOU THE REAL ERROR CODE INSTEAD OF {}
-      console.error("❌ FULL ERROR OBJECT:", JSON.stringify(error, null, 2));
-      toast.error(error.message || "Database rejected the finalization.");
-    } finally {
-      setFinalizing(false);
-    }
+    mutations.finalizeWinners.mutate({
+      cycleId,
+      winnerIds: simulation.selectedProposals.map((p) => p.id),
+      concludingMessage
+    }, {
+      onSuccess: () => {
+        setShowFinalizeDialog(false);
+        toast.success("🏆 Winners officially announced!");
+      }
+    });
   };
 
   const exportResults = () => {
@@ -219,11 +197,11 @@ export default function AdminCycleControlCenter() {
 
   // --- Rendering ---
 
-  if (loading) {
+  if (cycleLoading) {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 blur-3xl animate-pulse" />
+          <div className="absolute inset-0 bg-linear-to-r from-primary/20 to-purple-500/20 blur-3xl animate-pulse" />
           <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
         </div>
         <p className="text-muted-foreground font-medium animate-pulse">
@@ -483,11 +461,11 @@ export default function AdminCycleControlCenter() {
                     </div>
                     <Button 
                       onClick={runSimulation} 
-                      disabled={simulating} 
+                      disabled={mutations.runSimulation.isPending} 
                       className="w-full" 
                       size="lg"
                     >
-                      {simulating ? <Loader2 className="animate-spin mr-2"/> : <PlayCircle className="mr-2"/>}
+                      {mutations.runSimulation.isPending ? <Loader2 className="animate-spin mr-2"/> : <PlayCircle className="mr-2"/>}
                       Calculate Winners
                     </Button>
                   </CardContent>
@@ -599,9 +577,9 @@ export default function AdminCycleControlCenter() {
             <Button 
               className="bg-amber-500 hover:bg-amber-600 text-white" 
               onClick={handleFinalize} 
-              disabled={finalizing || !concludingMessage}
+              disabled={mutations.finalizeWinners.isPending || !concludingMessage}
             >
-              {finalizing ? <Loader2 className="animate-spin mr-2"/> : <Send className="mr-2 h-4 w-4"/>}
+              {mutations.finalizeWinners.isPending ? <Loader2 className="animate-spin mr-2"/> : <Send className="mr-2 h-4 w-4"/>}
               Confirm & Publish
             </Button>
           </DialogFooter>

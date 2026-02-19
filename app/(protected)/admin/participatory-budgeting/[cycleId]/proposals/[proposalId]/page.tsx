@@ -26,7 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { pbService, type BudgetProposal } from "@/lib/supabase/queries/participatory-budgeting";
+// Domain Features
+import { 
+  usePBProposal, 
+  usePBMutations,
+  type BudgetProposal,
+  type ProposalStatus 
+} from "@/features/participatory-budgeting";
 
 export default function AdminProposalDetailsPage() {
   const params = useParams();
@@ -34,118 +40,58 @@ export default function AdminProposalDetailsPage() {
   const proposalId = params.proposalId as string;
   const cycleId = params.cycleId as string;
 
-  const [proposal, setProposal] = useState<BudgetProposal | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
+  // Domain Hooks
+  const { data: proposal, isLoading: loading, error: queryError } = usePBProposal(proposalId);
+  const mutations = usePBMutations();
+
   // Form State
   const [adminNotes, setAdminNotes] = useState("");
   const [technicalCost, setTechnicalCost] = useState<string>("");
   const [status, setStatus] = useState<string>("");
 
+  // Sync state when proposal loads
   useEffect(() => {
-    if (proposalId && cycleId) {
-      loadProposal();
-    } else {
-      setError("Missing proposal ID or cycle ID");
-      setLoading(false);
+    if (proposal) {
+      setAdminNotes(proposal.admin_notes || "");
+      setTechnicalCost(proposal.technical_cost?.toString() || proposal.estimated_cost.toString());
+      setStatus(proposal.status);
     }
-  }, [proposalId, cycleId]);
-
-  const loadProposal = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log("🔍 Loading proposal:", proposalId);
-      console.log("📊 For cycle:", cycleId);
-
-      // Try the admin-specific method first
-      let data: BudgetProposal | null = null;
-      
-      try {
-        data = await pbService.getProposalDetailsForAdmin(proposalId);
-        console.log("✅ Loaded via getProposalDetailsForAdmin");
-      } catch (adminError) {
-        console.warn("⚠️ getProposalDetailsForAdmin failed, trying alternative method:", adminError);
-        
-        // Fallback: Try getting all proposals and find this one
-        try {
-          const allProposals = await pbService.getProposals(cycleId, null);
-          data = allProposals.find((p: BudgetProposal) => p.id === proposalId) || null;
-          console.log("✅ Loaded via getProposals fallback");
-        } catch (fallbackError) {
-          console.error("❌ Fallback also failed:", fallbackError);
-          throw new Error("Could not load proposal data");
-        }
-      }
-
-      if (!data) {
-        throw new Error("Proposal not found");
-      }
-
-      console.log("✅ Proposal loaded:", data.title);
-      setProposal(data);
-      setAdminNotes(data.admin_notes || "");
-      setTechnicalCost(data.technical_cost?.toString() || data.estimated_cost.toString());
-      setStatus(data.status);
-      
-    } catch (error: any) {
-      console.error("❌ Error loading proposal:", error);
-      const errorMessage = error?.message || "Failed to load proposal details";
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [proposal]);
 
   const handleSaveChanges = async () => {
     if (!proposal) return;
     
-    setSaving(true);
-    try {
-      console.log("💾 Saving changes to proposal:", proposalId);
-      
-      await pbService.updateProposalStatus(
-        proposalId, 
-        status as any, 
-        adminNotes, 
-        parseFloat(technicalCost) || proposal.estimated_cost
-      );
-      
-      toast.success("✅ Proposal updated successfully");
-      
-      // Reload to get fresh data
-      await loadProposal();
-      
-    } catch (error: any) {
-      console.error("❌ Error saving proposal:", error);
-      toast.error(error?.message || "Failed to update proposal");
-    } finally {
-      setSaving(false);
-    }
+    mutations.updateStatus.mutate({
+      id: proposalId,
+      status: status as ProposalStatus,
+      notes: adminNotes,
+      technicalCost: parseFloat(technicalCost) || proposal.estimated_cost
+    }, {
+      onSuccess: () => {
+        toast.success("✅ Proposal updated successfully");
+      }
+    });
   };
 
   const handleGoBack = () => {
-    // Navigate back to analytics page of the cycle
     if (cycleId) {
-      router.push(`/admin/participatory-budgeting/${cycleId}/analytics`);
+      router.push(`/admin/participatory-budgeting/${cycleId}`);
     } else {
       router.back();
     }
   };
 
   const handleRetry = () => {
-    loadProposal();
+    // React Query handle retry via its own mechanisms if needed, 
+    // but we can just trigger a manual refresh if we want.
+    window.location.reload();
   };
 
   if (loading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center gap-4">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 dark:from-primary/30 dark:to-purple-500/30 blur-3xl animate-pulse" />
+          <div className="absolute inset-0 bg-linear-to-r from-primary/20 to-purple-500/20 dark:from-primary/30 dark:to-purple-500/30 blur-3xl animate-pulse" />
           <Loader2 className="w-12 h-12 animate-spin text-primary relative z-10" />
         </div>
         <p className="text-base text-muted-foreground font-medium animate-pulse">
@@ -155,7 +101,7 @@ export default function AdminProposalDetailsPage() {
     );
   }
 
-  if (error || !proposal) {
+  if (queryError || !proposal) {
     return (
       <div className="container mx-auto py-8 max-w-4xl px-4">
         <Button 
@@ -169,7 +115,7 @@ export default function AdminProposalDetailsPage() {
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Error:</strong> {error || "Proposal not found"}
+            <strong>Error:</strong> {queryError?.message || "Proposal not found"}
           </AlertDescription>
         </Alert>
 
@@ -206,7 +152,7 @@ export default function AdminProposalDetailsPage() {
               <div className="text-xs font-mono text-muted-foreground space-y-1 mt-2">
                 <div>Proposal ID: {proposalId || 'N/A'}</div>
                 <div>Cycle ID: {cycleId || 'N/A'}</div>
-                <div>Error: {error || 'Unknown'}</div>
+                <div>Error: {queryError?.message || 'Unknown'}</div>
               </div>
             </div>
           </CardContent>
@@ -232,14 +178,14 @@ export default function AdminProposalDetailsPage() {
               <Button 
                 variant="destructive" 
                 onClick={() => { setStatus('rejected'); handleSaveChanges(); }}
-                disabled={saving}
+                disabled={mutations.updateStatus.isPending}
               >
                 <XCircle className="w-4 h-4 mr-2" /> Reject
               </Button>
               <Button 
                 className="bg-green-600 hover:bg-green-700"
                 onClick={() => { setStatus('approved_for_voting'); handleSaveChanges(); }}
-                disabled={saving}
+                disabled={mutations.updateStatus.isPending}
               >
                 <CheckCircle2 className="w-4 h-4 mr-2" /> Approve for Voting
               </Button>
@@ -338,7 +284,7 @@ export default function AdminProposalDetailsPage() {
         {/* Right Column: Admin Controls */}
         <div className="space-y-6">
           {/* Stats Card */}
-          <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/20 shadow-md">
+          <Card className="bg-linear-to-br from-primary/5 to-transparent border-primary/20 shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Metrics</CardTitle>
             </CardHeader>
@@ -427,9 +373,9 @@ export default function AdminProposalDetailsPage() {
               <Button 
                 className="w-full mt-4" 
                 onClick={handleSaveChanges} 
-                disabled={saving}
+                disabled={mutations.updateStatus.isPending}
               >
-                {saving ? (
+                {mutations.updateStatus.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Saving...
