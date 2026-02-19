@@ -5,20 +5,20 @@
 "use client";
 
 import { NoticeForm } from "../../_components/NoticeForm";
-import { useContentManagement } from "@/hooks/admin/useContentManagement";
+import { useNoticeMutations } from "@/features/notices";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info, AlertCircle, Megaphone } from "lucide-react";
 import Link from "next/link";
 
 export default function CreateNoticePage() {
-  const { createNotice } = useContentManagement();
+  const { createNotice } = useNoticeMutations();
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
       {/* HEADER */}
       <div className="flex items-center gap-3 md:gap-4">
-        <Button variant="ghost" size="icon" asChild className="flex-shrink-0">
+        <Button variant="ghost" size="icon" asChild className="shrink-0">
           <Link href="/admin/content/notices">
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -44,7 +44,7 @@ export default function CreateNoticePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 md:p-6">
-              <NoticeForm onSubmit={createNotice} />
+              <NoticeForm onSubmit={async (data) => { await createNotice.mutateAsync(data); }} />
             </CardContent>
           </div>
         </div>

@@ -7,77 +7,27 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { NoticeForm } from "../../../_components/NoticeForm";
-import { useContentManagement } from "@/hooks/admin/useContentManagement";
-import { createClient } from "@/lib/supabase/client";
+import { useNotice, useNoticeMutations } from "@/features/notices";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertTriangle, Edit3 } from "lucide-react";
 import Link from "next/link";
-import { toast } from "sonner";
-import { NoticeInput } from "@/types/admin-content";
 
 export default function EditNoticePage() {
   const { id } = useParams();
-  const { updateNotice } = useContentManagement();
-  const [loading, setLoading] = useState(true);
-  const [noticeData, setNoticeData] = useState<any>(null);
-  const supabase = createClient();
+  const { data: notice, isLoading: loading } = useNotice(id as string);
+  const { updateNotice } = useNoticeMutations();
 
-  useEffect(() => {
-    const loadNotice = async () => {
-      try {
-        if (!id) {
-          toast.error("Invalid notice ID");
-          setLoading(false);
-          return;
-        }
+  const noticeData = notice ? {
+    ...notice,
+    ward_id: notice.ward_id || "all",
+    expires_at: notice.expires_at
+      ? new Date(notice.expires_at).toISOString().slice(0, 16)
+      : "",
+  } : null;
 
-        console.log("Loading notice:", id);
-
-        // Simplified query - fetch notice first
-        const { data, error } = await supabase
-          .from("notices")
-          .select("*")
-          .eq("id", id as string)
-          .single();
-
-        if (error) {
-          console.error("Query error:", error);
-          toast.error(`Database error: ${error.message || "Unknown error"}`);
-          setLoading(false);
-          return;
-        }
-
-        if (!data) {
-          toast.error("Notice not found");
-          setLoading(false);
-          return;
-        }
-
-        console.log("Notice loaded successfully:", data);
-
-        // Format the data for the form
-        const formatted = {
-          ...data,
-          ward_id: data.ward_id || "all",
-          expires_at: data.expires_at
-            ? new Date(data.expires_at).toISOString().slice(0, 16)
-            : "",
-        };
-
-        setNoticeData(formatted);
-        setLoading(false);
-      } catch (e: any) {
-        console.error("Load notice error:", e);
-        toast.error(e?.message || "Failed to load notice");
-        setLoading(false);
-      }
-    };
-    loadNotice();
-  }, [id, supabase]);
-
-  const handleUpdate = async (data: NoticeInput) => {
-    await updateNotice(id as string, data);
+  const handleUpdate = async (updates: any) => {
+    await updateNotice.mutateAsync({ id: id as string, updates });
   };
 
   if (loading) {
@@ -119,7 +69,14 @@ export default function EditNoticePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 md:p-6">
-              <NoticeForm initialData={noticeData} onSubmit={handleUpdate} />
+              {noticeData ? (
+                <NoticeForm initialData={noticeData as any} onSubmit={handleUpdate} />
+              ) : (
+                <div className="text-center py-10">
+                  <AlertTriangle className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">Notice not found</p>
+                </div>
+              )}
             </CardContent>
           </div>
         </div>
