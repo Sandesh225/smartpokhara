@@ -8,26 +8,29 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Wallet, Receipt, Clock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { PaymentHistoryItem } from "@/features/users/types";
+
 interface CitizenWalletViewProps {
-  bills: any[];
+  bills: PaymentHistoryItem[];
 }
 
 export default function CitizenWalletView({ bills }: CitizenWalletViewProps) {
   const stats = {
     total: bills.length,
     pending: bills.filter((b) => b.status === "pending").length,
-    paid: bills.filter((b) => b.status === "paid").length,
+    paid: bills.filter((b) => b.status === "completed").length,
     overdue: bills.filter((b) => {
-      if (b.status === "paid") return false;
+      if (b.status === "completed") return false;
+      if (!b.due_date) return false;
       const dueDate = new Date(b.due_date);
       return dueDate < new Date();
     }).length,
   };
 
-  const totalAmount = bills.reduce((sum, b) => sum + (b.amount || 0), 0);
+  const totalAmount = bills.reduce((sum, b) => sum + (b.total_amount || 0), 0);
   const paidAmount = bills
-    .filter((b) => b.status === "paid")
-    .reduce((sum, b) => sum + (b.amount || 0), 0);
+    .filter((b) => b.status === "completed")
+    .reduce((sum, b) => sum + (b.total_amount || 0), 0);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
