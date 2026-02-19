@@ -1,54 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { useContentManagement } from "@/hooks/admin/useContentManagement";
-import { adminContentQueries } from "@/lib/supabase/queries/admin/content";
-import { createClient } from "@/lib/supabase/client";
+import { usePage, usePageMutations, CMSPageInput } from "@/features/notices";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { PageInput } from "@/types/admin-content";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 export default function EditPage() {
   const { id } = useParams();
-  const { updatePage } = useContentManagement();
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const { data: page, isLoading: loading } = usePage(id as string);
+  const { updatePage } = usePageMutations();
   
-  const { register, handleSubmit, setValue, formState: { isSubmitting } } = useForm<PageInput>();
+  const { register, handleSubmit, setValue, formState: { isSubmitting } } = useForm<CMSPageInput>();
 
   useEffect(() => {
-    const loadPage = async () => {
-       try {
-         const data = await adminContentQueries.getPageById(supabase, id as string);
-         if (data) {
-            setValue("title", data.title);
-            setValue("slug", data.slug);
-            // Assuming simple HTML storage for this demo, extract from JSONB if needed
-            setValue("content", typeof data.content === 'string' ? data.content : data.content?.html || ""); 
-            setValue("meta_title", data.meta_title || "");
-            setValue("meta_description", data.meta_description || "");
-            setValue("status", data.status);
-         }
-       } catch (e) {
-         toast.error("Failed to load page");
-       } finally {
-         setLoading(false);
-       }
-    };
-    if (id) loadPage();
-  }, [id, supabase, setValue]);
+    if (page) {
+       setValue("title", page.title);
+       setValue("slug", page.slug);
+       setValue("content", page.content);
+       setValue("meta_title", page.meta_title || "");
+       setValue("meta_description", page.meta_description || "");
+       setValue("status", page.status as any);
+    }
+  }, [page, setValue]);
 
-  const onSubmit = (data: PageInput) => {
-      updatePage(id as string, { ...data, content: { html: data.content } });
+  const onSubmit = (data: CMSPageInput) => {
+      updatePage.mutate({ id: id as string, updates: data });
   };
 
   if (loading) return <div className="p-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600"/></div>;
@@ -88,7 +73,7 @@ export default function EditPage() {
                 <CardContent className="p-6 space-y-4">
                    <div className="space-y-2">
                       <Label>Status</Label>
-                      <Select onValueChange={(v: any) => setValue("status", v)} defaultValue="draft">
+                       <Select onValueChange={(v: any) => setValue("status", v)} value={page?.status || "draft"}>
                          <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                          <SelectContent>
                             <SelectItem value="draft">Draft</SelectItem>

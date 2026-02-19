@@ -1,6 +1,6 @@
 "use client";
 
-import { useContentManagement } from "@/hooks/admin/useContentManagement";
+import { usePages, usePageMutations } from "@/features/notices";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,9 @@ import Link from "next/link";
 import { format } from "date-fns";
 
 export default function PagesCMSPage() {
-  const { pages, loading, deletePage } = useContentManagement();
+  const { data: pagesData, isLoading: loading } = usePages();
+  const pages = pagesData || [];
+  const { deletePage } = usePageMutations();
 
   return (
     <div className="space-y-6">
@@ -47,7 +49,7 @@ export default function PagesCMSPage() {
                                     <Edit className="h-4 w-4 text-gray-500"/>
                                 </Link>
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => deletePage(page.id)}>
+                            <Button variant="ghost" size="sm" onClick={() => deletePage.mutate(page.id)}>
                                 <Trash2 className="h-4 w-4 text-red-500"/>
                             </Button>
                          </div>

@@ -1,22 +1,21 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { useContentManagement } from "@/hooks/admin/useContentManagement";
+import { usePageMutations, CMSPageInput } from "@/features/notices";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
-import { PageInput } from "@/types/admin-content";
 import { Label } from "@/components/ui/label";
 
 export default function CreatePage() {
-  const { createPage } = useContentManagement();
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<PageInput>();
+  const { createPage } = usePageMutations();
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm<CMSPageInput>();
 
-  const onSubmit = (data: PageInput) => {
-      createPage({ ...data, content: { html: data.content }, status: 'published' });
+  const onSubmit = (data: CMSPageInput) => {
+      createPage.mutate({ ...data, status: 'published' });
   };
 
   return (
