@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
+import { staffApi } from "@/features/staff/api";
 import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
 import { EmptyState } from "@/components/staff/shared/EmptyState";
 import { ClipboardList } from "lucide-react";
@@ -28,7 +28,7 @@ export default function MyTasksPage() {
 
       try {
         setLoading(true);
-        const allAssignments = await staffQueueQueries.getMyAssignments(
+        const allAssignments = await staffApi.getStaffAssignments(
           supabase,
           user.id
         );
@@ -146,7 +146,7 @@ export default function MyTasksPage() {
         {filteredItems.length === 0 ? (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 py-12">
             <EmptyState
-              message={
+              title={
                 searchQuery
                   ? `No tasks matching "${searchQuery}"`
                   : "No internal tasks assigned to you."

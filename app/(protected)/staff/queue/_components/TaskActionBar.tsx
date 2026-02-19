@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
+import { staffApi } from "@/features/staff";
 import { getCurrentLocation } from "@/lib/utils/location-helpers";
 import { MarkCompleteModal } from "@/components/staff/modals/MarkCompleteModal";
 
@@ -45,10 +45,10 @@ export function TaskActionBar({
         const geoLocation = await getCurrentLocation();
 
         // FIX: Safely extract coordinates
-        if (geoLocation?.coords) {
+        if (geoLocation) {
           location = {
-            lat: geoLocation.coords.latitude,
-            lng: geoLocation.coords.longitude,
+            lat: geoLocation.lat,
+            lng: geoLocation.lng,
           };
         }
       } catch (err) {
@@ -57,7 +57,7 @@ export function TaskActionBar({
       }
 
       // FIX: Pass location as optional parameter (can be undefined)
-      await staffQueueQueries.startAssignment(
+      await staffApi.startAssignment(
         supabase,
         assignmentId,
         location || undefined

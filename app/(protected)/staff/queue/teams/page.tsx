@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
+import { staffApi } from "@/features/staff/api";
 import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
 
 import { EmptyState } from "@/components/staff/shared/EmptyState";
@@ -30,7 +30,7 @@ export default function TeamQueuePage() {
       if (!user) return;
 
       try {
-        const assignments = await staffQueueQueries.getTeamAssignments(
+        const assignments = await staffApi.getTeamAssignments(
           supabase,
           user.id
         );
@@ -123,7 +123,7 @@ export default function TeamQueuePage() {
       <div className="min-h-[500px]">
         <div className="sm:hidden space-y-4">
           {filteredItems.length === 0 ? (
-            <EmptyState message="No team tasks found." />
+            <EmptyState title="No tasks found" description="No team tasks found." />
           ) : (
             <QueueCardView items={filteredItems} showAssignee={true} />
           )}
@@ -131,7 +131,7 @@ export default function TeamQueuePage() {
 
         <div className="hidden sm:block">
           {filteredItems.length === 0 ? (
-            <EmptyState message="No team tasks found." />
+            <EmptyState title="No tasks found" description="No team tasks found." />
           ) : (
             <>
               {viewMode === "list" && (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
+import { staffApi } from "@/features/staff/api";
 import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
  // Added
 import { cn } from "@/lib/utils";
@@ -13,6 +13,8 @@ import { QueueFilterTabs } from "./_components/QueueFilterTabs";
 import { QueueCardView } from "./_components/QueueCardView";
 import { QueueListView } from "./_components/QueueListView";
 import { ViewToggle } from "./_components/ViewToggle";
+
+type ViewMode = 'list' | 'card' | 'map' | 'timeline';
 
 export default function MyQueuePage() {
   const [items, setItems] = useState<any[]>([]);
@@ -29,7 +31,7 @@ export default function MyQueuePage() {
       if (!user) return;
 
       try {
-        const assignments = await staffQueueQueries.getMyAssignments(supabase, user.id);
+        const assignments = await staffApi.getStaffAssignments(supabase, user.id);
         setItems(assignments);
       } catch (error) {
         console.error("Failed to load queue", error);
@@ -94,7 +96,10 @@ export default function MyQueuePage() {
       <div className="min-h-[500px]">
         <div className="sm:hidden space-y-4">
            {filteredItems.length === 0 ? (
-             <EmptyState message="No tasks in this queue." />
+             <EmptyState 
+               title="No tasks found" 
+               description="There are no tasks in this queue matching your filters." 
+             />
            ) : (
              <QueueCardView items={filteredItems} />
            )}
@@ -102,7 +107,10 @@ export default function MyQueuePage() {
 
         <div className="hidden sm:block">
            {filteredItems.length === 0 ? (
-              <EmptyState message="No tasks in this queue." />
+              <EmptyState 
+                title="No tasks found" 
+                description="There are no tasks in this queue matching your filters." 
+              />
            ) : (
              <>
                {viewMode === 'list' && <QueueListView items={filteredItems} />}

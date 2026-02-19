@@ -1,7 +1,7 @@
 // FILE: app/(protected)/staff/queue/[id]/page.tsx
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
-import { staffQueueQueries } from "@/lib/supabase/queries/staff-queue";
+import { staffApi } from "@/features/staff/api";
 import { TaskDetailHeader } from "../_components/TaskDetailHeader";
 import { TaskInfoCard } from "../_components/TaskInfoCard";
 import { CitizenInfoPanel } from "../_components/CitizenInfoPanel";
@@ -28,12 +28,12 @@ export default async function TaskDetailPage({ params }: PageProps) {
   const supabase = await createClient();
 
   // 2. Fetch Assignment
-  // Note: This assumes staffQueueQueries.getAssignmentById returns the flattened 'complaint_id'
-  const assignment = await staffQueueQueries.getAssignmentById(supabase, id);
+  // Note: This assumes staffApi.getAssignmentById returns the flattened 'complaint_id'
+  const assignment = await staffApi.getAssignmentById(supabase, id);
   if (!assignment) return notFound();
 
   // 3. Determine View Mode & IDs
-  const currentUserId = staff.user_id || staff.id;
+  const currentUserId = staff.id;
   const assignmentStaffId = assignment.staff_id;
   const isAssignee = currentUserId === assignmentStaffId;
 
@@ -55,7 +55,11 @@ export default async function TaskDetailPage({ params }: PageProps) {
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Core Task Information */}
-        <TaskInfoCard assignment={assignment} />
+        <TaskInfoCard assignment={{
+            ...assignment, 
+            location: assignment.location || "",
+            instructions: assignment.instructions || undefined 
+        }} />
 
         {/* Citizen Information Panel (Visible only for complaints) */}
         {assignment.type === "complaint" && assignment.citizen && (
@@ -65,8 +69,8 @@ export default async function TaskDetailPage({ params }: PageProps) {
         {/* Work Progress Timeline */}
         <WorkProgressTimeline
           created_at={assignment.assigned_at}
-          started_at={assignment.started_at}
-          completed_at={assignment.completed_at}
+          started_at={assignment.started_at || undefined}
+          completed_at={assignment.completed_at || undefined}
         />
 
         {/* Floating/Bottom Action Bar */}
@@ -88,8 +92,8 @@ export default async function TaskDetailPage({ params }: PageProps) {
             <StaffCommunication
               complaintId={realComplaintId}
               currentUserId={currentUserId}
-              isStaff={true}
-              assignedStaffName={isAssignee ? "You" : (assignment.assigned_to_name || "Assigned Staff")}
+              userRole="staff"
+              assignedStaffName={isAssignee ? "You" : ("Assigned Staff")}
               citizenName={assignment.citizen?.name || "Citizen"}
             />
           </div>

@@ -44,7 +44,7 @@ export default function StaffCommunication({
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<
-    "connected" | "disconnected"
+    "connected" | "disconnected" | "connecting"
   >("connecting");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
