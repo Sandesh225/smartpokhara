@@ -125,7 +125,7 @@ export default function PaymentSummary({
                     {format(dueDate, "MMM d, yyyy")}
                   </span>
                   {isOverdue && (
-                    <Badge variant="destructive" size="sm">Overdue</Badge>
+                    <Badge variant="destructive">Overdue</Badge>
                   )}
                 </div>
               </div>

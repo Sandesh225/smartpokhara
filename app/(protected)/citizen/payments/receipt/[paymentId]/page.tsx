@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Download, Printer, ArrowLeft, CheckCircle, Building, Calendar, CreditCard, Receipt } from "lucide-react";
-import { paymentsService } from "@/lib/supabase/queries/payments";
+import { paymentsApi } from "@/features/payments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ReceiptPage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function ReceiptPage() {
   const [receiptData, setReceiptData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const supabase = createClient();
 
   useEffect(() => {
     if (paymentId) {
@@ -34,7 +36,7 @@ export default function ReceiptPage() {
     try {
       setIsLoading(true);
       
-      const data = await paymentsService.getReceipt(paymentId);
+      const data = await paymentsApi.getReceipt(supabase, paymentId);
       
       if (!data) {
         toast.error('Receipt not found');
@@ -186,7 +188,7 @@ export default function ReceiptPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
-                  <Badge variant="success" className="capitalize">
+                  <Badge variant="secondary" className="capitalize bg-green-100 text-green-700 dark:bg-green-700/20 dark:text-green-400">
                     {payment.status}
                   </Badge>
                 </div>
