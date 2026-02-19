@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
+import { messagesApi } from "@/features/messages";
 import { createClient } from "@/lib/supabase/server";
 import { ConversationsList } from "@/app/(protected)/supervisor/messages/_components/ConversationsList";
 import { MessageSquare } from "lucide-react";
@@ -12,7 +12,7 @@ export default async function MessagesPage() {
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const conversations = await supervisorMessagesQueries.getConversations(supabase, user.id);
+  const conversations = await messagesApi.getConversations(supabase, user.id);
 
   return (
     <div className="flex h-[calc(100vh-6rem)] bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

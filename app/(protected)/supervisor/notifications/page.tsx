@@ -11,20 +11,23 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useStaffNotifications } from "@/hooks/use-complaints";
+import { useNotifications, useNotificationMutations } from "@/features/notifications";
+import { useCurrentUser } from "@/features/users";
 import { formatRelativeTime } from "@/lib/utils/format";
 import { Bell, CheckCircle, RefreshCw, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SupervisorNotificationsPage() {
+  const { data: user } = useCurrentUser();
   const {
-    notifications,
-    unreadCount,
-    loading,
-    markAsRead,
-    markAllAsRead,
+    data: notifications = [],
+    isLoading: loading,
     refetch,
-  } = useStaffNotifications();
+  } = useNotifications(user?.id);
+
+  const { markAsRead, markAllAsRead } = useNotificationMutations();
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -70,12 +73,9 @@ export default function SupervisorNotificationsPage() {
     return { today, yesterday, older };
   }, [notifications]);
 
-  const handleNotificationClick = async (notification: {
-    id: string;
-    is_read: boolean;
-  }) => {
-    if (!notification.is_read) {
-      await markAsRead(notification.id);
+  const handleNotificationClick = async (notification: any) => {
+    if (notification && !notification.is_read) {
+      await markAsRead.mutateAsync(notification.id);
     }
   };
 
@@ -171,7 +171,7 @@ export default function SupervisorNotificationsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={refetch}
+            onClick={() => refetch()}
             className="gap-2 bg-transparent"
           >
             <RefreshCw className="h-4 w-4" />
@@ -181,7 +181,7 @@ export default function SupervisorNotificationsPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={markAllAsRead}
+              onClick={() => user?.id && markAllAsRead.mutateAsync(user.id)}
               className="gap-2 bg-transparent"
             >
               <CheckCircle className="h-4 w-4" />

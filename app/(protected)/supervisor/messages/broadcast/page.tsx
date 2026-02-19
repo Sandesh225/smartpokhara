@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
-import { supervisorStaffQueries } from "@/lib/supabase/queries/supervisor-staff";
+import { messagesApi } from "@/features/messages";
+import { supervisorApi } from "@/features/supervisor";
 import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -46,8 +46,8 @@ export default function BroadcastPage() {
       setUserId(user.id);
 
       const [staffData, historyData] = await Promise.all([
-        supervisorStaffQueries.getSupervisedStaff(user.id),
-        supervisorMessagesQueries.getBroadcastHistory(supabase, user.id)
+        supervisorApi.getSupervisedStaff(supabase, user.id),
+        messagesApi.getBroadcastHistory(supabase, user.id)
       ]);
 
       setStaffList(staffData);
@@ -90,7 +90,7 @@ export default function BroadcastPage() {
         scheduledAt: scheduleMode === 'later' && scheduledDate ? new Date(scheduledDate).toISOString() : null
       };
 
-      await supervisorMessagesQueries.broadcastMessage(supabase, payload);
+      await messagesApi.broadcastMessage(supabase, payload);
       
       toast.success(scheduleMode === 'later' ? "Broadcast scheduled" : "Broadcast sent successfully");
       
@@ -102,7 +102,7 @@ export default function BroadcastPage() {
       setUrgency("normal");
       
       // Refresh History
-      const updatedHistory = await supervisorMessagesQueries.getBroadcastHistory(supabase, userId);
+      const updatedHistory = await messagesApi.getBroadcastHistory(supabase, userId);
       setHistory(updatedHistory);
 
     } catch (error) {

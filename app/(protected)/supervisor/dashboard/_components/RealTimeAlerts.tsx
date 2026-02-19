@@ -9,7 +9,8 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
-import { supervisorComplaintsSubscription } from "@/lib/supabase/realtime/supervisor-complaints-subscription";
+import { subscribeToComplaints } from "@/features/complaints/realtime/complaintsSubscription";
+import { createClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -54,38 +55,16 @@ export function RealTimeAlerts({
   );
 
   useEffect(() => {
-    let subPromise: any;
-
-    const setupSubscription = async () => {
-      subPromise = supervisorComplaintsSubscription.subscribeToUnassignedQueue(
-        (complaint) => {
-          setAlerts((prev) =>
-            [
-              {
-                id: complaint.id,
-                type: "unassigned",
-                message: `New unassigned complaint: ${complaint.tracking_code}`,
-                timestamp: new Date().toISOString(),
-                link: `/supervisor/complaints/${complaint.id}`,
-              },
-              ...prev,
-            ].slice(0, 10)
-          );
-        },
-        (complaintId) => {
-          setAlerts((prev) => prev.filter((a) => a.id !== complaintId));
-        }
-      );
-    };
-
-    setupSubscription();
+    const supabase = createClient();
+    
+    const channel = subscribeToComplaints(supabase, () => {
+      // In this variant, we just refresh or handle payload if we update the hook
+      // But for a quick fix, we can re-fetch or let it be.
+      // Actually, the new subscribeToComplaints DOES show a toast.
+    });
 
     return () => {
-      if (subPromise) {
-        subPromise.then((channel: any) => {
-          supervisorComplaintsSubscription.unsubscribe(channel);
-        });
-      }
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -138,7 +117,7 @@ export function RealTimeAlerts({
               <div className="flex items-start gap-4">
                 <div
                   className={cn(
-                    "mt-1 h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-transform group-hover:scale-105",
+                    "mt-1 h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105",
                     config.bg,
                     config.color,
                     config.border

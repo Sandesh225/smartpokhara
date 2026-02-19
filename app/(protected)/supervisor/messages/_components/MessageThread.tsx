@@ -5,15 +5,11 @@ import { Send, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
-import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
-import { supervisorMessagesSubscription } from "@/lib/supabase/realtime/supervisor-messages-subscription";
+import { messagesApi } from "@/features/messages";
+import { subscribeToMessages, unsubscribeFromMessages } from "@/features/messages/realtime/messagesSubscription";
+import { Message } from "@/features/messages";
 
-interface Message {
-  id: string;
-  sender_id: string;
-  message_text: string;
-  created_at: string;
-}
+// Local Message interface removed in favor of @/features/messages
 
 interface MessageThreadProps {
   conversationId: string;
@@ -41,15 +37,14 @@ export function MessageThread({
 
   // Realtime Subscription
   useEffect(() => {
-    const channel = supervisorMessagesSubscription.subscribeToConversation(
+    const channel = subscribeToMessages(
+      supabase,
       conversationId,
       (newMsg) => {
         // CRITICAL FIX: Prevent duplicates.
         // Only add the message from realtime if WE didn't send it.
-        // (We handle our own messages in handleSend via optimistic updates)
         if (newMsg.sender_id !== currentUserId) {
           setMessages((prev) => {
-            // Double check by ID just in case
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
@@ -58,9 +53,9 @@ export function MessageThread({
     );
 
     return () => {
-      supervisorMessagesSubscription.unsubscribe(channel);
+      unsubscribeFromMessages(supabase, channel);
     };
-  }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId, supabase]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -80,8 +75,10 @@ export function MessageThread({
     const tempId = Math.random().toString();
     const optimisticMessage: Message = {
       id: tempId,
+      conversation_id: conversationId,
       sender_id: currentUserId,
       message_text: textToSend,
+      is_read: true,
       created_at: new Date().toISOString(),
     };
 
@@ -89,7 +86,7 @@ export function MessageThread({
 
     try {
       // 2. Send to Database
-      const sentMessage = await supervisorMessagesQueries.sendMessage(
+      const sentMessage = await messagesApi.sendMessage(
         supabase,
         conversationId,
         currentUserId,
@@ -131,7 +128,7 @@ export function MessageThread({
             >
               <div
                 className={cn(
-                  "max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow-sm break-words",
+                  "max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow-sm wrap-break-word",
                   isMe
                     ? "bg-blue-600 text-white rounded-br-none"
                     : "bg-white text-gray-800 border border-gray-200 rounded-bl-none"

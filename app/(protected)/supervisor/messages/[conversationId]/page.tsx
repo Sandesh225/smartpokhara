@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { supervisorMessagesQueries } from "@/lib/supabase/queries/supervisor-messages";
+import { messagesApi } from "@/features/messages";
 import { createClient } from "@/lib/supabase/server";
 import { ConversationsList } from "@/app/(protected)/supervisor/messages/_components/ConversationsList";
 import { MessageThread } from "@/app/(protected)/supervisor/messages/_components/MessageThread";
@@ -33,10 +33,9 @@ export default async function ConversationPage({
 
     try {
       // Find or create a conversation between the Supervisor and Staff
-      createdId = await supervisorMessagesQueries.createConversation(
+      createdId = await messagesApi.createConversation(
         supabase,
-        user.id,
-        staffId
+        [user.id, staffId]
       );
     } catch (error: any) {
       console.error(
@@ -61,17 +60,17 @@ export default async function ConversationPage({
   if (!uuidRegex.test(conversationId)) return notFound();
 
   const [conversations, messages] = await Promise.all([
-    supervisorMessagesQueries.getConversations(supabase, user.id),
-    supervisorMessagesQueries.getMessages(supabase, conversationId),
+    messagesApi.getConversations(supabase, user.id),
+    messagesApi.getMessages(supabase, conversationId),
   ]);
 
   const activeConv = conversations.find((c) => c.id === conversationId);
   if (!activeConv) redirect("/supervisor/messages");
 
-  const otherUserName = activeConv.other_user.name || "Staff Member";
+  const otherUserName = activeConv.other_user?.name || "Staff Member";
 
   // Fire-and-forget: Mark messages as read
-  supervisorMessagesQueries.markAsRead(supabase, conversationId, user.id);
+  messagesApi.markAsRead(supabase, conversationId, user.id);
 
   return (
     <div className="flex h-[calc(100vh-6rem)] bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

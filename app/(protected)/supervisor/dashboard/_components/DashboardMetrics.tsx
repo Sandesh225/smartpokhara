@@ -1,29 +1,25 @@
 "use client";
 
-import {
-  AlertCircle,
-  CheckCircle2,
-  Briefcase,
-  ArrowRight,
-  Users,
-  Clock,
-  BarChart3,
-  Calendar,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Briefcase, ArrowRight, Users, Clock, BarChart3, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-/**
- * METRICS CARDS
- * Styled with "Machhapuchhre Modern" elevations.
- */
 export function DashboardMetrics({ metrics }: { metrics: any }) {
-  const compliance = metrics.slaComplianceRate ?? 100;
+  // Safely map snake_case (from DB) OR camelCase (from API)
+  const activeCount = metrics?.active_complaints ?? metrics?.activeCount ?? 0;
+  const unassignedCount = metrics?.unassigned_complaints ?? metrics?.unassignedCount ?? 0;
+  const resolvedTodayCount = metrics?.resolved_today ?? metrics?.resolvedTodayCount ?? 0;
+  const overdueCount = metrics?.overdue_complaints ?? metrics?.overdueCount ?? 0;
+
+  // Dynamically calculate compliance if not provided by the API
+  const totalForSla = activeCount + resolvedTodayCount + overdueCount;
+  const compliance = metrics?.slaComplianceRate ?? 
+    (totalForSla > 0 ? Math.round(((totalForSla - overdueCount) / totalForSla) * 100) : 100);
 
   const cards = [
     {
       label: "Active Complaints",
-      value: metrics.activeCount,
+      value: activeCount,
       icon: Briefcase,
       color: "text-primary",
       bg: "bg-primary/10",
@@ -32,12 +28,12 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
     },
     {
       label: "Unassigned Queue",
-      value: metrics.unassignedCount,
+      value: unassignedCount,
       icon: AlertCircle,
       color: "text-orange-500",
       bg: "bg-orange-500/10",
       href: "/supervisor/complaints/unassigned",
-      alert: metrics.unassignedCount > 0,
+      alert: unassignedCount > 0,
       subtitle: "Pending allocation",
     },
     {
@@ -51,7 +47,7 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
     },
     {
       label: "Resolved Today",
-      value: metrics.resolvedTodayCount,
+      value: resolvedTodayCount,
       icon: CheckCircle2,
       color: "text-emerald-500",
       bg: "bg-emerald-500/10",

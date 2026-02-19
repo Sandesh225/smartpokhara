@@ -4,16 +4,9 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { User } from "lucide-react";
+import { Conversation } from "@/features/messages";
 
-interface Conversation {
-  id: string;
-  other_user: {
-    name: string;
-    avatar_url?: string;
-  };
-  last_message_preview?: string;
-  last_message_at?: string;
-}
+// Local interface removed in favor of @/features/messages
 
 interface ConversationsListProps {
   conversations: Conversation[];
@@ -42,7 +35,7 @@ export function ConversationsList({ conversations, selectedId }: ConversationsLi
               )}
             >
               <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {conv.other_user.avatar_url ? (
+                {conv.other_user?.avatar_url ? (
                   <img src={conv.other_user.avatar_url} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <User className="h-5 w-5 text-gray-500" />
@@ -51,7 +44,7 @@ export function ConversationsList({ conversations, selectedId }: ConversationsLi
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline mb-1">
                   <span className="font-semibold text-sm text-gray-900 truncate">
-                    {conv.other_user.name}
+                    {conv.other_user?.name || "Unknown"}
                   </span>
                   {conv.last_message_at && (
                     <span className="text-[10px] text-gray-400 flex-shrink-0">
