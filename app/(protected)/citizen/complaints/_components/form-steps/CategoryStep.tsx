@@ -7,15 +7,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 import {
-  complaintsService,
-  ComplaintCategory,
-  ComplaintSubcategory,
-} from "@/lib/supabase/queries/complaints";
+  useSubcategories as useSubcategoriesHook,
+} from "@/features/complaints";
 import { getCategoryIcon, formatCategoryName } from "./category-helpers";
 
 type CategoryStepProps = {
-  categories: ComplaintCategory[];
+  categories: any[];
 };
+
 
 export function CategoryStep({ categories }: CategoryStepProps) {
   const {
@@ -24,62 +23,13 @@ export function CategoryStep({ categories }: CategoryStepProps) {
     formState: { errors },
   } = useFormContext();
 
-  // FIX 1: Use useWatch for reliable subscription to changes
   const watchedCategory = useWatch({
     control,
     name: "category_id",
   });
 
-  const [subcategories, setSubcategories] = useState<ComplaintSubcategory[]>(
-    []
-  );
-  const [loadingSubs, setLoadingSubs] = useState(false);
+  const { data: subcategories = [], isLoading: loadingSubs } = useSubcategoriesHook(watchedCategory);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchSubcategories = async () => {
-      // If no category is selected, clear subcategories and return
-      if (!watchedCategory) {
-        setSubcategories([]);
-        return;
-      }
-
-      setLoadingSubs(true);
-      // FIX 2: Clear previous subcategories immediately to avoid UI mismatch
-      setSubcategories([]);
-
-      try {
-        const subs = await complaintsService.getSubcategories(watchedCategory);
-
-        // FIX 3: Prevent race conditions (setting state on unmounted component or stale request)
-        if (isMounted) {
-          setSubcategories(subs || []);
-
-          // Debugging log to verify data flow
-          console.log(
-            `Fetched ${subs?.length} subcategories for ${watchedCategory}`
-          );
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error("Error fetching subcategories:", err);
-          toast.error("Failed to load subcategories");
-        }
-      } finally {
-        if (isMounted) {
-          setLoadingSubs(false);
-        }
-      }
-    };
-
-    fetchSubcategories();
-
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
-  }, [watchedCategory]);
 
   return (
     <div className="space-y-6">

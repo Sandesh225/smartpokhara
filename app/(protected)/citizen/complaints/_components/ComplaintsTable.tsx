@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, memo, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   format,
@@ -54,10 +55,11 @@ import {
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import type {
+import {
   Complaint,
   ComplaintStatus,
-} from "@/lib/supabase/queries/complaints";
+} from "@/features/complaints";
+
 
 import { COMPLAINT_STATUS_CONFIG } from "@/app/(protected)/citizen/complaints/_components/form-steps/complaint";
 import { COMPLAINT_PRIORITY_CONFIG } from "@/app/(protected)/citizen/complaints/_components/form-steps/complaint";
@@ -145,7 +147,7 @@ const ComplaintMobileCard = memo(
     complaint: Complaint;
     onClick: (c: Complaint) => void;
   }) => {
-    const status = COMPLAINT_STATUS_CONFIG[complaint.status];
+    const status = (COMPLAINT_STATUS_CONFIG as any)[complaint.status] || COMPLAINT_STATUS_CONFIG.received;
 
     return (
       <motion.div
@@ -191,7 +193,7 @@ const ComplaintMobileCard = memo(
         <div className="pt-3 border-t-2 border-border flex justify-between items-center">
           <LiveSLACell
             submittedAt={complaint.submitted_at}
-            slaDueAt={complaint.sla_due_at}
+            slaDueAt={complaint.sla_due_at || null}
             status={complaint.status}
           />
           <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -228,6 +230,13 @@ export function ComplaintsTable({
     [onRowClick, router, basePath]
   );
 
+  const handleMouseEnter = useCallback(
+    (id: string) => {
+      router.prefetch(`${basePath}/${id}`);
+    },
+    [router, basePath]
+  );
+
   const columns: ColumnDef<Complaint>[] = useMemo(
     () => [
       {
@@ -235,9 +244,12 @@ export function ComplaintsTable({
         header: "Tracking ID",
         cell: ({ row }) => (
           <div className="flex items-center gap-2 group/copy">
-            <code className="text-xs font-black text-foreground bg-muted px-3 py-1.5 rounded-lg tracking-tight border border-border">
+            <Link 
+              href={`${basePath}/${row.original.id}`}
+              className="text-xs font-black text-foreground bg-muted px-3 py-1.5 rounded-lg tracking-tight border border-border hover:border-primary hover:text-primary transition-colors"
+            >
               {row.original.tracking_code}
-            </code>
+            </Link>
             <Button
               variant="ghost"
               size="icon"
@@ -273,7 +285,7 @@ export function ComplaintsTable({
         header: "Priority",
         cell: ({ row }) => {
           const p = row.original.priority || "medium";
-          const config = COMPLAINT_PRIORITY_CONFIG[p];
+          const config = (COMPLAINT_PRIORITY_CONFIG as any)[p] || COMPLAINT_PRIORITY_CONFIG.medium;
           return (
             <Badge
               className={cn(
@@ -290,7 +302,7 @@ export function ComplaintsTable({
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
-          const conf = COMPLAINT_STATUS_CONFIG[row.original.status];
+          const conf = (COMPLAINT_STATUS_CONFIG as any)[row.original.status] || COMPLAINT_STATUS_CONFIG.received;
           const StatusIcon = conf.icon;
 
           return (
@@ -312,7 +324,7 @@ export function ComplaintsTable({
         cell: ({ row }) => (
           <LiveSLACell
             submittedAt={row.original.submitted_at}
-            slaDueAt={row.original.sla_due_at}
+            slaDueAt={row.original.sla_due_at || null}
             status={row.original.status}
           />
         ),
@@ -426,6 +438,7 @@ export function ComplaintsTable({
                     <TableRow
                       key={row.id}
                       onClick={() => handleRowClick(row.original)}
+                      onMouseEnter={() => handleMouseEnter(row.original.id)}
                       className="group cursor-pointer hover:bg-accent/50 transition-colors border-b border-border"
                     >
                       {row.getVisibleCells().map((cell) => (
