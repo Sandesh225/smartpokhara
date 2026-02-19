@@ -6,15 +6,10 @@ import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { staffMessagesQueries } from "@/lib/supabase/queries/staff-messages";
 import { toast } from "sonner";
 
-interface Message {
-  id: string;
-  content: string;
-  senderId: string;
-  createdAt: string;
-}
+import { Message } from "@/features/messages";
+import { messagesApi } from "@/features/messages";
 
 interface Props {
   conversationId: string;
@@ -51,7 +46,7 @@ export function MessageThread({
 
     try {
       // 1. Send to DB
-      const sentMsg = await staffMessagesQueries.sendMessage(
+      const sentMsg = await messagesApi.sendMessage(
         supabase,
         conversationId,
         currentUserId,
@@ -60,10 +55,12 @@ export function MessageThread({
 
       // 2. Optimistic Update (Add to list immediately)
       const newMsgObj: Message = {
-        id: sentMsg.id,
-        content: text,
-        senderId: currentUserId,
-        createdAt: new Date().toISOString(),
+        id: (sentMsg as any).id,
+        conversation_id: conversationId,
+        sender_id: currentUserId,
+        message_text: text,
+        is_read: false,
+        created_at: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, newMsgObj]);
@@ -104,7 +101,7 @@ export function MessageThread({
           </div>
         ) : (
           messages.map((msg) => {
-            const isMe = msg.senderId === currentUserId;
+            const isMe = msg.sender_id === currentUserId;
             return (
               <div
                 key={msg.id}
@@ -117,13 +114,13 @@ export function MessageThread({
                       : "bg-white border border-gray-200 text-gray-800 rounded-bl-none"
                   }`}
                 >
-                  <p>{msg.content}</p>
+                  <p>{msg.message_text}</p>
                   <p
                     className={`text-[10px] mt-1 text-right ${
                       isMe ? "text-blue-100" : "text-gray-400"
                     }`}
                   >
-                    {formatDistanceToNow(new Date(msg.createdAt), {
+                    {formatDistanceToNow(new Date(msg.created_at), {
                       addSuffix: true,
                     })}
                   </p>

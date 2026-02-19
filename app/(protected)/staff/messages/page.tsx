@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { staffMessagesQueries } from "@/lib/supabase/queries/staff-messages";
+import { messagesApi } from "@/features/messages";
 import { Send, User, Loader2, PlusCircle, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -27,7 +27,7 @@ export default function StaffMessagesPage() {
       if (!user) return;
       setUserId(user.id);
 
-      const convs = await staffMessagesQueries.getConversations(
+      const convs = await messagesApi.getConversations(
         supabase,
         user.id
       );
@@ -46,7 +46,7 @@ export default function StaffMessagesPage() {
     if (!activeChatId) return;
 
     async function loadThread() {
-      const msgs = await staffMessagesQueries.getThreadMessages(
+      const msgs = await messagesApi.getThreadMessages(
         supabase,
         activeChatId!
       );
@@ -109,7 +109,7 @@ export default function StaffMessagesPage() {
       },
     ]);
 
-    await staffMessagesQueries.sendMessage(
+    await messagesApi.sendMessage(
       supabase,
       activeChatId,
       userId,
@@ -120,13 +120,13 @@ export default function StaffMessagesPage() {
   const handleCreateSupport = async () => {
     const toastId = toast.loading("Connecting to support...");
     try {
-      const newId = await staffMessagesQueries.createSupportTicket(
+      const newId = await messagesApi.createSupportTicket(
         supabase,
         userId
       );
       setActiveChatId(newId);
       // Refresh list
-      const convs = await staffMessagesQueries.getConversations(
+      const convs = await messagesApi.getConversations(
         supabase,
         userId
       );

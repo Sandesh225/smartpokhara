@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { staffMessagesQueries } from "@/lib/supabase/queries/staff-messages";
+import { messagesApi } from "@/features/messages";
 
 import { ConversationsList } from "@/app/(protected)/supervisor/messages/_components/ConversationsList";
 import { MessageThread } from "../_components/MessageThread";
@@ -20,16 +20,16 @@ export default async function ConversationPage({ params }: PageProps) {
   const supabase = await createClient();
 
   // 1. Fetch Conversations List (for the sidebar on desktop)
-  const conversations = await staffMessagesQueries.getConversations(
+  const conversations = await messagesApi.getConversations(
     supabase,
-    staff.user_id
+    staff.id
   );
 
   // 2. Fetch Specific Conversation Messages
-  const messages = await staffMessagesQueries.getMessages(supabase, id);
+  const messages = await messagesApi.getMessages(supabase, id);
 
   // 3. Find the name of the person we are talking to
-  const activeConv = conversations.find((c) => c.id === id);
+  const activeConv = conversations.find((c: any) => c.id === id);
   const otherUserName = activeConv?.other_user?.name || "Supervisor";
 
   return (
@@ -49,7 +49,7 @@ export default async function ConversationPage({ params }: PageProps) {
         <MessageThread
           conversationId={id}
           initialMessages={messages}
-          currentUserId={staff.user_id}
+          currentUserId={staff.id}
           otherUserName={otherUserName}
         />
       </div>
