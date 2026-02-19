@@ -124,6 +124,22 @@
     @apply bg-card border border-border rounded-xl shadow-sm transition-all duration-300;
   }
 
+  .stone-card {
+    @apply bg-card border border-border/40 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-500;
+  }
+
+  .stone-card-elevated {
+    @apply bg-card/80 backdrop-blur-xl border border-border/60 rounded-3xl shadow-2xl transition-all duration-500;
+  }
+
+  .elevation-1 {
+    @apply shadow-sm;
+  }
+
+  .elevation-2 {
+    @apply shadow-md;
+  }
+
   .card-hover {
     @apply hover:shadow-lg dark:hover:shadow-2xl dark:hover:shadow-black/20;
   }
