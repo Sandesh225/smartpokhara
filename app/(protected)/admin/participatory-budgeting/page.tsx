@@ -13,18 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { pbService, type BudgetCycle } from "@/lib/supabase/queries/participatory-budgeting";
+// Domain Features
+import { 
+  useBudgetCycles, 
+  type BudgetCycle 
+} from "@/features/participatory-budgeting";
 
 export default function AdminBudgetingPage() {
-  const [cycles, setCycles] = useState<BudgetCycle[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    pbService.getActiveCycles()
-      .then(setCycles)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: cycles = [], isLoading: loading } = useBudgetCycles();
 
   const activeCycles = cycles.filter(c => c.is_active);
   const archivedCycles = cycles.filter(c => !c.is_active);
@@ -36,14 +32,14 @@ export default function AdminBudgetingPage() {
                                new Date() <= new Date(cycle.submission_end_at);
 
     return (
-      <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-card to-card/95 hover:from-card/95 hover:to-primary/5 dark:hover:to-primary/10 border-2 hover:border-primary/30">
+      <Card className="group hover:shadow-xl transition-all duration-300 bg-linear-to-br from-card to-card/95 hover:from-card/95 hover:to-primary/5 dark:hover:to-primary/10 border-2 hover:border-primary/30">
         <CardHeader className="pb-4">
           <div className="flex justify-between items-start mb-3">
             <div className="flex gap-2 flex-wrap">
               <Badge 
                 variant={cycle.is_active ? "default" : "secondary"}
                 className={cycle.is_active 
-                  ? "bg-gradient-to-r from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 text-white shadow-md" 
+                  ? "bg-linear-to-r from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 text-white shadow-md" 
                   : "bg-muted text-muted-foreground"
                 }
               >
@@ -57,15 +53,15 @@ export default function AdminBudgetingPage() {
                 )}
               </Badge>
               
-              {isVotingActive && (
-                <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md">
+               {isVotingActive && (
+                <Badge className="bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-md">
                   <Users className="w-3 h-3 mr-1" />
                   Voting Open
                 </Badge>
               )}
               
               {isSubmissionActive && !isVotingActive && (
-                <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md">
+                <Badge className="bg-linear-to-r from-purple-500 to-purple-600 text-white shadow-md">
                   <Clock className="w-3 h-3 mr-1" />
                   Submissions Open
                 </Badge>
@@ -85,14 +81,14 @@ export default function AdminBudgetingPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Budget Display */}
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 p-4 rounded-xl border border-primary/20">
+           {/* Budget Display */}
+          <div className="bg-linear-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 p-4 rounded-xl border border-primary/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <DollarSign className="h-5 w-5 text-primary" />
                 <span className="text-sm font-semibold">Total Budget</span>
               </div>
-              <span className="text-2xl font-black bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              <span className="text-2xl font-black bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 NPR {(cycle.total_budget_amount / 100000).toFixed(1)}L
               </span>
             </div>
@@ -129,7 +125,7 @@ export default function AdminBudgetingPage() {
           <div className="flex gap-2 pt-2">
             <Button 
               asChild 
-              className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+              className="flex-1 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
             >
               <Link href={`/admin/participatory-budgeting/${cycle.id}`}>
                 <Settings className="w-4 h-4 mr-2" />
@@ -156,7 +152,7 @@ export default function AdminBudgetingPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12 px-4 sm:px-6">
       {/* Enhanced Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 dark:border-primary/30 p-8 shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 dark:border-primary/30 p-8 shadow-lg">
         <div className="absolute inset-0 bg-grid-white/10 dark:bg-grid-black/10 [mask-image:radial-gradient(white,transparent_85%)]" />
         
         <div className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -165,7 +161,7 @@ export default function AdminBudgetingPage() {
               <div className="p-2 bg-primary/20 dark:bg-primary/30 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
-              <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-black tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Participatory Budgeting
               </h1>
             </div>
@@ -177,7 +173,7 @@ export default function AdminBudgetingPage() {
           <Button 
             asChild 
             size="lg"
-            className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <Link href="/admin/participatory-budgeting/create">
               <Plus className="mr-2 h-5 w-5" /> 
@@ -190,7 +186,7 @@ export default function AdminBudgetingPage() {
       {/* Stats Overview */}
       {!loading && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-200 dark:border-blue-800">
+          <Card className="bg-linear-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-200 dark:border-blue-800">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -208,7 +204,7 @@ export default function AdminBudgetingPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 border-green-200 dark:border-green-800">
+          <Card className="bg-linear-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 border-green-200 dark:border-green-800">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -226,7 +222,7 @@ export default function AdminBudgetingPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/30 border-purple-200 dark:border-purple-800">
+          <Card className="bg-linear-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/30 border-purple-200 dark:border-purple-800">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -244,7 +240,7 @@ export default function AdminBudgetingPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/50 dark:to-orange-900/30 border-orange-200 dark:border-orange-800">
+          <Card className="bg-linear-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/50 dark:to-orange-900/30 border-orange-200 dark:border-orange-800">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -274,11 +270,11 @@ export default function AdminBudgetingPage() {
           <p className="text-base text-muted-foreground font-medium">Loading cycles...</p>
         </div>
       ) : cycles.length === 0 ? (
-        <Card className="text-center py-16 border-2 border-dashed rounded-2xl bg-gradient-to-br from-muted/20 via-muted/10 to-transparent">
+        <Card className="text-center py-16 border-2 border-dashed rounded-2xl bg-linear-to-br from-muted/20 via-muted/10 to-transparent">
           <CardContent className="space-y-4">
             <div className="relative inline-block">
               <div className="absolute inset-0 bg-primary/10 dark:bg-primary/20 blur-2xl rounded-full" />
-              <div className="relative p-6 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-2xl">
+              <div className="relative p-6 bg-linear-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-2xl">
                 <AlertCircle className="w-16 h-16 text-primary mx-auto opacity-60" />
               </div>
             </div>
@@ -303,14 +299,14 @@ export default function AdminBudgetingPage() {
           <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-8 h-12 bg-muted/50 dark:bg-muted/30 p-1 rounded-xl">
             <TabsTrigger 
               value="active"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold rounded-lg transition-all duration-300"
+              className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold rounded-lg transition-all duration-300"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Active ({activeCycles.length})
             </TabsTrigger>
             <TabsTrigger 
               value="archived"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold rounded-lg transition-all duration-300"
+              className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold rounded-lg transition-all duration-300"
             >
               <Clock className="w-4 h-4 mr-2" />
               Archived ({archivedCycles.length})

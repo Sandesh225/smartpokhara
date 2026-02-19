@@ -12,11 +12,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { pbService } from "@/lib/supabase/queries/participatory-budgeting";
+// Domain Features
+import { usePBMutations } from "@/features/participatory-budgeting";
 
 export default function CreateCyclePage() {
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
+  const mutations = usePBMutations();
 
   const form = useForm({
     defaultValues: {
@@ -60,25 +61,18 @@ export default function CreateCyclePage() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      await pbService.createBudgetCycle({
-        ...data,
-        is_active: true,
-        submission_start_at: submissionStart.toISOString(),
-        submission_end_at: submissionEnd.toISOString(),
-        voting_start_at: votingStart.toISOString(),
-        voting_end_at: votingEnd.toISOString(),
-      });
-      
-      toast.success("Budget cycle created successfully! 🎉");
-      router.push("/admin/participatory-budgeting");
-    } catch (error: any) {
-      console.error("Create cycle error:", error);
-      toast.error(error.message || "Failed to create cycle");
-    } finally {
-      setSubmitting(false);
-    }
+    mutations.createCycle.mutate({
+      ...data,
+      is_active: true,
+      submission_start_at: submissionStart.toISOString(),
+      submission_end_at: submissionEnd.toISOString(),
+      voting_start_at: votingStart.toISOString(),
+      voting_end_at: votingEnd.toISOString(),
+    }, {
+      onSuccess: () => {
+        router.push("/admin/participatory-budgeting");
+      }
+    });
   };
 
   return (
@@ -93,13 +87,13 @@ export default function CreateCyclePage() {
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Cycles
         </Button>
 
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 p-6">
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 p-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-primary/20 dark:bg-primary/30 rounded-xl">
               <Calendar className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-black tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Create New Budget Cycle
               </h1>
               <p className="text-muted-foreground mt-1">
@@ -120,8 +114,8 @@ export default function CreateCyclePage() {
       </Alert>
 
       {/* Main Form */}
-      <Card className="shadow-xl bg-gradient-to-br from-card to-card/95">
-        <CardHeader className="bg-gradient-to-br from-muted/30 to-transparent dark:from-muted/20 border-b">
+      <Card className="shadow-xl bg-linear-to-br from-card to-card/95">
+        <CardHeader className="bg-linear-to-br from-muted/30 to-transparent dark:from-muted/20 border-b">
           <CardTitle className="text-xl flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-primary" />
             Cycle Configuration
@@ -153,7 +147,7 @@ export default function CreateCyclePage() {
                         <Input 
                           placeholder="e.g. Fiscal Year 2081/82 - Community Infrastructure" 
                           {...field}
-                          className="bg-gradient-to-br from-background to-muted/10 dark:from-background dark:to-muted/5 border-2 focus:border-primary"
+                          className="bg-linear-to-br from-background to-muted/10 dark:from-background dark:to-muted/5 border-2 focus:border-primary"
                         />
                       </FormControl>
                       <FormDescription>
@@ -173,7 +167,7 @@ export default function CreateCyclePage() {
                       <FormControl>
                         <Textarea 
                           placeholder="Describe the focus and goals of this budgeting cycle..."
-                          className="min-h-[100px] bg-gradient-to-br from-background to-muted/10 dark:from-background dark:to-muted/5 border-2 focus:border-primary"
+                          className="min-h-[100px] bg-linear-to-br from-background to-muted/10 dark:from-background dark:to-muted/5 border-2 focus:border-primary"
                           {...field} 
                         />
                       </FormControl>
@@ -211,7 +205,7 @@ export default function CreateCyclePage() {
                           <Input 
                             type="number" 
                             placeholder="50000000"
-                            className="font-mono font-bold text-lg bg-gradient-to-br from-background to-muted/10 border-2 focus:border-primary"
+                            className="font-mono font-bold text-lg bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
                             {...field} 
                             onChange={e => field.onChange(Number(e.target.value))} 
                           />
@@ -241,7 +235,7 @@ export default function CreateCyclePage() {
                           <Input 
                             type="number" 
                             placeholder="3"
-                            className="bg-gradient-to-br from-background to-muted/10 border-2 focus:border-primary"
+                            className="bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
                             {...field} 
                             onChange={e => field.onChange(Number(e.target.value))} 
                           />
@@ -264,7 +258,7 @@ export default function CreateCyclePage() {
                           <Input 
                             type="number" 
                             placeholder="100000"
-                            className="font-mono bg-gradient-to-br from-background to-muted/10 border-2 focus:border-primary"
+                            className="font-mono bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
                             {...field} 
                             onChange={e => field.onChange(Number(e.target.value))} 
                           />
@@ -287,7 +281,7 @@ export default function CreateCyclePage() {
                           <Input 
                             type="number" 
                             placeholder="5000000"
-                            className="font-mono bg-gradient-to-br from-background to-muted/10 border-2 focus:border-primary"
+                            className="font-mono bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
                             {...field} 
                             onChange={e => field.onChange(Number(e.target.value))} 
                           />
@@ -415,7 +409,7 @@ export default function CreateCyclePage() {
                   type="button"
                   variant="outline" 
                   onClick={() => router.back()}
-                  disabled={submitting}
+                  disabled={mutations.createCycle.isPending}
                   className="flex-1 border-2"
                 >
                   Cancel
@@ -423,11 +417,11 @@ export default function CreateCyclePage() {
 
                 <Button 
                   type="submit" 
-                  className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300" 
-                  disabled={submitting}
+                  className="flex-1 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300" 
+                  disabled={mutations.createCycle.isPending}
                   size="lg"
                 >
-                  {submitting ? (
+                  {mutations.createCycle.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Creating Cycle...
