@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WebsiteMetric } from "@/types/admin";
-import { TrendingUp, TrendingDown, Activity, Pulse } from "lucide-react";
+import { WebsiteMetric } from "@/features/admin-dashboard/types";
+import { TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function WebsiteAnalytics({ data }: { data: WebsiteMetric[] }) {

@@ -17,6 +17,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { TrendDataPoint } from "@/features/admin-dashboard/types";
 import { TrendingUp, Calendar } from "lucide-react";
 
 interface TrendGraphProps {

@@ -8,14 +8,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { WardStat } from "@/features/admin-dashboard/types";
 import { cn } from "@/lib/utils";
 
-interface WardStats {
-  ward_number: number;
-  complaint_count: number;
-}
-
-export function WardHeatmap({ data }: { data: WardStats[] }) {
+export function WardHeatmap({ data }: { data: WardStat[] }) {
   // Pokhara's 33 administrative wards
   const wards = Array.from({ length: 33 }, (_, i) => {
     const wardNum = i + 1;
