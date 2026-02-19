@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════
 
 import { cn } from "@/lib/utils";
-import { CitizenProfile } from "@/types/admin-citizens";
+import { CitizenProfile } from "@/features/users/types";
 import { User, MapPin, Phone, Mail, BadgeCheck } from "lucide-react";
 
 export default function CitizenProfileCard({

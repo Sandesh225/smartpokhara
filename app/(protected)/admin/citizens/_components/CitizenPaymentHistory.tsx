@@ -1,20 +1,12 @@
 "use client";
 
+import { PaymentHistoryItem } from "@/features/users/types";
 import { format } from "date-fns";
 import { CreditCard, Receipt, Calendar, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Payment {
-  id: string;
-  bill_type: string;
-  bill_number: string;
-  total_amount: number;
-  status: string;
-  generated_date: string;
-}
-
 interface CitizenPaymentHistoryProps {
-  payments: Payment[];
+  payments: PaymentHistoryItem[];
 }
 
 export default function CitizenPaymentHistory({
@@ -95,8 +87,7 @@ export default function CitizenPaymentHistory({
                       </div>
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4">
-                      {payment.status === "completed" ||
-                      payment.status === "paid" ? (
+                      {payment.status === "completed" ? (
                         <span className="inline-flex items-center gap-1 text-[10px] md:text-xs font-bold text-success-green bg-success-green/10 px-2 md:px-2.5 py-1 md:py-1.5 rounded-md border border-success-green/20">
                           <div className="w-1.5 h-1.5 rounded-full bg-success-green animate-pulse" />
                           Paid
