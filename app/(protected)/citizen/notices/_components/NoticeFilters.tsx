@@ -228,7 +228,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
               label="Unread Only"
               description="Show only new bulletins"
               checked={filters.unreadOnly}
-              onChange={(v) => handleUpdate({ unreadOnly: v })}
+              onChange={(v: boolean) => handleUpdate({ unreadOnly: v })}
             />
             <div className="h-px bg-border/50 dark:bg-border mx-3" />
             <ToggleRow
@@ -236,7 +236,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
               label="Urgent Priority"
               description="Critical notices first"
               checked={filters.urgentOnly}
-              onChange={(v) => handleUpdate({ urgentOnly: v })}
+              onChange={(v: boolean) => handleUpdate({ urgentOnly: v })}
             />
           </div>
         </div>

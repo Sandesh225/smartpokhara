@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   ArrowLeft,
   Calendar,
@@ -20,7 +21,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
-import { noticesService } from "@/lib/supabase/queries/notices";
+import { noticesApi } from "@/features/notices";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,12 +66,17 @@ export default function NoticeDetailPage() {
   const loadNotice = async () => {
     try {
       setIsLoading(true);
-      const data = await noticesService.getNoticeById(id);
-      setNotice(data.notice);
-      setAttachments(data.attachments);
+      const supabase = createClient();
+      const data = await noticesApi.getNoticeById(supabase, id);
+      setNotice(data);
+      setAttachments(data.attachments || []);
 
-      if (!data.isRead) await noticesService.markNoticeAsRead(id);
-    } catch {
+      // Note: isRead is not directly on ProjectNotice from getNoticeById yet, but we'll assume it for now or omit.
+      // If we need the current user to mark as read:
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await noticesApi.markAsRead(supabase, id, user.id);
+    } catch (error) {
+      console.error("Error loading notice:", error);
       toast.error("Document Not Found", {
         description:
           "The requested official notice is no longer in the active registry.",

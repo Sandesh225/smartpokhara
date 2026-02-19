@@ -15,9 +15,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { noticesService } from "@/lib/supabase/queries/notices";
+import { noticesApi } from "@/features/notices";
+import { useNotices, useUnreadNoticesCount } from "@/features/notices/hooks/useNoticeHooks";
+import { createClient } from "@/lib/supabase/client";
 import NoticesList from "./_components/NoticesList";
 import NoticeFilters from "./_components/NoticeFilters";
+import { NoticeType } from "@/features/notices/types";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,27 +81,27 @@ export default function NoticesPage() {
   const limit = 10;
   const offset = (page - 1) * limit;
 
+  const supabase = createClient();
+
   const fetchNotices = useCallback(
     async (silent = false) => {
       try {
         if (!silent) setIsLoading(true);
 
         const [noticesData, unread] = await Promise.all([
-          noticesService.getUserNotices({
+          noticesApi.getNotices(supabase, {
             limit,
-            offset,
+            page,
             search: filters.search,
             wardId: filters.ward,
-            noticeType: filters.type,
-            dateFrom: filters.dateFrom,
-            dateTo: filters.dateTo,
+            type: filters.type as any,
             unreadOnly: filters.unreadOnly,
           }),
-          noticesService.getUnreadNoticeCount(),
+          noticesApi.getUnreadCount(supabase, (await supabase.auth.getUser()).data.user?.id || ""),
         ]);
 
-        setNotices(noticesData.notices);
-        setTotal(noticesData.total);
+        setNotices(noticesData.data);
+        setTotal(noticesData.count);
         setUnreadCount(unread);
       } catch {
         toast.error("Failed to load notices");
@@ -106,7 +109,7 @@ export default function NoticesPage() {
         if (!silent) setIsLoading(false);
       }
     },
-    [filters, page]
+    [filters, page, supabase]
   );
 
   useEffect(() => {
