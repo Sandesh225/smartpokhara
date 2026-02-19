@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useComplaintManagement } from "@/hooks/admin/useComplaintManagement";
+import { useComplaintManagement } from "@/features/complaints";
 import { ComplaintsTable } from "./_components/ComplaintsTable";
 import { ComplaintFilters } from "./_components/ComplaintFilters";
 import { BatchActionsToolbar } from "./_components/BatchActionsToolbar";
