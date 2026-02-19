@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 // --- CREATE DEPARTMENT ---
 export async function createDepartment(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const name = formData.get("name") as string;
   const name_nepali = formData.get("name_nepali") as string;
@@ -38,7 +38,7 @@ export async function createDepartment(formData: FormData) {
 
 // --- UPDATE DEPARTMENT ---
 export async function updateDepartment(id: string, formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const name = formData.get("name") as string;
   const name_nepali = formData.get("name_nepali") as string;
@@ -76,7 +76,7 @@ export async function updateDepartment(id: string, formData: FormData) {
 
 // --- DELETE DEPARTMENT ---
 export async function deleteDepartment(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Note: RLS policies in your schema must allow deletion
   const { error } = await supabase.from("departments").delete().eq("id", id);
