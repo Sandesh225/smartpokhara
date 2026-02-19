@@ -3,7 +3,7 @@
 
 // PaymentCollectionStats.tsx - Enhanced
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaymentStat } from "@/types/admin";
+import { PaymentStat } from "@/features/admin-dashboard/types";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { DollarSign } from "lucide-react";
 

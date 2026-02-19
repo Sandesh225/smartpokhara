@@ -1,6 +1,6 @@
 "use client";
 
-import { AdminDashboardData } from "@/types/admin";
+import { AdminDashboardMetrics } from "@/features/admin-dashboard/types";
 import {
   FileText,
   CheckCircle2,
@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface MetricsOverviewProps {
-  metrics: AdminDashboardData["metrics"];
+  metrics: AdminDashboardMetrics;
 }
 
 export function MetricsOverview({ metrics }: MetricsOverviewProps) {
