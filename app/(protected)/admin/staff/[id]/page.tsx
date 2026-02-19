@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { adminStaffQueries } from "@/lib/supabase/queries/admin/staff";
+import { staffApi } from "@/features/staff";
 import { AttendanceTracker } from "../_components/AttendanceTracker";
 import { StaffPerformance } from "../_components/StaffPerformance";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,13 +40,14 @@ export default function StaffProfilePage() {
     if (id) {
       const load = async () => {
         try {
-          const [rawStaff, a, perf] = await Promise.all([
-            adminStaffQueries.getStaffById(supabase, id as string),
-            adminStaffQueries.getStaffAttendance(supabase, id as string),
-            adminStaffQueries.getStaffPerformance(supabase, id as string),
+          const [rawStaffDetails, a, perf] = await Promise.all([
+            staffApi.getStaffDetails(supabase, id as string),
+            staffApi.getAttendanceHistory(supabase, id as string),
+            staffApi.getPerformanceStats(supabase, id as string),
           ]);
 
-          if (rawStaff) {
+          if (rawStaffDetails) {
+            const { profile: rawStaff } = rawStaffDetails;
             // ✅ FIX: Flatten the nested DB structure into the 'profile' state
             const flattenedProfile = {
               ...rawStaff,
@@ -56,7 +57,7 @@ export default function StaffProfilePage() {
               // Map from the 'profile' (user_profiles) join
               full_name: rawStaff.profile?.full_name || "Unknown Staff",
               avatar_url: rawStaff.profile?.profile_photo_url,
-              address: rawStaff.profile?.address_line1,
+              address: (rawStaff.profile as any)?.address_line1,
               // Department and Ward are already objects, so they usually work fine
             };
 

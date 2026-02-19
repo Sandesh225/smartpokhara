@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 
 // Icons
 import { ShieldCheck, UserPlus, Building2, MapPin, Phone } from "lucide-react";
-import { CreateStaffInput } from "@/types/admin-staff";
+import { CreateStaffInput } from "@/features/staff/types";
 
 const schema = z.object({
   full_name: z.string().min(2, "Full name is required"),
@@ -37,8 +37,8 @@ const schema = z.object({
   ]),
   department_id: z.string().optional(),
   ward_id: z.string().optional(),
-  is_supervisor: z.boolean().default(false),
-  specializations: z.array(z.string()).default([]),
+  is_supervisor: z.boolean(),
+  specializations: z.array(z.string()),
 });
 
 interface StaffFormProps {
@@ -67,7 +67,7 @@ export function StaffForm({ departments, wards, onSubmit }: StaffFormProps) {
 
   return (
     <form
-      onSubmit={handleSubmit((data) => onSubmit(data as CreateStaffInput))}
+      onSubmit={handleSubmit((data) => onSubmit(data as any))}
       className="space-y-8"
     >
       {/* 1. Identity Section */}
