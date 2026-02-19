@@ -19,19 +19,9 @@ import { EmptyState } from "@/components/supervisor/shared/EmptyState";
 import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-
-interface Complaint {
-  id: string;
-  tracking_code: string;
-  title: string;
-  category: { name: string };
-  ward: { name: string; ward_number: number };
-  status: string;
-  priority: string;
-  assigned_staff: { full_name: string } | null;
-  submitted_at: string;
-  sla_due_at: string;
-}
+import { Complaint } from "@/features/complaints";
+import { memo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 interface ComplaintsTableViewProps {
   complaints: Complaint[];
@@ -41,13 +31,19 @@ interface ComplaintsTableViewProps {
   isLoading: boolean;
 }
 
-export function ComplaintsTableView({
+export const ComplaintsTableView = memo(function ComplaintsTableView({
   complaints,
   selectedIds,
   onSelect,
   onSelectAll,
   isLoading,
 }: ComplaintsTableViewProps) {
+  const router = useRouter();
+
+  const handleMouseEnter = useCallback((id: string) => {
+    router.prefetch(`/supervisor/complaints/${id}`);
+  }, [router]);
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-card/5 backdrop-blur-sm min-h-[400px]">
@@ -123,6 +119,7 @@ export function ComplaintsTableView({
             {complaints.map((complaint) => (
               <tr
                 key={complaint.id}
+                onMouseEnter={() => handleMouseEnter(complaint.id)}
                 className={cn(
                   "group transition-all duration-300 hover:bg-primary/[0.03] dark:hover:bg-primary/[0.07]",
                   selectedIds.includes(complaint.id)
@@ -167,10 +164,10 @@ export function ComplaintsTableView({
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-foreground/90">
                       <MapPin className="h-3 w-3 text-primary/50" />
-                      Ward {complaint.ward.ward_number}
+                      Ward {complaint.ward?.ward_number || "N/A"}
                     </div>
                     <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mt-0.5 ml-4.5">
-                      {complaint.category.name}
+                      {complaint.category?.name || "Uncategorized"}
                     </span>
                   </div>
                 </td>
@@ -195,14 +192,14 @@ export function ComplaintsTableView({
                   {complaint.assigned_staff ? (
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20 shadow-sm">
-                        {complaint.assigned_staff.full_name
+                        {(complaint.assigned_staff?.full_name || complaint.assigned_staff?.profile?.full_name || "?")
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
                       </div>
                       <div className="flex flex-col">
                         <span className="text-[11px] font-bold text-foreground/90">
-                          {complaint.assigned_staff.full_name}
+                          {complaint.assigned_staff?.full_name || complaint.assigned_staff?.profile?.full_name || "Unknown"}
                         </span>
                         <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">
                           Verified Agent
@@ -295,4 +292,4 @@ export function ComplaintsTableView({
       </div>
     </div>
   );
-}
+});
