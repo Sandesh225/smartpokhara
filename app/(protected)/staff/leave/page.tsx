@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { staffLeaveQueries } from "@/lib/supabase/queries/staff-leave";
+import { staffApi } from "@/features/staff";
 import {
   Plus,
   Calendar,
@@ -26,9 +26,9 @@ export default async function LeaveDashboardPage() {
 
   // 1. Fetch Fresh Data (Parallel)
   const [balance, activeRequests, historyRequests] = await Promise.all([
-    staffLeaveQueries.getMyBalance(supabase, user.id),
-    staffLeaveQueries.getActiveRequests(supabase, user.id),
-    staffLeaveQueries.getRequestHistory(supabase, user.id),
+    staffApi.getLeaveBalance(supabase, user.id),
+    staffApi.getActiveRequests(supabase, user.id),
+    staffApi.getRequestHistory(supabase, user.id),
   ]);
 
   // 2. Logic: Are we currently on an approved leave today?
@@ -64,7 +64,7 @@ export default async function LeaveDashboardPage() {
 
       {/* "On Leave" Banner */}
       {currentLeave && (
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-xl flex items-center gap-5 border-b-4 border-emerald-800/20">
+        <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white shadow-xl flex items-center gap-5 border-b-4 border-emerald-800/20">
           <div className="h-14 w-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
             <Palmtree className="h-8 w-8 text-white" />
           </div>

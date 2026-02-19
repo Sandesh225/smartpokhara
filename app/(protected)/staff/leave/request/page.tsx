@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { staffLeaveQueries } from "@/lib/supabase/queries/staff-leave";
+import { staffApi } from "@/features/staff/api";
 import { ArrowLeft, Calendar, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { parseISO, isBefore, differenceInDays } from "date-fns";
@@ -43,7 +43,7 @@ export default function LeaveRequestPage() {
       if (!user) throw new Error("Unauthorized");
 
       // 3. Submit Request
-      await staffLeaveQueries.requestLeave(supabase, {
+      await staffApi.requestLeave(supabase, {
         staffId: user.id,
         type: formData.type,
         startDate: formData.startDate,
