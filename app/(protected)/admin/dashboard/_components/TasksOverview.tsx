@@ -9,10 +9,10 @@ import {
   User,
   ArrowRight,
 } from "lucide-react";
-import { TaskSummary } from "@/types/admin";
+import { TaskSummary, DashboardTask } from "@/features/admin-dashboard/types";
 import { cn } from "@/lib/utils";
 
-export function TasksOverview({ tasks }: { tasks: TaskSummary[] }) {
+export function TasksOverview({ tasks }: { tasks: DashboardTask[] }) {
   return (
     <Card className="stone-card border-none  transition-all duration-300 hover:elevation-3">
       <CardHeader className="pb-4 border-b border-border/50">

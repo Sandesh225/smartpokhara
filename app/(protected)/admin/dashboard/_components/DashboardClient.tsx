@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useAdminDashboard } from "@/hooks/admin/useAdminDashboard";
-import { AdminDashboardData } from "@/lib/types/admin";
+import { useAdminDashboard } from "@/features/admin-dashboard";
+import { AdminDashboardData } from "@/features/admin-dashboard/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,7 +33,7 @@ const COLORS = {
 };
 
 export function DashboardClient({ initialData }: { initialData: AdminDashboardData }) {
-  const { data, loading, refresh } = useAdminDashboard(initialData);
+  const { data, isLoading: loading, refetch: refresh } = useAdminDashboard(initialData);
   const [trendRange, setTrendRange] = useState<"day" | "week" | "month">("week");
   const [isMounted, setIsMounted] = useState(false);
 
@@ -307,7 +307,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
             <PaymentCollectionStats data={data.paymentStats || []} />
           </div>
           <WardHeatmap data={data.wardStats || []} />
-          <WebsiteAnalytics data={data.websiteMetrics || []} />
+          <WebsiteAnalytics data={data.websiteAnalytics || []} />
         </TabsContent>
 
         {/* OPERATIONS TAB */}
