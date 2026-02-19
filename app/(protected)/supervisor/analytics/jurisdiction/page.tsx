@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { supervisorAnalyticsQueries } from "@/lib/supabase/queries/supervisor-analytics";
+import { supervisorApi } from "@/features/supervisor";
 
 import { CategoryDistribution } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/CategoryDistribution";
 import { HeatmapChart } from "./_components/_charts/HeatmapChart";
@@ -14,8 +14,8 @@ export default async function JurisdictionPage() {
 
   const supabase = await createClient();
   const [heatmapData, categoryData] = await Promise.all([
-    supervisorAnalyticsQueries.getWardHeatmapData(supabase),
-    supervisorAnalyticsQueries.getCategoryBreakdown(supabase),
+    supervisorApi.getWardHeatmapData(supabase),
+    supervisorApi.getCategoryBreakdown(supabase),
   ]);
 
   return (

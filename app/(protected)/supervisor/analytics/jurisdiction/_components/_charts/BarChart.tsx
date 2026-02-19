@@ -28,12 +28,12 @@ interface BarChartProps {
   showGrid?: boolean;
 }
 
-const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-xs">
         <p className="font-semibold text-gray-900 mb-2">{label}</p>
-        {payload.map((entry, index) => (
+        {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 mb-1 last:mb-0">
             <div
               className="w-2 h-2 rounded-sm"

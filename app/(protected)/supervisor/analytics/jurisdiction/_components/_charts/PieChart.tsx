@@ -23,7 +23,7 @@ interface PieChartProps {
   showLegend?: boolean;
 }
 
-const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     const total = payload[0].payload.payload?.total || 0;
@@ -87,7 +87,7 @@ export function PieChart({
             dataKey={dataKey}
             nameKey={nameKey}
           >
-            {enrichedData.map((entry, index) => (
+            {enrichedData.map((entry: any, index: number) => (
               <Cell
                 key={`cell-${index}`}
                 fill={colors[index % colors.length]}

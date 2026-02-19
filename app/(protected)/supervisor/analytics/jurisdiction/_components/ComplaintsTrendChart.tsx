@@ -1,9 +1,11 @@
+// app/(protected)/supervisor/analytics/jurisdiction/_components/ComplaintsTrendChart.tsx
 "use client";
 
 import { LineChart } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/_charts/LineChart";
 
 interface Props {
-  data: { date: string; total: number; resolved: number }[];
+  // FIX: Explicitly using 'count' to match the database/API return type
+  data: { date: string; count: number; resolved: number }[];
 }
 
 export function ComplaintsTrendChart({ data }: Props) {
@@ -21,7 +23,8 @@ export function ComplaintsTrendChart({ data }: Props) {
         data={data}
         xKey="date"
         series={[
-          { key: "total", name: "Received", color: "#3B82F6" },
+          // FIX: Use 'count' key instead of 'total'
+          { key: "count", name: "Received", color: "#3B82F6" },
           { key: "resolved", name: "Resolved", color: "#10B981" }
         ]}
         height={300}
