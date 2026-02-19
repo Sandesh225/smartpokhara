@@ -13,27 +13,27 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { StaffForm } from "../_components/StaffForm";
+import { staffApi, useStaffMutations } from "@/features/staff";
 
 export default function CreateStaffPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [departments, setDepartments] = useState([]);
-  const [wards, setWards] = useState([]);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const { createStaff } = useStaffMutations();
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [deptResult, wardResult] = await Promise.all([
-          supabase.from("departments").select("id, name").order("name"),
-          supabase
-            .from("wards")
-            .select("id, ward_number, name")
-            .order("ward_number"),
+        const [deptData, wardData] = await Promise.all([
+          staffApi.getDepartments(supabase),
+          staffApi.getWards(supabase)
         ]);
 
-        if (deptResult.data) setDepartments(deptResult.data);
-        if (wardResult.data) setWards(wardResult.data);
+        if (deptData) setDepartments(deptData);
+        if (wardData) setWards(wardData);
       } catch (err) {
         console.error("Error loading data:", err);
         toast.error("Failed to load form data");
@@ -46,45 +46,22 @@ export default function CreateStaffPage() {
 
   const handleSubmit = async (data: any) => {
     try {
-      // Get current user ID
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      // Call the updated RPC function with creator ID
-      const { data: result, error } = await supabase.rpc("rpc_register_staff", {
-        p_email: data.email,
-        p_full_name: data.full_name,
-        p_staff_role: data.staff_role,
-        p_phone: data.phone || null,
-        p_department_id: data.department_id || null,
-        p_ward_id: data.ward_id || null,
-        p_is_supervisor: data.is_supervisor,
-        p_specializations: data.specializations || null,
-        p_employment_date: null,
-        p_created_by: user?.id || null, // Add this line
-      });
-
-      if (error) throw error;
-
-      // Handle the response
-      if (result && !result.success) {
-        // User doesn't exist yet
-        if (result.requires_invitation) {
-          toast.warning(
-            `User ${data.email} needs to sign up first. They should create an account at /auth/signup, then you can assign their staff role.`,
-            { duration: 8000 }
-          );
-        } else {
-          throw new Error(result.message || "Registration failed");
-        }
-      } else {
-        toast.success("Staff member registered successfully!");
+        await createStaff.mutateAsync({
+            email: data.email,
+            full_name: data.full_name,
+            staff_role: data.staff_role,
+            phone: data.phone || null,
+            department_id: data.department_id || null,
+            ward_id: data.ward_id || null,
+            is_supervisor: data.is_supervisor,
+            specializations: data.specializations || null,
+        });
+        
+        // Success handling is in mutation hook, but we need redirect
         router.push("/admin/staff");
-      }
     } catch (err: any) {
-      console.error("Staff creation error:", err);
-      toast.error(err.message || "Failed to create staff member");
+        // Error handled in hook
+        console.error("Submission error", err);
     }
   };
   return (

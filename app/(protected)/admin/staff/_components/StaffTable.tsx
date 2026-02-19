@@ -4,7 +4,7 @@
 
 "use client";
 
-import { AdminStaffListItem } from "@/types/admin-staff";
+import { AdminStaffListItem } from "@/features/staff/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -215,7 +215,7 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
           <div key={staff.user_id} className="stone-card p-4 space-y-3">
             {/* Header */}
             <div className="flex items-start gap-3">
-              <Avatar className="h-12 w-12 border border-border flex-shrink-0">
+              <Avatar className="h-12 w-12 border border-border shrink-0">
                 <AvatarImage src={staff.avatar_url} />
                 <AvatarFallback className="bg-primary/10 text-primary font-bold">
                   {staff.full_name?.[0]?.toUpperCase() || "S"}
@@ -236,7 +236,7 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    className="flex-shrink-0"
+                    className="shrink-0"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>

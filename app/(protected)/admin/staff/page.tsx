@@ -4,7 +4,9 @@
 
 "use client";
 
-import { useStaffManagement } from "@/hooks/admin/useStaffManagement";
+import { useStaffList, useStaffMutations } from "@/features/staff";
+import { StaffFiltersState } from "@/features/staff/types";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,9 +35,23 @@ import { StaffTable } from "./_components/StaffTable";
 import { StaffWorkload } from "./_components/StaffWorkload";
 
 export default function StaffDirectoryPage() {
-  const { staffList, loading, filters, setFilters, deactivateStaff } =
-    useStaffManagement();
+  const [filters, setFilters] = useState<StaffFiltersState>({
+    search: "",
+    role: "all",
+    department_id: null,
+    ward_id: null,
+    status: "active",
+  });
+
+  const { data: staffList = [], isLoading: loading } = useStaffList(filters);
   const router = useRouter();
+  const { updateStaff } = useStaffMutations();
+
+  const handleDeactivate = (id: string) => {
+      if (confirm("Are you sure you want to deactivate?")) {
+          updateStaff.mutate({ id, updates: { is_active: false } });
+      }
+  }
 
   const stats = useMemo(
     () => ({
@@ -49,6 +65,12 @@ export default function StaffDirectoryPage() {
     }),
     [staffList]
   );
+  
+  // NOTE: Role based scoping (e.g. Dept Head only seeing own staff) 
+  // needs to be handled either by passing initial filters or by server-side RLS/API logic.
+  // Ideally, useStaffList hook should handle this if we pass current user context, 
+  // or we set the initial state of filters based on user role here.
+  // For now, assuming admin view or filters handle it.
 
   return (
     <div className="space-y-4 md:space-y-6 lg:space-y-8 pb-8 md:pb-10 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
@@ -168,7 +190,7 @@ export default function StaffDirectoryPage() {
 
               {/* Filters */}
               <div className="flex w-full md:w-auto gap-2 items-center">
-                <Filter className="w-4 h-4 text-muted-foreground hidden md:block flex-shrink-0" />
+                <Filter className="w-4 h-4 text-muted-foreground hidden md:block shrink-0" />
 
                 <Select
                   value={filters.role || "all"}
@@ -211,7 +233,7 @@ export default function StaffDirectoryPage() {
           <StaffTable
             data={staffList}
             loading={loading}
-            onDeactivate={deactivateStaff}
+            onDeactivate={handleDeactivate}
           />
         </div>
 
@@ -219,7 +241,7 @@ export default function StaffDirectoryPage() {
         <div className="space-y-4 md:space-y-6">
           <StaffWorkload />
 
-          <Card className="stone-card bg-gradient-to-br from-primary/5 to-background border-primary/20">
+          <Card className="stone-card bg-linear-to-br from-primary/5 to-background border-primary/20">
             <CardContent className="p-4 md:p-5">
               <h3 className="font-bold text-sm md:text-base text-foreground mb-2">
                 Optimize Shifts
