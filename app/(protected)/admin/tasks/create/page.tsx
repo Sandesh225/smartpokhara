@@ -4,27 +4,29 @@
 
 "use client";
 import { CreateTaskForm } from "../_components/CreateTaskForm";
-import { useTaskManagement } from "@/hooks/admin/useTaskManagement";
+import { useTaskMutations } from "@/features/tasks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { adminStaffQueries } from "@/lib/supabase/queries/admin/staff";
+import { staffApi } from "@/features/staff";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CreateTaskPage() {
-  const { createTask } = useTaskManagement();
+  const { createTask } = useTaskMutations();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     async function loadStaff() {
       try {
-        const data = await adminStaffQueries.getStaffForSelection(supabase);
-        setStaff(data);
+        const data = await staffApi.getStaffForSelection(supabase);
+        setStaff(data as any);
       } catch (err: any) {
         toast.error("Failed to load staff list");
       } finally {
@@ -60,7 +62,13 @@ export default function CreateTaskPage() {
               </p>
             </div>
           ) : (
-            <CreateTaskForm staffList={staff} onSubmit={createTask} />
+            <CreateTaskForm 
+              staffList={staff} 
+              onSubmit={async (data) => {
+                await createTask.mutateAsync(data);
+                router.push("/admin/tasks");
+              }} 
+            />
           )}
         </CardContent>
       </Card>

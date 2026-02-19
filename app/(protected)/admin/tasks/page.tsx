@@ -3,7 +3,8 @@
 // ═══════════════════════════════════════════════════════════
 
 "use client";
-import { useTaskManagement } from "@/hooks/admin/useTaskManagement";
+import { useTasks, useOverdueTasksCount, useTaskMutations } from "@/features/tasks";
+import { useState } from "react";
 import { TasksTable } from "./_components/TasksTable";
 import { OverdueTasksAlert } from "./_components/OverdueTasksAlert";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,30 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 
 export default function TasksPage() {
-  const { tasks, overdueCount, filters, setFilters, updateStatus, deleteItem } =
-    useTaskManagement();
+  const [filters, setFilters] = useState({ search: "", showOverdueOnly: false });
+  
+  const { 
+    data: tasksData, 
+    isLoading: loading 
+  } = useTasks({ 
+    search: filters.search,
+    scope: filters.showOverdueOnly ? "overdue" : "all"
+  });
+
+  const { data: overdueCount = 0 } = useOverdueTasksCount();
+  const { updateTask, deleteTask } = useTaskMutations();
+
+  const tasks = tasksData?.data || [];
+
+  const handleStatusChange = (id: string, status: any) => {
+    updateTask.mutate({ id, updates: { status } });
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure?")) {
+      deleteTask.mutate(id);
+    }
+  };
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 sm:px-4 lg:px-6 py-4 md:py-6">
@@ -56,9 +79,9 @@ export default function TasksPage() {
 
       {/* TASKS TABLE */}
       <TasksTable
-        data={tasks}
-        onStatusChange={updateStatus}
-        onDelete={deleteItem}
+        data={tasks as any}
+        onStatusChange={handleStatusChange}
+        onDelete={handleDelete}
       />
     </div>
   );
