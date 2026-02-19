@@ -1,5 +1,5 @@
 "use client";
-import { useComplaintManagement } from "@/hooks/admin/useComplaintManagement";
+import { useComplaintManagement } from "@/features/complaints";
 import { useEffect } from "react";
 
 export default function BulkAssignPage() {

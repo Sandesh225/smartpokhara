@@ -1,6 +1,6 @@
 "use client";
 import { ComplaintMapView } from "../_components/ComplaintMapView";
-import { useComplaintManagement } from "@/hooks/admin/useComplaintManagement";
+import { useComplaintManagement } from "@/features/complaints";
 
 export default function MapPage() {
   const { complaints } = useComplaintManagement();
