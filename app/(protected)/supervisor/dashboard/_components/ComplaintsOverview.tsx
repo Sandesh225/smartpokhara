@@ -1,6 +1,6 @@
 "use client";
 
-import { useThemeMode } from "flowbite-react"; // Or your preferred theme hook
+import { useTheme } from "next-themes";
 import { PieChart } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/_charts/PieChart";
 import { BarChart } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/_charts/BarChart";
 import { LineChart } from "@/app/(protected)/supervisor/analytics/jurisdiction/_components/_charts/LineChart";
@@ -43,8 +43,8 @@ export function ComplaintsOverview({
   categoryData,
   trendData,
 }: OverviewProps) {
-  const { mode } = useThemeMode();
-  const isDark = mode === "dark";
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   const hasStatusData = statusData && statusData.length > 0;
   const hasTrendData = trendData && trendData.length > 0;

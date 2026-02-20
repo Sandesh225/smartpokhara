@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Drawer, Badge, Button } from "flowbite-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Filter, LayoutGrid, Database, X, Search } from "lucide-react";
 import { ComplaintsFilters } from "./ComplaintsFilters";
 import { ComplaintsTableView } from "./ComplaintsTableView";
@@ -104,8 +111,7 @@ export function ComplaintsContent({
                     Infrastructure Grid
                   </h2>
                   <Badge
-                    color="gray"
-                    size="sm"
+                    variant="outline"
                     className="rounded-md font-mono"
                   >
                     {complaints.length} OBJECTS LOADED
@@ -113,15 +119,15 @@ export function ComplaintsContent({
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
-                    size="xs"
-                    color="gray"
+                    variant="outline"
+                    size="sm"
                     className="rounded-lg border-border/50"
                   >
                     Export
                   </Button>
                   <Button
-                    size="xs"
-                    color="gray"
+                    variant="outline"
+                    size="sm"
                     className="rounded-lg border-border/50"
                   >
                     Print
@@ -151,45 +157,37 @@ export function ComplaintsContent({
       </div>
 
       {/* 🌫️ Mobile Drawer */}
-      <Drawer
-        open={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        position="right"
-        className="bg-background/95 backdrop-blur-2xl w-80 p-0 border-l border-border/50"
-      >
-        <div className="p-5 flex items-center justify-between border-b border-border/30 bg-primary/5">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-primary" />
-            <span className="text-xs font-black uppercase tracking-widest text-foreground">
-              Filter Records
-            </span>
+      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <SheetContent side="right" className="bg-background/95 backdrop-blur-2xl w-80 p-0 border-l border-border/50">
+          <div className="p-5 flex items-center justify-between border-b border-border/30 bg-primary/5">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-primary" />
+              <SheetTitle className="text-xs font-black uppercase tracking-widest text-foreground">
+                Filter Records
+              </SheetTitle>
+            </div>
+            {/* The X button is built into SheetContent Close */}
           </div>
-          <button
-            onClick={() => setIsDrawerOpen(false)}
-            className="p-2 hover:bg-destructive/10 rounded-xl text-muted-foreground hover:text-destructive transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        <div className="p-6 flex flex-col gap-8 overflow-y-auto h-[calc(100vh-70px)] custom-scrollbar">
-          <JurisdictionCard jurisdiction={jurisdiction} />
-          <div>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Search className="h-3 w-3" /> Search & Filter
-            </p>
-            <ComplaintsFilters
-              filters={filters}
-              onChange={(key, value) =>
-                setFilters((prev) => ({ ...prev, [key]: value }))
-              }
-              onClear={() => {}}
-              wards={wards}
-              categories={categories}
-            />
+          <div className="p-6 flex flex-col gap-8 overflow-y-auto h-[calc(100vh-70px)] custom-scrollbar">
+            <JurisdictionCard jurisdiction={jurisdiction} />
+            <div>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
+                <Search className="h-3 w-3" /> Search & Filter
+              </p>
+              <ComplaintsFilters
+                filters={filters}
+                onChange={(key, value) =>
+                  setFilters((prev) => ({ ...prev, [key]: value }))
+                }
+                onClear={() => {}}
+                wards={wards}
+                categories={categories}
+              />
+            </div>
           </div>
-        </div>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

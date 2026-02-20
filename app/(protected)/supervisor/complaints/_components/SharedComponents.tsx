@@ -1,7 +1,7 @@
 "use client";
 
 import { ShieldCheck, Database, AlertCircle, RefreshCcw } from "lucide-react";
-import { Button } from "flowbite-react";
+import { Button } from "@/components/ui/button";
 
 export function JurisdictionCard({ jurisdiction }: { jurisdiction: any }) {
   return (
@@ -81,7 +81,7 @@ export function ErrorState({
       </p>
       <Button
         onClick={onRetry}
-        className="bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl accent-glow border-none px-6"
+        className="rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl accent-glow border-none px-6"
       >
         <RefreshCcw className="mr-2 h-3.5 w-3.5" /> Reconnect Terminal
       </Button>
