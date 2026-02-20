@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { UnifiedSidebar } from "./UnifiedSidebar";
 import { UnifiedHeader } from "./UnifiedHeader";
+import { DashboardFooter } from "./DashboardFooter";
 import { ROLE_NAVIGATION } from "@/lib/config/navigation";
 import { DashboardType } from "@/lib/types/auth";
 
@@ -43,6 +44,9 @@ export function UnifiedShell({ user, dashboardType, counts, children }: Props) {
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-8">
           <div className="max-w-[1600px] mx-auto pb-20">
             {children}
+            <div className="mt-8">
+              <DashboardFooter />
+            </div>
           </div>
         </main>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { TRUST_INDICATORS } from "@/lib/constants";
 
@@ -67,22 +68,24 @@ export const HeroSection = () => {
 
           {/* Primary CTAs */}
           <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 sm:gap-4 mb-12 sm:mb-16 md:mb-20 px-4 sm:px-0">
-            <button
-              className="group relative h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold bg-primary dark:bg-primary/90 text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary rounded-full shadow-lg shadow-primary/20 dark:shadow-primary/30 hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
+            <Link
+              href="/citizen/complaints/new"
+              className="group relative h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold bg-primary dark:bg-primary/90 text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary rounded-full shadow-lg shadow-primary/20 dark:shadow-primary/30 hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden flex items-center justify-center"
               aria-label="Report an issue to the municipality"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 Report an Issue
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </span>
-            </button>
+            </Link>
 
-            <button
-              className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold border-2 border-border dark:border-border/50 text-foreground dark:text-foreground/90 bg-background/50 dark:bg-card/50 backdrop-blur hover:bg-accent dark:hover:bg-accent/80 hover:border-primary dark:hover:border-primary/70 rounded-full transition-all duration-300 hover:scale-105 shadow-sm"
+            <Link
+              href="/citizen/complaints"
+              className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-bold border-2 border-border dark:border-border/50 text-foreground dark:text-foreground/90 bg-background/50 dark:bg-card/50 backdrop-blur hover:bg-accent dark:hover:bg-accent/80 hover:border-primary dark:hover:border-primary/70 rounded-full transition-all duration-300 hover:scale-105 shadow-sm flex items-center justify-center"
               aria-label="Track your application status"
             >
               Track Application
-            </button>
+            </Link>
           </div>
 
           {/* Trust Indicators - Pulled from @/lib/constants */}
