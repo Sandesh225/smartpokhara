@@ -70,7 +70,7 @@ export default function RegisterPage() {
             }}
           />
           {/* Gradient Overlay - Better in new color scheme */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-secondary/50 to-transparent dark:from-card/95 dark:via-secondary/40 dark:to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-br from-primary/80 via-secondary/50 to-transparent dark:from-card/95 dark:via-secondary/40 dark:to-transparent" />
         </div>
 
         {/* Floating Content */}
