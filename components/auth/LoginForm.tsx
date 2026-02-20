@@ -17,6 +17,9 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { getDefaultDashboardPath } from "@/lib/auth/role-helpers";
 import type { CurrentUser } from "@/lib/types/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const router = useRouter();
@@ -121,15 +124,10 @@ export function LoginForm() {
     >
       {/* Email Field */}
       <div className="space-y-2">
-        <label
-          htmlFor="email"
-          className="block text-sm font-semibold text-foreground dark:text-foreground/95"
-        >
-          Email Address
-        </label>
+        <Label htmlFor="email">Email Address</Label>
         <div className="relative group">
           <div
-            className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
+            className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-all duration-200 z-10 ${
               emailFocused || email
                 ? "text-primary dark:text-primary/90"
                 : "text-muted-foreground dark:text-muted-foreground/80"
@@ -137,7 +135,7 @@ export function LoginForm() {
           >
             <Mail className="h-5 w-5" />
           </div>
-          <input
+          <Input
             id="email"
             type="email"
             required
@@ -146,25 +144,23 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             onFocus={() => setEmailFocused(true)}
             onBlur={() => setEmailFocused(false)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
+            className={`pl-10 ${
               emailError && !emailFocused
-                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
-                : email && !emailError
-                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
-                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
+                ? "border-destructive focus-visible:ring-destructive"
+                : ""
             }`}
             placeholder="name@example.com"
           />
           {email && !emailError && !emailFocused && (
-            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary dark:text-secondary/90" />
+            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary dark:text-secondary/90" />
           )}
           {emailError && !emailFocused && (
-            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500 dark:text-red-400" />
+            <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-destructive" />
           )}
         </div>
         {emailError && !emailFocused && (
-          <p className="text-xs text-red-500 dark:text-red-400 ml-1 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-            <span className="inline-block w-1 h-1 rounded-full bg-red-500 dark:bg-red-400" />
+          <p className="text-xs text-destructive ml-1 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
             {emailError}
           </p>
         )}
@@ -173,12 +169,7 @@ export function LoginForm() {
       {/* Password Field */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <label
-            htmlFor="password"
-            className="block text-sm font-semibold text-foreground dark:text-foreground/95"
-          >
-            Password
-          </label>
+          <Label htmlFor="password">Password</Label>
           <Link
             href="/forgot-password"
             className="text-xs font-medium text-primary dark:text-primary/90 hover:text-secondary dark:hover:text-secondary/90 transition-colors hover:underline"
@@ -188,7 +179,7 @@ export function LoginForm() {
         </div>
         <div className="relative group">
           <div
-            className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
+            className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-all duration-200 z-10 ${
               passwordFocused || password
                 ? "text-primary dark:text-primary/90"
                 : "text-muted-foreground dark:text-muted-foreground/80"
@@ -196,7 +187,7 @@ export function LoginForm() {
           >
             <Lock className="h-5 w-5" />
           </div>
-          <input
+          <Input
             id="password"
             type={showPassword ? "text" : "password"}
             required
@@ -205,50 +196,50 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             onFocus={() => setPasswordFocused(true)}
             onBlur={() => setPasswordFocused(false)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
+            className={`pl-10 pr-10 ${
               passwordError && !passwordFocused
-                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
-                : password && !passwordError
-                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
-                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
+                ? "border-destructive focus-visible:ring-destructive"
+                : ""
             }`}
             placeholder="Enter your password"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground dark:text-muted-foreground/80 hover:text-primary dark:hover:text-primary/90 transition-colors rounded-lg hover:bg-accent dark:hover:bg-accent/80"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-primary transition-colors rounded-lg"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
-              <EyeOff className="h-5 w-5" />
+              <EyeOff className="h-4 w-4" />
             ) : (
-              <Eye className="h-5 w-5" />
+              <Eye className="h-4 w-4" />
             )}
           </button>
         </div>
         {passwordError && !passwordFocused && (
-          <p className="text-xs text-red-500 dark:text-red-400 ml-1 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-            <span className="inline-block w-1 h-1 rounded-full bg-red-500 dark:bg-red-400" />
+          <p className="text-xs text-destructive ml-1 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
             {passwordError}
           </p>
         )}
       </div>
 
       {/* Submit Button */}
-        <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-primary dark:bg-primary/90 hover:bg-primary/90 dark:hover:bg-primary py-3.5 text-primary-foreground font-semibold transition-all active:scale-[0.98] shadow-lg shadow-primary/20 dark:shadow-primary/30 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-lg mt-2"
-            >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  Sign in <ArrowRight className="h-4 w-4" />
-                </span>
-              )}
-            </button>
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        disabled={loading}
+        className="w-full font-semibold"
+        size="lg"
+      >
+        {loading ? (
+          <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+        ) : (
+          <span className="flex items-center justify-center gap-2">
+            Sign in <ArrowRight className="h-4 w-4" />
+          </span>
+        )}
+      </Button>
 
       {/* Divider */}
       <div className="relative py-4">

@@ -7,6 +7,7 @@ import { ChevronDown, X, Shield, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/lib/config/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   user: any;
@@ -39,9 +40,9 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
             </span>
           </div>
         </Link>
-        <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-muted-foreground hover:bg-accent rounded-xl">
+        <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="lg:hidden">
           <X className="h-5 w-5" />
-        </button>
+        </Button>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2 custom-scrollbar">

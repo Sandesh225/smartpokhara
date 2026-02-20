@@ -68,7 +68,7 @@ export default function LoginPage() {
             }}
           />
           {/* Gradient Overlay - Better in new color scheme */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/50 to-transparent dark:from-card/95 dark:via-primary/40 dark:to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-br from-primary/80 via-primary/50 to-transparent dark:from-card/95 dark:via-primary/40 dark:to-transparent" />
         </div>
 
         {/* Floating Content */}
