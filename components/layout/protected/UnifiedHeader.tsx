@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Menu, Search, Bell, LogOut, Moon, Sun, User, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from "next-themes";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { getUserDisplayName } from "@/lib/auth/role-helpers";
 import { toast } from "sonner";
 import { NotificationDropdown } from "@/components/shared/NotificationDropdown";
@@ -22,14 +22,8 @@ interface Props {
 export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificationCount }: Props) {
   const router = useRouter();
   const supabase = createClient();
-  const { theme, setTheme } = useTheme();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const displayName = getUserDisplayName(user);
 
@@ -37,10 +31,6 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
   };
 
   return (
@@ -58,9 +48,7 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={toggleTheme} className="text-muted-foreground">
-             {mounted ? (theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : <Sun className="h-4 w-4" />}
-          </Button>
+          <ThemeToggle />
 
           <div className="relative">
             <Button 

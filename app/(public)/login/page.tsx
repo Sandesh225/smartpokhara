@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { ArrowLeft, Landmark } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function LoginPage() {
   return (
@@ -11,13 +12,16 @@ export default function LoginPage() {
         <div className="mx-auto w-full max-w-sm lg:w-96 space-y-8">
           {/* Header & Logo */}
           <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground/90 hover:text-primary dark:hover:text-primary/90 transition-colors mb-6 group"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-              Back to Home
-            </Link>
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground/90 hover:text-primary dark:hover:text-primary/90 transition-colors group"
+              >
+                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                Back to Home
+              </Link>
+              <ThemeToggle />
+            </div>
 
             <div>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground dark:text-foreground/95 mb-2">
