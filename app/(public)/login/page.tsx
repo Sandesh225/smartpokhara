@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { ArrowLeft, Landmark } from "lucide-react";
@@ -29,7 +30,9 @@ export default function LoginPage() {
           </div>
 
           {/* Form Component */}
-          <LoginForm />
+          <Suspense fallback={<div className="flex justify-center py-10"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}>
+            <LoginForm />
+          </Suspense>
 
           {/* Footer */}
           <div className="text-center text-xs text-muted-foreground dark:text-muted-foreground/80 mt-8 leading-relaxed border-t border-border dark:border-border/50 pt-6">

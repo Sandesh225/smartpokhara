@@ -26,7 +26,7 @@ export function ComplaintAttachments({
   const [uploading, setUploading] = useState(false);
   const supabase = createClient();
 
-  const formatFileSize = (bytes: number | null) => {
+  const formatFileSize = (bytes: number | null | undefined) => {
     if (!bytes) return "Unknown";
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -158,7 +158,7 @@ function AttachmentCard({
   index,
 }: {
   attachment: ComplaintAttachment;
-  formatFileSize: (bytes: number | null) => string;
+  formatFileSize: (bytes: number | null | undefined) => string;
   index: number;
 }) {
   const isImage =
@@ -193,7 +193,7 @@ function AttachmentCard({
           <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
             <span>{formatFileSize(attachment.file_size_bytes)}</span>
             <span>•</span>
-            <span>{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
+            <span>{attachment.uploaded_at ? new Date(attachment.uploaded_at).toLocaleDateString() : 'Unknown'}</span>
           </div>
         </div>
 

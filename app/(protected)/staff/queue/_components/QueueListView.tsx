@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { ArrowRight, User } from "lucide-react";
-import { StatusBadge } from "@/components/staff/shared/StatusBadge";
-import { PriorityBadge } from "@/components/staff/shared/PriorityBadge";
-import { CountdownTimer } from "@/components/staff/shared/CountdownTimer";
-import { DistanceIndicator } from "@/components/staff/shared/DistanceIndicator";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
+import { CountdownTimer } from "@/components/shared/CountdownTimer";
+import { DistanceIndicator } from "@/components/shared/DistanceIndicator";
 import { cn } from "@/lib/utils";
 
 interface QueueItem {
@@ -60,7 +60,7 @@ export function QueueListView({ items, showAssignee = false }: QueueListViewProp
                       )}>
                         {item.tracking_code}
                       </span>
-                      <PriorityBadge priority={item.priority} />
+                      <PriorityIndicator priority={item.priority} size="sm" />
                     </div>
                     <span className="font-medium text-gray-900">{item.title}</span>
                     <span className="text-xs text-gray-500">{item.category}</span>

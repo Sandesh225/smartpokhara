@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { COMPLAINT_KEYS } from "./useComplaints";
+import { COMPLAINT_KEYS } from "./useComplaint";
 import { toast } from "sonner";
 
 export function useComplaintRealtime() {

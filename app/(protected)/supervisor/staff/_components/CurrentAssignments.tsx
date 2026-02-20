@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { SLACountdown } from "@/components/supervisor/shared/SLACountdown";
 import { formatDistanceToNow } from "date-fns";

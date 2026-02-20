@@ -76,6 +76,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
             <InternalNotes
               complaintId={complaint.id}
               initialNotes={internalNotes}
+              currentUserId={user.id}
             />
           </section>
 

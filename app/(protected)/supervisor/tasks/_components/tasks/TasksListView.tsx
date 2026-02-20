@@ -4,7 +4,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Eye, Edit2, CheckSquare } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 import { SLACountdown } from "@/components/supervisor/shared/SLACountdown";
 
 import { ProjectTask } from "@/features/tasks/types";

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { complaintsApi } from "../api";
 import { CreateComplaintData, ComplaintStatus } from "../types";
-import { COMPLAINT_KEYS } from "./useComplaints";
+import { COMPLAINT_KEYS } from "./useComplaint";
 
 export function useCreateComplaint() {
   const supabase = createClient();

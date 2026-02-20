@@ -10,7 +10,7 @@ import {
 import { ScheduleCalendar } from "@/app/(protected)/staff/schedule/_components/ScheduleCalendar";
 import { DayScheduleView } from "@/app/(protected)/staff/schedule/_components/DayScheduleView";
 import { UpcomingTasksList } from "@/app/(protected)/staff/schedule/_components/UpcomingTasksList";
-import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 
 export default function SchedulePage() {

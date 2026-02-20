@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { messagesApi } from "@/features/messages";
+import { UniversalMessaging } from "@/components/complaints/shared/UniversalMessaging";
 import { Send, User, Loader2, PlusCircle, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -205,68 +206,22 @@ export default function StaffMessagesPage() {
 
       {/* Chat Thread */}
       <div className="flex-1 flex flex-col bg-white min-w-0">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-10">
-          <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
-            <User className="h-4 w-4" />
-          </div>
-          <div>
-            <h2 className="font-bold text-gray-900 text-sm">
-              {activeConversation?.otherUserName}
-            </h2>
-            <p className="text-xs text-green-600 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Online
-            </p>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30">
-          {messages.map((msg) => {
-            const isMe = msg.senderId === userId;
-            return (
-              <div
-                key={msg.id}
-                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
-                    isMe
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm"
-                  }`}
-                >
-                  <p>{msg.content}</p>
-                  <p
-                    className={`text-[10px] mt-1 text-right ${isMe ? "text-blue-200" : "text-gray-400"}`}
-                  >
-                    {format(new Date(msg.createdAt), "h:mm a")}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-          <div ref={scrollRef} />
-        </div>
-
-        {/* Input */}
-        <form
-          onSubmit={handleSend}
-          className="p-3 border-t border-gray-100 flex gap-2"
-        >
-          <input
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-          />
-          <button
-            disabled={!inputText.trim()}
-            className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-md"
-          >
-            <Send className="h-5 w-5" />
-          </button>
-        </form>
+        {activeChatId ? (
+             <UniversalMessaging
+                channelType="DIRECT_MESSAGE"
+                channelId={activeChatId}
+                currentUserId={userId}
+                currentUserRole="staff"
+                variant="default"
+                title={activeConversation?.otherUserName || "Chat"}
+                subtitle={activeConversation?.lastMessage ? "Active Conversation" : "Start chatting"}
+                className="h-full border-0 shadow-none rounded-none"
+             />
+        ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+                Select a conversation to start chatting
+            </div>
+        )}
       </div>
     </div>
   );

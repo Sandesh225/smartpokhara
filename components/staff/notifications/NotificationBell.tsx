@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/ui/dropdown";
+} from "@/components/ui/dropdown-menu";
 
 interface Notification {
   id: string;

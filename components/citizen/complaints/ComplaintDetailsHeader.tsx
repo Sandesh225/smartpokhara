@@ -1,7 +1,7 @@
 "use client";
 
-import { ComplaintStatusBadge } from "./ComplaintStatusBadge";
-import { PriorityBadge as ComplaintPriorityBadge } from "@/components/staff/shared/PriorityBadge";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 import { MapPin, Tag } from "lucide-react";
 
 interface ComplaintDetailsHeaderProps {
@@ -30,11 +30,11 @@ export function ComplaintDetailsHeader({
             {/* Title and Badges */}
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-3">
-                <ComplaintStatusBadge
+                <StatusBadge
                   status={complaint.status as any}
-                  size="lg"
+                  variant="complaint"
                 />
-                <ComplaintPriorityBadge
+                <PriorityIndicator
                   priority={complaint.priority as any}
                 />
               </div>

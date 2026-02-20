@@ -12,6 +12,13 @@ export default async function CreateTaskPage() {
 
   const supabase = await createClient();
   const staff = await supervisorApi.getSupervisedStaff(supabase, user.id);
+  const managedStaff = staff.map(s => ({
+    ...s,
+    staff_code: s.staff_code || undefined,
+    department_id: s.department_id || undefined,
+    ward_id: s.ward_id || undefined,
+    avatar_url: s.avatar_url || undefined,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -19,7 +26,7 @@ export default async function CreateTaskPage() {
         <h1 className="text-2xl font-bold text-gray-900">Create New Task</h1>
         <p className="text-sm text-gray-500">Assign work to your team members.</p>
       </div>
-      <TaskCreationForm supervisedStaff={staff} supervisorId={user.id} />
+      <TaskCreationForm supervisedStaff={managedStaff} supervisorId={user.id} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Clock, MapPin } from "lucide-react";
-import { PriorityIndicator } from "@/components/staff/shared/PriorityIndicator";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 
 interface Props {
   date: Date;

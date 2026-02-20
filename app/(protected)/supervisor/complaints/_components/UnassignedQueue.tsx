@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { UserPlus, Filter } from "lucide-react";
 import { ComplaintsTableView } from "@/app/(protected)/supervisor/complaints/_components/ComplaintsTableView";
-import { StaffSelectionModal } from "@/components/supervisor/modals/StaffSelectionModal";
+import { UniversalAssignmentModal } from "@/components/supervisor/modals/UniversalAssignmentModal";
 import { BulkActionsBar } from "@/app/(protected)/supervisor/complaints/_components/BulkActionsBar";
 import { complaintsApi } from "@/features/complaints";
 import { supervisorApi } from "@/features/supervisor";
 import { subscribeToComplaints } from "@/features/complaints/realtime/complaintsSubscription";
 import { notifyStaffOfAssignment } from "@/lib/utils/notification-helpers";
-import { getSuggestedStaff } from "@/lib/utils/assignment-helpers";
+import { getSuggestedStaff } from "@/lib/utils/complaint-logic";
 import type { AssignableStaff } from "@/lib/types/supervisor.types";
 import { createClient } from "@/lib/supabase/client";
 
@@ -191,18 +191,22 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
         onResolve={() => {}}
       />
 
-      <StaffSelectionModal
+      <UniversalAssignmentModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         onAssign={handleAssign}
-        // @ts-ignore - Fixing type mismatch for staff_code null vs undefined
-        staffList={staffList.map(s => ({...s, staff_code: s.staff_code || undefined}))}
+        staffList={staffList.map(s => ({
+            ...s, 
+            full_name: s.full_name || "Unknown Staff",
+            staff_code: s.staff_code || undefined
+        }))}
         complaintTitle={
           activeComplaintId
             ? complaints.find((c) => c.id === activeComplaintId)?.title ||
               "Complaint"
             : `${selectedIds.length} Selected Complaints`
         }
+        isReassign={false}
       />
     </div>
   );

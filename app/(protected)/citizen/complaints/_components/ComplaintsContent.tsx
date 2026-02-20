@@ -295,6 +295,9 @@ export function ComplaintsContent({
                     setPage(p);
                     updateParams({ page: p.toString() });
                   }}
+                  onSortChange={(column, order) => {
+                    updateParams({ sortBy: column, sortOrder: order });
+                  }}
                 />
              )}
           </AnimatePresence>

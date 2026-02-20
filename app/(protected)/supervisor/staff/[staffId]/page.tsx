@@ -35,27 +35,16 @@ export default async function StaffDetailPage({ params }: PageProps) {
   // attendance is from attendanceOverview now
   const attendance = attendanceOverview;
 
-  // 2. Normalize Assignments
-  const unifiedAssignments = [
-    ...(assignmentsData.complaints || []).map((c: any) => ({
-      id: c.id,
-      type: "complaint" as const,
-      label: c.tracking_code,
-      title: c.title,
-      priority: c.priority,
-      status: c.status,
-      deadline: c.sla_due_at,
-    })),
-    ...(assignmentsData.tasks || []).map((t: any) => ({
-      id: t.id,
-      type: "task" as const,
-      label: t.tracking_code,
-      title: t.title,
-      priority: t.priority,
-      status: t.status,
-      deadline: t.due_date,
-    })),
-  ];
+  // 2. Map Assignments
+  const unifiedAssignments = assignmentsData.map((a: any) => ({
+      id: a.id,
+      type: a.type,
+      label: a.tracking_code,
+      title: a.title,
+      priority: a.priority,
+      status: a.status,
+      deadline: a.due_at,
+  }));
 
   // 3. Server Actions for Leave
   async function handleLeaveAction(leaveId: string, action: "approve" | "reject") {
@@ -78,7 +67,7 @@ export default async function StaffDetailPage({ params }: PageProps) {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{profile.full_name}</h1>
-          <p className="text-sm text-gray-500">{profile.ward_name || "HQ"} • {profile.staff_code}</p>
+          <p className="text-sm text-gray-500">{(profile as any).ward_name || (profile.ward_id ? `Ward ${profile.ward_id}` : "HQ")} • {profile.staff_code}</p>
         </div>
       </div>
 
@@ -107,7 +96,7 @@ export default async function StaffDetailPage({ params }: PageProps) {
                   {attendance.attendance.check_out_time ? "Shift Completed" : "On Duty"}
                 </p>
                 <p className="text-emerald-600 text-xs mt-1">
-                  Checked in at {format(new Date(attendance.attendance.check_in_time), "h:mm a")}
+                  Checked in at {attendance.attendance.check_in_time ? format(new Date(attendance.attendance.check_in_time), "h:mm a") : "--:--"}
                 </p>
               </div>
             ) : (

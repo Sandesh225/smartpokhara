@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Calendar, User, MapPin, Plus, Trash2, Save, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { tasksApi } from "@/features/tasks/api";
-import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { toast } from "sonner";
 import type { ManagedStaffMember } from "@/features/supervisor/types";
 
@@ -23,7 +23,7 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("preventive_maintenance");
-  const [priority, setPriority] = useState("medium");
+  const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
   const [assignedTo, setAssignedTo] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [wardId, setWardId] = useState(""); // Simplified for demo, could be select
@@ -113,7 +113,7 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
             <select 
               value={priority}
-              onChange={(e) => setPriority(e.target.value)}
+              onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high" | "urgent")}
               className="w-full p-2.5 border border-gray-300 rounded-lg bg-white"
             >
               <option value="low">Low</option>

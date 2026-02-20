@@ -208,7 +208,8 @@ export const staffApi = {
     // 3. If they HAVE checked out, check if that log was from "Today" (Local Time)
     // en-CA format yields YYYY-MM-DD exactly according to local timezone
     const todayLocal = new Date().toLocaleDateString('en-CA');
-    const logDateLocal = new Date(data.check_in_time).toLocaleDateString('en-CA');
+    if (!data.check_in_time) return null;
+    const logDateLocal = new Date(data.check_in_time as string).toLocaleDateString('en-CA');
 
     if (todayLocal === logDateLocal) {
       // Shift completed for today
@@ -444,8 +445,8 @@ export const staffApi = {
       `)
       .eq("is_active", true);
 
-    if (filters?.role && filters.role !== 'all') query = query.eq("staff_role", filters.role);
-    if (filters?.department_id) query = query.eq("department_id", filters.department_id);
+    if (filters?.role && filters.role !== 'all') query = query.eq("staff_role", filters.role as any);
+    if (filters?.department_id) query = query.eq("department_id", filters.department_id as any);
     if (filters?.ward_id) query = query.eq("ward_id", filters.ward_id);
 
     const { data, error } = await query;
@@ -849,14 +850,14 @@ export const staffApi = {
   },
 
   async broadcastMessage(client: SupabaseClient<Database>, payload: { senderId: string; title: string; body: string; recipients: string[]; urgency?: string; isScheduled?: boolean; }) {
-    const { data, error } = await client
+    const { data, error } = await (client as any)
       .from("team_announcements")
       .insert({
         supervisor_id: payload.senderId,
         title: payload.title,
         content: payload.body,
         target_staff_ids: payload.recipients,
-        announcement_type: payload.urgency === "urgent" ? "urgent" : "general",
+        announcement_type: (payload.urgency === "urgent" ? "urgent" : "general"),
         is_published: !payload.isScheduled,
       })
       .select()
@@ -867,7 +868,7 @@ export const staffApi = {
   },
 
   async getBroadcastHistory(client: SupabaseClient<Database>, supervisorId: string) {
-    const { data, error } = await client
+    const { data, error } = await (client as any)
       .from("team_announcements")
       .select("*")
       .eq("supervisor_id", supervisorId)

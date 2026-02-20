@@ -100,7 +100,7 @@ export default function ReviewProposalPage() {
             if (cycleData) {
               console.log("✅ Cycle loaded successfully:", {
                 id: cycleData.id,
-                name: cycleData.name,
+                name: cycleData.title,
                 total_budget: cycleData.total_budget_amount,
               });
               setCycle(cycleData);
@@ -337,7 +337,7 @@ export default function ReviewProposalPage() {
                         className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
                       >
                         <Clock className="w-3.5 h-3.5" />
-                        {cycle.name}
+                        {cycle.title}
                       </Badge>
                     )}
                   </div>
@@ -514,7 +514,7 @@ export default function ReviewProposalPage() {
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>NPR 0</span>
                   <span className="font-medium">
-                    {cycle ? `${cycle.name} Budget` : "Cycle Budget"}: NPR{" "}
+                    {cycle ? `${cycle.title} Budget` : "Cycle Budget"}: NPR{" "}
                     {(totalBudget / 100000).toFixed(1)}L
                   </span>
                 </div>
@@ -528,7 +528,7 @@ export default function ReviewProposalPage() {
                       </p>
                       <p className="text-red-600 dark:text-red-500">
                         This proposal will consume {impactPercentage.toFixed(1)}
-                        % of the total {cycle?.name || "cycle"} budget.
+                        % of the total {cycle?.title || "cycle"} budget.
                       </p>
                     </div>
                   </div>

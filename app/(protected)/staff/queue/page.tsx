@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { staffApi } from "@/features/staff/api";
-import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
  // Added
 import { cn } from "@/lib/utils";
-import { EmptyState } from "@/components/staff/shared/EmptyState"; 
+import { EmptyState } from "@/components/shared/EmptyState"; 
 import { QueueContextNavigation } from "./_components/QueueContextNavigation";
 import { QueueSearch } from "./_components/QueueSearch";
 import { QueueFilterTabs } from "./_components/QueueFilterTabs";

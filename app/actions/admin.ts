@@ -133,7 +133,9 @@ export async function getAdminTasks(filters: {
         ...t,
         assignee_name: t.assignee?.profile?.full_name || "Unassigned",
         assignee_avatar: t.assignee?.profile?.profile_photo_url,
-        staff_code: t.assignee?.staff_profile?.[0]?.staff_code,
+        staff_code: Array.isArray(t.assignee?.staff_profile) 
+          ? t.assignee?.staff_profile[0]?.staff_code 
+          : (t.assignee?.staff_profile as any)?.staff_code,
         supervisor_name: t.supervisor?.profile?.full_name || "Admin",
         ward_name: t.ward?.name
       })), 

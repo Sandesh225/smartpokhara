@@ -3,6 +3,7 @@
 import { AlertCircle, CheckCircle2, Briefcase, ArrowRight, Users, Clock, BarChart3, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { UniversalStatCard } from "@/components/shared/UniversalStatCard";
 
 export function DashboardMetrics({ metrics }: { metrics: any }) {
   // Safely map snake_case (from DB) OR camelCase (from API)
@@ -33,7 +34,6 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
       color: "text-orange-500",
       bg: "bg-orange-500/10",
       href: "/supervisor/complaints/unassigned",
-      alert: unassignedCount > 0,
       subtitle: "Pending allocation",
     },
     {
@@ -59,37 +59,17 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cards.map((card) => (
-        <Link key={card.label} href={card.href} className="group h-full">
-          <div className="stone-card p-6 h-full relative overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:scale-[1.02]">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">
-                  {card.label}
-                </p>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-3xl font-black text-foreground">
-                    {card.value}
-                  </h3>
-                  {card.alert && (
-                    <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground/70 mt-2">
-                  {card.subtitle}
-                </p>
-              </div>
-              <div
-                className={cn(
-                  "h-12 w-12 rounded-xl flex items-center justify-center transition-transform group-hover:rotate-6",
-                  card.bg,
-                  card.color
-                )}
-              >
-                <card.icon className="h-6 w-6" />
-              </div>
-            </div>
-          </div>
-        </Link>
+        <UniversalStatCard
+            key={card.label}
+            label={card.label}
+            value={card.value}
+            icon={card.icon}
+            color={card.color}
+            bg={card.bg}
+            subtitle={card.subtitle}
+            href={card.href}
+            variant="default"
+        />
       ))}
     </div>
   );

@@ -2,14 +2,17 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface LoadingSpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | number;
-  variant?: "spinner" | "dots" | "pulse" | "ring";
+  variant?: "spinner" | "dots" | "pulse" | "ring" | "loader2";
   color?: string;
   thickness?: number;
   speed?: number;
   label?: string;
+  message?: string;
+  fullScreen?: boolean;
 }
 
 export function LoadingSpinner({
@@ -19,6 +22,8 @@ export function LoadingSpinner({
   thickness = 3,
   speed = 1,
   label = "Loading...",
+  message,
+  fullScreen = false,
   className,
   ...props
 }: LoadingSpinnerProps) {
@@ -35,16 +40,11 @@ export function LoadingSpinner({
     typeof size === "number" ? { width: size, height: size } : undefined;
   const colorClass = color || "text-primary";
 
-  // Spinner SVG variant
-  if (variant === "spinner") {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        aria-label={label}
-        className={cn("flex items-center justify-center", className)}
-        {...props}
-      >
+  const content = (
+    <div className={cn("flex flex-col items-center justify-center gap-3", className)} {...props}>
+      {variant === "loader2" ? (
+        <Loader2 className={cn("animate-spin", colorClass, sizeClass)} style={customSize} />
+      ) : variant === "spinner" ? (
         <svg
           className={cn("animate-spin", colorClass, sizeClass)}
           style={{
@@ -69,21 +69,7 @@ export function LoadingSpinner({
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           />
         </svg>
-        <span className="sr-only">{label}</span>
-      </div>
-    );
-  }
-
-  // Ring variant (minimal spinner)
-  if (variant === "ring") {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        aria-label={label}
-        className={cn("flex items-center justify-center", className)}
-        {...props}
-      >
+      ) : variant === "ring" ? (
         <div
           className={cn(
             "animate-spin rounded-full border-t-transparent",
@@ -98,85 +84,46 @@ export function LoadingSpinner({
             animationDuration: `${1 / speed}s`,
           }}
         />
-        <span className="sr-only">{label}</span>
-      </div>
-    );
-  }
-
-  // Dots variant
-  if (variant === "dots") {
-    const dotSize = typeof size === "number" ? size / 4 : undefined;
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        aria-label={label}
-        className={cn("flex items-center justify-center gap-1", className)}
-        {...props}
-      >
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className={cn("rounded-full bg-current", colorClass)}
-            style={{
-              width:
-                dotSize ||
-                (size === "xs"
-                  ? 3
-                  : size === "sm"
-                    ? 4
-                    : size === "md"
-                      ? 6
-                      : size === "lg"
-                        ? 8
-                        : 10),
-              height:
-                dotSize ||
-                (size === "xs"
-                  ? 3
-                  : size === "sm"
-                    ? 4
-                    : size === "md"
-                      ? 6
-                      : size === "lg"
-                        ? 8
-                        : 10),
-              animation: `pulse ${1 / speed}s ease-in-out ${i * 0.15}s infinite`,
-            }}
-          />
-        ))}
-        <span className="sr-only">{label}</span>
-      </div>
-    );
-  }
-
-  // Pulse variant
-  if (variant === "pulse") {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        aria-label={label}
-        className={cn("flex items-center justify-center", className)}
-        {...props}
-      >
+      ) : variant === "dots" ? (
+        <div className="flex gap-1">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className={cn("rounded-full bg-current", colorClass)}
+              style={{
+                width: typeof size === "number" ? size / 4 : (size === "xs" ? 3 : 6),
+                height: typeof size === "number" ? size / 4 : (size === "xs" ? 3 : 6),
+                animation: `pulse ${1 / speed}s ease-in-out ${i * 0.15}s infinite`,
+              }}
+            />
+          ))}
+        </div>
+      ) : (
         <div
           className={cn(
-            "rounded-full animate-ping",
+            "rounded-full animate-ping bg-current opacity-75",
             colorClass,
-            "bg-current opacity-75",
             sizeClass
           )}
-          style={{
-            ...customSize,
-            animationDuration: `${1 / speed}s`,
-          }}
+          style={customSize}
         />
-        <span className="sr-only">{label}</span>
+      )}
+      {(message || label) && (
+        <p className="text-sm font-medium text-muted-foreground animate-pulse">
+          {message || label}
+        </p>
+      )}
+    </div>
+  );
+
+  if (fullScreen) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        {content}
       </div>
     );
   }
 
-  return null;
+  return content;
 }
 

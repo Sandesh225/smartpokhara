@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { complaintsApi } from "../api";
 import { ComplaintFilters } from "../types";
-import { COMPLAINT_KEYS } from "./useComplaints";
+import { COMPLAINT_KEYS } from "./useComplaint";
 
 export function useAdminComplaints(filters: ComplaintFilters & { page?: number; pageSize?: number }) {
   const supabase = createClient();

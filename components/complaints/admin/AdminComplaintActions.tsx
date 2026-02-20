@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { ComplaintStatusBadge } from "../../citizen/complaints/ComplaintStatusBadge";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 
 interface AdminComplaintActionsProps {
   complaint: {
@@ -296,7 +296,7 @@ export function AdminComplaintActions({ complaint, departments, staffUsers }: Ad
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Status: <ComplaintStatusBadge status={status as any} size="sm" />
+                  Current Status: <StatusBadge status={status as any} variant="complaint" />
                 </label>
                 <div className="space-y-2">
                   {['pending', 'received', 'assigned', 'in_progress', 'resolved', 'closed', 'rejected'].map((statusOption) => (

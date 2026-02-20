@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { staffApi } from "@/features/staff/api";
-import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
-import { EmptyState } from "@/components/staff/shared/EmptyState";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { ClipboardList } from "lucide-react";
 import { QueueContextNavigation } from "../_components/QueueContextNavigation";
 import { QueueSearch } from "../_components/QueueSearch";

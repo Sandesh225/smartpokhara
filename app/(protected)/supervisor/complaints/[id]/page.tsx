@@ -80,6 +80,7 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
             <InternalNotes
               complaintId={complaint.id}
               initialNotes={notesResult}
+              currentUserId={user.id}
             />
 
             {/* Audit Trail */}

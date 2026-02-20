@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { messagesApi } from "@/features/messages";
 import { supervisorApi } from "@/features/supervisor";
-import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 

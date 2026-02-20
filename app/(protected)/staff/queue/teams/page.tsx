@@ -3,9 +3,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { staffApi } from "@/features/staff/api";
-import { LoadingSpinner } from "@/components/staff/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
-import { EmptyState } from "@/components/staff/shared/EmptyState";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Users } from "lucide-react";
 import { ViewMode, ViewToggle } from "../_components/ViewToggle";
 import { QueueSearch } from "../_components/QueueSearch";

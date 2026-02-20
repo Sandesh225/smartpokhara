@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { staffApi } from "@/features/staff/api";
 import { StaffPerformanceMetrics } from "@/app/(protected)/supervisor/staff/_components/StaffPerformanceMetrics";
 import { PerformanceCharts } from "@/app/(protected)/supervisor/staff/_components/PerformanceCharts";
-import { calculateResolutionTime, calculateSLACompliance } from "@/lib/utils/performance-helpers";
+import { calculateResolutionTime, calculateSLACompliance } from "@/lib/utils/complaint-logic";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -24,11 +24,15 @@ export default async function StaffPerformancePage({ params }: PageProps) {
   const staffProfile = await staffApi.getStaffById(supabase, staffId);
 
   // Calculate Metrics
-  const totalResolved = staffPerf.resolved.length;
-  const avgTime = calculateResolutionTime(staffPerf.resolved);
+  const resolvedComplaints = staffPerf.resolved.filter(c => c.resolved_at !== null).map(c => ({
+      ...c,
+      resolved_at: c.resolved_at as string
+  }));
+  const totalResolved = resolvedComplaints.length;
+  const avgResolutionTime = calculateResolutionTime(resolvedComplaints);
   
   // Calculate SLA
-  const onTimeCount = staffPerf.resolved.filter((r: any) => 
+  const onTimeCount = resolvedComplaints.filter((r: any) => 
     new Date(r.resolved_at) <= new Date(r.sla_due_at)
   ).length;
   const slaCompliance = calculateSLACompliance(totalResolved, onTimeCount);
@@ -49,7 +53,7 @@ export default async function StaffPerformancePage({ params }: PageProps) {
       </div>
 
       <StaffPerformanceMetrics 
-        metrics={{ totalResolved, avgTime, slaCompliance, rating }} 
+        metrics={{ totalResolved, avgTime: avgResolutionTime, slaCompliance, rating }} 
       />
 
       <PerformanceCharts />

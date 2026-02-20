@@ -17,11 +17,15 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { supervisorApi } from "@/features/supervisor";
 import { complaintsApi } from "@/features/complaints";
-import { getSuggestedStaff } from "@/lib/utils/assignment-helpers";
+import { 
+  calculateDistance, 
+  getSuggestedStaff, 
+  checkWorkloadCapacity 
+} from "@/lib/utils/complaint-logic";
 import type { AssignableStaff, StaffProfile } from "@/lib/types/supervisor.types";
 import { cn } from "@/lib/utils";
 
-import { StaffSelectionModal } from "@/components/supervisor/modals/StaffSelectionModal";
+import { UniversalAssignmentModal } from "@/components/supervisor/modals/UniversalAssignmentModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -266,14 +270,18 @@ export function AssignmentPanel({
         </div>
       </div>
 
-      <StaffSelectionModal
+      <UniversalAssignmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAssign={handleAssignAction}
-        staffList={staffList}
+        staffList={staffList.map(s => ({
+            ...s, 
+            full_name: s.full_name || "Unknown Staff",
+            staff_code: s.staff_code || undefined
+        }))}
         complaintTitle={complaint.title}
-        mode={isAssigned ? "reassign" : "assign"}
-        currentStaff={isAssigned ? { name: assignee?.full_name } : undefined}
+        isReassign={isAssigned}
+        currentStaffName={assignee?.full_name}
       />
     </>
   );

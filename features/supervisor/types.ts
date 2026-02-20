@@ -54,9 +54,9 @@ export interface ManagedStaffMember {
   staff_code?: string;
   department_id?: string;
   ward_id?: string;
-  current_workload?: number;
-  availability_status?: string;
-  performance_rating?: number;
-  checkIn?: string;
-  checkOut?: string;
+  current_workload: number;
+  availability_status: string;
+  performance_rating: number;
+  check_in_time?: string;
+  check_out_time?: string;
 }

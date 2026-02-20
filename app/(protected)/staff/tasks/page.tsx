@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/types/database.types";
-import { TaskTable } from "@/components/staff/TaskTable";
+import { UniversalTaskTable } from "@/components/staff/shared/UniversalTaskTable";
 
 type Task = any; // Simplified for build fix, should use ProjectTask type from features/tasks
 
@@ -200,7 +200,11 @@ export default function StaffTasksPage() {
       </div>
 
       {/* Tasks Table */}
-      <TaskTable tasks={tasks} onTaskUpdate={() => loadTasks(userId)} />
+      <UniversalTaskTable 
+        data={tasks} 
+        isLoading={loading}
+        onTaskUpdate={() => loadTasks(userId)} 
+      />
     </div>
   );
 }

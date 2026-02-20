@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { ArrowRight, User } from "lucide-react";
-import { StatusBadge } from "@/components/staff/shared/StatusBadge";
-import { PriorityBadge } from "@/components/staff/shared/PriorityBadge";
-import { CountdownTimer } from "@/components/staff/shared/CountdownTimer";
-import { DistanceIndicator } from "@/components/staff/shared/DistanceIndicator";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
+import { CountdownTimer } from "@/components/shared/CountdownTimer";
+import { DistanceIndicator } from "@/components/shared/DistanceIndicator";
 import { cn } from "@/lib/utils";
 
 interface QueueItem {
@@ -56,7 +56,7 @@ export function QueueCardView({ items, showAssignee = false }: QueueCardViewProp
           <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-1">{item.title}</h3>
           
           <div className="flex items-center gap-2 mb-4">
-             <PriorityBadge priority={item.priority} />
+             <PriorityIndicator priority={item.priority} size="sm" />
              <span className="text-xs text-gray-400">•</span>
              <span className="text-xs text-gray-500 truncate max-w-[150px]">{item.category}</span>
           </div>

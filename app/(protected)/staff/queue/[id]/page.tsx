@@ -10,7 +10,7 @@ import { TaskActionBar } from "../_components/TaskActionBar";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 
 // REAL-TIME COMMUNICATION COMPONENT
-import StaffCommunication from "@/app/(protected)/citizen/complaints/_components/CitizenStaffCommunication";
+import { UniversalMessaging } from "@/components/complaints/shared/UniversalMessaging";
 
 export const dynamic = "force-dynamic";
 
@@ -89,13 +89,18 @@ export default async function TaskDetailPage({ params }: PageProps) {
         {assignment.type === "complaint" && realComplaintId && (
           <div className="pt-4 border-t border-gray-200">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Communication History</h3>
-            <StaffCommunication
-              complaintId={realComplaintId}
-              currentUserId={currentUserId}
-              userRole="staff"
-              assignedStaffName={isAssignee ? "You" : ("Assigned Staff")}
-              citizenName={assignment.citizen?.name || "Citizen"}
-            />
+            <div className="h-[600px] border rounded-xl overflow-hidden shadow-sm">
+                <UniversalMessaging
+                    channelType="COMPLAINT_PUBLIC"
+                    channelId={realComplaintId}
+                    currentUserId={currentUserId}
+                    currentUserRole="staff"
+                    variant="default" // Using default variant for staff
+                    title="Complaint Discussion"
+                    subtitle="Public comments visible to citizen"
+                    className="h-full border-0"
+                />
+            </div>
           </div>
         )}
       </div>

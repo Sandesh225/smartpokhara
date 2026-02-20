@@ -4,7 +4,8 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { complaintsApi, Complaint, ComplaintStatus, ComplaintPriority } from "../index";
+import { complaintsApi } from "../api";
+import { Complaint, ComplaintStatus, ComplaintPriority } from "../types";
 import { toast } from "sonner";
 
 export interface AdminComplaintFilters {

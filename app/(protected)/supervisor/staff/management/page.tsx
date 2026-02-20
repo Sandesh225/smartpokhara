@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { supervisorApi } from "@/features/supervisor";
+import { staffApi } from "@/features/staff/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, UserCheck, ShieldCheck, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -24,7 +25,7 @@ export default async function StaffManagementPage() {
   // 2. Fetch Data
   const [attendanceList, pendingLeaves] = await Promise.all([
     supervisorApi.getStaffAttendanceOverview(supabase, user.id),
-    supervisorApi.getPendingLeaves(supabase, staffIds)
+    staffApi.getPendingLeaves(supabase, staffIds)
   ]);
 
   return (

@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { StatusBadge } from "@/components/staff/shared/StatusBadge";
-import { PriorityBadge } from "@/components/staff/shared/PriorityBadge";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 
 interface TaskDetailHeaderProps {
   trackingId: string;
@@ -32,7 +32,7 @@ export function TaskDetailHeader({ trackingId, status, priority, title, isCompla
                    {isComplaint ? 'Complaint' : 'Task'}
                  </span>
                </div>
-               <PriorityBadge priority={priority} />
+               <PriorityIndicator priority={priority} />
             </div>
             <h2 className="text-sm text-gray-600 font-medium line-clamp-1 mb-2">{title}</h2>
             <StatusBadge status={status} />

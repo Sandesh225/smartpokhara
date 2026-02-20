@@ -37,7 +37,7 @@ export function StaffGridView({ staffList }: StaffGridViewProps) {
                 <h3 className="text-base font-semibold text-gray-900 truncate" title={staff.full_name}>
                   {staff.full_name}
                 </h3>
-                <p className="text-xs text-gray-500 capitalize">{staff.role.replace(/_/g, " ")}</p>
+                <p className="text-xs text-gray-500 capitalize">{(staff.role || "staff").replace(/_/g, " ")}</p>
                 {staff.department_id && <p className="text-xs text-gray-400 mt-0.5">Dept ID: {staff.department_id.slice(0,8)}</p>}
               </div>
 

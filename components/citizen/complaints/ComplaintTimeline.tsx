@@ -1,7 +1,7 @@
 "use client";
 
-import { ComplaintStatusBadge } from "./ComplaintStatusBadge";
-import { ComplaintStatusHistory } from "@/features/complaints";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { ComplaintStatusHistory, ComplaintStatusHistoryItem } from "@/features/complaints/types";
 
 import { User, Calendar } from "lucide-react";
 
@@ -46,9 +46,9 @@ export function ComplaintTimeline({ timeline }: ComplaintTimelineProps) {
                       Status changed from
                     </span>
                     {item.old_status ? (
-                      <ComplaintStatusBadge
-                        status={item.old_status as any}
-                        size="sm"
+                      <StatusBadge
+                        status={(item.old_status || item.new_status) as any}
+                        variant="complaint"
                       />
                     ) : (
                       <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
@@ -58,9 +58,9 @@ export function ComplaintTimeline({ timeline }: ComplaintTimelineProps) {
                     <span className="text-sm font-medium text-slate-600">
                       to
                     </span>
-                    <ComplaintStatusBadge
+                    <StatusBadge
                       status={item.new_status as any}
-                      size="sm"
+                      variant="complaint"
                     />
                   </div>
 
@@ -78,16 +78,16 @@ export function ComplaintTimeline({ timeline }: ComplaintTimelineProps) {
                     <div className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5" />
                       <span className="font-medium">
-                        {item.changed_by?.user_profiles?.full_name ||
-                          item.changed_by?.email ||
+                        {(item as any).changed_by?.user_profiles?.full_name ||
+                          (item as any).changed_by?.email ||
                           "System"}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5" />
                       <span>
-                        {new Date(item.changed_at).toLocaleDateString()} at{" "}
-                        {new Date(item.changed_at).toLocaleTimeString()}
+                        {new Date((item as any).changed_at).toLocaleDateString()} at{" "}
+                        {new Date((item as any).changed_at).toLocaleTimeString()}
                       </span>
                     </div>
                   </div>

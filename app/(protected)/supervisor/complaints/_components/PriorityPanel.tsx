@@ -8,11 +8,12 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { complaintsApi } from "@/features/complaints";
 import { PriorityChangeModal } from "@/components/supervisor/modals/PriorityChangeModal";
-import { PriorityIndicator } from "../../../../../components/supervisor/shared/PriorityIndicator";
+
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { PriorityIndicator } from "@/components/shared";
 
 interface PriorityPanelProps {
   complaintId: string;

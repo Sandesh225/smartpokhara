@@ -6,24 +6,33 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
   RefreshCw,
+  FileText,
+  Clock,
   Activity,
+  CheckCircle2,
+  AlertCircle,
   Loader2,
   ShieldCheck,
   MapPin,
   Calendar,
   Sparkles,
   TrendingUp,
-  AlertCircle,
   Sun,
   Moon,
-  CloudSun,
+  ChevronRight,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { StatsCard } from "@/components/shared/StatsCard";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import DashboardStats from "./_components/DashboardStats";
 import QuickActions from "./_components/QuickActions";
 import RecentComplaints from "./_components/RecentComplaints";
 import RecentNotices from "./_components/RecentNotices";
@@ -367,15 +376,70 @@ export default function CitizenDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <DashboardStats
-            totalComplaints={dashboardData.stats.total}
-            openCount={dashboardData.stats.open}
-            inProgressCount={dashboardData.stats.inProgress}
-            resolvedCount={dashboardData.stats.resolved}
-            onStatClick={(status) => {
-              router.push(`/citizen/complaints?status=${status}`);
-            }}
-          />
+          <TooltipProvider delayDuration={200}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              {[
+                {
+                  id: "all",
+                  label: "Total Requests",
+                  value: dashboardData.stats.total,
+                  icon: FileText,
+                  description: "All issues you have reported to the municipality.",
+                  iconClass: "bg-primary/10 text-primary",
+                },
+                {
+                  id: "open",
+                  label: "Awaiting Review",
+                  value: dashboardData.stats.open,
+                  icon: Clock,
+                  description: "Submitted and waiting for staff assignment.",
+                  iconClass: "bg-warning-amber/10 text-warning-amber",
+                  warning: dashboardData.stats.open > 5,
+                },
+                {
+                  id: "in_progress",
+                  label: "In Progress",
+                  value: dashboardData.stats.inProgress,
+                  icon: Activity,
+                  description: "City staff are currently working on resolution.",
+                  iconClass: "bg-secondary/10 text-secondary",
+                },
+                {
+                  id: "resolved",
+                  label: "Resolved",
+                  value: dashboardData.stats.resolved,
+                  icon: CheckCircle2,
+                  description: "Successfully completed and closed.",
+                  iconClass: "bg-success-green/10 text-success-green",
+                }
+              ].map((stat) => (
+                <Tooltip key={stat.id}>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <StatsCard
+                        icon={stat.icon}
+                        label={stat.label}
+                        value={stat.value}
+                        onClick={() => router.push(`/citizen/complaints?status=${stat.id}`)}
+                        className="h-full"
+                        iconClassName={stat.iconClass}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="bottom"
+                    className="glass text-xs max-w-[200px] border-border shadow-xl p-3"
+                    sideOffset={8}
+                  >
+                    <p className="font-bold text-foreground mb-1">{stat.label}</p>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {stat.description}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </TooltipProvider>
         </motion.div>
 
         <motion.div

@@ -24,7 +24,6 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
   const { mode, toggleMode } = useThemeMode();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]); // This should be fetched or passed
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -72,17 +71,12 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
             </button>
 
             <NotificationDropdown
-              notifications={notifications}
+              userId={user.id}
+              portal={dashboardType as any}
               isOpen={notificationsOpen}
               onClose={() => setNotificationsOpen(false)}
-              onMarkAsRead={(id) => {
-                // Handle mark as read
-                setNotifications(prev => prev.filter(n => n.id !== id));
-              }}
-              onMarkAllAsRead={() => {
-                // Handle mark all as read
-                setNotifications([]);
-                setNotificationsOpen(false);
+              onCountUpdate={(count) => {
+                // This will update the local count if needed
               }}
             />
           </div>

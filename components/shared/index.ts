@@ -9,3 +9,5 @@ export { StatusBadge } from "./StatusBadge";
 export type { StatusVariant } from "./StatusBadge";
 export { EmptyState } from "./EmptyState";
 export { PriorityIndicator } from "./PriorityIndicator";
+export { NotificationDropdown } from "./NotificationDropdown";
+export type { Notification, NotificationType } from "./NotificationDropdown";

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/types/database.types";
 
-type Task = Database['public']['Tables']['tasks']['Row'] & {
+type Task = any & {
   related_complaint?: { 
     tracking_code: string; 
     title: string;

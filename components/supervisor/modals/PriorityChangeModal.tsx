@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
-import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
-import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 
 interface PriorityChangeModalProps {
   isOpen: boolean;

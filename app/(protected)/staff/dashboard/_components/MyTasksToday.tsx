@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { MapPin, Clock, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
-import { StatusBadge } from "@/components/staff/shared/StatusBadge";
-import { PriorityBadge } from "@/components/staff/shared/PriorityBadge";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 import { getTimeRemaining } from "@/lib/utils/time-helpers";
 import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -67,7 +67,7 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
                   <span className="inline-flex items-center text-[11px] font-mono font-medium bg-muted dark:bg-muted/50 px-2.5 py-1 rounded-md text-foreground border border-border">
                     {task.tracking_code}
                   </span>
-                  <PriorityBadge priority={task.priority} />
+                  <PriorityIndicator priority={task.priority} size="sm" />
                 </div>
                 <StatusBadge status={task.status} />
               </div>

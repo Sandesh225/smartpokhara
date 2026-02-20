@@ -1,37 +1,128 @@
-'use client';
+"use client";
 
-import { useRef, useEffect } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Check, 
-  Clock, 
-  AlertTriangle, 
-  Info, 
-  CheckCircle2, 
-  X
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { SupervisorNotification } from '@/lib/types/supervisor.types'; // Assuming types exist
+import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
+import {
+  Bell,
+  FileText,
+  CreditCard,
+  Megaphone,
+  AlertTriangle,
+  Info,
+  ArrowRight,
+  CheckCheck,
+  X,
+  Sparkles,
+  Clock,
+  CheckCircle2
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { formatDistanceToNow } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+export type NotificationType =
+  | "complaint_status"
+  | "bill_generated"
+  | "new_notice"
+  | "system_announcement"
+  | "task_assigned"
+  | "general";
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  is_read: boolean;
+  created_at: string;
+  action_url?: string;
+  metadata?: any;
+}
 
 interface NotificationDropdownProps {
-  notifications: SupervisorNotification[];
+  userId: string;
   onClose: () => void;
-  onMarkAsRead: (id: string) => void;
-  onMarkAllAsRead: () => void;
+  onCountUpdate?: (count: number) => void;
   isOpen: boolean;
+  portal?: 'admin' | 'citizen' | 'staff' | 'supervisor';
 }
 
 export function NotificationDropdown({
-  notifications,
+  userId,
   onClose,
-  onMarkAsRead,
-  onMarkAllAsRead,
-  isOpen
+  onCountUpdate,
+  isOpen,
+  portal = 'citizen'
 }: NotificationDropdownProps) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const supabase = createClient();
 
-  // Close on click outside
+  const getIcon = (type: string) => {
+    const iconMap: Record<string, { icon: any, className: string }> = {
+      complaint_status: {
+        icon: FileText,
+        className: "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-950/50",
+      },
+      task_assigned: {
+        icon: CheckCircle2,
+        className: "text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/50",
+      },
+      bill_generated: {
+        icon: CreditCard,
+        className: "text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50",
+      },
+      new_notice: {
+        icon: Megaphone,
+        className: "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/50",
+      },
+      system_announcement: {
+        icon: AlertTriangle,
+        className: "text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-950/50",
+      },
+      general: {
+        icon: Info,
+        className: "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/50",
+      },
+    };
+
+    const config = iconMap[type] || iconMap.general;
+    const Icon = config.icon;
+
+    return (
+      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", config.className)}>
+        <Icon className="h-5 w-5" />
+      </div>
+    );
+  };
+
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) return;
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (!error && data) {
+      setNotifications(data);
+      const unread = data.filter((n) => !n.is_read).length;
+      onCountUpdate?.(unread);
+    }
+    setLoading(false);
+  }, [userId, supabase, onCountUpdate]);
+
+  useEffect(() => {
+    if (isOpen) {
+        fetchNotifications();
+    }
+  }, [isOpen, fetchNotifications]);
+
+  // Click outside to close
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -42,114 +133,185 @@ export function NotificationDropdown({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  const markRead = async (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+    );
+    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
 
-  // Icons based on notification type/priority
-  const getIcon = (type: string, priority: string) => {
-    if (priority === 'urgent' || priority === 'high') return <AlertTriangle className="h-4 w-4 text-red-500" />;
-    if (type === 'success') return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    return <Info className="h-4 w-4 text-blue-500" />;
+    const unreadCount = notifications.filter(
+      (n) => n.id !== id && !n.is_read
+    ).length;
+    onCountUpdate?.(unreadCount);
   };
 
-  return (
-    <motion.div
-      ref={dropdownRef}
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
-      className="absolute right-0 top-16 z-50 mt-2 w-80 origin-top-right overflow-hidden rounded-xl border bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:w-96"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-        <button
-          onClick={onMarkAllAsRead}
-          className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline"
-        >
-          Mark all as read
-        </button>
-      </div>
+  const markAllRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
 
-      {/* List */}
-      <div className="max-h-[400px] overflow-y-auto">
-        <ul className="divide-y divide-gray-100">
-          <AnimatePresence initial={false}>
-            {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
-                <CheckCircle2 className="mb-2 h-10 w-10 text-gray-300" />
-                <p className="text-sm">All caught up!</p>
-                <p className="text-xs">No new notifications.</p>
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .in("id", unreadIds);
+    onCountUpdate?.(0);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        ref={dropdownRef}
+        initial={{ opacity: 0, y: 15, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 15, scale: 0.95 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="absolute right-0 top-full mt-4 w-[440px] max-w-[calc(100vw-2rem)] bg-card border-2 border-border rounded-3xl shadow-2xl z-50 overflow-hidden"
+      >
+        <div className="p-6 border-b-2 border-border flex items-center justify-between bg-gradient-to-br from-muted/30 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Bell className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-foreground">
+                Notifications
+              </h3>
+              <p className="text-xs text-muted-foreground font-semibold">
+                {notifications.filter((n) => !n.is_read).length} unread
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {notifications.some((n) => !n.is_read) && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={markAllRead}
+                className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-primary/10 transition-all"
+              >
+                <CheckCheck className="h-4 w-4" />
+                Mark all read
+              </motion.button>
+            )}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onClose}
+              className="h-8 w-8 rounded-xl hover:bg-muted flex items-center justify-center transition-all"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </motion.button>
+          </div>
+        </div>
+
+        <ScrollArea className="h-[400px]">
+          {loading ? (
+            <div className="p-12 flex flex-col items-center gap-4">
+              <div className="h-10 w-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <p className="text-sm text-muted-foreground font-semibold">
+                Loading notifications...
+              </p>
+            </div>
+          ) : notifications.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-12 text-center"
+            >
+              <div className="h-16 w-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
+                <Bell className="w-8 h-8 text-muted-foreground/50" />
               </div>
-            ) : (
-              notifications.slice(0, 10).map((notification) => (
-                <motion.li
-                  key={notification.id}
+              <h4 className="font-black text-lg text-foreground mb-2">
+                No notifications
+              </h4>
+              <p className="text-sm text-muted-foreground font-medium">
+                We'll notify you when something important happens
+              </p>
+            </motion.div>
+          ) : (
+            <div className="divide-y-2 divide-border">
+              {notifications.map((n, index) => (
+                <motion.div
+                  key={n.id}
+                  layout
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, delay: index * 0.03 }}
+                  onClick={() => !n.is_read && markRead(n.id)}
                   className={cn(
-                    "relative transition-colors hover:bg-gray-50",
-                    !notification.is_read ? "bg-blue-50/50" : "bg-white"
+                    "p-5 transition-all cursor-pointer group relative",
+                    !n.is_read
+                      ? "bg-primary/[0.04] dark:bg-primary/[0.06] hover:bg-primary/[0.08] dark:hover:bg-primary/[0.10]"
+                      : "hover:bg-muted/50"
                   )}
                 >
-                  <div className="group flex items-start gap-3 p-4">
-                    {/* Icon */}
-                    <div className="mt-0.5 flex-shrink-0">
-                      {getIcon(notification.type, notification.priority)}
-                    </div>
+                  <div className="flex gap-4">
+                    {getIcon(n.type)}
 
-                    {/* Content */}
-                    <Link 
-                      href={notification.metadata?.link || '#'} 
-                      onClick={() => {
-                        onMarkAsRead(notification.id);
-                        onClose();
-                      }}
-                      className="flex-1 space-y-1"
-                    >
-                      <p className={cn("text-sm text-gray-900", !notification.is_read && "font-semibold")}>
-                        {notification.title}
-                      </p>
-                      <p className="text-xs text-gray-500 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                        <Clock className="h-3 w-3" />
-                        <span>{new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-3 mb-2">
+                        <h4
+                          className={cn(
+                            "text-sm font-bold leading-tight",
+                            n.is_read
+                              ? "text-muted-foreground"
+                              : "text-foreground"
+                          )}
+                        >
+                          {n.title}
+                        </h4>
+                        {!n.is_read && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0 mt-1"
+                          />
+                        )}
                       </div>
-                    </Link>
 
-                    {/* Mark Read Indicator/Button */}
-                    {!notification.is_read && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onMarkAsRead(notification.id);
-                        }}
-                        className="mt-1 h-2 w-2 rounded-full bg-blue-600 hover:scale-150 hover:bg-blue-400 transition-all"
-                        title="Mark as read"
-                        aria-label="Mark as read"
-                      />
-                    )}
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3 leading-relaxed font-medium">
+                        {n.message}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wide flex items-center gap-1.5">
+                          <Clock className="h-3 w-3" />
+                          {formatDistanceToNow(new Date(n.created_at), {
+                            addSuffix: true,
+                          })}
+                        </span>
+                        {(n.action_url || n.metadata?.link) && (
+                          <Link
+                            href={n.action_url || n.metadata?.link}
+                            onClick={onClose}
+                            className="text-xs font-bold text-primary flex items-center gap-1.5 hover:gap-2 transition-all px-3 py-1.5 rounded-lg hover:bg-primary/10"
+                          >
+                            View Details
+                            <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </motion.li>
-              ))
-            )}
-          </AnimatePresence>
-        </ul>
-      </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
 
-      {/* Footer */}
-      <div className="border-t bg-gray-50 p-2 text-center">
-        <Link
-          href="/supervisor/notifications"
-          onClick={onClose}
-          className="block w-full rounded-md py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
-        >
-          View all notifications
-        </Link>
-      </div>
-    </motion.div>
+        <div className="p-4 border-t-2 border-border bg-gradient-to-br from-muted/20 to-transparent">
+          <Link
+            href={`/${portal}/notifications`}
+            onClick={onClose}
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-gradient-to-r from-primary to-primary-brand text-white text-sm font-black hover:shadow-lg hover:scale-[1.02] transition-all"
+          >
+            <Sparkles className="h-4 w-4" />
+            View All Notifications
+          </Link>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

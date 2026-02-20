@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
+import { PriorityIndicator } from "@/components/shared/PriorityIndicator";
 import { format } from "date-fns";
 import { ProjectTask } from "@/features/tasks/types";
 

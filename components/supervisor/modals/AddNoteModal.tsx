@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { X, Lock, Users, ShieldAlert } from "lucide-react";
-import { LoadingSpinner } from "@/components/supervisor/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 

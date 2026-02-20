@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle, Trash2, Printer } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { PriorityIndicator } from "@/components/supervisor/shared/PriorityIndicator";
+
 import { ConfirmationDialog } from "@/components/supervisor/shared/ConfirmationDialog";
 import { tasksApi } from "@/features/tasks/api";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
+import { PriorityIndicator } from "@/components/shared";
 
 export function TaskDetailHeader({ task }: { task: any }) {
   const router = useRouter();

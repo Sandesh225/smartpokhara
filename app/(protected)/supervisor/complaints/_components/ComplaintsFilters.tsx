@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { FilterPanel, type FilterConfig } from "@/components/supervisor/shared/FilterPanel";
+import { UniversalFilterPanel, type FilterConfig } from "@/components/shared/UniversalFilterPanel";
 import { cn } from "@/lib/utils";
 
 interface ComplaintsFiltersProps {
@@ -83,7 +83,8 @@ export function ComplaintsFilters({
       </div>
 
       <div className="stone-card p-1 dark:bg-dark-surface/50 border-none shadow-none lg:bg-transparent overflow-y-auto custom-scrollbar flex-1">
-        <FilterPanel
+        <UniversalFilterPanel
+          layout="sidebar"
           config={filterConfig}
           activeFilters={filters}
           onFilterChange={onChange}
