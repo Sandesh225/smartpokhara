@@ -1,6 +1,5 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { ThemeModeScript } from "flowbite-react";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Logo } from "@/components/ui/Logo";
@@ -48,7 +47,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
       <head>
-        <ThemeModeScript />
       </head>
       <body className="flex min-h-screen flex-col bg-background font-sans text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         <Providers>{children}</Providers>

@@ -11,7 +11,7 @@ import {
   ChevronDown,
   Phone,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NAV_ITEMS } from "@/lib/constants";
 
 export const Header = () => {

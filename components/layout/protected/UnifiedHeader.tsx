@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Menu, Search, Bell, LogOut, Moon, Sun, User, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useThemeMode } from "flowbite-react";
+import { useTheme } from "next-themes";
 import { getUserDisplayName } from "@/lib/auth/role-helpers";
 import { toast } from "sonner";
 import { NotificationDropdown } from "@/components/shared/NotificationDropdown";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   user: any;
@@ -21,7 +22,7 @@ interface Props {
 export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificationCount }: Props) {
   const router = useRouter();
   const supabase = createClient();
-  const { mode, toggleMode } = useThemeMode();
+  const { theme, setTheme } = useTheme();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -38,29 +39,35 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
     router.refresh();
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
-    <header className="sticky top-0 z-40 h-20 w-full border-b-2 border-border/60 bg-card/80 backdrop-blur-2xl shadow-sm">
+    <header className="sticky top-0 z-40 h-20 w-full border-b border-border/60 bg-card/80 backdrop-blur-2xl shadow-sm">
       <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 border-2 rounded-xl bg-background hover:border-primary">
+          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)} className="lg:hidden">
             <Menu className="h-5 w-5" />
-          </button>
+          </Button>
           
           <div className="hidden md:flex items-center relative">
             <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
-            <input type="text" placeholder="Search system..." className="h-10 pl-9 pr-4 rounded-xl bg-muted/50 border-2 border-transparent focus:border-primary focus:bg-background outline-none w-64 transition-all text-sm font-medium" />
+            <input type="text" placeholder="Search system..." className="h-10 pl-9 pr-4 rounded-xl bg-muted/50 border border-transparent focus:border-primary focus:bg-background outline-none w-64 transition-all text-sm font-medium" />
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={toggleMode} className="h-10 w-10 flex items-center justify-center rounded-xl border-2 bg-background hover:border-primary text-muted-foreground">
-            {mounted ? (mode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : <Sun className="h-4 w-4" />}
-          </button>
+          <Button variant="outline" size="icon" onClick={toggleTheme} className="text-muted-foreground">
+             {mounted ? (theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : <Sun className="h-4 w-4" />}
+          </Button>
 
           <div className="relative">
-            <button 
+            <Button 
+              variant="outline"
+              size="icon"
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="relative h-10 w-10 flex items-center justify-center rounded-xl border-2 bg-background hover:border-primary text-muted-foreground transition-all"
+              className="text-muted-foreground"
             >
               <Bell className="h-4 w-4" />
               {notificationCount > 0 && (
@@ -68,7 +75,7 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
                   {notificationCount}
                 </span>
               )}
-            </button>
+            </Button>
 
             <NotificationDropdown
               userId={user.id}
@@ -82,10 +89,10 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
           </div>
 
           <div className="relative">
-            <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 p-1 pr-2 rounded-full border-2 border-transparent hover:bg-muted transition-all">
-              <Avatar className="h-8 w-8 border-2 border-primary/20">
+            <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2 p-1 pr-2 rounded-full border border-transparent hover:bg-muted transition-all">
+              <Avatar className="h-8 w-8 border border-primary/20">
                 <AvatarImage src={user.profile?.profile_photo_url} />
-                <AvatarFallback className="bg-primary text-white font-bold">{displayName.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground font-bold">{displayName.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="hidden sm:block text-left min-w-[100px]">
                 <p className="text-xs font-bold truncate text-foreground">{displayName}</p>
@@ -94,7 +101,7 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl border bg-card shadow-2xl p-2 z-50">
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl border bg-card shadow-lg p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                 <Link href={`/${dashboardType}/profile`} className="flex items-center gap-3 p-3 text-sm font-bold text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl">
                   <User className="h-4 w-4" /> My Profile
                 </Link>
