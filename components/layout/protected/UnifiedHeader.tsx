@@ -59,7 +59,7 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
             >
               <Bell className="h-4 w-4" />
               {notificationCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] rounded-full bg-destructive text-[10px] font-black text-white flex items-center justify-center ring-4 ring-card">
+                <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] rounded-full bg-destructive text-xs font-black text-white flex items-center justify-center ring-4 ring-card">
                   {notificationCount}
                 </span>
               )}
@@ -84,7 +84,7 @@ export function UnifiedHeader({ user, dashboardType, setSidebarOpen, notificatio
               </Avatar>
               <div className="hidden sm:block text-left min-w-[100px]">
                 <p className="text-xs font-bold truncate text-foreground">{displayName}</p>
-                <p className="text-[9px] font-black uppercase text-primary tracking-widest">{dashboardType}</p>
+                <p className="text-xs font-black uppercase text-primary tracking-widest">{dashboardType}</p>
               </div>
             </button>
 

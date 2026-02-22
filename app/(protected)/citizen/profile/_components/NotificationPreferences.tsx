@@ -115,7 +115,7 @@ export default function NotificationPreferences({
       <CardContent className="card-padding space-y-12">
         {/* Delivery Channels */}
         <section className="space-y-6">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 ml-1">
+          <h3 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-2 ml-1">
             <Globe className="h-3.5 w-3.5" /> Delivery Channels
           </h3>
 
@@ -144,7 +144,7 @@ export default function NotificationPreferences({
 
         {/* Topics */}
         <section className="space-y-6">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 ml-1">
+          <h3 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-2 ml-1">
             <MessageSquare className="h-3.5 w-3.5" /> Notification Topics
           </h3>
 

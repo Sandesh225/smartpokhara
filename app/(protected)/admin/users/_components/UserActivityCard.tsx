@@ -114,7 +114,7 @@ export function UserActivityCard({ userId }: { userId: string }) {
                     
                     <div className="flex items-center gap-1.5 mt-1">
                       <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                      <p className="text-[10px] md:text-xs text-muted-foreground font-medium font-mono truncate">
+                      <p className="text-xs md:text-xs text-muted-foreground font-medium font-mono truncate">
                         {log.ip_address || "Unknown IP"}
                       </p>
                     </div>
@@ -122,7 +122,7 @@ export function UserActivityCard({ userId }: { userId: string }) {
                     {/* STATUS BADGE */}
                     <div className="mt-2">
                       <span className={cn(
-                        "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md",
+                        "inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md",
                         log.success
                           ? "bg-success-green/10 text-success-green border border-success-green/20"
                           : "bg-error-red/10 text-error-red border border-error-red/20"
@@ -146,7 +146,7 @@ export function UserActivityCard({ userId }: { userId: string }) {
                 {/* TIMESTAMP */}
                 <div className="flex items-center gap-1 text-right flex-shrink-0">
                   <Clock className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] md:text-xs text-muted-foreground font-medium whitespace-nowrap">
+                  <span className="text-xs md:text-xs text-muted-foreground font-medium whitespace-nowrap">
                     {formatDistanceToNow(new Date(log.created_at), { 
                       addSuffix: true 
                     })}

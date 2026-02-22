@@ -272,13 +272,13 @@ function StatCard({ label, value, icon: Icon, color, bg, subtext }: any) {
     <Card className="stone-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <CardContent className="p-4 md:p-5 flex items-start justify-between">
         <div>
-          <p className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <p className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
             {label}
           </p>
           <span className="text-xl md:text-2xl font-black text-foreground block mt-1">
             {value}
           </span>
-          <p className="mt-1 text-[10px] md:text-[11px] text-muted-foreground font-medium">
+          <p className="mt-1 text-xs md:text-sm text-muted-foreground font-medium">
             {subtext}
           </p>
         </div>
@@ -299,7 +299,7 @@ function ProfileDetailItem({ icon: Icon, label, value, href }: any) {
         </div>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+        <p className="text-xs md:text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
           {label}
         </p>
         <p className="text-xs md:text-sm font-bold text-foreground truncate">

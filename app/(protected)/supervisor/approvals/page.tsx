@@ -79,7 +79,7 @@ export default function SupervisorApprovalsPage() {
             <AlertCircle className="w-4 h-4" />
             Approvals
             {pendingRequests.length > 0 && (
-              <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full text-[10px] ml-1">
+              <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full text-xs ml-1">
                 {pendingRequests.length}
               </span>
             )}
@@ -168,7 +168,7 @@ function LeaveRequestCard({ req, onProcess, variant }: { req: any, onProcess?: a
               {req.leave_type}
             </span>
             {variant === 'readonly' && (
-              <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold border ${statusColors[req.status]}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full uppercase font-bold border ${statusColors[req.status]}`}>
                 {req.status}
               </span>
             )}

@@ -21,12 +21,12 @@ export function AchievementsList({
 }) {
   if (!achievements || achievements.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-xl border border-gray-200 text-center flex flex-col items-center justify-center min-h-[240px]">
-        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-          <Award className="w-8 h-8 text-gray-300" />
+      <div className="bg-card p-8 rounded-xl border border-border text-center flex flex-col items-center justify-center min-h-[240px]">
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 border border-border">
+          <Award className="w-8 h-8 text-muted-foreground/40" />
         </div>
-        <h3 className="text-gray-900 font-semibold">No Badges Yet</h3>
-        <p className="text-gray-500 text-sm mt-1 max-w-xs">
+        <h3 className="text-foreground font-bold">No Badges Yet</h3>
+        <p className="text-muted-foreground text-xs mt-1 max-w-[200px] font-medium leading-relaxed">
           Complete tasks on time and resolve complaints to earn your first
           badge!
         </p>
@@ -35,9 +35,9 @@ export function AchievementsList({
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-full">
-      <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <Award className="w-5 h-5 text-yellow-500" /> Recent Achievements
+    <div className="bg-card p-6 rounded-xl border border-border shadow-xs h-full">
+      <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 uppercase tracking-widest">
+        <Award className="w-4 h-4 text-warning-amber" /> Recent Achievements
       </h3>
 
       <div className="space-y-4">
@@ -48,21 +48,21 @@ export function AchievementsList({
           return (
             <div
               key={item.id}
-              className="group p-4 bg-gray-50 hover:bg-blue-50 border border-gray-100 rounded-xl flex items-start gap-4 transition-colors"
+              className="group p-4 bg-muted/30 hover:bg-primary/5 border border-border rounded-xl flex items-start gap-4 transition-all active:scale-[0.99]"
             >
-              <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-yellow-500 flex-shrink-0 group-hover:scale-110 transition-transform">
-                <IconComponent className="w-6 h-6 fill-current" />
+              <div className="w-12 h-12 bg-card rounded-full shadow-xs flex items-center justify-center text-warning-amber shrink-0 group-hover:scale-110 transition-transform border border-border">
+                <IconComponent className="w-6 h-6 fill-current/10" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
-                  <h4 className="text-sm font-bold text-gray-900 truncate pr-2">
+                  <h4 className="text-sm font-bold text-foreground truncate pr-2 tracking-tight">
                     {item.badge_name}
                   </h4>
-                  <span className="text-[10px] font-medium text-gray-400 bg-white px-2 py-1 rounded-full border border-gray-100 whitespace-nowrap">
+                  <span className="text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-full border border-border whitespace-nowrap uppercase tracking-tighter">
                     {format(new Date(item.earned_at), "MMM d, yyyy")}
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 mt-1 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed font-medium">
                   {item.description}
                 </p>
               </div>

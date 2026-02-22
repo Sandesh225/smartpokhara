@@ -1,267 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import "tailwindcss";
 
-/* ═══════════════════════════════════════════════════════════
-   SMART CITY POKHARA — DESIGN SYSTEM
-   Production-optimized with reduced redundancy
-   ═══════════════════════════════════════════════════════════ */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Merriweather, serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  --shadow-inner-sm: inset 0 1px 2px 0 var(--border);
+  --shadow-inner-lg: inset 0 2px 4px 0 var(--border);
+}
 
 :root {
-  /* Core Brand Colors */
-  --primary-brand-raw: 43 95 117;
-  --primary-brand-light-raw: 67 119 141;
-  --primary-brand-dark-raw: 27 47 59;
-  --accent-nature-raw: 95 158 160;
-  
-  /* Light Mode Tokens */
-  --background: 247 249 252;
-  --foreground: 26 32 44;
-  --card: 255 255 255;
-  --card-foreground: 26 32 44;
-  --primary: 43 95 117;
-  --primary-foreground: 255 255 255;
-  --secondary: 95 158 160;
-  --secondary-foreground: 255 255 255;
-  --muted: 237 241 247;
-  --muted-foreground: 100 116 139;
-  --border: 226 232 240;
-  --input: 226 232 240;
-  --ring: 43 95 117;
-  --radius: 0.625rem;
-  
-  /* Sidebar (Staff Portal) */
-  --sidebar: 255 255 255;
-  --sidebar-foreground: 26 32 44;
-  --sidebar-border: 226 232 240;
-  --sidebar-accent: 237 241 247;
-  
-  /* Typography */
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Poppins", "Inter", sans-serif;
-  --font-brand: "Merienda", cursive;
-  --font-mono: "Space Mono", monospace;
+  /* Machhapuchhre Modern — Light Mode */
+  --background: rgb(255, 255, 255);      /* soft glacial mist */
+  --foreground: rgb(42, 45, 64);         /* slate mountain */
+
+  --card: rgb(255, 255, 255);
+  --card-foreground: rgb(42, 45, 64);
+
+  --popover: rgb(255, 255, 255);
+  --popover-foreground: rgb(42, 45, 64);
+
+  /* PRIMARY — Machhapuchhre Teal */
+  --primary: rgb(43, 95, 117);           /* #2B5F75 */
+  --primary-foreground: rgb(255, 255, 255);
+
+  /* SECONDARY — Nature Accent */
+  --secondary: rgb(95, 158, 160);        /* soft teal */
+  --secondary-foreground: rgb(255, 255, 255);
+
+  --muted: rgb(237, 241, 247);
+  --muted-foreground: rgb(100, 116, 139);
+
+  --accent: rgb(226, 240, 244);          /* glacier highlight */
+  --accent-foreground: rgb(43, 95, 117);
+
+  --destructive: rgb(220, 53, 69);
+  --destructive-foreground: rgb(255, 255, 255);
+
+  --border: rgb(226, 232, 240);
+  --input: rgb(226, 232, 240);
+
+  --ring: rgb(43, 95, 117);
+
+  /* Charts — Gradient Depth of Mountain */
+  --chart-1: rgb(43, 95, 117);
+  --chart-2: rgb(67, 119, 141);
+  --chart-3: rgb(95, 158, 160);
+  --chart-4: rgb(27, 47, 59);
+  --chart-5: rgb(15, 23, 42);
+
+  /* Sidebar */
+  --sidebar: rgb(255, 255, 255);
+  --sidebar-foreground: rgb(26, 32, 44);
+  --sidebar-primary: rgb(43, 95, 117);
+  --sidebar-primary-foreground: rgb(255, 255, 255);
+  --sidebar-accent: rgb(237, 241, 247);
+  --sidebar-accent-foreground: rgb(43, 95, 117);
+  --sidebar-border: rgb(226, 232, 240);
+  --sidebar-ring: rgb(43, 95, 117);
+
+  --radius: 0.5rem;
+  --tracking-normal: 0em;
 }
 
 .dark {
-  /* Dark Mode Colors */
-  --background: 15 20 25;
-  --foreground: 248 250 252;
-  --card: 26 32 46;
-  --card-foreground: 248 250 252;
-  --primary: 79 209 197;
-  --primary-foreground: 15 20 25;
-  --secondary: 246 173 85;
-  --secondary-foreground: 15 20 25;
-  --muted: 32 38 54;
-  --muted-foreground: 148 163 184;
-  --border: 45 55 72;
-  --input: 45 55 72;
-  --ring: 79 209 197;
-  
-  /* Dark Sidebar */
-  --sidebar: 20 25 35;
-  --sidebar-foreground: 248 250 252;
-  --sidebar-border: 45 55 72;
-  --sidebar-accent: 32 38 54;
+  /* Machhapuchhre — Dark Himalayan Night */
+  --background: rgb(15, 23, 32);         /* deep slate night */
+  --foreground: rgb(226, 232, 240);
+
+  --card: rgb(26, 32, 44);
+  --card-foreground: rgb(226, 232, 240);
+
+  --popover: rgb(26, 32, 44);
+  --popover-foreground: rgb(226, 232, 240);
+
+  /* The #4FD1C5 Teal / Glacial glow */
+  --primary: rgb(79, 209, 197);          
+  --primary-foreground: rgb(15, 23, 32);
+
+  --secondary: rgb(95, 158, 160);
+  --secondary-foreground: rgb(15, 23, 32);
+
+  --muted: rgb(32, 38, 54);
+  --muted-foreground: rgb(148, 163, 184);
+
+  --accent: rgb(38, 50, 64);
+  --accent-foreground: rgb(226, 232, 240);
+
+  --destructive: rgb(239, 68, 68);
+  --destructive-foreground: rgb(15, 23, 32);
+
+  --border: rgb(45, 55, 72);
+  --input: rgb(45, 55, 72);
+
+  --ring: rgb(79, 209, 197);
+
+  --chart-1: rgb(79, 209, 197);
+  --chart-2: rgb(43, 95, 117);
+  --chart-3: rgb(95, 158, 160);
+  --chart-4: rgb(27, 47, 59);
+  --chart-5: rgb(15, 23, 32);
+
+  --sidebar: rgb(20, 25, 35);
+  --sidebar-foreground: rgb(226, 232, 240);
+  --sidebar-primary: rgb(79, 209, 197);
+  --sidebar-primary-foreground: rgb(15, 23, 32);
+  --sidebar-accent: rgb(32, 38, 54);
+  --sidebar-accent-foreground: rgb(226, 232, 240);
+  --sidebar-border: rgb(45, 55, 72);
+  --sidebar-ring: rgb(79, 209, 197);
 }
 
-/* Tailwind V4 Theme */
-@theme inline {
-  --color-primary-brand: rgb(var(--primary-brand-raw));
-  --color-primary-brand-light: rgb(var(--primary-brand-light-raw));
-  --color-primary-brand-dark: rgb(var(--primary-brand-dark-raw));
-  --color-accent-nature: rgb(var(--accent-nature-raw));
-  --color-background: rgb(var(--background));
-  --color-foreground: rgb(var(--foreground));
-  --color-card: rgb(var(--card));
-  --color-card-foreground: rgb(var(--card-foreground));
-  --color-primary: rgb(var(--primary));
-  --color-primary-foreground: rgb(var(--primary-foreground));
-  --color-secondary: rgb(var(--secondary));
-  --color-secondary-foreground: rgb(var(--secondary-foreground));
-  --color-muted: rgb(var(--muted));
-  --color-muted-foreground: rgb(var(--muted-foreground));
-  --color-border: rgb(var(--border));
-  --color-input: rgb(var(--input));
-  --color-ring: rgb(var(--ring));
-  --color-sidebar: rgb(var(--sidebar));
-  --color-sidebar-foreground: rgb(var(--sidebar-foreground));
-  --color-sidebar-border: rgb(var(--sidebar-border));
-  --color-sidebar-accent: rgb(var(--sidebar-accent));
-  --font-sans: var(--font-sans);
-  --font-heading: var(--font-heading);
-  --font-brand: var(--font-brand);
-  --font-mono: var(--font-mono);
-}
-
-/* Base Styles */
 @layer base {
-  * { @apply border-border; }
-  
-  html {
-    font-size:95%;
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  * {
+    @apply border-border outline-ring/50;
   }
-
   body {
-    @apply bg-background text-foreground antialiased;
-    line-height: 1.6;
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-bold tracking-tight text-primary-brand-dark dark:text-foreground;
-  }
-
-  *:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
-  }
-
-  /* Premium Selection */
-  ::selection {
-    @apply bg-primary/20 text-primary-brand-dark dark:text-primary-foreground;
-  }
-
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full border-2 border-background hover:bg-muted-foreground/40 transition-colors;
+    @apply bg-background text-foreground;
+    letter-spacing: var(--tracking-normal);
   }
 }
 
-/* Utilities */
-@layer utilities {
-  /* Card System */
-  .card-base {
-    @apply bg-card border border-border rounded-xl shadow-sm transition-all duration-300;
+@layer components {
+  /* Machhapuchhre Modern - Micro Typography */
+  
+  .text-eyebrow {
+    @apply font-heading text-xs font-black uppercase tracking-widest;
   }
 
-  .stone-card {
-    @apply bg-card border border-border/40 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-500;
+  .text-eyebrow-sm {
+    @apply font-heading text-sm font-bold uppercase tracking-wider;
   }
-
-  .stone-card-elevated {
-    @apply bg-card/80 backdrop-blur-xl border border-border/60 rounded-3xl shadow-2xl transition-all duration-500;
-  }
-
-  .elevation-1 {
-    @apply shadow-sm;
-  }
-
-  .elevation-2 {
-    @apply shadow-md;
-  }
-
-  .card-hover {
-    @apply hover:shadow-lg dark:hover:shadow-2xl dark:hover:shadow-black/20;
-  }
-
-  /* Glass Effect */
-  .glass-light {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg;
-  }
-
-  .glass-dark {
-    @apply dark:bg-neutral-900/75 dark:backdrop-blur-xl dark:border-white/5 dark:shadow-2xl dark:shadow-black/30;
-  }
-
-  /* Button System */
-  .btn-base {
-    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-background;
-  }
-
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary shadow-md hover:shadow-lg dark:shadow-lg dark:shadow-primary/20 dark:hover:shadow-primary/30;
-  }
-
-  .btn-outline {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground;
-  }
-
-  /* Container System */
-  .container-fluid {
-    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
-  }
-
-  .section-spacing {
-    @apply py-16 sm:py-20 md:py-24 lg:py-28;
-  }
-
-  /* Grid Pattern */
-  .pattern-grid-light {
-    background-image: 
-      linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-
-  .pattern-grid-dark {
-    @apply dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] dark:bg-[size:24px_24px];
-  }
-
-  /* Scrollbar Hide */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(calc(-50% - 12px)); }
-}
-
-.animate-fade-in { animation: fadeIn 0.4s ease-out; }
-.animate-slide-in { animation: slideIn 0.5s ease-out; }
-.animate-marquee { animation: marquee 40s linear infinite; }
-
-/* Mobile Optimization */
-@media (hover: none) and (pointer: coarse) {
-  button, a { -webkit-tap-highlight-color: transparent; }
-}
-
-/* Dark Mode Enhancements */
-.dark {
-  color-scheme: dark;
-}
-
-.dark input,
-.dark textarea,
-.dark select {
-  @apply bg-muted border-input text-foreground;
-}
-
-.dark input::placeholder,
-.dark textarea::placeholder {
-  @apply text-muted-foreground;
-}
-
-/* Leaflet Map Support */
-.leaflet-container {
-  @apply bg-muted rounded-xl dark:bg-muted/50;
-  font-family: var(--font-sans);
 }

@@ -44,7 +44,7 @@ export function TaskStatusUpdater({
                 <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-primary-foreground" />
               )}
             </div>
-            <span className="text-[10px] md:text-xs mt-2 capitalize font-medium text-center whitespace-nowrap">
+            <span className="text-xs md:text-xs mt-2 capitalize font-medium text-center whitespace-nowrap">
               {step.replace("_", " ")}
             </span>
           </div>

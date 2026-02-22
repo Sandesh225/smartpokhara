@@ -163,11 +163,11 @@ export function UniversalAssignmentModal({
                         <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
                                 <AvatarImage src={item.avatar_url} />
-                                <AvatarFallback className="text-[10px]">{item.label[0]}</AvatarFallback>
+                                <AvatarFallback className="text-xs">{item.label[0]}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col text-left">
                                 <span className="font-bold text-sm leading-none">{item.label}</span>
-                                <span className="text-[10px] text-muted-foreground leading-none mt-1">
+                                <span className="text-xs text-muted-foreground leading-none mt-1">
                                     {item.role} {item.department ? `• ${item.department}` : ''}
                                 </span>
                             </div>
@@ -204,7 +204,7 @@ export function UniversalAssignmentModal({
 
               {/* Notification Options */}
                <div className="space-y-3 pt-2">
-                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Notify Via</p>
+                 <p className="text-xs font-bold uppercase text-muted-foreground">Notify Via</p>
                  <div className="flex gap-4">
                    <div className="flex items-center space-x-2">
                      <Checkbox id="inApp" checked={notifyOptions.inApp} onCheckedChange={(v) => setNotifyOptions(p => ({...p, inApp: !!v}))} />

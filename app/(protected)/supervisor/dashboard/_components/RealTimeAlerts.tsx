@@ -26,21 +26,21 @@ interface Alert {
 const alertConfig = {
   unassigned: {
     icon: AlertCircle,
-    color: "text-orange-500",
-    bg: "bg-orange-500/15",
-    border: "border-orange-500/20",
+    color: "text-warning-amber",
+    bg: "bg-warning-amber/10",
+    border: "border-warning-amber/20",
   },
   overdue: { 
     icon: AlertTriangle, 
     color: "text-destructive", 
-    bg: "bg-destructive/15",
+    bg: "bg-destructive/10",
     border: "border-destructive/20",
   },
   escalation: {
     icon: AlertTriangle,
-    color: "text-purple-500",
-    bg: "bg-purple-500/15",
-    border: "border-purple-500/20",
+    color: "text-info-blue",
+    bg: "bg-info-blue/10",
+    border: "border-info-blue/20",
   },
 };
 
@@ -77,9 +77,9 @@ export function RealTimeAlerts({
 
   if (visibleAlerts.length === 0) {
     return (
-      <div className="stone-card p-8 h-full flex flex-col items-center justify-center text-center border-emerald-500/20 bg-emerald-500/5">
-        <div className="h-16 w-16 bg-emerald-500/15 border border-emerald-500/20 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
-          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+      <div className="bg-card border border-success-green/20 rounded-xl p-8 h-full flex flex-col items-center justify-center text-center bg-linear-to-b from-success-green/5 to-transparent">
+        <div className="h-16 w-16 bg-success-green/10 border border-success-green/20 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+          <CheckCircle2 className="h-8 w-8 text-success-green" />
         </div>
         <h3 className="text-lg font-bold text-foreground mb-1">Queue Synchronized</h3>
         <p className="text-xs text-muted-foreground max-w-[200px] leading-relaxed">
@@ -90,7 +90,7 @@ export function RealTimeAlerts({
   }
 
   return (
-    <div className="stone-card h-full flex flex-col overflow-hidden border-destructive/20">
+    <div className="bg-card rounded-xl border border-destructive/20 h-full flex flex-col overflow-hidden">
       {/* Header with Danger Pulse */}
       <div className="px-6 py-4 border-b border-border/50 bg-linear-to-b from-destructive/10 to-transparent">
         <div className="flex items-center justify-between">
@@ -98,7 +98,7 @@ export function RealTimeAlerts({
             <AlertTriangle className="h-4 w-4 text-destructive animate-pulse" /> 
             Immediate Attention
           </h3>
-          <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-destructive/15 text-destructive rounded-full">
+          <span className="text-xs font-semibold px-2 py-0.5 bg-destructive/10 text-destructive rounded-full">
             {visibleAlerts.length} Active
           </span>
         </div>
@@ -130,7 +130,7 @@ export function RealTimeAlerts({
                   <p className="text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
                     {alert.message}
                   </p>
-                  <p className="text-[10px] font-medium text-muted-foreground mt-1">
+                  <p className="text-xs font-medium text-muted-foreground mt-1">
                     {formatDistanceToNow(new Date(alert.timestamp), {
                       addSuffix: true,
                     })}
@@ -154,7 +154,7 @@ export function RealTimeAlerts({
       
       {/* Dynamic Footer */}
       <div className="px-6 py-3 border-t border-border/50 bg-muted/20">
-        <p className="text-[10px] text-center font-bold text-muted-foreground uppercase tracking-widest">
+        <p className="text-xs text-center font-semibold text-muted-foreground">
           Subscription Active: Monitoring Real-time Queue
         </p>
       </div>

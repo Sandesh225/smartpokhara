@@ -10,10 +10,10 @@ interface Props {
 
 export function ComplaintsTrendChart({ data }: Props) {
   return (
-    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+    <div className="bg-card p-6 rounded-xl border border-border shadow-xs">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-base font-bold text-gray-900">Complaint Volume Trend</h3>
-        <select className="text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+        <h3 className="text-base font-bold text-foreground">Complaint Volume Trend</h3>
+        <select className="text-xs border-border bg-card text-foreground rounded-md shadow-sm focus:border-primary/50 focus:ring focus:ring-primary/20 focus:ring-opacity-50">
           <option>Last 30 Days</option>
           <option>Last 7 Days</option>
         </select>
@@ -24,8 +24,8 @@ export function ComplaintsTrendChart({ data }: Props) {
         xKey="date"
         series={[
           // FIX: Use 'count' key instead of 'total'
-          { key: "count", name: "Received", color: "#3B82F6" },
-          { key: "resolved", name: "Resolved", color: "#10B981" }
+          { key: "count", name: "Received", color: "var(--primary)" },
+          { key: "resolved", name: "Resolved", color: "var(--success-green)" }
         ]}
         height={300}
       />

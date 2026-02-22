@@ -25,7 +25,6 @@ export function isAdmin(user: CurrentUser | null): boolean {
 
 export function isSupervisor(user: CurrentUser | null): boolean {
   if (!user) return false;
-  if (user.staff_profile?.is_supervisor) return true;
   if (hasExactRole(user, "dept_head")) return true;
   return isAdmin(user);
 }
@@ -109,18 +108,19 @@ export function getRoleDisplayName(role: RoleType): string {
 }
 
 export function getRoleBadgeColor(role: RoleType): string {
+  // Uses design system tokens defined in globals.css
   const colors: Record<RoleType, string> = {
-    admin: "bg-purple-100 text-purple-800 border-purple-200",
-    dept_head: "bg-blue-100 text-blue-800 border-blue-200",
-    dept_staff: "bg-cyan-100 text-cyan-800 border-cyan-200",
-    ward_staff: "bg-green-100 text-green-800 border-green-200",
-    field_staff: "bg-orange-100 text-orange-800 border-orange-200",
-    call_center: "bg-indigo-100 text-indigo-800 border-indigo-200",
-    citizen: "bg-slate-100 text-slate-800 border-slate-200",
-    business_owner: "bg-amber-100 text-amber-800 border-amber-200",
-    tourist: "bg-pink-100 text-pink-800 border-pink-200",
+    admin: "bg-destructive/10 text-destructive border-destructive/20",
+    dept_head: "bg-primary/10 text-primary border-primary/20",
+    dept_staff: "bg-secondary/10 text-secondary border-secondary/20",
+    ward_staff: "bg-secondary/10 text-secondary border-secondary/20",
+    field_staff: "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400",
+    call_center: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400",
+    citizen: "bg-muted text-foreground border-border/50",
+    business_owner: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+    tourist: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
   };
-  return colors[role] ?? "bg-gray-100 text-gray-800 border-gray-200";
+  return colors[role] ?? "bg-muted text-muted-foreground border-border";
 }
 
 export function getAccessibleRoutes(user: CurrentUser | null): string[] {

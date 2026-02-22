@@ -10,7 +10,7 @@ import {
 import { Task, getTaskColumns } from "./task-columns";
 import { UniversalTable } from "@/components/shared/UniversalTable";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
 
 interface UniversalTaskTableProps {
   data: Task[];
@@ -34,12 +34,12 @@ export function UniversalTaskTable({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-xs">
       <UniversalTable
         table={table}
         isLoading={isLoading}
-        emptyTitle="No Tasks Assigned"
-        emptyMessage="You currently have no tasks assigned to you."
+        emptyTitle="No Tasks Found"
+        emptyMessage="You're all caught up for now!"
       />
     </div>
   );

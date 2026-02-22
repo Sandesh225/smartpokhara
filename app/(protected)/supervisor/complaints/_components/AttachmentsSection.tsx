@@ -52,50 +52,50 @@ export function AttachmentsSection({
     (citizenUploads?.length || 0) + (staffUploads?.length || 0);
 
   return (
-    <div className="stone-card dark:stone-card-elevated overflow-hidden transition-colors-smooth border-none shadow-2xl">
-      <CardHeader className="bg-primary/5 dark:bg-dark-surface/40 border-b border-primary/10 py-5">
+    <div className="bg-card border border-border overflow-hidden rounded-xl shadow-xs transition-colors">
+      <CardHeader className="bg-muted/20 border-b border-border py-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg border border-primary/20">
               <Paperclip className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-glow">
+              <span className="text-sm font-bold text-foreground">
                 Evidence Repository
               </span>
-              <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-0.5">
+              <p className="text-xs text-muted-foreground font-medium mt-0.5">
                 Digital Assets & Verifications
               </p>
             </div>
           </CardTitle>
           <Badge
-            variant="outline"
-            className="border-primary/20 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-tighter px-3"
+            variant="secondary"
+            className="font-semibold text-xs px-3"
           >
-            Verified Items: {totalCount}
+            {totalCount} Items
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
         <Tabs defaultValue="citizen" className="w-full">
-          <div className="bg-muted/30 dark:bg-dark-midnight/40 border-b border-primary/5 px-6">
+          <div className="bg-card border-b border-border px-6">
             <TabsList className="bg-transparent h-14 gap-8">
               <TabsTrigger
                 value="citizen"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none px-0 font-black text-[10px] uppercase tracking-widest transition-all h-14"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-none px-0 font-bold text-sm transition-all h-14 text-muted-foreground hover:text-foreground"
               >
                 Citizen Intake
-                <Badge className="ml-2 bg-primary/10 text-primary border-none text-[9px] h-4">
+                <Badge variant="secondary" className="ml-2 text-xs h-5 rounded-full px-2">
                   {citizenUploads?.length || 0}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger
                 value="staff"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none px-0 font-black text-[10px] uppercase tracking-widest transition-all h-14"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-none px-0 font-bold text-sm transition-all h-14 text-muted-foreground hover:text-foreground"
               >
                 Field Reports
-                <Badge className="ml-2 bg-primary/10 text-primary border-none text-[9px] h-4">
+                <Badge variant="secondary" className="ml-2 text-xs h-5 rounded-full px-2">
                   {staffUploads?.length || 0}
                 </Badge>
               </TabsTrigger>
@@ -137,9 +137,9 @@ function GalleryGrid({
 }) {
   if (!files || files.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center glass border-2 border-dashed border-primary/10 rounded-3xl">
-        <ImageIcon className="h-12 w-12 mb-4 text-primary/20" />
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[250px] leading-relaxed">
+      <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border rounded-xl">
+        <ImageIcon className="h-10 w-10 mb-3 text-muted-foreground/50" />
+        <p className="text-sm font-medium text-muted-foreground max-w-[250px]">
           {emptyMessage}
         </p>
       </div>
@@ -160,7 +160,7 @@ function GalleryGrid({
         return (
           <Dialog key={file.id}>
             <DialogTrigger asChild>
-              <div className="group relative aspect-square glass dark:bg-dark-surface/50 rounded-2xl border border-primary/10 overflow-hidden cursor-pointer shadow-xl hover:border-primary/40 transition-all duration-500">
+              <div className="group relative aspect-square bg-muted rounded-xl border border-border overflow-hidden cursor-pointer shadow-sm hover:border-primary/40 transition-all duration-300">
                 {isImage ? (
                   <img
                     src={fileUrl}
@@ -172,10 +172,10 @@ function GalleryGrid({
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-transparent">
+                  <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-linear-to-br from-primary/5 to-transparent">
                     <FileIcon className="h-12 w-12 mb-3 text-primary/40" />
-                    <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">
-                      .{file.file_name.split(".").pop()} Protocol
+                    <span className="text-xs font-semibold text-primary/60 uppercase tracking-wider">
+                      .{file.file_name.split(".").pop()} File
                     </span>
                   </div>
                 )}
@@ -189,15 +189,15 @@ function GalleryGrid({
               </div>
             </DialogTrigger>
 
-            <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-transparent border-none shadow-[0_0_50px_-12px_rgba(var(--primary-brand),0.5)]">
-              <div className="relative glass dark:bg-dark-midnight rounded-3xl flex flex-col max-h-[90vh] border border-primary/20">
-                <div className="flex justify-between items-center px-8 py-5 border-b border-primary/10 backdrop-blur-xl">
+            <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-transparent border-none shadow-none">
+              <div className="relative bg-card rounded-2xl flex flex-col max-h-[90vh] border border-border shadow-md">
+                <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-muted/20">
                   <div className="min-w-0">
-                    <h3 className="text-sm font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-emerald-500" />
                       {file.file_name}
                     </h3>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">
+                    <p className="text-xs font-medium text-muted-foreground mt-1">
                       Evidence Hash: {file.id.substring(0, 12)} •{" "}
                       {format(new Date(file.created_at), "PPP")}
                     </p>
@@ -206,7 +206,7 @@ function GalleryGrid({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-10 px-4 rounded-xl border-primary/20 font-black uppercase tracking-widest text-[10px] hover:bg-primary/5"
+                      className="h-10 px-4 rounded-xl font-semibold text-xs transition-colors"
                       asChild
                     >
                       <a href={fileUrl} target="_blank" rel="noreferrer">
@@ -216,7 +216,7 @@ function GalleryGrid({
                     </Button>
                     <Button
                       size="sm"
-                      className="h-10 px-4 rounded-xl bg-primary hover:bg-primary-brand-light font-black uppercase tracking-widest text-[10px] shadow-lg accent-glow"
+                      className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 font-semibold text-xs shadow-sm text-primary-foreground"
                       asChild
                     >
                       <a href={fileUrl} download={file.file_name}>
@@ -225,21 +225,21 @@ function GalleryGrid({
                     </Button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-auto bg-primary/5 dark:bg-dark-midnight/20 flex items-center justify-center p-10">
+                <div className="flex-1 overflow-auto bg-muted/5 flex items-center justify-center p-8">
                   {isImage ? (
                     <img
                       src={fileUrl}
                       alt={file.file_name}
-                      className="max-w-full max-h-[65vh] object-contain shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl border border-primary/10 transition-colors-smooth"
+                      className="max-w-full max-h-[65vh] object-contain rounded-xl shadow-xs border border-border"
                     />
                   ) : (
-                    <div className="text-center p-16 glass dark:bg-dark-surface-elevated rounded-[40px] border border-primary/10 max-w-sm shadow-2xl">
-                      <FileIcon className="h-24 w-24 mx-auto text-primary/10 mb-8" />
-                      <p className="text-foreground font-black uppercase tracking-widest text-xs">
+                    <div className="text-center p-12 bg-card rounded-2xl border border-border max-w-sm shadow-sm">
+                      <FileIcon className="h-20 w-20 mx-auto text-muted-foreground/30 mb-6" />
+                      <p className="text-foreground font-bold text-sm">
                         Binary Data Preview
                       </p>
-                      <p className="text-muted-foreground text-[10px] mt-4 leading-relaxed font-bold uppercase tracking-tighter">
-                        Preview generation is not supported for this protocol.
+                      <p className="text-muted-foreground text-xs mt-3 leading-relaxed">
+                        Preview generation is not supported.
                         Please extract the asset to local storage for analysis.
                       </p>
                     </div>

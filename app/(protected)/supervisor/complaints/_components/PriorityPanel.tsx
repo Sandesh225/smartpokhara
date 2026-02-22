@@ -44,15 +44,15 @@ export function PriorityPanel({ complaintId, currentPriority }: PriorityPanelPro
 
   return (
     <>
-      <Card className="border-border/60 shadow-sm overflow-hidden">
-        <CardHeader className="bg-muted/30 px-4 py-3 border-b">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
+      <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-muted/20">
+          <h3 className="text-sm font-bold flex items-center gap-2 text-foreground">
+            <TrendingUp className="w-4 h-4 text-foreground/70" />
             Urgency & SLA
-          </CardTitle>
-        </CardHeader>
+          </h3>
+        </div>
         
-        <CardContent className="p-4 space-y-4">
+        <div className="p-4 space-y-4">
           <div className="flex items-center justify-between bg-muted/20 p-3 rounded-lg border border-border/50">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Level</span>
             <PriorityIndicator priority={currentPriority} size="md" />
@@ -80,15 +80,15 @@ export function PriorityPanel({ complaintId, currentPriority }: PriorityPanelPro
           </div>
 
           {isUrgent && (
-            <div className="text-[11px] text-orange-700 bg-orange-50 p-2.5 rounded border border-orange-100 flex gap-2">
+            <div className="text-sm text-orange-700 bg-orange-50 p-2.5 rounded border border-orange-100 flex gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <p className="leading-tight">
                 High priority complaints require daily status updates per department policy.
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <PriorityChangeModal
         isOpen={isModalOpen}

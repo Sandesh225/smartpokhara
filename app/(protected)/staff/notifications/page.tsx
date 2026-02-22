@@ -33,15 +33,15 @@ export default function StaffNotificationsPage() {
     switch (type) {
       case "success":
       case "invitation":
-        return { icon: "bg-green-100 text-green-600", dot: "bg-green-500" };
+        return { icon: "bg-success-green/10 text-success-green border-success-green/20", dot: "bg-success-green" };
       case "warning":
-        return { icon: "bg-yellow-100 text-yellow-600", dot: "bg-yellow-500" };
+        return { icon: "bg-warning-amber/10 text-warning-amber border-warning-amber/20", dot: "bg-warning-amber" };
       case "error":
-        return { icon: "bg-red-100 text-red-600", dot: "bg-red-500" };
+        return { icon: "bg-destructive/10 text-destructive border-destructive/20", dot: "bg-destructive" };
       case "assignment":
-        return { icon: "bg-blue-100 text-blue-600", dot: "bg-blue-500" };
+        return { icon: "bg-info-blue/10 text-info-blue border-info-blue/20", dot: "bg-info-blue" };
       default:
-        return { icon: "bg-gray-100 text-gray-600", dot: "bg-gray-500" };
+        return { icon: "bg-muted text-muted-foreground border-border", dot: "bg-muted-foreground" };
     }
   };
 
@@ -90,62 +90,62 @@ export default function StaffNotificationsPage() {
     if (items.length === 0) return null;
 
     return (
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">
+      <div className="space-y-4">
+        <h3 className="text-xs font-black text-muted-foreground/50 px-1 uppercase tracking-wider border-l-2 border-border pl-4">
           {title}
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {items.map((notification) => {
             const style = getNotificationIcon(notification.type);
             return (
               <div
                 key={notification.id}
                 className={cn(
-                  "flex gap-4 p-4 rounded-lg border transition-colors cursor-pointer",
+                  "flex gap-5 p-5 rounded-2xl border transition-all cursor-pointer shadow-xs active:scale-[0.99]",
                   !notification.is_read
-                    ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800"
-                    : "hover:bg-muted/50"
+                    ? "bg-info-blue/5 border-info-blue/20 ring-1 ring-info-blue/10"
+                    : "bg-card border-border hover:bg-muted/30"
                 )}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div
                   className={cn(
-                    " w-10 h-10 rounded-full flex items-center justify-center",
+                    "w-12 h-12 rounded-xl flex items-center justify-center border shrink-0",
                     style.icon
                   )}
                 >
                   <Bell className="h-5 w-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0 pt-1">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">
+                      <p className="font-black text-xs text-foreground uppercase tracking-tight">
                         {notification.title}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                      <p className="text-xs font-bold text-muted-foreground mt-1 line-clamp-2 uppercase tracking-tighter leading-relaxed">
                         {notification.message}
                       </p>
                     </div>
                     {!notification.is_read && (
                       <div
                         className={cn(
-                          "w-2 h-2 rounded-full shrink-0 mt-2",
+                          "w-2.5 h-2.5 rounded-full shrink-0 mt-3 shadow-xs",
                           style.dot
                         )}
                       />
                     )}
                   </div>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 mt-3">
+                    <span className="text-xs font-black text-muted-foreground/40 uppercase tracking-widest">
                       {formatRelativeTime(notification.created_at)}
                     </span>
                     {notification.action_url && (
                       <Link
                         href={notification.action_url}
-                        className="text-xs text-primary hover:underline"
+                        className="text-xs font-black text-primary hover:underline uppercase tracking-tighter"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        View details
+                        Launch Action →
                       </Link>
                     )}
                   </div>
@@ -159,26 +159,26 @@ export default function StaffNotificationsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in max-w-[1200px] mx-auto p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
-          <p className="text-muted-foreground mt-1">
-            Stay updated on your tasks and assignments
+          <h1 className="text-xl font-black tracking-tight text-foreground uppercase">Notifications</h1>
+          <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-widest">
+            Stay updated on your municipal tasks and assignments.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {unreadCount > 0 && (
-            <Badge variant="secondary">{unreadCount} unread</Badge>
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 font-black text-xs px-3 py-1 uppercase tracking-widest">{unreadCount} unread</Badge>
           )}
           <Button
             variant="outline"
             size="sm"
             onClick={() => refetch()}
-            className="gap-2 bg-transparent"
+            className="gap-2 bg-muted/50 border-border rounded-xl text-xs font-black uppercase tracking-widest hover:bg-muted"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="h-3 w-3" />
             Refresh
           </Button>
           {unreadCount > 0 && (
@@ -186,9 +186,9 @@ export default function StaffNotificationsPage() {
               variant="outline"
               size="sm"
               onClick={() => user?.id && markAllAsRead.mutateAsync(user.id)}
-              className="gap-2 bg-transparent"
+              className="gap-2 bg-muted/50 border-border rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-xs"
             >
-              <CheckCircle className="h-4 w-4" />
+              <CheckCircle className="h-3 w-3" />
               Mark all read
             </Button>
           )}
@@ -196,42 +196,46 @@ export default function StaffNotificationsPage() {
       </div>
 
       {/* Notifications List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            All Notifications
+      <Card className="bg-card border-border shadow-xs rounded-2xl overflow-hidden">
+        <CardHeader className="bg-muted/20 border-b border-border p-6">
+          <CardTitle className="flex items-center gap-3 text-xs font-black uppercase tracking-widest text-foreground">
+            <Bell className="h-4 w-4 text-info-blue" />
+            Notification Broadcasts
           </CardTitle>
-          <CardDescription>
-            Click on a notification to mark it as read
+          <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">
+            Click on a notification to acknowledge and mark as read.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-20 bg-muted animate-pulse rounded-lg"
+                  className="h-24 bg-muted/40 animate-pulse rounded-2xl border border-border"
                 />
               ))}
             </div>
           ) : notifications.length === 0 ? (
-            <div className="text-center py-12">
-              <Inbox className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <p className="text-lg font-medium">No notifications</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                You're all caught up! Check back later.
-              </p>
+            <div className="text-center py-24 flex flex-col items-center gap-6">
+               <div className="h-20 w-20 bg-muted/50 rounded-3xl flex items-center justify-center border border-border shadow-inner group">
+                <Inbox className="h-10 w-10 text-muted-foreground/20 group-hover:scale-110 transition-transform" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-foreground uppercase tracking-widest">Inbox Zero</p>
+                <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-tighter opacity-60">
+                    You're all caught up! No recent alerts found.
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              {renderNotificationGroup("Today", groupedNotifications.today)}
+            <div className="space-y-10">
+              {renderNotificationGroup("Recent Activity", groupedNotifications.today)}
               {renderNotificationGroup(
                 "Yesterday",
                 groupedNotifications.yesterday
               )}
-              {renderNotificationGroup("Older", groupedNotifications.older)}
+              {renderNotificationGroup("Archive", groupedNotifications.older)}
             </div>
           )}
         </CardContent>

@@ -37,7 +37,13 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.rpc(functionName, params);
     
     if (error) {
-      console.error('[RPC] Error:', error);
+      console.error('[RPC] Error details:', { 
+        functionName, 
+        params, 
+        error_message: error.message,
+        error_details: error.details,
+        error_hint: error.hint
+      });
       return NextResponse.json(
         { 
           success: false,

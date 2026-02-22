@@ -49,7 +49,9 @@ export function AssignmentPanel({
 
   const isAssigned = !!complaint.assigned_staff_id;
   const assignee =
-    complaint.assigned_staff_user?.profile || complaint.assigned_staff;
+    complaint.assigned_staff_profile || 
+    complaint.assigned_staff_user?.profile || 
+    complaint.assigned_staff;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [staffList, setStaffList] = useState<AssignableStaff[]>([]);
@@ -161,20 +163,20 @@ export function AssignmentPanel({
 
   return (
     <>
-      <div className="stone-card dark:stone-card-elevated overflow-hidden border-border/40 transition-colors-smooth relative">
+      <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden relative">
         {/* Status Indicator Bar */}
         <div
           className={cn(
             "h-1 w-full absolute top-0 left-0 transition-colors duration-500",
-            isAssigned ? "bg-emerald-500" : "bg-amber-500/60"
+            isAssigned ? "bg-success-green" : "bg-warning-amber"
           )}
         />
 
-        <div className="px-4 py-4 flex items-center justify-between border-b border-border/50 bg-muted/20 dark:bg-dark-surface/40">
+        <div className="px-4 py-3 flex items-center justify-between border-b border-border bg-muted/20">
           <div className="flex items-center gap-2">
-            <Briefcase className="w-3.5 h-3.5 text-primary" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/80 dark:text-dark-text-secondary">
-              Assignment Protocol
+            <Briefcase className="w-4 h-4 text-foreground/70" />
+            <span className="text-sm font-bold text-foreground">
+              Assignment Details
             </span>
           </div>
 
@@ -225,14 +227,14 @@ export function AssignmentPanel({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-muted-foreground/60 dark:text-dark-text-tertiary">
+                <div className="flex items-center gap-2 text-xs font-mono font-bold text-muted-foreground/60 dark:text-dark-text-tertiary">
                   <span className="bg-muted px-1.5 py-0.5 rounded dark:bg-dark-border-primary">
-                    {assignee?.staff_code || "ID-VERIFIED"}
+                    {assignee?.staff?.staff_code || assignee?.staff_code || "ID-VERIFIED"}
                   </span>
                 </div>
 
                 {complaint.assigned_at && (
-                  <div className="flex items-center gap-1.5 mt-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
+                  <div className="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
                     <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                     Deployed{" "}
                     {formatDistanceToNow(new Date(complaint.assigned_at), {
@@ -243,21 +245,20 @@ export function AssignmentPanel({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center py-4 text-center">
-              <div className="h-14 w-14 glass dark:bg-primary/5 rounded-2xl flex items-center justify-center mb-4 border-2 border-dashed border-primary/20 group-hover:border-primary/40 transition-all">
-                <UserPlus className="h-6 w-6 text-primary/40" />
+            <div className="flex flex-col items-center py-6 text-center">
+              <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center mb-3 border border-border">
+                <UserPlus className="h-5 w-5 text-muted-foreground" />
               </div>
-              <h4 className="text-xs font-black uppercase tracking-widest text-foreground mb-2">
+              <h4 className="text-sm font-bold text-foreground mb-1">
                 Unassigned Record
               </h4>
-              <p className="text-[10px] text-muted-foreground dark:text-dark-text-tertiary leading-relaxed max-w-[220px] mb-5">
-                Queue active. This record requires immediate field deployment to
-                satisfy SLA requirements.
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] mb-4">
+                This record requires immediate field deployment.
               </p>
               <Button
                 onClick={handleOpenModal}
                 disabled={isProcessing}
-                className="w-full bg-primary text-primary-foreground font-black uppercase tracking-[0.15em] text-[10px] h-9 shadow-lg accent-glow transition-transform hover:scale-[1.02]"
+                className="w-full font-semibold h-10 shadow-sm"
               >
                 {isProcessing || loadingStaff ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

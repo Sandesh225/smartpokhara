@@ -22,9 +22,9 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
 
   if (localTasks.length === 0) {
     return (
-      <Card className="p-12 text-center border-dashed border-2 bg-gradient-to-br from-card to-muted/30 dark:from-card dark:to-muted/10">
-        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-500/10 dark:to-emerald-500/10 ring-8 ring-green-50/50 dark:ring-green-500/10 mb-4">
-          <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+      <Card className="p-12 text-center border-dashed border-2 bg-linear-to-br from-card to-muted/30 dark:from-card dark:to-muted/10">
+        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-success-green/10 to-success-green/5 ring-8 ring-success-green/5 mb-4">
+          <CheckCircle2 className="h-8 w-8 text-success-green" />
         </div>
         <h3 className="text-lg font-semibold text-foreground mb-2">All Caught Up!</h3>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
@@ -38,7 +38,7 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 dark:from-primary dark:to-primary/90 shadow-lg shadow-primary/25 dark:shadow-primary/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
             <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
@@ -49,7 +49,7 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="h-2 w-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse" />
+          <div className="h-2 w-2 rounded-full bg-success-green animate-pulse" />
           <span>Live updates</span>
         </div>
       </div>
@@ -59,12 +59,12 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
           <a
             href={`/staff/queue/${task.id}`}
             key={task.id}
-            className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl"
+            className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
           >
-            <Card className="p-5 transition-all duration-200 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/20 hover:-translate-y-0.5 hover:border-primary/50 dark:hover:border-primary/30 active:scale-[0.99]">
+            <Card className="p-5 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/50 group-active:scale-[0.99] bg-card border-border">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center text-[11px] font-mono font-medium bg-muted dark:bg-muted/50 px-2.5 py-1 rounded-md text-foreground border border-border">
+                  <span className="inline-flex items-center text-xs font-mono font-bold bg-muted px-2.5 py-1 rounded-md text-foreground border border-border uppercase tracking-tight">
                     {task.tracking_code}
                   </span>
                   <PriorityIndicator priority={task.priority} size="sm" />
@@ -81,18 +81,18 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <div className={`rounded-full p-1 transition-colors ${
                       task.due_at && new Date(task.due_at) < new Date() 
-                        ? "bg-red-100 dark:bg-red-500/20" 
-                        : "bg-muted dark:bg-muted/50"
+                        ? "bg-destructive/10" 
+                        : "bg-muted"
                     }`}>
                       <Clock className={`h-3.5 w-3.5 ${
                         task.due_at && new Date(task.due_at) < new Date() 
-                          ? "text-red-600 dark:text-red-400" 
+                          ? "text-destructive" 
                           : "text-muted-foreground"
                       }`} />
                     </div>
                     <span className={`font-medium ${
                       task.due_at && new Date(task.due_at) < new Date() 
-                        ? "text-red-600 dark:text-red-400" 
+                        ? "text-destructive" 
                         : "text-foreground"
                     }`}>
                       {getTimeRemaining(task.due_at)}
@@ -100,7 +100,7 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
                   </div>
                   {task.location && (
                     <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <div className="rounded-full p-1 bg-muted dark:bg-muted/50">
+                      <div className="rounded-full p-1 bg-muted">
                         <MapPin className="h-3.5 w-3.5" />
                       </div>
                       <span className="truncate max-w-[120px] font-medium text-foreground">{task.location}</span>

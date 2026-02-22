@@ -64,7 +64,7 @@ export function PageHeader({
               {badge && (
                 <div className="shrink-0">
                   {typeof badge === "string" ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
                       {badge}
                     </span>
                   ) : (

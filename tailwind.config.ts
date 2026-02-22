@@ -12,12 +12,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "rgb(var(--background))",
-        foreground: "rgb(var(--foreground))",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
 
         primary: {
-          DEFAULT: "rgb(var(--primary))",
-          foreground: "rgb(var(--primary-foreground))",
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
           brand: {
             DEFAULT: "rgb(var(--primary-brand-raw))",
             light: "rgb(var(--primary-brand-light-raw))",
@@ -26,51 +26,47 @@ const config: Config = {
         },
 
         secondary: {
-          DEFAULT: "rgb(var(--secondary))",
-          foreground: "rgb(var(--secondary-foreground))",
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
         },
 
         accent: {
-          DEFAULT: "rgb(var(--accent))",
-          foreground: "rgb(var(--accent-foreground))",
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
           nature: "rgb(var(--accent-nature-raw))",
         },
 
         muted: {
-          DEFAULT: "rgb(var(--muted))",
-          foreground: "rgb(var(--muted-foreground))",
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
         },
 
         card: {
-          DEFAULT: "rgb(var(--card))",
-          foreground: "rgb(var(--card-foreground))",
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
         },
 
         popover: {
-          DEFAULT: "rgb(var(--card))",
-          foreground: "rgb(var(--card-foreground))",
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
         },
 
         sidebar: {
-          DEFAULT: "rgb(var(--sidebar))",
-          foreground: "rgb(var(--sidebar-foreground))",
-          border: "rgb(var(--sidebar-border))",
-          accent: "rgb(var(--sidebar-accent))",
+          DEFAULT: "var(--sidebar)",
+          foreground: "var(--sidebar-foreground)",
+          border: "var(--sidebar-border)",
+          accent: "var(--sidebar-accent)",
         },
 
         destructive: {
-          DEFAULT: "#ef4444",
-          foreground: "#ffffff",
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
         },
 
-        border: "rgb(var(--border))",
-        input: "rgb(var(--input))",
-        ring: "rgb(var(--ring))",
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
 
-        "primary-brand": "rgb(var(--primary-brand-raw))",
-        "primary-brand-light": "rgb(var(--primary-brand-light-raw))",
-        "primary-brand-dark": "rgb(var(--primary-brand-dark-raw))",
-        "accent-nature": "rgb(var(--accent-nature-raw))",
       },
 
       borderRadius: {
@@ -84,14 +80,16 @@ const config: Config = {
 
       fontFamily: {
         sans: [
-          "Inter",
+          "var(--font-sans)",
+          "ui-sans-serif",
+          "system-ui",
           "-apple-system",
           "BlinkMacSystemFont",
           "Segoe UI",
           "Roboto",
           "sans-serif",
         ],
-        heading: ["Inter", "sans-serif"],
+        heading: ["var(--font-heading)", "sans-serif"],
       },
 
       keyframes: {
@@ -151,8 +149,8 @@ const config: Config = {
       },
 
       boxShadow: {
-        "inner-sm": "inset 0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        "inner-lg": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)",
+        "inner-sm": "inset 0 1px 2px 0 var(--border)",
+        "inner-lg": "inset 0 2px 4px 0 var(--border)",
       },
 
       container: {

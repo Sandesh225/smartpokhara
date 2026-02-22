@@ -1,8 +1,9 @@
 // Shared component library barrel export
-// Usage: import { PageHeader, StatsCard, DataCard, PageSkeleton, StatusBadge, EmptyState } from "@/components/shared"
+// Usage: import { PageHeader, UniversalStatCard, DataCard, PageSkeleton, StatusBadge, EmptyState } from "@/components/shared"
 
 export { PageHeader } from "./PageHeader";
-export { StatsCard } from "./StatsCard";
+export { UniversalStatCard } from "./UniversalStatCard";
+export type { StatCardProps } from "./UniversalStatCard";
 export { DataCard } from "./DataCard";
 export { PageSkeleton } from "./PageSkeleton";
 export { StatusBadge } from "./StatusBadge";

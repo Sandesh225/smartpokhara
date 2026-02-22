@@ -25,7 +25,7 @@ const StatusCell = ({ status }: { status: string }) => {
     <Badge
       variant="outline"
       className={cn(
-        "rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border",
+        "rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-wider border",
         config[status] || config.open
       )}
     >
@@ -53,7 +53,7 @@ const PriorityCell = ({ priority }: { priority: string }) => {
         )}
       />
       <span className={cn(
-          "text-[10px] font-bold uppercase tracking-wider",
+          "text-xs font-bold uppercase tracking-wider",
           config[priority] || config.medium
       )}>
         {priority}
@@ -103,10 +103,10 @@ export const getTaskColumns = (): ColumnDef<Task>[] => [
       accessorKey: "due_date",
       header: "Due",
       cell: ({ row }) => row.original.due_date ? (
-          <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+          <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground whitespace-nowrap">
              <Clock className="w-3 h-3" />
              {formatDistanceToNow(new Date(row.original.due_date), { addSuffix: true })}
           </div>
-      ) : <span className="text-muted-foreground text-[10px]">-</span>
+      ) : <span className="text-muted-foreground text-xs">-</span>
   },
 ];

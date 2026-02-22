@@ -105,7 +105,7 @@ export default function SLAConfigurator() {
                   background: `linear-gradient(to right, rgb(var(--primary)) 0%, rgb(var(--primary)) ${(values[p.key as keyof typeof values] / 168) * 100}%, rgb(var(--muted)) ${(values[p.key as keyof typeof values] / 168) * 100}%, rgb(var(--muted)) 100%)`,
                 }}
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground mt-2 font-medium">
+              <div className="flex justify-between text-xs text-muted-foreground mt-2 font-medium">
                 <span>1h</span>
                 <span>24h</span>
                 <span>48h</span>

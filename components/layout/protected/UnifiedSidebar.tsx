@@ -35,7 +35,7 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
           </div>
           <div>
             <h1 className="text-base font-black tracking-tight leading-none text-foreground">Smart Pokhara</h1>
-            <span className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1 flex items-center gap-1">
+            <span className="text-xs font-bold text-primary uppercase tracking-widest mt-1 flex items-center gap-1">
               <Sparkles className="h-2.5 w-2.5" /> {dashboardType} Portal
             </span>
           </div>
@@ -90,7 +90,7 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
                 <span>{item.name}</span>
               </div>
               {badgeCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-black text-white shadow-md">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-black text-white shadow-md">
                   {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               )}

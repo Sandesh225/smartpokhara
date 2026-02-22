@@ -83,7 +83,7 @@ function WalletCard({
     <Card className="stone-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
       <CardContent className="p-4 flex items-center justify-between">
         <div>
-          <p className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <p className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
             {label}
           </p>
           <p className="text-xl md:text-2xl font-black text-foreground mt-0.5">

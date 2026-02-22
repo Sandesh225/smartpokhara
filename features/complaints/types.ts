@@ -106,6 +106,7 @@ export interface Department {
 export interface ComplaintCategory {
   id: string;
   name: string;
+  name_nepali: string | null;
   description: string | null;
   default_department_id: string | null;
   default_sla_days: number;

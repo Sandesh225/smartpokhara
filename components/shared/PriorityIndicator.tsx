@@ -18,55 +18,53 @@ interface PriorityIndicatorProps {
 
 const PRIORITY_CONFIG: Record<
   string,
-  { color: string; bg: string; icon: any; label: string; glow?: string; iconColor?: string }
+  { color: string; bg: string; icon: any; label: string; iconColor?: string }
 > = {
   critical: {
-    color: "text-red-700 dark:text-red-400",
-    bg: "bg-red-50 border-red-200 dark:bg-red-500/15 dark:border-red-500/30",
+    color: "text-destructive-foreground",
+    bg: "bg-destructive border-destructive",
     icon: Flame,
     label: "CRITICAL",
-    glow: "shadow-[0_0_10px_rgba(239,68,68,0.3)] dark:shadow-[0_0_15px_rgba(239,68,68,0.2)]",
-    iconColor: "text-red-600"
+    iconColor: "text-destructive-foreground"
   },
   emergency: {
-    color: "text-red-700 dark:text-red-400",
-    bg: "bg-red-50 border-red-200 dark:bg-red-500/15 dark:border-red-500/30",
+    color: "text-destructive-foreground",
+    bg: "bg-destructive/90 border-border",
     icon: AlertCircle,
     label: "EMERGENCY",
-    glow: "shadow-[0_0_10px_rgba(239,68,68,0.3)]",
-    iconColor: "text-red-600"
+    iconColor: "text-destructive-foreground"
   },
   urgent: {
     label: "URGENT",
     icon: AlertCircle,
-    color: "text-red-700",
-    bg: "bg-red-50 border-red-200",
-    iconColor: "text-red-600"
+    color: "text-destructive",
+    bg: "bg-destructive/10 border-destructive/20",
+    iconColor: "text-destructive"
   },
   high: {
-    color: "text-orange-700 dark:text-orange-400",
-    bg: "bg-orange-50 border-orange-200 dark:bg-orange-500/15",
+    color: "text-destructive",
+    bg: "bg-destructive/10 border-destructive/20",
     icon: ArrowUp,
     label: "HIGH",
-    iconColor: "text-orange-600"
+    iconColor: "text-destructive"
   },
   medium: {
-    color: "text-blue-700 dark:text-primary-light",
-    bg: "bg-blue-50 border-blue-200 dark:bg-primary/10",
+    color: "text-secondary-foreground",
+    bg: "bg-secondary/20 border-secondary/30",
     icon: AlertTriangle,
     label: "MEDIUM",
-    iconColor: "text-blue-600"
+    iconColor: "text-secondary-foreground"
   },
   low: {
-    color: "text-slate-600 dark:text-emerald-400",
-    bg: "bg-slate-50 border-slate-200 dark:bg-emerald-500/10",
+    color: "text-muted-foreground",
+    bg: "bg-muted border-border",
     icon: Minus,
     label: "LOW",
-    iconColor: "text-slate-500"
+    iconColor: "text-muted-foreground"
   },
   default: {
     color: "text-muted-foreground",
-    bg: "bg-muted/10 border-muted/20",
+    bg: "bg-muted/50 border-border",
     icon: Info,
     label: "UNSPECIFIED",
   },
@@ -98,15 +96,15 @@ export function PriorityIndicator({
         "relative inline-flex items-center gap-1.5 rounded-full border font-bold uppercase tracking-tight transition-all",
         config.bg,
         config.color,
-        config.glow,
-        size === "sm" ? "py-0.5 px-2 text-[10px]" : "py-1 px-3 text-[11px]",
+        isHighSeverity && "shadow-md",
+        size === "sm" ? "py-0.5 px-2 text-xs" : "py-1 px-3 text-sm",
         className
       )}
       title={`Priority Protocol: ${config.label}`}
     >
       {/* Tactical Pulse for Critical Items */}
       {isHighSeverity && (
-        <span className="absolute inset-0 rounded-full bg-red-500/10 animate-pulse-slow -z-10" />
+        <span className="absolute inset-0 rounded-full bg-destructive/10 animate-pulse-slow -z-10" />
       )}
 
       <Icon

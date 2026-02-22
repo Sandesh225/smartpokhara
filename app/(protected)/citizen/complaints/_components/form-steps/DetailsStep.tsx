@@ -3,6 +3,8 @@
 import { useFormContext, Controller } from "react-hook-form";
 import { Upload, X, Image, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type DetailsStepProps = {
   attachments: File[];
@@ -54,17 +56,17 @@ export function DetailsStep({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold mb-1">Additional Details</h2>
-        <p className="text-sm text-muted-foreground">
-          Provide more information and attach photos
+      <div className="space-y-1.5 pb-6 border-b border-border">
+        <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Operational Details</h2>
+        <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+          Provide comprehensive data and visual identifiers for the mission.
         </p>
       </div>
 
       {/* Description */}
-      <div>
-        <label className="block text-sm font-medium mb-2">
-          Description <span className="text-destructive">*</span>
+      <div className="space-y-3">
+        <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
+          Operational Narrative <span className="text-primary ml-1">•</span>
         </label>
         <Controller
           name="description"
@@ -72,14 +74,14 @@ export function DetailsStep({
           render={({ field }) => (
             <textarea
               {...field}
-              rows={5}
-              placeholder="Describe the issue in detail. Include when it started, its impact, and any other relevant information..."
-              className="w-full px-3 py-2 rounded-lg border bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+              rows={6}
+              placeholder="Provide a multi-vector description of the issue. Include temporal data, impact assessments, and environmental markers..."
+              className="w-full px-6 py-4 rounded-2xl border border-border bg-background text-sm font-bold uppercase tracking-widest placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all hover:border-primary/20"
             />
           )}
         />
         {errors.description && (
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-destructive">
+          <div className="flex items-center gap-2 px-1 text-xs font-black uppercase tracking-widest text-destructive">
             <AlertCircle className="w-3 h-3" />
             {errors.description.message as string}
           </div>
@@ -87,48 +89,59 @@ export function DetailsStep({
       </div>
 
       {/* Priority */}
-      <div>
-        <label className="block text-sm font-medium mb-2">Priority Level</label>
+      <div className="space-y-3">
+        <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">Urgency Protocol</label>
         <Controller
           name="priority"
           control={control}
           render={({ field }) => (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               {[
-                { value: "low", label: "Low", color: "border-green-500/50" },
-                {
-                  value: "medium",
-                  label: "Medium",
-                  color: "border-amber-500/50",
-                },
-                { value: "high", label: "High", color: "border-red-500/50" },
-              ].map((priority) => (
-                <button
-                  key={priority.value}
-                  type="button"
-                  onClick={() => field.onChange(priority.value)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    field.value === priority.value
-                      ? `${priority.color} bg-opacity-10`
-                      : "border-border hover:border-primary/30"
-                  }`}
-                >
-                  <span className="text-sm font-medium">{priority.label}</span>
-                </button>
-              ))}
+                { value: "low", label: "Protocol Delta", color: "bg-success-green", border: "border-success-green/20" },
+                { value: "medium", label: "Protocol Beta", color: "bg-warning-amber", border: "border-warning-amber/20" },
+                { value: "high", label: "Protocol Alpha", color: "bg-destructive", border: "border-destructive/20" },
+              ].map((priority) => {
+                const isSelected = field.value === priority.value;
+                return (
+                  <button
+                    key={priority.value}
+                    type="button"
+                    onClick={() => field.onChange(priority.value)}
+                    className={cn(
+                      "relative h-12 rounded-xl border-2 transition-all active:scale-95 flex items-center justify-center overflow-hidden group",
+                      isSelected
+                        ? cn(priority.border, "bg-card shadow-lg shadow-black/5")
+                        : "border-border bg-card hover:border-primary/20"
+                    )}
+                  >
+                    {isSelected && (
+                      <motion.div 
+                        layoutId="priority-bg"
+                        className={cn("absolute inset-0 opacity-5", priority.color)} 
+                      />
+                    )}
+                    <span className={cn(
+                      "text-xs font-black uppercase tracking-widest relative z-10",
+                      isSelected ? "text-foreground" : "text-muted-foreground/40"
+                    )}>
+                      {priority.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
         />
       </div>
 
       {/* File Upload */}
-      <div>
-        <label className="block text-sm font-medium mb-2">
-          Attachments (Optional)
+      <div className="space-y-3">
+        <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
+          Evidence Attachments <span className="text-muted-foreground/40 font-bold ml-1">(Optional)</span>
         </label>
 
         {/* Upload Area */}
-        <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+        <div className="relative group overflow-hidden rounded-2xl border-2 border-dashed border-border p-8 text-center transition-all hover:border-primary/40 hover:bg-primary/5">
           <input
             type="file"
             id="file-upload"
@@ -137,58 +150,92 @@ export function DetailsStep({
             onChange={handleFileChange}
             className="hidden"
           />
-          <label htmlFor="file-upload" className="cursor-pointer">
-            <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm font-medium mb-1">
-              Click to upload or drag and drop
-            </p>
-            <p className="text-xs text-muted-foreground">
-              PNG, JPG up to 10MB (max 5 files)
-            </p>
+          <label htmlFor="file-upload" className="cursor-pointer block space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center mx-auto shadow-xs group-hover:scale-110 transition-transform">
+              <Upload className="w-5 h-5 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-black uppercase tracking-widest text-foreground">
+                Deploy Visual Records
+              </p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                JPG, PNG • Resolution capped at 10MB per object
+              </p>
+            </div>
           </label>
         </div>
 
         {/* Preview Grid */}
-        {previews.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
-            {previews.map((preview, index) => (
-              <div key={index} className="relative group">
-                <img
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-20 object-cover rounded-lg border"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeFile(index)}
-                  className="absolute -top-2 -right-2 p-1 bg-destructive text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        <AnimatePresence>
+          {previews.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 mt-6"
+            >
+              {previews.map((preview, index) => (
+                <motion.div
+                  key={index}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="relative group aspect-square rounded-xl overflow-hidden border border-border bg-card shadow-xs"
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="p-2 bg-destructive text-white rounded-lg shadow-lg hover:scale-110 transition-transform"
+                    >
+                      <X className="w-3.5 h-3.5 stroke-3" />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Anonymous Toggle */}
-      <div className="p-4 bg-muted/50 rounded-lg border">
+      <div className="relative overflow-hidden p-6 rounded-2xl border border-border bg-muted/20 group">
         <Controller
           name="is_anonymous"
           control={control}
           render={({ field }) => (
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={field.value}
-                onChange={field.onChange}
-                className="mt-1"
-              />
-              <div>
-                <h4 className="font-semibold text-sm">Submit Anonymously</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Your identity will be kept confidential
+            <label className="flex items-center justify-between cursor-pointer">
+              <div className="space-y-1">
+                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Anonymity Protocol</h4>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                  Seal identity vectors and restrict metadata Access.
                 </p>
+              </div>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={field.value}
+                  onChange={field.onChange}
+                  className="sr-only"
+                />
+                <div className={cn(
+                  "w-12 h-6 rounded-full transition-all duration-300 border",
+                  field.value ? "bg-primary border-primary" : "bg-card border-border"
+                )}>
+                  <motion.div
+                    animate={{ x: field.value ? 24 : 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className={cn(
+                      "w-4 h-4 rounded-full m-0.5 shadow-sm",
+                      field.value ? "bg-primary-foreground" : "bg-muted-foreground/40"
+                    )}
+                  />
+                </div>
               </div>
             </label>
           )}

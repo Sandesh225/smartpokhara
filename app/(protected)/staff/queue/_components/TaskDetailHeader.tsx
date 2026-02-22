@@ -28,7 +28,7 @@ export function TaskDetailHeader({ trackingId, status, priority, title, isCompla
             <div className="flex items-center justify-between mb-1">
                <div className="flex items-center gap-2">
                  <h1 className="text-xl font-bold text-gray-900">{trackingId}</h1>
-                 <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${isComplaint ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                 <span className={`text-xs uppercase font-bold px-1.5 py-0.5 rounded ${isComplaint ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
                    {isComplaint ? 'Complaint' : 'Task'}
                  </span>
                </div>

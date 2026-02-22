@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 // Domain Features
 import { 
   useBudgetCycles, 
@@ -24,324 +25,127 @@ export default function AdminBudgetingPage() {
 
   const activeCycles = cycles.filter(c => c.is_active);
   const archivedCycles = cycles.filter(c => !c.is_active);
-
-  const CycleCard = ({ cycle }: { cycle: BudgetCycle }) => {
-    const isVotingActive = new Date() >= new Date(cycle.voting_start_at) && 
-                          new Date() <= new Date(cycle.voting_end_at);
-    const isSubmissionActive = new Date() >= new Date(cycle.submission_start_at) && 
-                               new Date() <= new Date(cycle.submission_end_at);
-
-    return (
-      <Card className="group hover:shadow-xl transition-all duration-300 bg-linear-to-br from-card to-card/95 hover:from-card/95 hover:to-primary/5 dark:hover:to-primary/10 border-2 hover:border-primary/30">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-start mb-3">
-            <div className="flex gap-2 flex-wrap">
-              <Badge 
-                variant={cycle.is_active ? "default" : "secondary"}
-                className={cycle.is_active 
-                  ? "bg-linear-to-r from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 text-white shadow-md" 
-                  : "bg-muted text-muted-foreground"
-                }
-              >
-                {cycle.is_active ? (
-                  <>
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Active
-                  </>
-                ) : (
-                  "Archived"
-                )}
-              </Badge>
-              
-               {isVotingActive && (
-                <Badge className="bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-md">
-                  <Users className="w-3 h-3 mr-1" />
-                  Voting Open
-                </Badge>
-              )}
-              
-              {isSubmissionActive && !isVotingActive && (
-                <Badge className="bg-linear-to-r from-purple-500 to-purple-600 text-white shadow-md">
-                  <Clock className="w-3 h-3 mr-1" />
-                  Submissions Open
-                </Badge>
-              )}
-            </div>
-          </div>
-          
-          <CardTitle className="text-xl leading-tight group-hover:text-primary transition-colors">
-            {cycle.title}
-          </CardTitle>
-          
-          {cycle.description && (
-            <CardDescription className="line-clamp-2 text-sm mt-2">
-              {cycle.description}
-            </CardDescription>
-          )}
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-           {/* Budget Display */}
-          <div className="bg-linear-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 p-4 rounded-xl border border-primary/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <DollarSign className="h-5 w-5 text-primary" />
-                <span className="text-sm font-semibold">Total Budget</span>
-              </div>
-              <span className="text-2xl font-black bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                NPR {(cycle.total_budget_amount / 100000).toFixed(1)}L
-              </span>
-            </div>
-          </div>
-
-          {/* Timeline Info */}
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 text-sm">
-              <div className="p-2 bg-purple-100 dark:bg-purple-950/50 rounded-lg">
-                <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground mb-1">Submission Period</p>
-                <p className="text-xs text-muted-foreground">
-                  {format(new Date(cycle.submission_start_at), "MMM d, yyyy")} - {format(new Date(cycle.submission_end_at), "MMM d, yyyy")}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 text-sm">
-              <div className="p-2 bg-blue-100 dark:bg-blue-950/50 rounded-lg">
-                <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground mb-1">Voting Period</p>
-                <p className="text-xs text-muted-foreground">
-                  {format(new Date(cycle.voting_start_at), "MMM d, yyyy")} - {format(new Date(cycle.voting_end_at), "MMM d, yyyy")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
-            <Button 
-              asChild 
-              className="flex-1 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
-            >
-              <Link href={`/admin/participatory-budgeting/${cycle.id}`}>
-                <Settings className="w-4 h-4 mr-2" />
-                Manage
-              </Link>
-            </Button>
-            
-            <Button 
-              asChild 
-              variant="outline"
-              className="border-2 hover:bg-muted/50"
-            >
-              <Link href={`/admin/participatory-budgeting/${cycle.id}/analytics`}>
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Analytics
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12 px-4 sm:px-6">
-      {/* Enhanced Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 dark:border-primary/30 p-8 shadow-lg">
-        <div className="absolute inset-0 bg-grid-white/10 dark:bg-grid-black/10 [mask-image:radial-gradient(white,transparent_85%)]" />
+    <div className="space-y-6 max-w-7xl mx-auto pb-24 px-6 md:px-8">
+      {/* 1. Header Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-8 md:p-10 shadow-sm mt-6 text-center">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-50" />
         
-        <div className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-primary/20 dark:bg-primary/30 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-primary" />
-              </div>
-              <h1 className="text-4xl font-black tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Participatory Budgeting
-              </h1>
-            </div>
-            <p className="text-muted-foreground text-lg max-w-2xl">
-              Manage fiscal cycles, track citizen engagement, and oversee democratic budget allocation.
-            </p>
+        <div className="relative space-y-4 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest border border-primary/20">
+            Resource Governance
           </div>
-          
-          <Button 
-            asChild 
-            size="lg"
-            className="bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            <Link href="/admin/participatory-budgeting/create">
-              <Plus className="mr-2 h-5 w-5" /> 
-              New Cycle
-            </Link>
-          </Button>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-foreground uppercase leading-tight">
+            Fiscal <span className="text-primary">Ecosystem</span>
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">
+            Architecting democracy through multi-phase budget cycles and citizen-led project selection.
+          </p>
+
+          <div className="pt-6">
+            <Button 
+              asChild 
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest h-14 px-8 rounded-xl shadow-lg shadow-primary/20 transition-all"
+            >
+              <Link href="/admin/participatory-budgeting/create">
+                <Plus className="mr-2 h-5 w-5" /> 
+                Initialize New Cycle
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Stats Overview */}
+      {/* 2. Key Metrics Dashboard */}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-linear-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-200 dark:border-blue-800">
-            <CardContent className="p-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Gross Cycles", value: cycles.length, icon: BarChart3, color: "text-blue-500", bg: "bg-blue-500/5" },
+            { label: "Active Phases", value: activeCycles.length, icon: Sparkles, color: "text-emerald-500", bg: "bg-emerald-500/5" },
+            { 
+              label: "Cumulative Pool", 
+              value: `${(cycles.reduce((sum, c) => sum + (c.total_budget_amount || 0), 0) / 10000000).toFixed(1)}Cr`, 
+              icon: DollarSign, color: "text-purple-500", bg: "bg-purple-500/5" 
+            },
+            { label: "Finalized", value: archivedCycles.length, icon: CheckCircle2, color: "text-orange-500", bg: "bg-orange-500/5" }
+          ].map((stat, i) => (
+            <div key={i} className="bg-card border border-border rounded-xl p-6 shadow-xs flex flex-col justify-between h-36 group hover:border-primary/20 transition-all">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-1">
-                    Total Cycles
-                  </p>
-                  <p className="text-3xl font-black text-blue-700 dark:text-blue-400">
-                    {cycles.length}
-                  </p>
-                </div>
-                <div className="p-3 bg-blue-200 dark:bg-blue-900 rounded-xl">
-                  <BarChart3 className="w-6 h-6 text-blue-700 dark:text-blue-300" />
+                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">{stat.label}</span>
+                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors", stat.bg, stat.color)}>
+                  <stat.icon className="w-4 h-4" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-linear-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 border-green-200 dark:border-green-800">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-green-900 dark:text-green-200 mb-1">
-                    Active Cycles
-                  </p>
-                  <p className="text-3xl font-black text-green-700 dark:text-green-400">
-                    {activeCycles.length}
-                  </p>
-                </div>
-                <div className="p-3 bg-green-200 dark:bg-green-900 rounded-xl">
-                  <Sparkles className="w-6 h-6 text-green-700 dark:text-green-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-linear-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/30 border-purple-200 dark:border-purple-800">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-purple-900 dark:text-purple-200 mb-1">
-                    Total Budget
-                  </p>
-                  <p className="text-3xl font-black text-purple-700 dark:text-purple-400">
-                    {(cycles.reduce((sum, c) => sum + c.total_budget_amount, 0) / 10000000).toFixed(1)}Cr
-                  </p>
-                </div>
-                <div className="p-3 bg-purple-200 dark:bg-purple-900 rounded-xl">
-                  <DollarSign className="w-6 h-6 text-purple-700 dark:text-purple-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-linear-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/50 dark:to-orange-900/30 border-orange-200 dark:border-orange-800">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-orange-900 dark:text-orange-200 mb-1">
-                    Archived
-                  </p>
-                  <p className="text-3xl font-black text-orange-700 dark:text-orange-400">
-                    {archivedCycles.length}
-                  </p>
-                </div>
-                <div className="p-3 bg-orange-200 dark:bg-orange-900 rounded-xl">
-                  <Clock className="w-6 h-6 text-orange-700 dark:text-orange-300" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <p className="text-3xl font-black text-foreground tracking-tighter tabular-nums">{stat.value}</p>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Cycles List */}
+      {/* 3. Cycle Registry */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 dark:from-primary/30 dark:to-purple-500/30 blur-3xl animate-pulse" />
-            <Loader2 className="w-12 h-12 animate-spin text-primary relative z-10 mb-4" />
-          </div>
-          <p className="text-base text-muted-foreground font-medium">Loading cycles...</p>
+        <div className="py-24 flex flex-col items-center justify-center text-center space-y-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary opacity-20" />
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">Syncing Registry...</p>
         </div>
       ) : cycles.length === 0 ? (
-        <Card className="text-center py-16 border-2 border-dashed rounded-2xl bg-linear-to-br from-muted/20 via-muted/10 to-transparent">
-          <CardContent className="space-y-4">
-            <div className="relative inline-block">
-              <div className="absolute inset-0 bg-primary/10 dark:bg-primary/20 blur-2xl rounded-full" />
-              <div className="relative p-6 bg-linear-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-2xl">
-                <AlertCircle className="w-16 h-16 text-primary mx-auto opacity-60" />
-              </div>
-            </div>
-            <div>
-              <h3 className="font-bold text-xl mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                No Budget Cycles Yet
-              </h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                Create your first participatory budgeting cycle to start engaging citizens in budget decisions.
-              </p>
-              <Button asChild size="lg" className="bg-gradient-to-r from-primary to-primary/90">
-                <Link href="/admin/participatory-budgeting/create">
-                  <Plus className="mr-2 h-5 w-5" /> 
-                  Create First Cycle
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="border border-dashed border-border rounded-2xl bg-muted/5 p-20 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-6 border border-border">
+            <AlertCircle className="w-8 h-8 text-muted-foreground/40" />
+          </div>
+          <h3 className="text-lg font-bold text-foreground uppercase tracking-tight">No Active Strategy</h3>
+          <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed mb-8">
+            The city's democratic engine is idle. Deploy your first budget cycle to enable citizen participation.
+          </p>
+          <Button asChild className="h-14 bg-primary px-10 font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-primary/20">
+            <Link href="/admin/participatory-budgeting/create">
+              <Plus className="mr-2 h-5 w-5" /> Deploy First Cycle
+            </Link>
+          </Button>
+        </div>
       ) : (
-        <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-8 h-12 bg-muted/50 dark:bg-muted/30 p-1 rounded-xl">
-            <TabsTrigger 
-              value="active"
-              className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold rounded-lg transition-all duration-300"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Active ({activeCycles.length})
-            </TabsTrigger>
-            <TabsTrigger 
-              value="archived"
-              className="data-[state=active]:bg-linear-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold rounded-lg transition-all duration-300"
-            >
-              <Clock className="w-4 h-4 mr-2" />
-              Archived ({archivedCycles.length})
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="active" className="w-full space-y-10">
+          <div className="flex justify-center">
+            <TabsList className="h-12 p-1.5 bg-muted/30 border border-border rounded-xl">
+              <TabsTrigger 
+                value="active"
+                className="h-9 px-8 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs"
+              >
+                Operational <span className="ml-2 opacity-40">{activeCycles.length}</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="archived"
+                className="h-9 px-8 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs"
+              >
+                Historical <span className="ml-2 opacity-40">{archivedCycles.length}</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="active" className="mt-6">
+          <TabsContent value="active" className="mt-0 focus-visible:outline-none">
             {activeCycles.length === 0 ? (
-              <Card className="text-center py-12 border-2 border-dashed">
-                <CardContent>
-                  <AlertCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground font-medium">No active cycles</p>
-                </CardContent>
-              </Card>
+              <div className="py-20 text-center bg-muted/5 border border-dashed rounded-xl">
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">No lifecycle active</p>
+              </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {activeCycles.map((cycle) => (
-                  <CycleCard key={cycle.id} cycle={cycle} />
+                  <CycleAdminCard key={cycle.id} cycle={cycle} />
                 ))}
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="archived" className="mt-6">
+          <TabsContent value="archived" className="mt-0 focus-visible:outline-none">
             {archivedCycles.length === 0 ? (
-              <Card className="text-center py-12 border-2 border-dashed">
-                <CardContent>
-                  <Clock className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground font-medium">No archived cycles</p>
-                </CardContent>
-              </Card>
+              <div className="py-20 text-center bg-muted/5 border border-dashed rounded-xl">
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Repository empty</p>
+              </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {archivedCycles.map((cycle) => (
-                  <CycleCard key={cycle.id} cycle={cycle} />
+                  <CycleAdminCard key={cycle.id} cycle={cycle} />
                 ))}
               </div>
             )}
@@ -349,5 +153,83 @@ export default function AdminBudgetingPage() {
         </Tabs>
       )}
     </div>
+  );
+}
+
+// --- Sub-component: Ultra-Clean Admin Card ---
+function CycleAdminCard({ cycle }: { cycle: BudgetCycle }) {
+  const now = new Date();
+  const isVotingActive = now >= new Date(cycle.voting_start_at) && now <= new Date(cycle.voting_end_at);
+  const isSubmissionActive = now >= new Date(cycle.submission_start_at) && now <= new Date(cycle.submission_end_at);
+
+  return (
+    <Card className="group flex flex-col bg-card border border-border rounded-2xl overflow-hidden shadow-xs hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+      <CardContent className="p-8 space-y-8 flex-1 flex flex-col">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-2 flex-1">
+            <h2 className="text-xl font-black text-foreground tracking-tight uppercase group-hover:text-primary transition-colors line-clamp-1 leading-tight">
+              {cycle.title}
+            </h2>
+            <p className="text-sm text-muted-foreground/60 font-medium line-clamp-2 leading-relaxed h-8">
+              {cycle.description || "System-defined budget allocation framework."}
+            </p>
+          </div>
+          <Badge variant="outline" className={cn(
+            "h-6 px-2 text-xs font-black uppercase tracking-widest rounded-full shrink-0",
+            cycle.is_active 
+              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
+              : "bg-muted text-muted-foreground"
+          )}>
+            {cycle.is_active ? "Operational" : "Legacy"}
+          </Badge>
+        </div>
+
+        <div className="bg-muted/10 border border-border/50 rounded-2xl p-6 flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Fiscal Pool</p>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-black text-foreground tracking-tighter tabular-nums">
+                {(cycle.total_budget_amount / 100000).toFixed(1)}
+              </span>
+              <span className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest">Lakhs</span>
+            </div>
+          </div>
+          <div className="h-10 w-px bg-border/50" />
+          <div className="space-y-1 text-right">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Phase</p>
+            <p className={cn(
+              "text-xs font-black uppercase tracking-widest",
+              isVotingActive ? "text-primary" : isSubmissionActive ? "text-emerald-500" : "text-foreground"
+            )}>
+              {isVotingActive ? "Voting" : isSubmissionActive ? "Intake" : "Idle"}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4 flex-1">
+          <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-muted-foreground/40 px-1">
+            <span>Intake Window</span>
+            <span className="text-foreground">{format(new Date(cycle.submission_start_at), "MMM d")} - {format(new Date(cycle.submission_end_at), "MMM d, yy")}</span>
+          </div>
+          <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-muted-foreground/40 px-1">
+            <span>Voting Period</span>
+            <span className="text-foreground">{format(new Date(cycle.voting_start_at), "MMM d")} - {format(new Date(cycle.voting_end_at), "MMM d, yy")}</span>
+          </div>
+        </div>
+      </CardContent>
+
+      <div className="mt-auto flex border-t border-border/50 bg-muted/5">
+        <Button asChild variant="ghost" className="flex-1 h-14 rounded-none hover:bg-muted text-xs font-black uppercase tracking-widest border-r border-border/50 transition-all">
+          <Link href={`/admin/participatory-budgeting/${cycle.id}/analytics`}>
+            <BarChart3 className="w-4 h-4 mr-2 text-muted-foreground/40 group-hover:text-primary transition-colors" /> Analytics
+          </Link>
+        </Button>
+        <Button asChild className="flex-1 h-14 rounded-none bg-primary hover:bg-primary/95 text-white text-xs font-black uppercase tracking-widest transition-all">
+          <Link href={`/admin/participatory-budgeting/${cycle.id}`}>
+            <Settings className="w-4 h-4 mr-2" /> Governance
+          </Link>
+        </Button>
+      </div>
+    </Card>
   );
 }

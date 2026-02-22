@@ -53,117 +53,130 @@ export default function StaffSettingsPage() {
   if (loading) return <div className="p-8 text-center animate-pulse">Loading settings...</div>;
 
   return (
-    <div className="space-y-6 container-padding section-spacing max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto p-4 md:p-8 animate-in fade-in duration-700">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your account and municipal workflow preferences
+        <h1 className="text-xl font-black text-foreground flex items-center gap-3 uppercase tracking-tight">
+          <div className="p-2.5 bg-primary/10 text-primary rounded-xl border border-primary/20">
+            <Palette className="w-5 h-5" />
+          </div>
+          System Preferences
+        </h1>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1 pl-0.5">
+          Manage your account and municipal workflow settings.
         </p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="glass p-1 rounded-xl">
-          <TabsTrigger value="profile" className="rounded-lg">
-            <User className="mr-2 h-4 w-4" />
+      <Tabs defaultValue="profile" className="space-y-8">
+        <TabsList className="bg-muted p-1 rounded-2xl border border-border">
+          <TabsTrigger value="profile" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-sm transition-all flex items-center gap-2">
+            <User className="h-4 w-4" />
             Profile
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="rounded-lg">
-            <Bell className="mr-2 h-4 w-4" />
-            Notifications
+          <TabsTrigger value="notifications" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-sm transition-all flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Alerts
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="rounded-lg">
-            <Palette className="mr-2 h-4 w-4" />
-            Appearance
+          <TabsTrigger value="appearance" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-sm transition-all flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Interface
           </TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
-        <TabsContent value="profile" className="space-y-4 animate-in fade-in-50 duration-300">
-          <Card className="stone-card">
-            <CardHeader className="border-b bg-neutral-stone-50/50">
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
+        <TabsContent value="profile" className="space-y-4 animate-in fade-in-50 duration-500">
+          <Card className="bg-card border-border shadow-xs rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-border bg-muted/20 p-6">
+              <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                 <User className="w-4 h-4 text-primary" />
+                 Profile Information
+              </CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">
                 Update your identity details for official records
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 card-padding">
+            <CardContent className="space-y-8 p-8">
               {/* Avatar Section */}
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <Avatar className="h-24 w-24 border-4 border-white shadow-md">
+              <div className="flex flex-col sm:flex-row items-center gap-8 bg-muted/30 p-6 rounded-2xl border border-border">
+                <div className="relative group">
+                  <Avatar className="h-32 w-32 border-[6px] border-card shadow-xl ring-1 ring-border group-hover:scale-105 transition-transform">
                     <AvatarImage src={user?.profile_photo_url || undefined} />
-                    <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                    <AvatarFallback className="text-3xl bg-primary text-primary-foreground font-black">
                       {user?.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <Button size="icon" variant="secondary" className="absolute -bottom-1 -right-1 rounded-full h-8 w-8 elevation-2">
-                    <Camera className="h-4 w-4" />
+                  <Button size="icon" variant="secondary" className="absolute -bottom-2 -right-2 rounded-full h-10 w-10 shadow-lg border-2 border-card hover:scale-110 active:scale-95 transition-all">
+                    <Camera className="h-5 w-5" />
                   </Button>
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg">{user?.full_name}</h4>
-                  <p className="text-sm text-muted-foreground">Municipal Staff Member</p>
-                  <Button variant="link" className="p-0 h-auto text-xs text-primary">Remove photo</Button>
+                <div className="text-center sm:text-left space-y-2">
+                  <h4 className="font-black text-xl uppercase tracking-tighter text-foreground">{user?.full_name}</h4>
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                     <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-black uppercase tracking-widest px-3">Municipal Staff</Badge>
+                     {user?.roles?.map((role: string) => (
+                        <Badge key={role} variant="outline" className="text-xs font-bold uppercase tracking-widest border-border opacity-50">{role}</Badge>
+                     ))}
+                  </div>
+                  <Button variant="link" className="p-0 h-auto text-xs font-bold uppercase tracking-widest text-destructive hover:text-destructive/80 transition-colors">Reset Profile Image</Button>
                 </div>
               </div>
 
               <Separator className="opacity-50" />
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-sm font-semibold">Full Name</Label>
+              <div className="grid gap-8 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <Label htmlFor="fullName" className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 pl-1">Full Name</Label>
                   <Input
                     id="fullName"
-                    className="bg-neutral-stone-50"
+                    className="bg-muted/30 border-border h-11 rounded-xl text-xs font-bold uppercase tracking-tight"
                     defaultValue={user?.full_name || ""}
                     placeholder="Enter your full name"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 pl-1">Email Address</Label>
                   <Input
                     id="email"
-                    className="bg-neutral-stone-200/50 cursor-not-allowed"
+                    className="bg-muted border-border cursor-not-allowed h-11 rounded-xl text-xs font-bold uppercase tracking-tight opacity-50"
                     type="email"
                     defaultValue={user?.email || ""}
                     disabled
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-semibold">Contact Number</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="phone" className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 pl-1">Contact Number</Label>
                   <Input
                     id="phone"
-                    className="bg-neutral-stone-50"
+                    className="bg-muted/30 border-border h-11 rounded-xl text-xs font-bold uppercase tracking-tight"
                     type="tel"
                     placeholder="+977-XXXXXXXXXX"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="department" className="text-sm font-semibold">Assigned Department</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="department" className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 pl-1">Assigned Department</Label>
                   <Input
                     id="department"
-                    className="bg-neutral-stone-200/50 cursor-not-allowed"
+                    className="bg-muted border-border cursor-not-allowed h-11 rounded-xl text-xs font-bold uppercase tracking-tight opacity-50"
                     defaultValue={user?.department_name || "Municipal Operations"}
                     disabled
                   />
                 </div>
               </div>
 
-              <div className="stone-panel p-4 bg-primary/5 border-primary/20 flex items-center justify-between">
+              <div className="p-6 bg-primary/5 border border-primary/20 rounded-2xl flex items-center justify-between group shadow-inner">
                 <div className="space-y-1">
-                  <h4 className="font-bold text-primary">System Authority</h4>
-                  <p className="text-xs text-muted-foreground">Your permissions are managed by the Department Head</p>
+                  <h4 className="font-black text-xs text-primary uppercase tracking-widest">System Authority</h4>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tighter opacity-70">Your permissions are managed by the Department Head</p>
                 </div>
-                <Badge className="bg-primary text-primary-foreground px-3 py-1">
+                <Badge className="bg-primary text-primary-foreground px-4 py-1.5 font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20">
                   {user?.roles?.[0] || "Staff"}
                 </Badge>
               </div>
 
-              <div className="flex justify-end pt-4">
-                <Button onClick={handleSave} className="rounded-xl px-8 elevation-3 hover:elevation-4 transition-all">
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Profile
+              <div className="flex justify-end pt-4 border-t border-border/50">
+                <Button onClick={handleSave} className="rounded-xl px-10 h-12 text-xs font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-[0.98]">
+                  <Save className="mr-3 h-4 w-4" />
+                  Update Profile
                 </Button>
               </div>
             </CardContent>
@@ -171,60 +184,70 @@ export default function StaffSettingsPage() {
         </TabsContent>
 
         {/* Notifications Tab */}
-        <TabsContent value="notifications" className="space-y-4 animate-in slide-in-from-bottom-4 duration-300">
-          <Card className="stone-card">
-            <CardHeader className="border-b bg-neutral-stone-50/50">
-              <CardTitle>Communication Preferences</CardTitle>
-              <CardDescription>Configure how you receive work updates</CardDescription>
+        <TabsContent value="notifications" className="space-y-4 animate-in slide-in-from-bottom-8 duration-500">
+          <Card className="bg-card border-border shadow-xs rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-border bg-muted/20 p-6">
+               <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                 <Bell className="w-4 h-4 text-primary" />
+                 Communication Preferences
+              </CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Configure how you receive work updates</CardDescription>
             </CardHeader>
-            <CardContent className="card-padding space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between group">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">New Assignments</Label>
-                    <p className="text-sm text-muted-foreground">Receive alerts when new complaints are assigned</p>
+            <CardContent className="p-8 space-y-10">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between group p-4 rounded-2xl hover:bg-muted/30 transition-all border border-transparent hover:border-border">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-black uppercase tracking-widest">New Assignments</Label>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight opacity-60">Receive alerts when new complaints are assigned</p>
                   </div>
                   <Switch
                     checked={notifications.newAssignment}
                     onCheckedChange={(checked) => setNotifications(n => ({ ...n, newAssignment: checked }))}
+                    className="data-[state=checked]:bg-primary"
                   />
                 </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base">Urgent Deadlines</Label>
-                    <p className="text-sm text-muted-foreground">Alerts for tasks reaching SLA limits</p>
+                <Separator className="opacity-50" />
+                <div className="flex items-center justify-between group p-4 rounded-2xl hover:bg-muted/30 transition-all border border-transparent hover:border-border">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-black uppercase tracking-widest">Urgent Deadlines</Label>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight opacity-60">Alerts for tasks reaching SLA limits</p>
                   </div>
                   <Switch
                     checked={notifications.deadline}
                     onCheckedChange={(checked) => setNotifications(n => ({ ...n, deadline: checked }))}
+                    className="data-[state=checked]:bg-primary"
                   />
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-neutral-stone-100 border border-neutral-stone-200">
-                <h4 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">Delivery Channels</h4>
-                <div className="grid gap-4">
-                   <div className="flex items-center justify-between">
-                    <Label>Email Digest</Label>
+              <div className="p-8 rounded-3xl bg-muted/30 border border-border shadow-inner">
+                <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground/70 mb-8 flex items-center gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    Delivery Channels
+                </h4>
+                <div className="grid gap-6">
+                   <div className="flex items-center justify-between bg-card p-5 rounded-2xl border border-border shadow-xs">
+                    <Label className="text-sm font-black uppercase tracking-widest">Email Digest</Label>
                     <Switch
                       checked={notifications.email}
                       onCheckedChange={(checked) => setNotifications(n => ({ ...n, email: checked }))}
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
-                   <div className="flex items-center justify-between">
-                    <Label>Web Push Notifications</Label>
+                   <div className="flex items-center justify-between bg-card p-5 rounded-2xl border border-border shadow-xs">
+                    <Label className="text-sm font-black uppercase tracking-widest">Web Push Notifications</Label>
                     <Switch
                       checked={notifications.push}
                       onCheckedChange={(checked) => setNotifications(n => ({ ...n, push: checked }))}
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button onClick={handleSave} className="rounded-xl">
-                  Update Notifications
+              <div className="flex justify-end pt-4 border-t border-border/50">
+                <Button onClick={handleSave} className="rounded-xl px-10 h-11 text-xs font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                  Update Broadcasts
                 </Button>
               </div>
             </CardContent>
@@ -232,46 +255,50 @@ export default function StaffSettingsPage() {
         </TabsContent>
 
         {/* Appearance Tab */}
-        <TabsContent value="appearance" className="space-y-4 animate-in zoom-in-95 duration-300">
-          <Card className="stone-card">
-            <CardHeader className="border-b bg-neutral-stone-50/50">
-              <CardTitle>Interface Customization</CardTitle>
-              <CardDescription>Adjust the dashboard aesthetic to your comfort</CardDescription>
+        <TabsContent value="appearance" className="space-y-4 animate-in zoom-in-95 duration-500">
+          <Card className="bg-card border-border shadow-xs rounded-2xl overflow-hidden">
+             <CardHeader className="border-b border-border bg-muted/20 p-6">
+               <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                 <Palette className="w-4 h-4 text-primary" />
+                 Interface Customization
+              </CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Adjust the dashboard aesthetic to your comfort</CardDescription>
             </CardHeader>
-            <CardContent className="card-padding space-y-6">
-              <div className="space-y-3">
-                <Label className="text-sm font-semibold">Visual Theme</Label>
+            <CardContent className="p-8 space-y-10">
+              <div className="space-y-4">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 pl-1">Visual Theme</Label>
                 <Select
                   value={appearance.theme}
                   onValueChange={(value) => setAppearance(a => ({ ...a, theme: value }))}
                 >
-                  <SelectTrigger className="w-full sm:w-[300px] rounded-xl bg-neutral-stone-50">
+                  <SelectTrigger className="w-full sm:w-[320px] rounded-2xl bg-muted/30 border-border h-12 text-xs font-black uppercase tracking-widest focus:ring-primary/20">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="glass-strong rounded-xl">
-                    <SelectItem value="light">Lakeside Light</SelectItem>
-                    <SelectItem value="dark">Mountain Dark</SelectItem>
-                    <SelectItem value="system">System Default</SelectItem>
+                  <SelectContent className="bg-card border-border shadow-2xl rounded-2xl">
+                    <SelectItem value="light" className="text-xs font-black uppercase tracking-widest focus:bg-primary/10 transition-colors">Lakeside Light</SelectItem>
+                    <SelectItem value="dark" className="text-xs font-black uppercase tracking-widest focus:bg-primary/10 transition-colors">Mountain Dark</SelectItem>
+                    <SelectItem value="system" className="text-xs font-black uppercase tracking-widest focus:bg-primary/10 transition-colors">System Default</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <Separator className="opacity-50" />
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Compact Data View</Label>
-                  <p className="text-sm text-muted-foreground">Reduce padding to show more information at once</p>
+              <div className="flex items-center justify-between group p-4 rounded-2xl hover:bg-muted/30 transition-all border border-transparent hover:border-border">
+                <div className="space-y-1">
+                  <Label className="text-sm font-black uppercase tracking-widest">Compact Data View</Label>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight opacity-60">Reduce padding to show more information at once</p>
                 </div>
                 <Switch
                   checked={appearance.compactMode}
                   onCheckedChange={(checked) => setAppearance(a => ({ ...a, compactMode: checked }))}
+                  className="data-[state=checked]:bg-primary"
                 />
               </div>
 
-              <div className="flex justify-end pt-6">
-                <Button onClick={handleSave} className="rounded-xl">
-                  Apply Appearance
+              <div className="flex justify-end pt-4 border-t border-border/50">
+                <Button onClick={handleSave} className="rounded-xl px-10 h-11 text-xs font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                  Apply Visual Mapping
                 </Button>
               </div>
             </CardContent>

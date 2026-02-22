@@ -29,12 +29,12 @@ export function RealTimeAlerts({ userId }: { userId: string }) {
 
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30 dark:bg-muted/10">
+      <div className="p-4 border-b border-border flex items-center justify-between bg-muted/10">
         <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-primary" />
           Live Alerts
         </h3>
-        <span className="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-bold animate-pulse border border-red-200 dark:border-red-500/30">
+        <span className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs font-bold animate-pulse border border-destructive/20">
           {alerts.length} NEW
         </span>
       </div>
@@ -43,12 +43,12 @@ export function RealTimeAlerts({ userId }: { userId: string }) {
         {alerts.map((alert, i) => (
           <div 
             key={i} 
-            className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-lg text-sm animate-in slide-in-from-top-2 fade-in"
+            className="flex items-start gap-3 p-3 bg-destructive/5 border border-destructive/10 rounded-lg text-sm animate-in slide-in-from-top-2 fade-in hover:bg-destructive/10 transition-colors"
           >
-            <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+            <AlertCircle className="h-5 w-5 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-red-900 dark:text-red-300">{alert.title}</p>
-              <p className="text-xs text-red-700 dark:text-red-400/80 mt-0.5">{alert.message}</p>
+              <p className="font-bold text-foreground">{alert.title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{alert.message}</p>
             </div>
           </div>
         ))}

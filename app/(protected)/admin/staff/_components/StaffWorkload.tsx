@@ -126,7 +126,7 @@ export function StaffWorkload() {
                 <p className="text-lg md:text-xl font-black text-success-green">
                 {data.balanced}%
                 </p>
-                <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Balanced
                 </p>
             </div>
@@ -135,7 +135,7 @@ export function StaffWorkload() {
                 <p className="text-lg md:text-xl font-black text-error-red">
                 {data.overloaded}%
                 </p>
-                <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 High Load
                 </p>
             </div>
@@ -144,7 +144,7 @@ export function StaffWorkload() {
                 <p className="text-lg md:text-xl font-black text-info-blue">
                 {data.underutilized}%
                 </p>
-                <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Low Load
                 </p>
             </div>

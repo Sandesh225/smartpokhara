@@ -20,14 +20,14 @@ export function DashboardHeader({ user, status }: DashboardHeaderProps) {
     <div className="flex flex-wrap gap-3">
       <Badge
         variant="outline"
-        className="px-3 py-1 text-[10px] font-bold border-2"
+        className="px-3 py-1 text-xs font-bold border-2"
       >
         <Calendar className="w-3.5 h-3.5 mr-2" />
         {format(today, "EEEE, d MMMM")}
       </Badge>
       <Badge
         variant="outline"
-        className="px-3 py-1 text-[10px] font-bold border-2"
+        className="px-3 py-1 text-xs font-bold border-2"
       >
         {isMorning ? (
           <Sun className="h-3.5 w-3.5 mr-2 text-amber-500" />
@@ -41,36 +41,36 @@ export function DashboardHeader({ user, status }: DashboardHeaderProps) {
 
   const actions = (
     <div
-      className={`flex items-center gap-4 rounded-xl border p-3 backdrop-blur-sm transition-all duration-300 ${
+      className={`flex items-center gap-4 rounded-xl border p-3 transition-all duration-300 ${
         status.isCheckedIn
-          ? "bg-emerald-50/60 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
-          : "bg-muted/60 border-border shadow-sm"
+          ? "bg-success-green/10 border-success-green/20"
+          : "bg-muted border-border shadow-xs"
       }`}
     >
       <div
-        className={`flex h-10 w-10 items-center justify-center rounded-full shadow-sm ring-4 ring-card transition-all duration-300 ${
+        className={`flex h-10 w-10 items-center justify-center rounded-full shadow-xs ring-4 ring-card transition-all duration-300 ${
           status.isCheckedIn
-            ? "bg-emerald-500 text-white"
+            ? "bg-success-green text-white"
             : "bg-muted text-muted-foreground border border-border"
         }`}
       >
         <Clock className="h-5 w-5" />
       </div>
       <div className="hidden xs:block">
-        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">
+        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground leading-none mb-1">
           Duty Status
         </p>
         <div className="flex items-center gap-2">
           <span
             className={`h-1.5 w-1.5 rounded-full ${
               status.isCheckedIn
-                ? "bg-emerald-500 animate-pulse"
+                ? "bg-success-green animate-pulse"
                 : "bg-muted-foreground/30"
             }`}
           />
           <p
-            className={`font-black text-[10px] uppercase tracking-wider ${
-              status.isCheckedIn ? "text-emerald-600" : "text-muted-foreground"
+            className={`font-semibold text-xs uppercase tracking-wider ${
+              status.isCheckedIn ? "text-success-green" : "text-muted-foreground"
             }`}
           >
             {status.isCheckedIn ? "On Duty" : "Off Duty"}

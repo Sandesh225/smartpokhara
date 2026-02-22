@@ -86,7 +86,7 @@ export default function CitizenProfileCard({
       {/* METADATA */}
       <div className="pt-6 border-t border-border grid grid-cols-2 gap-4">
         <div>
-          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider font-bold">
+          <p className="text-xs md:text-xs text-muted-foreground uppercase tracking-wider font-bold">
             Citizenship No
           </p>
           <p className="font-mono text-sm md:text-base text-foreground mt-1 truncate">
@@ -94,7 +94,7 @@ export default function CitizenProfileCard({
           </p>
         </div>
         <div>
-          <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider font-bold">
+          <p className="text-xs md:text-xs text-muted-foreground uppercase tracking-wider font-bold">
             User ID
           </p>
           <p

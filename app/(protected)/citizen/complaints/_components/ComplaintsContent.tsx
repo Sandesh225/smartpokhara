@@ -4,305 +4,274 @@ import { useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus,
-  RefreshCw,
-  Search,
-  CheckCircle,
-  Clock,
-  FileText,
-  Activity,
-  ShieldCheck,
-  Wifi,
-  Inbox,
-  Filter,
+  Plus, RefreshCw, Search, CheckCircle,
+  Clock, FileText, Activity, Inbox, X, Fingerprint
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useMyComplaints } from "@/features/complaints/hooks/useMyComplaints";
 import { useUserComplaintStats } from "@/features/complaints";
 import { ComplaintsTable } from "./ComplaintsTable";
 
-/* ─────────────────────────────────────────────────────────────
-   1. Registry Stat Card
-   ───────────────────────────────────────────────────────────── */
-function RegistryStat({
-  label,
-  value,
-  icon: Icon,
-  colorClass,
-  textColorClass,
-  delay = 0,
-}: {
+// ─── Skeleton pulse ───────────────────────────────────────────────────────────
+function Pulse({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return <div className={cn("animate-pulse rounded-xl bg-muted/80 dark:bg-muted/50", className)} style={style} />;
+}
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+interface StatProps {
   label: string;
   value: number;
-  icon: any;
-  colorClass: string;
-  textColorClass: string;
+  icon: React.ElementType;
+  barColor: string;  
+  iconBg: string;
+  iconColor: string;
   delay?: number;
-}) {
+}
+
+function StatCard({ label, value, icon: Icon, barColor, iconBg, iconColor, delay = 0 }: StatProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      className="group relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1"
+      transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="relative bg-card border border-border rounded-2xl px-6 py-5 overflow-hidden
+        hover:-translate-y-1 hover:shadow-lg transition-all duration-400 group"
     >
-      <div className={cn("absolute left-0 top-0 bottom-0 w-1.5", colorClass)} />
-      <div className="flex items-start justify-between">
+      {/* Accent Line */}
+      <div className={cn("absolute left-0 inset-y-4 w-1 rounded-r-full transition-all duration-400 group-hover:w-1.5", barColor)} />
+
+      {/* Background Glow */}
+      <div className={cn("absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity", barColor)} />
+
+      <div className="flex items-center justify-between gap-4 pl-2 relative z-10">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-            {label}
-          </p>
-          <h3 className="mt-4 text-4xl font-black tracking-tighter text-foreground tabular-nums">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">{label}</p>
+          <span className="text-3xl font-heading font-black text-foreground tabular-nums leading-none drop-shadow-sm">
             {value}
-          </h3>
+          </span>
         </div>
-        <div
-          className={cn(
-            "rounded-xl bg-muted/50 p-3 transition-colors group-hover:bg-white",
-            textColorClass
-          )}
-        >
-          <Icon className="h-6 w-6" />
+        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-400 group-hover:scale-110", iconBg)}>
+          <Icon className={cn("w-6 h-6", iconColor)} />
         </div>
       </div>
     </motion.div>
   );
 }
 
+// ─── Main content ─────────────────────────────────────────────────────────────
 interface ComplaintsContentProps {
   initialUserId: string;
   initialStats: any;
   initialComplaints: any;
 }
 
-export function ComplaintsContent({
-  initialUserId,
-  initialStats,
-  initialComplaints,
-}: ComplaintsContentProps) {
-  const router = useRouter();
+export function ComplaintsContent({ initialUserId, initialStats, initialComplaints }: ComplaintsContentProps) {
+  const router       = useRouter();
   const searchParams = useSearchParams();
-  const searchRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef     = useRef<NodeJS.Timeout | null>(null);
 
-  // --- State ---
-  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [search,          setSearch]          = useState(searchParams.get("search") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
-  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [page,            setPage]            = useState(Number(searchParams.get("page")) || 1);
   const pageSize = 10;
 
-  // --- Hooks ---
-  const { 
-    data: complaintsData, 
-    isLoading: isLoadingComplaints, 
-    isRefetching: isRefreshing,
-    refetch 
-  } = useMyComplaints(
-    initialUserId,
-    { search: debouncedSearch },
-    page,
-    pageSize,
-    initialComplaints
-  );
+  const {
+    data: complaintsData,
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useMyComplaints(initialUserId, { search: debouncedSearch }, page, pageSize, initialComplaints);
 
   const { data: stats } = useUserComplaintStats(initialUserId);
 
-  const complaints = complaintsData?.data || initialComplaints?.data || [];
-  const total = complaintsData?.total || initialComplaints?.total || 0;
+  const complaints   = complaintsData?.data  || initialComplaints?.data  || [];
+  const total        = complaintsData?.total || initialComplaints?.total || 0;
   const currentStats = stats || initialStats;
 
-  // --- Logic: Param Updates ---
-  const updateParams = useCallback(
-    (params: Record<string, string>) => {
-      const p = new URLSearchParams(searchParams.toString());
-      Object.entries(params).forEach(([k, v]) =>
-        v ? p.set(k, v) : p.delete(k)
-      );
-      router.replace(`?${p.toString()}`, { scroll: false });
-    },
-    [router, searchParams]
-  );
+  const updateParams = useCallback((params: Record<string, string>) => {
+    const p = new URLSearchParams(searchParams.toString());
+    Object.entries(params).forEach(([k, v]) => v ? p.set(k, v) : p.delete(k));
+    router.replace(`?${p.toString()}`, { scroll: false });
+  }, [router, searchParams]);
 
-  // --- Logic: Search Debounce ---
   const handleSearch = (value: string) => {
     setSearch(value);
-    if (searchRef.current) clearTimeout(searchRef.current);
-    searchRef.current = setTimeout(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       setDebouncedSearch(value);
       setPage(1);
       updateParams({ search: value, page: "1" });
-    }, 400);
+    }, 380);
   };
 
+  // Strictly utilizing theme colors: Primary, Secondary, Accent, and Muted
+  const STATS: StatProps[] = [
+    { label: "Total Filed",   value: currentStats?.total       || 0, icon: FileText,    barColor: "bg-foreground",  iconBg: "bg-muted",          iconColor: "text-foreground",       delay: 0    },
+    { label: "Pending",       value: currentStats?.open        || 0, icon: Clock,       barColor: "bg-secondary",   iconBg: "bg-secondary/10",   iconColor: "text-secondary",        delay: 0.1  },
+    { label: "In Progress",   value: currentStats?.in_progress || 0, icon: Activity,    barColor: "bg-accent",      iconBg: "bg-accent/20",      iconColor: "text-accent-foreground",delay: 0.2  },
+    { label: "Resolved",      value: currentStats?.resolved    || 0, icon: CheckCircle, barColor: "bg-primary",     iconBg: "bg-primary/10",     iconColor: "text-primary",          delay: 0.3  },
+  ];
+
   return (
-    <div className="space-y-8">
-      {/* ── HEADER SECTION (Internal for speed) ── */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between -mt-4 mb-4">
-        {/* Title Area */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-primary" />
-            <h1 className="text-3xl font-black tracking-tight text-foreground md:text-3xl">
-              Citizen Dashboard
-            </h1>
+    <div className="space-y-8 animate-fade-in">
+
+      {/* ── Page header ── */}
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/40 border border-primary/10 mb-4">
+            <Fingerprint className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-bold uppercase tracking-wide text-primary">Citizen Portal</span>
           </div>
-          <p className="text-muted-foreground font-medium max-w-lg">
-            Track and manage your reports in real-time.
+          <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground tracking-tight mb-2">
+            My Complaints
+          </h1>
+          <p className="text-base sm:text-lg text-muted-foreground font-sans max-w-xl">
+            View, track, and manage all your filed reports in one secure place.
           </p>
         </div>
 
-        {/* Action Area */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <button
             onClick={() => refetch()}
-            disabled={isRefreshing}
-            className="h-12 border-2 px-4 font-bold rounded-xl"
+            disabled={isRefetching}
+            className="inline-flex items-center gap-2 h-11 px-4 rounded-xl border border-border
+              bg-card text-sm font-semibold text-foreground shadow-sm
+              hover:bg-muted hover:border-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50"
           >
-            <RefreshCw
-              className={cn("mr-2 h-4 w-4", isRefreshing && "animate-spin")}
-            />
-            Sync
-          </Button>
-          <Button
+            <RefreshCw className={cn("w-4 h-4 text-muted-foreground", isRefetching && "animate-spin text-primary")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+
+          <button
             onClick={() => router.push("/citizen/complaints/new")}
-            className="h-12 bg-primary px-6 font-bold text-primary-foreground shadow-lg hover:shadow-primary/25 rounded-xl transition-all hover:scale-105"
+            className="inline-flex items-center gap-2 h-11 px-6 rounded-xl
+              bg-primary text-primary-foreground text-sm font-bold shadow-md shadow-primary/20
+              hover:opacity-90 hover:shadow-lg transition-all duration-300 active:scale-95"
           >
-            <Plus className="mr-2 h-5 w-5 stroke-3" />
-            Log New Case
-          </Button>
+            <Plus className="w-4 h-4" />
+            New Complaint
+          </button>
         </div>
       </div>
 
-      {/* ── STATS GRID ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <RegistryStat
-          label="Total Cases"
-          value={currentStats?.total || 0}
-          icon={FileText}
-          colorClass="bg-primary"
-          textColorClass="text-primary"
-          delay={0}
-        />
-        <RegistryStat
-          label="Pending Review"
-          value={currentStats?.open || 0}
-          icon={Clock}
-          colorClass="bg-amber-500"
-          textColorClass="text-amber-600"
-          delay={0.1}
-        />
-        <RegistryStat
-          label="In Progress"
-          value={currentStats?.in_progress || 0}
-          icon={Activity}
-          colorClass="bg-blue-500"
-          textColorClass="text-blue-600"
-          delay={0.2}
-        />
-        <RegistryStat
-          label="Resolved"
-          value={currentStats?.resolved || 0}
-          icon={CheckCircle}
-          colorClass="bg-emerald-500"
-          textColorClass="text-emerald-600"
-          delay={0.3}
-        />
+      {/* ── Stats ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {STATS.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
-      {/* ── MAIN CONTENT CARD ── */}
-      <Card className="overflow-hidden border-none shadow-xl rounded-2xl bg-card">
+      {/* ── Table card ── */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+
         {/* Toolbar */}
-        <div className="border-b bg-muted/30 p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            {/* Search */}
-            <div className="relative flex-1 md:max-w-md">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Search by ID, Title, or Category..."
-                className="h-12 rounded-xl border-2 bg-background pl-12 font-medium focus-visible:ring-offset-0"
-              />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 py-5 border-b border-border bg-muted/10">
+
+          {/* Search */}
+          <div className="relative flex-1 sm:max-w-md group">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary pointer-events-none" />
+            <input
+              value={search}
+              onChange={e => handleSearch(e.target.value)}
+              placeholder="Search by title or tracking ID…"
+              className="w-full h-10 pl-10 pr-10 rounded-xl border border-input bg-background
+                text-sm font-medium text-foreground placeholder:text-muted-foreground
+                focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+                transition-all shadow-inner-sm"
+            />
+            {search && (
+              <button
+                onClick={() => handleSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Right meta */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/20 border border-primary/10">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">Live</span>
             </div>
 
-            {/* Filters / Meta */}
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="outline"
-                className="h-10 px-4 rounded-lg border-2 font-bold text-muted-foreground bg-background"
-              >
-                <Wifi className="w-3 h-3 mr-2 text-green-500 animate-pulse" />
-                Live Database
-              </Badge>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 rounded-xl border-2"
-              >
-                <Filter className="w-4 h-4" />
-              </Button>
-            </div>
+            {total > 0 && !isLoading && (
+              <div className="flex items-center px-3 py-1.5 rounded-lg bg-muted border border-border">
+                <span className="text-xs font-bold text-muted-foreground">
+                  {total.toLocaleString()} {total !== 1 ? "Records" : "Record"}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Table Content */}
-        <CardContent className="p-0">
-          <AnimatePresence mode="wait">
-             {isLoadingComplaints && !complaints.length ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex h-[400px] flex-col items-center justify-center gap-4"
+        {/* Table / States */}
+        <AnimatePresence mode="wait">
+
+          {/* Loading skeleton */}
+          {isLoading && !complaints.length && (
+            <motion.div key="loading"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="space-y-3 p-6">
+                {[...Array(6)].map((_, i) => (
+                  <Pulse key={i} className="h-16 rounded-xl" style={{ opacity: 1 - i * 0.12 }} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Empty state */}
+          {!isLoading && complaints.length === 0 && (
+            <motion.div key="empty"
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col items-center justify-center py-24 px-6 text-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-accent/30 border border-primary/10 flex items-center justify-center mb-6 shadow-sm">
+                <Inbox className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-xl font-heading font-bold text-foreground mb-2">
+                {search ? "No results found" : "No complaints yet"}
+              </h3>
+              <p className="text-sm sm:text-base text-muted-foreground max-w-sm mb-8 leading-relaxed">
+                {search
+                  ? `We couldn't find anything matching "${search}". Please try a different keyword or Tracking ID.`
+                  : "You haven't filed any complaints yet. Submit your first one to help us protect the city together."}
+              </p>
+              {!search && (
+                <button
+                  onClick={() => router.push("/citizen/complaints/new")}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl
+                    border-2 border-primary bg-background text-sm font-bold text-primary
+                    hover:bg-primary hover:text-primary-foreground transition-all duration-300 shadow-sm"
                 >
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
-                  <p className="font-bold text-muted-foreground animate-pulse">
-                    Retrieving records...
-                  </p>
-                </motion.div>
-             ) : complaints.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex h-[400px] flex-col items-center justify-center gap-6 text-center"
-                >
-                  <div className="rounded-full bg-muted p-8">
-                    <Inbox className="h-12 w-12 text-muted-foreground/50" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-black text-foreground">
-                      No Complaints Found
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {search
-                        ? "Try adjusting your search filters."
-                        : "You haven't filed any complaints yet."}
-                    </p>
-                  </div>
-                </motion.div>
-             ) : (
-                <ComplaintsTable 
-                  complaints={complaints}
-                  total={total}
-                  isLoading={isLoadingComplaints}
-                  currentPage={page}
-                  pageSize={pageSize}
-                  onPageChange={(p: number) => {
-                    setPage(p);
-                    updateParams({ page: p.toString() });
-                  }}
-                  onSortChange={(column, order) => {
-                    updateParams({ sortBy: column, sortOrder: order });
-                  }}
-                />
-             )}
-          </AnimatePresence>
-        </CardContent>
-      </Card>
+                  <Plus className="w-4 h-4" />
+                  File First Complaint
+                </button>
+              )}
+            </motion.div>
+          )}
+
+          {/* Data table */}
+          {complaints.length > 0 && (
+            <motion.div key="table"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <ComplaintsTable
+                complaints={complaints}
+                total={total}
+                isLoading={isLoading}
+                currentPage={page}
+                pageSize={pageSize}
+                onPageChange={p => { setPage(p); updateParams({ page: p.toString() }); }}
+                onSortChange={(col, ord) => { updateParams({ sortBy: col, sortOrder: ord }); }}
+              />
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

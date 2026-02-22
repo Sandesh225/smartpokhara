@@ -121,7 +121,7 @@ export default function AssignTaskPage() {
                       ? "default"
                       : "outline"
                   }
-                  className={`text-[10px] ${
+                  className={`text-xs ${
                     s.availability_status === "available"
                       ? "bg-success-green"
                       : "bg-warning-amber"

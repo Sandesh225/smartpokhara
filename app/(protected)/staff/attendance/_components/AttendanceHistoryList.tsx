@@ -37,7 +37,7 @@ export function AttendanceHistoryList({ logs }: { logs: any[] }) {
 
             <div className="flex items-center gap-8">
               <div className="text-center">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                <p className="text-xs uppercase font-bold text-muted-foreground">
                   In
                 </p>
                 <p className="font-mono text-sm">
@@ -47,7 +47,7 @@ export function AttendanceHistoryList({ logs }: { logs: any[] }) {
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                <p className="text-xs uppercase font-bold text-muted-foreground">
                   Out
                 </p>
                 <p className="font-mono text-sm">
@@ -68,7 +68,7 @@ export function AttendanceHistoryList({ logs }: { logs: any[] }) {
 
             <div>
               <span
-                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${
                   log.status === "late"
                     ? "bg-amber-100 text-amber-700"
                     : "bg-emerald-100 text-emerald-700"

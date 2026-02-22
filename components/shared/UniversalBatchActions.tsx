@@ -65,7 +65,7 @@ export function UniversalBatchActions({
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-bold">{selectedCount} Selected</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Batch Mode</span>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Batch Mode</span>
                       </div>
                    </div>
                    <Button variant="ghost" size="icon" onClick={onClearSelection} className="h-8 w-8 text-muted-foreground">

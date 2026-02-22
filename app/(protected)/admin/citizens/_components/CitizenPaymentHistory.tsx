@@ -43,22 +43,22 @@ export default function CitizenPaymentHistory({
               <thead className="bg-muted/50 sticky top-0 z-10">
                 <tr className="border-b-2 border-border">
                   <th className="px-4 md:px-6 py-2.5 md:py-3 text-left">
-                    <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                       Bill Type
                     </span>
                   </th>
                   <th className="px-4 md:px-6 py-2.5 md:py-3 text-left">
-                    <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                       Amount
                     </span>
                   </th>
                   <th className="px-4 md:px-6 py-2.5 md:py-3 text-left">
-                    <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                       Status
                     </span>
                   </th>
                   <th className="px-4 md:px-6 py-2.5 md:py-3 text-left">
-                    <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                       Due Date
                     </span>
                   </th>
@@ -74,7 +74,7 @@ export default function CitizenPaymentHistory({
                       <div className="font-bold text-foreground capitalize text-sm md:text-base">
                         {payment.bill_type.replace(/_/g, " ")}
                       </div>
-                      <div className="text-[10px] md:text-xs text-muted-foreground font-mono mt-0.5">
+                      <div className="text-xs md:text-xs text-muted-foreground font-mono mt-0.5">
                         #{payment.bill_number}
                       </div>
                     </td>
@@ -88,17 +88,17 @@ export default function CitizenPaymentHistory({
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4">
                       {payment.status === "completed" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] md:text-xs font-bold text-success-green bg-success-green/10 px-2 md:px-2.5 py-1 md:py-1.5 rounded-md border border-success-green/20">
+                        <span className="inline-flex items-center gap-1 text-xs md:text-xs font-bold text-success-green bg-success-green/10 px-2 md:px-2.5 py-1 md:py-1.5 rounded-md border border-success-green/20">
                           <div className="w-1.5 h-1.5 rounded-full bg-success-green animate-pulse" />
                           Paid
                         </span>
                       ) : payment.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] md:text-xs font-bold text-warning-amber bg-warning-amber/10 px-2 md:px-2.5 py-1 md:py-1.5 rounded-md border border-warning-amber/20 capitalize">
+                        <span className="inline-flex items-center gap-1 text-xs md:text-xs font-bold text-warning-amber bg-warning-amber/10 px-2 md:px-2.5 py-1 md:py-1.5 rounded-md border border-warning-amber/20 capitalize">
                           <div className="w-1.5 h-1.5 rounded-full bg-warning-amber animate-pulse" />
                           {payment.status}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] md:text-xs font-bold text-error-red bg-error-red/10 px-2 md:px-2.5 py-1 md:py-1.5 rounded-md border border-error-red/20 capitalize">
+                        <span className="inline-flex items-center gap-1 text-xs md:text-xs font-bold text-error-red bg-error-red/10 px-2 md:px-2.5 py-1 md:py-1.5 rounded-md border border-error-red/20 capitalize">
                           <div className="w-1.5 h-1.5 rounded-full bg-error-red" />
                           {payment.status}
                         </span>

@@ -48,7 +48,7 @@ export function TaskComments({ comments, onAddComment }: TaskCommentsProps) {
                 <span className="font-bold text-xs md:text-sm truncate">
                   {c.author?.full_name || "Unknown"}
                 </span>
-                <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
+                <span className="text-xs md:text-xs text-muted-foreground whitespace-nowrap">
                   {formatDistanceToNow(new Date(c.created_at))} ago
                 </span>
               </div>

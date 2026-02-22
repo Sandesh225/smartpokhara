@@ -2,12 +2,7 @@
 
 import { flexRender, Table as ReactTable } from "@tanstack/react-table";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -31,131 +26,160 @@ export function UniversalTable<TData>({
   isLoading = false,
   variant = "default",
   onRowClick,
-  emptyTitle = "No Records Found",
+  emptyTitle   = "No Records Found",
   emptyMessage = "No records match your current filters.",
 }: UniversalTableProps<TData>) {
-  
-  // --- LOADING STATE ---
+
+  // ── Loading ───────────────────────────────────────────────────────────────
   if (isLoading) {
     if (variant === "tactical") {
-       return (
-        <div className="flex-1 flex flex-col items-center justify-center bg-card/5 backdrop-blur-sm min-h-[400px]">
-          <LoadingSpinner message="Decrypting Data Streams..." />
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <LoadingSpinner message="Loading data…" />
         </div>
       );
     }
     return (
-      <div className="space-y-4">
+      <div className="space-y-2 p-5">
         {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          <Skeleton
+            key={i}
+            className="h-14 w-full rounded-xl"
+            style={{ opacity: 1 - i * 0.15 } as React.CSSProperties}
+          />
         ))}
       </div>
     );
   }
 
-  // --- EMPTY STATE ---
+  // ── Empty ─────────────────────────────────────────────────────────────────
   if (table.getRowModel().rows.length === 0) {
     if (variant === "tactical") {
       return (
-        <div className="flex-1 flex items-center justify-center p-12 min-h-[400px]">
-          <EmptyState
-            title={emptyTitle}
-            message={emptyMessage}
-          />
+        <div className="flex items-center justify-center p-12 min-h-[400px]">
+          <EmptyState title={emptyTitle} message={emptyMessage} />
         </div>
       );
     }
-     return (
-        <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl bg-card/50">
-           <AlertTriangle className="h-12 w-12 text-muted-foreground/50 mb-4" />
-           <h3 className="text-lg font-bold text-foreground">{emptyTitle}</h3>
-           <p className="text-muted-foreground text-sm">{emptyMessage}</p>
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed border-border/50 rounded-2xl m-5">
+        <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+          <AlertTriangle className="w-6 h-6 text-muted-foreground/50" />
         </div>
-     );
+        <h3 className="text-sm font-semibold text-foreground mb-1">{emptyTitle}</h3>
+        <p className="text-sm text-muted-foreground max-w-[260px] leading-relaxed">{emptyMessage}</p>
+      </div>
+    );
   }
 
-  // --- TACTICAL VARIANT (Supervisor) ---
+  // ── Tactical variant ──────────────────────────────────────────────────────
   if (variant === "tactical") {
     return (
       <div className="flex flex-col h-full w-full overflow-hidden">
-        <div className="flex-1 overflow-auto custom-scrollbar">
+        <div className="flex-1 overflow-auto">
           <table className="w-full text-left border-separate border-spacing-0">
-             <thead className="bg-muted/40 backdrop-blur-xl sticky top-0 z-20">
-               {table.getHeaderGroups().map(headerGroup => (
-                 <tr key={headerGroup.id}>
-                   {headerGroup.headers.map(header => (
-                     <th key={header.id} className="px-4 py-5 border-b border-border/60 first:pl-6 last:pr-6">
-                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 flex items-center">
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                        </div>
-                     </th>
-                   ))}
-                 </tr>
-               ))}
-             </thead>
-             <tbody className="divide-y divide-border/20">
-               {table.getRowModel().rows.map(row => (
-                 <TableRow 
-                    key={row.id}
-                    className={cn(
-                      "group transition-all duration-300 hover:bg-primary/3 border-border/20",
-                      row.getIsSelected() && "bg-primary/5"
-                    )}
-                    onClick={() => onRowClick?.(row.original)}
-                 >
-                   {row.getVisibleCells().map(cell => (
-                     <TableCell key={cell.id} className="px-4 py-4 first:pl-6 last:pr-6 align-middle">
-                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                     </TableCell>
-                   ))}
-                 </TableRow>
-               ))}
-             </tbody>
+
+            {/* Header */}
+            <thead className="sticky top-0 z-20 bg-muted/60 backdrop-blur-sm">
+              {table.getHeaderGroups().map(hg => (
+                <tr key={hg.id}>
+                  {hg.headers.map(h => (
+                    <th
+                      key={h.id}
+                      className="px-5 py-3.5 border-b border-border first:pl-6 last:pr-6
+                        text-sm font-bold uppercase tracking-widest text-muted-foreground
+                        whitespace-nowrap select-none"
+                    >
+                      {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+
+            {/* Body */}
+            <tbody>
+              {table.getRowModel().rows.map(row => (
+                <tr
+                  key={row.id}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={cn(
+                    "border-b border-border/30 transition-colors duration-150",
+                    onRowClick && "cursor-pointer hover:bg-accent/50",
+                    row.getIsSelected() && "bg-accent"
+                  )}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <td
+                      key={cell.id}
+                      className="px-5 py-4 first:pl-6 last:pr-6 align-middle
+                        text-sm font-medium text-foreground"
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+
           </table>
         </div>
       </div>
     );
   }
 
-  // --- DEFAULT VARIANT (Admin / Citizen) ---
+  // ── Default variant ───────────────────────────────────────────────────────
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-      <Table>
-        <TableHeader className="bg-muted/40">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="h-12 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow
-              key={row.id}
-              data-state={row.getIsSelected() && "selected"}
-              className={cn(
-                  "cursor-pointer hover:bg-muted/30 transition-colors",
-                  row.getIsSelected() && "bg-primary/5"
-              )}
-              onClick={() => onRowClick?.(row.original)}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id} className="py-3">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <Table>
+
+      {/* Column headers */}
+      <TableHeader>
+        {table.getHeaderGroups().map(hg => (
+          <TableRow
+            key={hg.id}
+            className="hover:bg-transparent border-b border-border bg-muted/30"
+          >
+            {hg.headers.map(h => (
+              <TableHead
+                key={h.id}
+                className="h-11 px-5
+                  text-sm font-bold uppercase tracking-widest
+                  text-muted-foreground whitespace-nowrap select-none"
+              >
+                {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+
+      {/* Rows */}
+      <TableBody>
+        {table.getRowModel().rows.map(row => (
+          <TableRow
+            key={row.id}
+            data-state={row.getIsSelected() ? "selected" : undefined}
+            onClick={() => onRowClick?.(row.original)}
+            className={cn(
+              "border-b border-border/40 last:border-0 transition-colors duration-150",
+              onRowClick && "cursor-pointer hover:bg-muted/40",
+              row.getIsSelected() && "bg-accent"
+            )}
+          >
+            {row.getVisibleCells().map(cell => (
+              <TableCell
+                key={cell.id}
+                className="px-5 py-4
+                  text-sm font-medium text-foreground
+                  align-middle"
+              >
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+
+    </Table>
   );
 }

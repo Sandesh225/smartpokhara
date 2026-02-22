@@ -72,7 +72,7 @@ export function QuickActionsPanel() {
             </div>
             Quick Ops
           </CardTitle>
-          <span className="text-[10px] font-mono font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
+          <span className="text-xs font-mono font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
             CMD + K
           </span>
         </div>
@@ -107,7 +107,7 @@ export function QuickActionsPanel() {
                     <p className="text-sm font-bold text-foreground leading-none mb-1">
                       {action.label}
                     </p>
-                    <p className="text-[10px] font-medium text-muted-foreground truncate opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p className="text-xs font-medium text-muted-foreground truncate opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {action.description}
                     </p>
                   </div>
@@ -121,7 +121,7 @@ export function QuickActionsPanel() {
 
         {/* Decorative footer footer */}
         <div className="mt-6 pt-4 border-t border-dashed border-border flex justify-center">
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Smart City Governance Portal
           </p>
         </div>

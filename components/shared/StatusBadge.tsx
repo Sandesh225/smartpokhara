@@ -16,10 +16,10 @@ import {
   HelpCircle
 } from "lucide-react";
 
-export type StatusVariant = 'complaint' | 'task' | 'pb' | 'notice' | 'staff' | 'priority';
+export type StatusVariant = 'complaint' | 'task' | 'pb' | 'notice' | 'staff' | 'citizen';
 
 interface StatusBadgeProps {
-  status: string;
+  status: string | boolean;
   variant?: StatusVariant;
   className?: string;
   showIcon?: boolean;
@@ -27,7 +27,7 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({
-  status,
+  status: rawStatus,
   variant = 'complaint',
   className,
   showIcon = true,
@@ -37,52 +37,54 @@ export function StatusBadge({
   const getConfigs = () => {
     if (variant === 'task') {
       return {
-        'not_started': { label: 'To Do', color: 'bg-slate-100 text-slate-700 border-slate-200', icon: CheckSquare },
-        'in_progress': { label: 'In Progress', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: Loader2, animate: true },
-        'completed': { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
-        'overdue': { label: 'Overdue', color: 'bg-rose-100 text-rose-700 border-rose-200', icon: AlertCircle },
-        'cancelled': { label: 'Cancelled', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: XCircle },
-        'paused': { label: 'Paused', color: 'bg-amber-100 text-amber-700 border-amber-200', icon: PauseCircle }
+        'not_started': { label: 'To Do', color: 'bg-muted text-muted-foreground border-border', icon: CheckSquare },
+        'in_progress': { label: 'In Progress', color: 'bg-primary/10 text-primary border-primary/20', icon: Loader2, animate: true },
+        'completed': { label: 'Completed', color: 'bg-secondary/20 text-secondary-foreground border-secondary/30', icon: CheckCircle2 },
+        'overdue': { label: 'Overdue', color: 'bg-destructive/10 text-destructive border-destructive/20', icon: AlertCircle },
+        'cancelled': { label: 'Cancelled', color: 'bg-muted text-muted-foreground/60 border-border', icon: XCircle },
+        'paused': { label: 'Paused', color: 'bg-accent/20 text-accent-foreground border-accent/30', icon: PauseCircle }
       };
     }
     if (variant === 'staff') {
       return {
-        'active': { label: 'Available', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
-        'available': { label: 'Available', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
-        'busy': { label: 'Busy', color: 'bg-amber-100 text-amber-700 border-amber-200', icon: Briefcase },
-        'inactive': { label: 'Offline', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: XCircle },
-        'on_leave': { label: 'On Leave', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: PauseCircle },
-        'field': { label: 'In Field', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: Activity, animate: true },
-        'off_duty': { label: 'Off Duty', color: 'bg-gray-100 text-gray-500 border-gray-200', icon: Clock }
+        'active': { label: 'Available', color: 'bg-secondary/20 text-secondary-foreground border-secondary/30', icon: CheckCircle2 },
+        'available': { label: 'Available', color: 'bg-secondary/20 text-secondary-foreground border-secondary/30', icon: CheckCircle2 },
+        'busy': { label: 'Busy', color: 'bg-accent/20 text-accent-foreground border-accent/30', icon: Briefcase },
+        'inactive': { label: 'Offline', color: 'bg-muted text-muted-foreground border-border', icon: XCircle },
+        'on_leave': { label: 'On Leave', color: 'bg-accent/10 text-accent-foreground border-accent/20', icon: PauseCircle },
+        'on_break': { label: 'On Break', color: 'bg-secondary/10 text-secondary border-secondary/20', icon: PauseCircle },
+        'field': { label: 'In Field', color: 'bg-primary/10 text-primary border-primary/20', icon: Activity, animate: true },
+        'off_duty': { label: 'Off Duty', color: 'bg-muted text-muted-foreground border-border', icon: Clock }
       };
     }
-    if (variant === 'priority') {
-        return {
-          'critical': { label: 'Critical', color: "bg-red-100 text-red-800 border-red-200", icon: AlertCircle },
-          'high': { label: 'High', color: "bg-orange-100 text-orange-800 border-orange-200", icon: AlertCircle },
-          'medium': { label: 'Medium', color: "bg-yellow-100 text-yellow-800 border-yellow-200", icon: Activity },
-          'low': { label: 'Low', color: "bg-blue-50 text-blue-700 border-blue-200", icon: CheckCircle2 },
-        };
+    if (variant === 'citizen') {
+      return {
+        'true': { label: 'Active', color: 'bg-secondary/20 text-secondary-foreground border-secondary/30', icon: CheckCircle2 },
+        'false': { label: 'Inactive', color: 'bg-destructive/10 text-destructive border-destructive/20', icon: XCircle },
+        'active': { label: 'Active', color: 'bg-secondary/20 text-secondary-foreground border-secondary/30', icon: CheckCircle2 },
+        'inactive': { label: 'Inactive', color: 'bg-destructive/10 text-destructive border-destructive/20', icon: XCircle },
+      };
     }
     
-    // Complaint statuses with soft colors from supervisor side
+    // Complaint statuses
     const complaintConfigs: Record<string, { color: string; icon: LucideIcon; label: string; animate?: boolean }> = {
-      received: { color: "bg-blue-100 text-blue-700 border-blue-200", icon: AlertCircle, label: "Received" },
-      assigned: { color: "bg-purple-100 text-purple-700 border-purple-200", icon: ArrowUpCircle, label: "Assigned" },
-      in_progress: { color: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock, label: "In Progress", animate: true },
-      resolved: { color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle2, label: "Resolved" },
-      closed: { color: "bg-gray-100 text-gray-700 border-gray-200", icon: CheckCircle2, label: "Closed" },
-      escalated: { color: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle, label: "Escalated" },
+      received: { color: "bg-primary/10 text-primary border-primary/20", icon: AlertCircle, label: "Received" },
+      assigned: { color: "bg-accent/10 text-accent-foreground border-accent/20", icon: ArrowUpCircle, label: "Assigned" },
+      in_progress: { color: "bg-primary/10 text-primary border-primary/20", icon: Clock, label: "In Progress", animate: true },
+      resolved: { color: "bg-secondary/20 text-secondary-foreground border-secondary/30", icon: CheckCircle2, label: "Resolved" },
+      closed: { color: "bg-muted text-muted-foreground border-border", icon: CheckCircle2, label: "Closed" },
+      escalated: { color: "bg-destructive/10 text-destructive border-destructive/20", icon: AlertCircle, label: "Escalated" },
     };
 
     return { ...COMPLAINT_STATUS_CONFIG, ...complaintConfigs };
   };
 
   const configs = getConfigs();
+  const status = typeof rawStatus === 'boolean' ? String(rawStatus) : rawStatus;
   const normalizedStatus = status?.toLowerCase() || 'unknown';
   const config = (configs as any)[normalizedStatus] || {
     label: status,
-    color: 'bg-gray-100 text-gray-700 border-gray-200',
+    color: 'bg-muted text-muted-foreground border-border',
     icon: HelpCircle,
     animate: false
   };

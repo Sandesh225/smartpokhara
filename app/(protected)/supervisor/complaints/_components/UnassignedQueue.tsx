@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { UserPlus, Filter } from "lucide-react";
-import { ComplaintsTableView } from "@/app/(protected)/supervisor/complaints/_components/ComplaintsTableView";
+import { ComplaintsTable } from "@/app/(protected)/admin/complaints/_components/ComplaintsTable";
 import { UniversalAssignmentModal } from "@/components/supervisor/modals/UniversalAssignmentModal";
-import { BulkActionsBar } from "@/app/(protected)/supervisor/complaints/_components/BulkActionsBar";
+import { UniversalBatchActions } from "@/components/shared/UniversalBatchActions";
 import { complaintsApi } from "@/features/complaints";
 import { supervisorApi } from "@/features/supervisor";
 import { subscribeToComplaints } from "@/features/complaints/realtime/complaintsSubscription";
@@ -168,28 +168,42 @@ export function UnassignedQueue({ initialComplaints, supervisorId }: UnassignedQ
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <ComplaintsTableView
-          complaints={complaints}
+      <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
+        <ComplaintsTable
+          data={complaints}
           selectedIds={selectedIds}
           onSelect={handleSelect}
           onSelectAll={handleSelectAll}
-          isLoading={false}
+          loading={false}
+          pagination={{
+            pageIndex: 1,
+            pageSize: Math.max(1, complaints.length),
+            total: complaints.length,
+            onPageChange: () => {},
+          }}
         />
       </div>
 
-      <BulkActionsBar
-        selectedCount={selectedIds.length}
-        onClearSelection={() => setSelectedIds([])}
-        onAssign={() => {
-          setActiveComplaintId(null);
-          loadStaffForAssignment();
-          setIsAssignModalOpen(true);
-        }}
-        onPrioritize={() => {}}
-        onEscalate={() => {}}
-        onResolve={() => {}}
-      />
+      {selectedIds.length > 0 && (
+        <UniversalBatchActions
+          selectedCount={selectedIds.length}
+          onClearSelection={() => setSelectedIds([])}
+          actions={[
+            {
+              id: "assign",
+              label: "Assign Selected",
+              icon: UserPlus,
+              onClick: () => {
+                 setActiveComplaintId(null);
+                 loadStaffForAssignment();
+                 setIsAssignModalOpen(true);
+              },
+              variant: "default",
+              className: "bg-primary text-primary-foreground hover:bg-primary/90"
+            }
+          ]}
+        />
+      )}
 
       <UniversalAssignmentModal
         isOpen={isAssignModalOpen}

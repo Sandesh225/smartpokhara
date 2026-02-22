@@ -114,7 +114,7 @@ export default async function PerformancePage() {
                   <div className="font-bold text-lg text-gray-900">
                     {staff.resolved_complaints}
                   </div>
-                  <div className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+                  <div className="text-xs uppercase text-gray-400 font-bold tracking-wider">
                     Resolved
                   </div>
                 </div>
@@ -154,13 +154,13 @@ export default async function PerformancePage() {
                   <div className="flex gap-2 mt-1">
                     <Badge
                       variant="secondary"
-                      className="h-5 text-[10px] bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                      className="h-5 text-xs bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
                     >
                       {staff.active_complaints} Active
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="h-5 text-[10px] bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-200"
+                      className="h-5 text-xs bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-200"
                     >
                       ★ {staff.avg_rating}
                     </Badge>
@@ -225,7 +225,7 @@ export default async function PerformancePage() {
                       </td>
                       <td className="px-6 py-4 text-gray-500 capitalize">
                         {staff.staff_role.replace("_", " ")}
-                        <span className="block text-[10px] text-gray-400">
+                        <span className="block text-xs text-gray-400">
                           {staff.department ||
                             (staff.ward_number
                               ? `Ward ${staff.ward_number}`

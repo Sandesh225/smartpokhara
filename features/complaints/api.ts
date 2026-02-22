@@ -133,7 +133,7 @@ async getUserComplaints(
    * Create a new complaint using RPC
    */
   async createComplaint(client: SupabaseClient, data: CreateComplaintData) {
-    const { data: result, error } = await client.rpc("rpc_submit_complaint", {
+    const { data: result, error } = await client.rpc("rpc_submit_complaint_v2", {
         p_title: data.title,
         p_description: data.description,
         p_category_id: data.category_id,
@@ -149,6 +149,12 @@ async getUserComplaints(
     });
 
     if (error) throw error;
+    
+    // Check for application-level error returned by RPC
+    if (result && result.success === false) {
+      throw new Error(result.error || "Failed to submit complaint");
+    }
+
     return result;
   },
 
@@ -333,17 +339,19 @@ async getUserComplaints(
       .from("complaint-attachments")
       .getPublicUrl(filePath);
 
-    const { error: dbError } = await client
-      .from("complaint_attachments")
-      .insert({
-        complaint_id: complaintId,
-        file_path: publicUrl,
-        file_name: file.name,
-        file_type: file.type,
-        file_size: file.size
+    const { data: dbResult, error: dbError } = await client
+      .rpc("rpc_upload_complaint_attachment", {
+        p_complaint_id: complaintId,
+        p_file_path: publicUrl,
+        p_file_name: file.name,
+        p_file_type: file.type,
+        p_file_size: file.size
       });
 
     if (dbError) throw dbError;
+    if (dbResult && dbResult.success === false) {
+        throw new Error(dbResult.error || "Failed to link attachment");
+    }
     return publicUrl;
   },
 
@@ -411,6 +419,7 @@ async getUserComplaints(
           *,
           ward:wards(id, name, ward_number),
           category:complaint_categories(id, name),
+          citizen:users!complaints_citizen_id_fkey(email, profile:user_profiles(full_name)),
           assigned_staff:user_profiles!complaints_assigned_staff_profile_fkey(
             user_id,
             full_name
@@ -421,20 +430,26 @@ async getUserComplaints(
 
       // Apply jurisdiction filters
       if (!scope.is_senior) {
-        const jurisdictionParts: string[] = [];
-        if (scope.assigned_departments?.length > 0) {
-          jurisdictionParts.push(`assigned_department_id.in.(${scope.assigned_departments.join(",")})`);
-        }
-        if (scope.assigned_wards?.length > 0) {
-          jurisdictionParts.push(`ward_id.in.(${scope.assigned_wards.join(",")})`);
-        }
-        // Also allow complaints specifically assigned to this supervisor
-        jurisdictionParts.push(`assigned_staff_id.eq.${supervisorId}`);
+        const deptCond = scope.assigned_departments?.length > 0 ? `assigned_department_id.in.(${scope.assigned_departments.join(",")})` : null;
+        const wardCond = scope.assigned_wards?.length > 0 ? `ward_id.in.(${scope.assigned_wards.join(",")})` : null;
 
-        if (jurisdictionParts.length === 0) {
-          return { data: [], count: 0, message: "No jurisdiction assigned." };
+        let baseCond = "";
+        if (deptCond && wardCond) {
+          // AND them so a Ward-Road supervisor only sees Road complaints in their Ward
+          baseCond = `and(${deptCond},${wardCond})`;
+        } else if (deptCond) {
+          baseCond = deptCond;
+        } else if (wardCond) {
+          baseCond = wardCond;
         }
-        query = query.or(jurisdictionParts.join(","));
+
+        if (baseCond) {
+          // Can see jurisdiction OR direct assignments
+          query = query.or(`${baseCond},assigned_staff_id.eq.${supervisorId}`);
+        } else {
+          // Only direct assignments
+          query = query.eq("assigned_staff_id", supervisorId);
+        }
       }
 
       // Apply user filters
@@ -479,19 +494,20 @@ async getUserComplaints(
       const scope = await complaintsApi.getJurisdiction(client);
 
       let query = client.from("complaints")
-        .select(`*, ward:wards(id, name, ward_number), category:complaint_categories(id, name)`)
+        .select(`*, ward:wards(id, name, ward_number), category:complaint_categories(id, name), citizen:users!complaints_citizen_id_fkey(email, profile:user_profiles(full_name))`)
         .is("assigned_staff_id", null)
         .in("status", ["received", "under_review"]);
 
       if (!scope.is_senior) {
-        const parts: string[] = [];
-        if (scope.assigned_wards?.length) parts.push(`ward_id.in.(${scope.assigned_wards.join(",")})`);
-        if (scope.assigned_departments?.length) parts.push(`assigned_department_id.in.(${scope.assigned_departments.join(",")})`);
+        if (!scope.assigned_wards?.length && !scope.assigned_departments?.length) {
+          return []; // If they supervise nothing, they see no unassigned complaints
+        }
 
-        if (parts.length > 0) {
-          query = query.or(parts.join(","));
-        } else {
-          return [];
+        if (scope.assigned_wards?.length) {
+          query = query.in("ward_id", scope.assigned_wards);
+        }
+        if (scope.assigned_departments?.length) {
+          query = query.in("assigned_department_id", scope.assigned_departments);
         }
       }
 

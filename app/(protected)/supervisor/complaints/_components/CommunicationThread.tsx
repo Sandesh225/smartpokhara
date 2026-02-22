@@ -183,26 +183,23 @@ export function CommunicationThread({
   );
 
   return (
-    <div className="flex flex-col h-[700px] overflow-hidden stone-card dark:stone-card-elevated border-none shadow-2xl transition-all duration-500">
+    <div className="flex flex-col h-[700px] overflow-hidden bg-card border border-border rounded-xl shadow-xs transition-colors duration-500">
       {/* Header */}
-      <div className="px-6 py-5 flex items-center justify-between border-b border-primary/10 bg-primary/5 dark:bg-dark-surface/40 backdrop-blur-md">
+      <div className="px-6 py-4 flex items-center justify-between border-b border-border bg-muted/20">
         <div className="flex items-center gap-4">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
-            <MessageSquare className="h-5 w-5 text-primary" />
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 text-primary">
+            <MessageSquare className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.15em] text-foreground">
-              Communication Ledger
+            <h3 className="text-sm font-bold text-foreground">
+              Communication Thread
             </h3>
-            <div className="flex items-center gap-2 mt-0.5">
-              <Globe className="h-3 w-3 text-emerald-500" />
-              <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
-                Transparency Stream
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground font-medium mt-0.5">
+              Public & Internal dialogue
+            </p>
           </div>
         </div>
-        <Badge variant="outline" className="text-xs font-black uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1">
+        <Badge variant="outline" className="text-xs font-semibold bg-success-green/10 text-success-green border-success-green/20">
           Live Connection
         </Badge>
       </div>
@@ -214,10 +211,10 @@ export function CommunicationThread({
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : sortedMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full py-20 opacity-40">
-            <Sparkles className="h-12 w-12 text-primary/30 mb-4" />
-            <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">
-              Awaiting First Entry
+          <div className="flex flex-col items-center justify-center h-full py-20 opacity-50">
+            <MessageSquare className="h-10 w-10 text-muted-foreground mb-4" />
+            <p className="text-sm font-bold text-muted-foreground">
+              No messages yet
             </p>
           </div>
         ) : (
@@ -251,11 +248,11 @@ export function CommunicationThread({
                   <div className={cn("flex flex-col max-w-[80%]", isMe ? "items-end" : "items-start")}>
                     {showHeader && (
                       <div className="flex items-center gap-2 mb-1.5 px-1">
-                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/70">
+                        <span className="text-xs font-bold text-muted-foreground">
                           {isMe ? "You" : msg.author_name || "Unknown"}
                         </span>
                         {msg.is_internal && (
-                          <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px] h-5 font-bold">
+                          <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs h-5 font-bold">
                             INTERNAL
                           </Badge>
                         )}
@@ -264,18 +261,18 @@ export function CommunicationThread({
 
                     <div
                       className={cn(
-                        "rounded-2xl px-6 py-3.5 text-sm transition-all duration-300 shadow-sm leading-relaxed",
+                        "rounded-2xl px-5 py-3 text-sm transition-all duration-300 shadow-sm leading-relaxed border",
                         isMe
                           ? msg.is_internal
-                            ? "bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-500/20 rounded-tr-none"
-                            : "bg-primary text-white rounded-tr-none"
-                          : "glass dark:bg-dark-surface-elevated text-foreground rounded-tl-none border-primary/10"
+                            ? "bg-warning-amber/10 text-foreground border-warning-amber/20 rounded-tr-none"
+                            : "bg-primary text-primary-foreground border-primary rounded-tr-none"
+                          : "bg-muted text-foreground rounded-tl-none border-border"
                       )}
                     >
-                      <p className="whitespace-pre-wrap font-medium">{msg.content}</p>
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
                     </div>
 
-                    <span className="text-[10px] font-bold text-muted-foreground/40 mt-2 px-1">
+                    <span className="text-xs font-bold text-muted-foreground/40 mt-2 px-1">
                       {format(new Date(msg.created_at), "h:mm a")}
                     </span>
                   </div>
@@ -288,29 +285,28 @@ export function CommunicationThread({
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-6 bg-muted/20 dark:bg-dark-surface/60 border-t border-primary/10">
-        <div className="flex items-center justify-between mb-4 px-1">
+      <div className="p-4 sm:p-6 bg-card border-t border-border">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             {isInternal ? (
-              <Lock className="h-4 w-4 text-amber-600" />
+              <Lock className="h-4 w-4 text-warning-amber" />
             ) : (
-              <Globe className="h-4 w-4 text-emerald-600" />
+              <Globe className="h-4 w-4 text-success-green" />
             )}
             <span
               className={cn(
-                "text-[11px] font-black uppercase tracking-widest",
-                isInternal ? "text-amber-600" : "text-emerald-600"
+                "text-xs font-bold",
+                isInternal ? "text-warning-amber" : "text-success-green"
               )}
             >
               {isInternal ? "Internal Note" : "Public Message"}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase">Internal</span>
+            <span className="text-xs font-semibold text-muted-foreground">Internal Only</span>
             <Switch
               checked={isInternal}
               onCheckedChange={setIsInternal}
-              className="data-[state=checked]:bg-amber-500"
             />
           </div>
         </div>

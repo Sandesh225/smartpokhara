@@ -22,8 +22,7 @@ export default async function AnalyticsPage() {
     await Promise.all([
       supervisorApi.getAggregatedMetrics(supabase),
       supervisorApi.getTrendData(supabase, user.id),
-      // FIX: Removed 'user.id' because getCategoryBreakdown only expects (client)
-      supervisorApi.getCategoryBreakdown(supabase), 
+      supervisorApi.getCategoryBreakdown(supabase, user.id), 
       supervisorApi.getWardHeatmapData(supabase),
       supervisorApi.getStaffMetrics(supabase, user.id),
     ]);
@@ -44,11 +43,11 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-foreground">
           Analytics Dashboard
         </h1>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white border border-gray-300 text-sm font-medium rounded-lg text-gray-700 shadow-sm hover:bg-gray-50 transition-all">
+          <button className="px-4 py-2 bg-card border border-border text-sm font-medium rounded-lg text-foreground shadow-xs hover:bg-muted/50 transition-all">
             Export Report
           </button>
         </div>
@@ -67,8 +66,8 @@ export default async function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h3 className="text-base font-bold text-gray-900 mb-6">
+        <div className="bg-card p-6 rounded-xl border border-border shadow-xs">
+          <h3 className="text-base font-bold text-foreground mb-6">
             Ward Hotspots
           </h3>
           <div className="h-[300px]">

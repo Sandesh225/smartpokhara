@@ -76,24 +76,24 @@ export function CheckInOutPanel({
   };
 
   return (
-    <div className="stone-card p-8 bg-grid-pattern relative overflow-hidden">
-      <div className="absolute -top-12 -right-12 h-32 w-32 bg-primary/5 rounded-full blur-3xl" />
+    <div className="bg-card rounded-2xl border border-border p-8 bg-grid-pattern relative overflow-hidden shadow-xs">
+      <div className="absolute -top-12 -right-12 h-40 w-40 bg-primary/5 rounded-full blur-3xl" />
 
       <div className="relative z-10 space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold">Action Center</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-foreground">Action Center</h3>
           <span
-            className={`flex h-3 w-3 rounded-full ${
-              status === "on_duty" ? "bg-emerald-500 animate-pulse" : "bg-slate-300"
+            className={`flex h-3 w-3 rounded-full border-2 border-background shadow-xs ${
+              status === "on_duty" ? "bg-success-green animate-pulse" : "bg-muted"
             }`}
           />
         </div>
 
         {status === "off_duty" ? (
-          <div className="bg-muted/50 rounded-xl p-6 text-center border-2 border-dashed border-border">
-            <CheckCircle className="mx-auto text-emerald-500 mb-2" size={32} />
-            <p className="font-bold text-sm">Duty Completed</p>
-            <p className="text-xs text-muted-foreground mt-1">
+          <div className="bg-muted/50 rounded-xl p-8 text-center border-2 border-dashed border-border group transition-all hover:bg-muted">
+            <CheckCircle className="mx-auto text-success-green mb-3 group-hover:scale-110 transition-transform" size={40} />
+            <p className="font-black text-xs uppercase tracking-widest text-foreground">Duty Completed</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-tighter mt-1 opacity-60">
               Shift ended at {localOutTime ? new Date(localOutTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "just now"}
             </p>
           </div>
@@ -102,10 +102,10 @@ export function CheckInOutPanel({
             <button
               onClick={() => handleAttendance(status === "not_checked_in" ? "in" : "out")}
               disabled={loading}
-              className={`btn-gov h-24 flex-col gap-2 text-lg shadow-lg transition-all active:scale-95 ${
+              className={`flex h-24 w-full flex-col items-center justify-center gap-2 rounded-2xl font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 disabled:opacity-50 ${
                 status === "not_checked_in"
-                  ? "bg-primary text-white hover:bg-primary/90"
-                  : "bg-red-500 text-white hover:bg-red-600"
+                  ? "bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90"
+                  : "bg-destructive text-destructive-foreground shadow-destructive/20 hover:bg-destructive/90"
               }`}
             >
               {loading ? (
@@ -127,14 +127,14 @@ export function CheckInOutPanel({
 
         <div className="flex flex-col gap-2">
           {localInTime && status !== "not_checked_in" && (
-            <p className="text-xs font-medium text-muted-foreground">
-              Clocked in at: <span className="font-bold text-foreground">{new Date(localInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              Clocked in: <span className="text-foreground">{new Date(localInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
             </p>
           )}
-          <div className="flex items-start gap-3 text-xs text-muted-foreground bg-background/50 p-4 rounded-lg border border-border">
-            <MapPin size={14} className="mt-0.5 text-primary shrink-0" />
-            <p>
-              Your location is verified against the <strong>Pokhara Ward Office</strong> geofence. All logs are
+          <div className="flex items-start gap-3 bg-muted/50 p-4 rounded-xl border border-border mt-2">
+            <MapPin size={16} className="mt-0.5 text-primary shrink-0" />
+            <p className="text-xs font-bold text-muted-foreground uppercase leading-relaxed tracking-tight">
+              Location verified against <strong className="text-foreground">Pokhara Ward Geofence</strong>. All logs are
               timestamped securely.
             </p>
           </div>

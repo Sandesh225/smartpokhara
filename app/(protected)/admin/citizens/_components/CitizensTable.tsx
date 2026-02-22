@@ -12,6 +12,7 @@ import { Eye, Users, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { CitizenProfile } from "@/features/users/types";
+import { StatusBadge } from "@/components/shared";
 
 export default function CitizensTable({ data }: { data: CitizenProfile[] }) {
   if (data.length === 0) {
@@ -36,22 +37,22 @@ export default function CitizensTable({ data }: { data: CitizenProfile[] }) {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Full Name
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Email
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Ward
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Joined
                 </th>
-                <th className="px-4 py-3 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-right text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Actions
                 </th>
               </tr>
@@ -81,7 +82,7 @@ export default function CitizensTable({ data }: { data: CitizenProfile[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge isActive={citizen.is_active} />
+                    <StatusBadge status={citizen.is_active} variant="citizen" />
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {format(new Date(citizen.created_at), "MMM d, yyyy")}
@@ -131,7 +132,7 @@ export default function CitizensTable({ data }: { data: CitizenProfile[] }) {
                   Ward {citizen.ward_number}
                 </Badge>
               )}
-              <StatusBadge isActive={citizen.is_active} />
+              <StatusBadge status={citizen.is_active} variant="citizen" />
               <span className="text-xs text-muted-foreground">
                 {format(new Date(citizen.created_at), "MMM d, yyyy")}
               </span>
@@ -143,17 +144,3 @@ export default function CitizensTable({ data }: { data: CitizenProfile[] }) {
   );
 }
 
-function StatusBadge({ isActive }: { isActive: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
-        isActive
-          ? "bg-success-green/10 text-success-green border-success-green/30"
-          : "bg-error-red/10 text-error-red border-error-red/30"
-      )}
-    >
-      {isActive ? "Active" : "Inactive"}
-    </span>
-  );
-}

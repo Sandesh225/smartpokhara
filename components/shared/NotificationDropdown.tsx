@@ -276,7 +276,7 @@ export function NotificationDropdown({
                       </p>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wide flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-muted-foreground/70 uppercase tracking-wide flex items-center gap-1.5">
                           <Clock className="h-3 w-3" />
                           {formatDistanceToNow(new Date(n.created_at), {
                             addSuffix: true,

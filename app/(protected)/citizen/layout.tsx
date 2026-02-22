@@ -1,15 +1,14 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { isCitizen } from "@/lib/auth/role-helpers";
+import { enforceRole } from "@/lib/auth/require-role";
 
 export default async function CitizenLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUserWithRoles();
-  if (!user || !isCitizen(user)) {
-     // If they are admin/staff/supervisor let them pass as they might be viewing citizen features
-     if (!user?.roles.some(r => ["admin", "staff", "supervisor", "dept_head"].includes(r))) {
-        redirect("/login");
-     }
-  }
+  enforceRole(user, ["citizen", "business_owner", "tourist", "admin", "dept_head", "dept_staff", "ward_staff", "field_staff", "call_center"], "/login");
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-background text-foreground font-sans animate-fade-in">
+      {children}
+    </div>
+  );
 }

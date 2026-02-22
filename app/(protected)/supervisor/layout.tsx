@@ -1,14 +1,14 @@
-import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { isSupervisor, isAdmin } from "@/lib/auth/role-helpers";
+import { enforceRole } from "@/lib/auth/require-role";
 
-export default async function SupervisorLayout({ children }: { children: React.ReactNode }) {
+export default async function SupervisorLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const user = await getCurrentUserWithRoles();
-  if (!user) redirect("/login");
-
-  if (!isSupervisor(user) && !isAdmin(user)) {
-    redirect("/citizen/dashboard");
-  }
+  enforceRole(user, ["dept_head", "admin"]);
 
   return <>{children}</>;
 }

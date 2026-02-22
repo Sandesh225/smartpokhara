@@ -17,29 +17,29 @@ export function TodaySummary({ stats }: { stats: DashboardStats }) {
       label: "Completed Today",
       value: stats.completed_today || 0,
       icon: CheckCircle2,
-      color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-100 dark:bg-blue-500/20",
+      color: "text-info-blue",
+      bg: "bg-info-blue/10",
     },
     {
       label: "Monthly Total",
       value: stats.totalCompleted || 0,
       icon: BarChart3,
-      color: "text-purple-600 dark:text-purple-400",
-      bg: "bg-purple-100 dark:bg-purple-500/20",
+      color: "text-primary",
+      bg: "bg-primary/10",
     },
     {
       label: "SLA Score",
       value: `${stats.slaCompliance || 0}%`,
       icon: TrendingUp,
-      color: "text-green-600 dark:text-green-400",
-      bg: "bg-green-100 dark:bg-green-500/20",
+      color: "text-success-green",
+      bg: "bg-success-green/10",
     },
     {
       label: "Avg Rating",
       value: stats.avgRating ? stats.avgRating.toFixed(1) : "5.0",
       icon: Star,
-      color: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-100 dark:bg-amber-500/20",
+      color: "text-warning-amber",
+      bg: "bg-warning-amber/10",
     },
   ];
 
@@ -54,10 +54,7 @@ export function TodaySummary({ stats }: { stats: DashboardStats }) {
             color={m.color}
             bg={m.bg}
             variant="compact"
-            className={m.color === "text-blue-600 dark:text-blue-400" ? "border-blue-100 dark:border-blue-500/20" : 
-                       m.color === "text-purple-600 dark:text-purple-400" ? "border-purple-100 dark:border-purple-500/20" :
-                       m.color === "text-green-600 dark:text-green-400" ? "border-green-100 dark:border-green-500/20" :
-                       "border-amber-100 dark:border-amber-500/20"}
+            className={m.bg.replace('bg-', 'border-').replace('/10', '/20')}
         />
       ))}
     </div>

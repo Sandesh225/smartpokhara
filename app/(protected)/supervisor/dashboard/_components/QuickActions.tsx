@@ -55,7 +55,7 @@ export function QuickActions({ counts }: QuickActionsProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
-          <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Operational Shortcuts</p>
+          <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Operational Shortcuts</p>
         </div>
         <button className="text-xs font-bold text-primary hover:opacity-80 transition-opacity flex items-center gap-1 group">
           View all 
@@ -95,13 +95,13 @@ export function QuickActions({ counts }: QuickActionsProps) {
                 <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
                   {action.label}
                 </h4>
-                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
                   {action.description}
                 </p>
               </div>
 
               {action.badge !== undefined && action.badge > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 min-w-[1.25rem] px-1 rounded-full bg-destructive text-white text-[10px] font-black flex items-center justify-center shadow-lg animate-in fade-in zoom-in duration-300">
+                <span className="absolute -top-1 -right-1 h-5 min-w-[1.25rem] px-1 rounded-full bg-destructive text-white text-xs font-black flex items-center justify-center shadow-lg animate-in fade-in zoom-in duration-300">
                   {action.badge > 99 ? "99+" : action.badge}
                 </span>
               )}

@@ -29,7 +29,7 @@ const StatusCell = ({ status }: { status: string }) => {
     <Badge
       variant="outline"
       className={cn(
-        "rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border",
+        "rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-wider border",
         config[status] || config.received
       )}
     >
@@ -59,7 +59,7 @@ const PriorityCell = ({ priority }: { priority: string }) => {
       />
       <span
         className={cn(
-          "text-[10px] font-bold uppercase tracking-wider",
+          "text-xs font-bold uppercase tracking-wider",
           config[priority] || config.medium
         )}
       >
@@ -109,7 +109,7 @@ export const getComplaintColumns = (
     header: "Tracking ID",
     cell: ({ row }) => (
       <div className="flex items-center gap-2 group/copy">
-        <span className="font-mono text-xs font-black text-primary hover:underline cursor-pointer">
+        <span className="font-mono text-xs font-black text-primary hover:text-primary/80 cursor-pointer transition-colors px-2.5 py-1 bg-primary/5 rounded-lg border border-primary/10">
           #{row.original.tracking_code}
         </span>
         <Button
@@ -133,20 +133,20 @@ export const getComplaintColumns = (
     accessorKey: "title",
     header: "Complaint Summary",
     cell: ({ row }) => (
-      <div className="max-w-[300px] flex flex-col gap-1">
-        <span className="font-bold text-foreground truncate text-sm leading-tight">
+      <div className="max-w-[400px] flex flex-col gap-1.5 py-1">
+        <span className="font-black text-foreground uppercase tracking-tight text-sm leading-tight group-hover:text-primary transition-colors">
           {row.original.title}
         </span>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground opacity-60">
           {row.original.ward && (
-             <span className="flex items-center gap-1 font-medium">
-               <MapPin className="h-3 w-3" /> Ward {row.original.ward.ward_number}
+             <span className="flex items-center gap-1">
+               <MapPin className="h-3 w-3" /> {row.original.ward.ward_number}
              </span>
           )}
           {row.original.category && (
             <>
-              <span className="text-border mx-1">•</span>
-              <span className="flex items-center gap-1 font-medium truncate">
+              <span className="text-border/40">•</span>
+              <span className="flex items-center gap-1 truncate max-w-[120px]">
                 <Building2 className="h-3 w-3" /> {row.original.category.name}
               </span>
             </>
@@ -172,7 +172,7 @@ export const getComplaintColumns = (
       <div className="flex flex-col gap-1.5">
         <PriorityCell priority={row.original.priority} />
         {row.original.sla_due_at && (
-          <div className="flex items-center gap-1 text-[10px] font-medium whitespace-nowrap">
+          <div className="flex items-center gap-1 text-xs font-medium whitespace-nowrap">
             <Clock className="w-3 h-3 text-muted-foreground" />
              <span className="text-muted-foreground">
               {formatDistanceToNow(new Date(row.original.sla_due_at), { addSuffix: true })}
@@ -187,7 +187,7 @@ export const getComplaintColumns = (
   if (portalMode === "ADMIN" || portalMode === "SUPERVISOR") {
     columns.push({
       header: "Reporter",
-      accessorFn: (row) => row.citizen?.profile?.full_name || row.author?.full_name || "Anonymous",
+      accessorFn: (row) => row.citizen?.profile?.full_name || (row.citizen as any)?.full_name || row.author?.full_name || "Anonymous",
       cell: ({ getValue }) => (
         <span className="text-xs font-medium text-foreground truncate max-w-[120px] block">
           {getValue() as string}

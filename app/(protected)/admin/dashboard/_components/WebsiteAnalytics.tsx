@@ -24,7 +24,7 @@ export function WebsiteAnalytics({ data }: { data: WebsiteMetric[] }) {
             System Health
           </CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
               Live Feed
             </span>
           </div>
@@ -49,7 +49,7 @@ export function WebsiteAnalytics({ data }: { data: WebsiteMetric[] }) {
                 </div>
 
                 <div className="relative z-10 space-y-3">
-                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                     {metric.label}
                   </h4>
 
@@ -61,7 +61,7 @@ export function WebsiteAnalytics({ data }: { data: WebsiteMetric[] }) {
                     {metric.change && (
                       <div
                         className={cn(
-                          "flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-[10px] font-bold font-mono border",
+                          "flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-xs font-bold font-mono border",
                           metric.trend === "up"
                             ? "bg-green-500/10 text-green-700 border-green-500/20"
                             : "bg-red-500/10 text-red-700 border-red-500/20"
@@ -86,7 +86,7 @@ export function WebsiteAnalytics({ data }: { data: WebsiteMetric[] }) {
             <p className="text-sm font-bold text-slate-500">
               Synchronizing Data...
             </p>
-            <p className="text-[10px] text-slate-400 mt-1 italic">
+            <p className="text-xs text-slate-400 mt-1 italic">
               Establishing connection to Pokhara Cloud
             </p>
           </div>

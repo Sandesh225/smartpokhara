@@ -75,35 +75,35 @@ export function TodayAttendanceCard({
   const isProcessing = loading || isPending;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+    <div className="bg-card rounded-xl border border-border shadow-xs p-6 relative overflow-hidden group hover:shadow-md transition-all duration-300">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-blue-600" />
-            Today's Attendance
+          <h2 className="text-sm font-black text-foreground flex items-center gap-2 uppercase tracking-widest">
+            <Clock className="w-4 h-4 text-info-blue" />
+            Attendance Today
           </h2>
-          <p className="text-xs text-gray-500 mt-1 ml-7">
+          <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1 ml-6">
             {format(new Date(), "EEEE, d MMMM")}
           </p>
         </div>
 
         <span
-          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
+          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-current/10 ${
             status === "on_duty"
-              ? "bg-green-50 text-green-700 border-green-200"
+              ? "bg-success-green/10 text-success-green"
               : status === "off_duty"
-              ? "bg-gray-50 text-gray-600 border-gray-200"
-              : "bg-blue-50 text-blue-700 border-blue-200"
+              ? "bg-muted text-muted-foreground"
+              : "bg-info-blue/10 text-info-blue"
           }`}
         >
           {status === "on_duty" && (
-            <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
+            <span className="w-2 h-2 bg-success-green rounded-full mr-2 animate-pulse" />
           )}
           {status === "not_checked_in"
-            ? "Not Checked In"
+            ? "Pending"
             : status === "on_duty"
-            ? "On Duty"
-            : "Shift Completed"}
+            ? "Active"
+            : "Completed"}
         </span>
       </div>
 
@@ -113,24 +113,24 @@ export function TodayAttendanceCard({
           <button
             onClick={() => handleAction("check-in")}
             disabled={isProcessing}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md shadow-blue-100 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <LogIn className="w-5 h-5" />
             )}
-            <span>Check In Now</span>
+            <span>Clock In Now</span>
           </button>
         )}
 
         {status === "on_duty" && (
-          <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
+          <div className="flex items-center justify-between bg-muted/50 p-4 rounded-xl border border-border">
             <div className="text-left">
-              <p className="text-[10px] text-gray-500 uppercase font-bold">
+              <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">
                 Started
               </p>
-              <p className="font-mono font-bold text-gray-900 text-lg">
+              <p className="font-mono font-black text-foreground text-xl tracking-tighter">
                 {checkInTime
                   ? format(new Date(checkInTime), "h:mm a")
                   : "--:--"}
@@ -139,27 +139,27 @@ export function TodayAttendanceCard({
             <button
               onClick={() => handleAction("check-out")}
               disabled={isProcessing}
-              className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg font-bold text-sm hover:bg-red-50 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-70"
+              className="px-5 py-2.5 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl font-black uppercase tracking-widest text-xs hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center gap-2 shadow-xs disabled:opacity-50"
             >
               {isProcessing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <LogOut className="w-4 h-4" />
               )}
-              Check Out
+              Out
             </button>
           </div>
         )}
 
         {/* Summary Info (Visible if checked in or completed) */}
         {(checkInTime || location) && (
-          <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-4 text-xs text-gray-600">
+          <div className="pt-4 border-t border-border flex flex-wrap gap-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
             {checkInTime && (
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <Clock className="w-3 h-3 text-info-blue" />
                 <span>
                   In:{" "}
-                  <span className="font-medium text-gray-900">
+                  <span className="text-foreground">
                     {format(new Date(checkInTime), "h:mm a")}
                   </span>
                 </span>
@@ -167,10 +167,10 @@ export function TodayAttendanceCard({
             )}
             {checkOutTime && (
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <Clock className="w-3 h-3 text-destructive/70" />
                 <span>
                   Out:{" "}
-                  <span className="font-medium text-gray-900">
+                  <span className="text-foreground">
                     {format(new Date(checkOutTime), "h:mm a")}
                   </span>
                 </span>
@@ -178,8 +178,8 @@ export function TodayAttendanceCard({
             )}
             {location && (
               <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                <span className="truncate max-w-[150px]">{location}</span>
+                <MapPin className="w-3 h-3 text-primary" />
+                <span className="truncate max-w-[140px] lowercase">{location}</span>
               </div>
             )}
           </div>

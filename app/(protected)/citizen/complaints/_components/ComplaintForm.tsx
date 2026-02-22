@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner"; // Using Sonner for toasts
 import { ChevronRight, ChevronLeft, Send, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 import {
   complaintSchema as formSchema,
@@ -124,11 +125,12 @@ export default function ComplaintForm({
 
       // Optional: Reset form or redirect handled by parent
     } catch (e: any) {
-      console.error("Submission error:", e);
-      // FIX: Show error toast
+      console.error("Submission failed:", e);
+      
+      // FIX: Better error details presentation
       toast.error("Failed to submit complaint", {
         id: toastId,
-        description: e.message || "Please try again later.",
+        description: e.message || "Please check your connection and try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -137,9 +139,9 @@ export default function ComplaintForm({
 
   return (
     <FormProvider {...methods}>
-      <div className="space-y-6">
-        {/* Progress Tracker */}
-        <div className="relative">
+      <div className="space-y-12">
+        {/* Progress Tracker (Enhanced) */}
+        <div className="relative px-4">
           <div className="flex items-center justify-between">
             {STEPS.map((step, index) => {
               const isActive = index <= currentStep;
@@ -148,48 +150,60 @@ export default function ComplaintForm({
               return (
                 <div
                   key={step.id}
-                  className="flex flex-col items-center flex-1 cursor-pointer"
-                  onClick={() => jumpToStep(index)}
+                  className="flex flex-col items-center flex-1 z-10"
                 >
-                  <div className="relative flex items-center w-full">
+                  <div className="relative flex items-center justify-center w-full">
+                    {/* Progress Line */}
                     {index !== 0 && (
                       <div
-                        className={`flex-1 h-0.5 ${
+                        className={cn(
+                          "absolute right-1/2 left-0 top-1/2 -translate-y-1/2 h-0.5 transition-all duration-500",
                           isActive ? "bg-primary" : "bg-border"
-                        }`}
+                        )}
                       />
                     )}
-                    <motion.div
-                      initial={false}
-                      animate={{
-                        scale: isCurrent ? 1.1 : 1,
-                      }}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors mx-2 ${
+                    {index !== STEPS.length - 1 && (
+                      <div
+                        className={cn(
+                          "absolute left-1/2 right-0 top-1/2 -translate-y-1/2 h-0.5 transition-all duration-500",
+                          index < currentStep ? "bg-primary" : "bg-border"
+                        )}
+                      />
+                    )}
+
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => jumpToStep(index)}
+                      className={cn(
+                        "relative w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all duration-300 z-10",
                         isActive
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-background"
-                      }`}
+                          ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                          : "border-border bg-card text-muted-foreground hover:border-primary/50"
+                      )}
                     >
                       {isActive && !isCurrent ? (
-                        <Check className="w-4 h-4" />
+                        <Check className="w-5 h-5 stroke-3" />
                       ) : (
-                        <span className="text-xs font-semibold">
+                        <span className="text-xs font-black uppercase tracking-widest">
                           {index + 1}
                         </span>
                       )}
-                    </motion.div>
-                    {index !== STEPS.length - 1 && (
-                      <div
-                        className={`flex-1 h-0.5 ${
-                          index < currentStep ? "bg-primary" : "bg-border"
-                        }`}
-                      />
-                    )}
+                      {isCurrent && (
+                        <motion.div
+                          layoutId="active-step"
+                          className="absolute -inset-2 border-2 border-primary/20 rounded-2xl"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                        />
+                      )}
+                    </motion.button>
                   </div>
                   <p
-                    className={`text-xs font-medium mt-2 ${
-                      isActive ? "text-foreground" : "text-muted-foreground"
-                    }`}
+                    className={cn(
+                      "text-xs font-black uppercase tracking-widest mt-4 transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground/40"
+                    )}
                   >
                     {step.label}
                   </p>
@@ -204,10 +218,10 @@ export default function ComplaintForm({
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
               {currentStep === 0 && <CategoryStep categories={categories} />}
               {currentStep === 1 && <LocationStep wards={wards} />}
@@ -232,20 +246,22 @@ export default function ComplaintForm({
           </AnimatePresence>
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between pt-4 border-t">
+        {/* Navigation (Sticky-like bottom bar) */}
+        <div className="flex items-center justify-between pt-8 border-t border-border">
           <button
             type="button"
             onClick={prevStep}
             disabled={currentStep === 0 || isSubmitting}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-3 px-6 h-12 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 border border-border"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
           </button>
 
-          <div className="text-xs text-muted-foreground">
-            Step {currentStep + 1} of {STEPS.length}
+          <div className="hidden sm:block">
+            <p className="text-xs font-black text-muted-foreground/40 uppercase tracking-widest">
+              Stage {currentStep + 1} / {STEPS.length}
+            </p>
           </div>
 
           <button
@@ -254,22 +270,27 @@ export default function ComplaintForm({
               currentStep < STEPS.length - 1 ? nextStep : handleFormSubmit
             }
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-6 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={cn(
+              "inline-flex items-center gap-3 px-8 h-12 text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg",
+              isSubmitting
+                ? "bg-muted text-muted-foreground/40"
+                : "bg-primary text-primary-foreground shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5"
+            )}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Submitting...
+                Processing
               </>
             ) : currentStep < STEPS.length - 1 ? (
               <>
-                Next
+                Continue
                 <ChevronRight className="w-4 h-4" />
               </>
             ) : (
               <>
-                <Send className="w-4 h-4" />
-                Submit
+                Initialize Transmission
+                <Send className="w-4 h-4 ml-1" />
               </>
             )}
           </button>

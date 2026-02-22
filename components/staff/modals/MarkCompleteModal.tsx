@@ -224,7 +224,7 @@ export function MarkCompleteModal({
                     <div className="p-2 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
                       <Upload className="w-6 h-6 text-green-600" />
                     </div>
-                    <span className="text-[10px] text-green-700 font-bold mt-2 uppercase tracking-wider">
+                    <span className="text-xs text-green-700 font-bold mt-2 uppercase tracking-wider">
                       Add Photo
                     </span>
                     <input

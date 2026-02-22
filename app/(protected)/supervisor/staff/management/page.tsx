@@ -44,7 +44,7 @@ export default async function StaffManagementPage() {
         </div>
         <div className="bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-blue-600" />
-            <span className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Supervisor Access</span>
+            <span className="text-xs font-black text-blue-700 uppercase tracking-widest">Supervisor Access</span>
         </div>
       </div>
 
@@ -54,7 +54,7 @@ export default async function StaffManagementPage() {
           <TabsTrigger value="leaves" className="gap-2">
             <Calendar className="h-4 w-4" /> Leave Requests
             {pendingLeaves.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-bold">{pendingLeaves.length}</span>
+              <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold">{pendingLeaves.length}</span>
             )}
           </TabsTrigger>
         </TabsList>

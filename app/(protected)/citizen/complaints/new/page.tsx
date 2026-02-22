@@ -57,7 +57,7 @@ export default function NewComplaintPage() {
 
       setSubmissionResult({
         tracking_code: result.tracking_code,
-        complaint_id: result.complaint_id,
+        complaint_id: result.id,
       });
       setShowSuccessModal(true);
     } catch (err: any) {

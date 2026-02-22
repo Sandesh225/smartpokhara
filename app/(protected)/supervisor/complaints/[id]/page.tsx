@@ -43,16 +43,15 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[#0a0a0b] pb-12 transition-colors duration-500">
-      {/* Tactical Glass Header - Fixed at top with blur */}
+    <div className="min-h-screen bg-background pb-12 transition-colors duration-300">
       <ComplaintDetailHeader complaint={complaint} userId={user.id} />
 
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         {/* Jurisdiction Breadcrumb / System ID */}
-        <div className="mb-6 flex items-center gap-3">
-            <div className="h-px w-8 bg-primary/30" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 dark:text-dark-text-tertiary">
-                System Record: {complaint.tracking_code} // Node_{complaint.ward.ward_number}
+        <div className="mb-6 flex items-center gap-2">
+            <div className="h-4 w-1 bg-primary rounded-full shrink-0" />
+            <span className="text-sm font-semibold text-muted-foreground tracking-tight">
+                Record ID: {complaint.tracking_code} • Ward {complaint.ward.ward_number}
             </span>
         </div>
 
@@ -62,7 +61,7 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
           <div className="xl:col-span-8 space-y-8">
             
             {/* Evidence Grid */}
-            <div className="stone-card dark:bg-dark-surface/40 p-1 border-none shadow-none">
+            <div className="bg-card border border-border rounded-xl shadow-xs p-1">
                 <AttachmentsSection
                 citizenUploads={attachmentsResult.citizenUploads}
                 staffUploads={attachmentsResult.staffUploads}
@@ -97,7 +96,7 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
             />
 
             {/* Command Assignment */}
-            <div className="stone-card dark:bg-dark-surface p-6 border-border/40">
+            <div className="bg-card border border-border rounded-xl shadow-xs p-1 md:p-6 mb-6">
                 <AssignmentPanel
                 complaint={complaint}
                 currentSupervisorId={user.id}
@@ -117,10 +116,9 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
             />
 
             {/* Protocol Note */}
-            <div className="px-4 py-3 rounded-xl border border-dashed border-primary/20 bg-primary/5">
-                <p className="text-[10px] leading-relaxed text-muted-foreground font-medium uppercase tracking-wider">
-                   <span className="text-primary font-black mr-1">Supervisor Notice:</span>
-                   Changes to this record are immutable and logged to the central audit stream.
+            <div className="px-5 py-4 rounded-xl border border-border bg-muted/30 mt-6 shadow-xs">
+                <p className="text-xs leading-relaxed text-muted-foreground font-medium">
+                   <strong className="text-foreground">Audit Notice:</strong> All state changes to this record are immutable and securely logged.
                 </p>
             </div>
           </aside>

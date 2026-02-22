@@ -2,7 +2,7 @@
 
 import { Complaint } from "@/features/complaints";
 import { UniversalComplaintsTable } from "@/components/complaints/shared/UniversalComplaintsTable";
-import { ComplaintActionType } from "@/types/complaints-ui";
+import { ComplaintActionType, PortalMode } from "@/types/complaints-ui";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ interface ComplaintsTableProps {
     total: number;
     onPageChange: (page: number) => void;
   };
+  portalMode?: PortalMode;
 }
 
 export function ComplaintsTable({
@@ -27,6 +28,7 @@ export function ComplaintsTable({
   onSelect,
   onSelectAll,
   pagination,
+  portalMode = "ADMIN",
 }: ComplaintsTableProps) {
   const router = useRouter();
 
@@ -36,7 +38,7 @@ export function ComplaintsTable({
         // In a real app, this would likely open a modal.
         // For now, we'll navigate to the details page where assignment usually happens,
         // or trigger a toast if it's a placeholder.
-        router.push(`/admin/complaints/${complaint.id}`);
+        router.push(`/${portalMode.toLowerCase()}/complaints/${complaint.id}`);
         break;
       case "DELETE":
         if (confirm("Are you sure you want to mark this as spam?")) {
@@ -53,7 +55,7 @@ export function ComplaintsTable({
     <UniversalComplaintsTable
       data={data}
       isLoading={loading}
-      portalMode="ADMIN"
+      portalMode={portalMode}
       selectedIds={selectedIds}
       onSelect={onSelect}
       onSelectAll={onSelectAll}

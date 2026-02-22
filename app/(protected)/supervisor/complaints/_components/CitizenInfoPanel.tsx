@@ -41,29 +41,30 @@ export function CitizenInfoPanel({
      ═══════════════════════════════════════════════════════════ */
   if (isAnonymous) {
     return (
-      <div className="glass rounded-xl md:rounded-2xl p-6 md:p-10 text-center relative overflow-hidden group border border-border">
+      <div className="bg-card rounded-xl md:rounded-2xl p-6 md:p-10 text-center relative overflow-hidden group border border-border shadow-xs">
         {/* Background pattern */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] bg-size-[16px_16px]" />
         
-        <div className="w-16 h-16 md:w-20 md:h-20 bg-muted rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 border border-border shadow-lg transition-transform group-hover:scale-110 duration-500">
-          <Fingerprint className="w-8 h-8 md:w-10 md:h-10 text-warning-amber" />
+        <div className="w-16 h-16 md:w-20 md:h-20 bg-muted rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-4 md:mb-6 border border-border shadow-sm transition-transform group-hover:scale-110 duration-500">
+          <Fingerprint className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground" />
         </div>
         
-        <h4 className="font-sans font-black text-foreground tracking-tight text-lg md:text-xl uppercase">
+        <h4 className="font-bold text-foreground text-lg md:text-xl">
           Identity Redacted
         </h4>
         
-        <p className="text-[10px] md:text-[11px] text-muted-foreground mt-2 md:mt-3 leading-relaxed max-w-[200px] md:max-w-[240px] mx-auto font-medium">
+        <p className="text-xs text-muted-foreground mt-2 md:mt-3 leading-relaxed max-w-[200px] md:max-w-[240px] mx-auto font-medium">
           PROTOCOL 403: The reporter has opted for anonymity. Personal identifiers are locked by the security layer.
         </p>
       </div>
     );
   }
 
-  const displayName = citizen?.full_name || "Unknown Citizen";
+  const displayName = citizen?.profile?.full_name || citizen?.full_name || "Unknown Citizen";
   const displayEmail = citizen?.email || "No email";
   const displayPhone = citizen?.phone || "No phone";
   const hasContact = !!(citizen?.email || citizen?.phone);
+  const avatarUrl = citizen?.profile?.profile_photo_url || citizen?.profile_photo_url || citizen?.avatar_url;
 
   const citizenShortId = citizen?.id
     ? citizen.id.toString().substring(0, 6).toUpperCase()
@@ -73,20 +74,20 @@ export function CitizenInfoPanel({
       VERIFIED STATE
      ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="stone-card overflow-hidden shadow-lg hover:shadow-xl transition-all duration-500">
+    <div className="bg-card border border-border overflow-hidden rounded-xl shadow-xs transition-all duration-500">
       
       {/* HEADER */}
-      <div className="px-4 md:px-6 py-3 md:py-4 bg-muted/50 border-b border-border flex items-center justify-between">
+      <div className="px-4 md:px-6 py-3 bg-muted/20 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-success-green animate-pulse" />
-          <span className="text-[9px] md:text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-            Citizen Node
+          <User className="w-4 h-4 text-foreground/70" />
+          <span className="text-sm font-bold text-foreground">
+            Citizen Profile
           </span>
         </div>
         
-        <div className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-success-green/10 text-success-green rounded-full border border-success-green/20">
-          <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
-          <span className="text-[8px] md:text-[9px] font-black uppercase tracking-tighter">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-success-green/10 text-success-green rounded-md border border-success-green/20">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span className="text-xs font-semibold">
             Verified
           </span>
         </div>
@@ -96,9 +97,9 @@ export function CitizenInfoPanel({
         
         {/* PROFILE SECTION */}
         <div className="flex items-center gap-3 md:gap-5 mb-6 md:mb-8">
-          <div className="relative group flex-shrink-0">
+          <div className="relative group shrink-0">
             <Avatar className="h-12 w-12 md:h-16 md:w-16 border-2 md:border-4 border-background shadow-xl transition-transform group-hover:scale-105 duration-300">
-              <AvatarImage src={citizen?.avatar_url} />
+              <AvatarImage src={avatarUrl} />
               <AvatarFallback className="bg-primary text-primary-foreground font-black text-lg md:text-2xl">
                 {displayName.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -109,10 +110,10 @@ export function CitizenInfoPanel({
           </div>
           
           <div className="flex-1 min-w-0">
-            <h4 className="font-sans font-black text-foreground truncate text-base md:text-lg tracking-tight leading-none mb-1">
+            <h4 className="font-bold text-foreground truncate text-base md:text-lg mb-1">
               {displayName}
             </h4>
-            <span className="text-[8px] md:text-[9px] bg-muted px-1.5 md:px-2 py-0.5 rounded font-mono font-bold text-muted-foreground inline-block">
+            <span className="text-xs bg-muted px-2 py-0.5 rounded font-medium text-muted-foreground inline-block border border-border">
               POKR-{citizenShortId}
             </span>
           </div>
@@ -139,20 +140,20 @@ export function CitizenInfoPanel({
               onClick={() => copyToClipboard(item.value, item.key)}
               className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-muted rounded-lg md:rounded-xl border border-border cursor-pointer hover:bg-background hover:border-primary/30 hover:shadow-md transition-all group"
             >
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground border border-border group-hover:text-primary transition-colors flex-shrink-0">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground border border-border group-hover:text-primary transition-colors shrink-0">
                 <item.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="text-[8px] md:text-[9px] text-muted-foreground font-black uppercase tracking-wider mb-0.5">
+                <p className="text-xs text-muted-foreground font-semibold mb-0.5">
                   {item.label}
                 </p>
-                <p className="text-xs md:text-sm font-bold text-foreground truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   {item.value}
                 </p>
               </div>
               
-              <Copy className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+              <Copy className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
             </div>
           ))}
         </div>
@@ -161,7 +162,7 @@ export function CitizenInfoPanel({
         <div className="grid grid-cols-2 gap-2 md:gap-4">
           <Button
             size="sm"
-            className="w-full text-[10px] md:text-[11px] font-black uppercase tracking-wider h-10 md:h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg md:rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50"
+            className="w-full text-xs md:text-sm font-black uppercase tracking-wider h-10 md:h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg md:rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50"
             disabled={!hasContact}
           >
             <MessageSquare className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
@@ -172,7 +173,7 @@ export function CitizenInfoPanel({
           <Button
             variant="outline"
             size="sm"
-            className="w-full text-[10px] md:text-[11px] font-black uppercase tracking-wider h-10 md:h-12 border-border text-muted-foreground hover:bg-muted rounded-lg md:rounded-xl transition-all"
+            className="w-full text-xs md:text-sm font-black uppercase tracking-wider h-10 md:h-12 border-border text-muted-foreground hover:bg-muted rounded-lg md:rounded-xl transition-all"
           >
             <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
             <span className="hidden sm:inline">History</span>

@@ -98,35 +98,10 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL(next, request.url));
     }
 
-    // Fetch user and roles for dashboard redirect
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.redirect(new URL("/citizen/dashboard", request.url));
-    }
-
-    const { data: userRolesData } = await supabase
-      .from("user_roles")
-      .select("role:roles(role_type, is_active)")
-      .eq("user_id", user.id)
-      .eq("role.is_active", true);
-
-    const roles =
-      userRolesData?.map((ur: any) => ur.role?.role_type).filter(Boolean) || [];
-
-    let dashboardPath = "/citizen/dashboard";
-
-    if (roles.includes("admin") || roles.includes("dept_head")) {
-      dashboardPath = "/admin/dashboard";
-    } else if (
-      roles.some((r: string) =>
-        ["dept_staff", "ward_staff", "field_staff", "call_center"].includes(r)
-      )
-    ) {
-      dashboardPath = "/staff/dashboard";
-    }
+    // Use standardized dashboard config for redirection
+    const { data: config } = await supabase.rpc("rpc_get_dashboard_config");
+    
+    let dashboardPath = config?.dashboard_config?.default_route || "/citizen/dashboard";
 
     console.log("✅ Auth successful, redirecting to:", dashboardPath);
     return NextResponse.redirect(new URL(dashboardPath, request.url));

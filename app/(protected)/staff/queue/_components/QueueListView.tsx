@@ -35,10 +35,10 @@ export function QueueListView({ items, showAssignee = false }: QueueListViewProp
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider text-xs">
+          <thead className="bg-muted/50 border-b border-border text-muted-foreground uppercase tracking-widest text-xs font-bold">
             <tr>
               <th className="px-6 py-3 font-semibold">ID / Title</th>
               {showAssignee && <th className="px-6 py-3 font-semibold">Assigned To</th>}
@@ -48,36 +48,36 @@ export function QueueListView({ items, showAssignee = false }: QueueListViewProp
               <th className="px-6 py-3 font-semibold text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border">
             {items.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
+              <tr key={item.id} className="hover:bg-muted/30 transition-colors group">
                 <td className="px-6 py-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <span className={cn(
-                        "text-[10px] font-mono font-medium text-gray-500",
-                        item.type === 'complaint' ? "text-blue-600" : "text-purple-600"
+                        "text-xs font-mono font-bold",
+                        item.type === 'complaint' ? "text-primary" : "text-info-blue"
                       )}>
                         {item.tracking_code}
                       </span>
                       <PriorityIndicator priority={item.priority} size="sm" />
                     </div>
-                    <span className="font-medium text-gray-900">{item.title}</span>
-                    <span className="text-xs text-gray-500">{item.category}</span>
+                    <span className="font-semibold text-foreground">{item.title}</span>
+                    <span className="text-xs text-muted-foreground">{item.category}</span>
                   </div>
                 </td>
                 
                 {showAssignee && (
                   <td className="px-6 py-4">
                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-muted overflow-hidden flex items-center justify-center border border-border">
                            {item.assignee?.avatar ? (
                              <img src={item.assignee.avatar} alt="" className="w-full h-full object-cover" />
                            ) : (
-                             <User className="w-3 h-3 text-gray-400" />
+                             <User className="w-3 h-3 text-muted-foreground" />
                            )}
                         </div>
-                        <span className="text-sm text-gray-700">{item.assignee?.name}</span>
+                        <span className="text-sm text-foreground font-medium">{item.assignee?.name}</span>
                      </div>
                   </td>
                 )}
@@ -90,16 +90,16 @@ export function QueueListView({ items, showAssignee = false }: QueueListViewProp
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
-                    <span className="text-gray-900">{format(new Date(item.due_at), "MMM d")}</span>
+                    <span className="text-foreground font-medium">{format(new Date(item.due_at), "MMM d")}</span>
                     <CountdownTimer deadline={item.due_at} />
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <Link 
                     href={`/staff/queue/${item.id}`}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-all active:scale-95"
                   >
-                    View <ArrowRight className="w-3 h-3" />
+                    Details <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </td>
               </tr>

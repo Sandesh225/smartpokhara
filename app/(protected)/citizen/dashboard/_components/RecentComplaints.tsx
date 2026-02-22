@@ -1,127 +1,124 @@
-"use client";
-
-import { motion } from "framer-motion";
+import { memo } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
-import { FileText, ArrowRight, Clock, MapPin } from "lucide-react";
+import { FileText, ArrowUpRight, Clock, MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Complaint } from "@/features/complaints";
 
-// Local Complaint interface removed
+const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  received: { label: "Logged", className: "bg-muted text-muted-foreground border-border" },
+  under_review: { label: "Reviewing", className: "bg-accent/50 text-accent-foreground border-accent" },
+  assigned: { label: "Delegated", className: "bg-primary/10 text-primary border-primary/20" },
+  in_progress: { label: "Operating", className: "bg-secondary/10 text-secondary border-secondary/20 font-black animate-pulse" },
+  resolved: { label: "Completed", className: "bg-secondary/10 text-secondary border-secondary/20" },
+  closed: { label: "Archived", className: "bg-muted text-muted-foreground border-border" },
+  reopened: { label: "Active", className: "bg-primary/10 text-primary border-primary/20" },
+};
 
-export default function RecentComplaints({
-  complaints,
-}: {
-  complaints: Complaint[];
-}) {
-  const getStatusColor = (status: string) => {
-    const statusMap: Record<string, string> = {
-      received:
-        "bg-neutral-stone-200 dark:bg-neutral-stone-700 text-neutral-stone-800 dark:text-neutral-stone-200",
-      under_review:
-        "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300",
-      assigned:
-        "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-300",
-      in_progress:
-        "bg-secondary/20 dark:bg-secondary/30 text-[rgb(43,95,117)] dark:text-secondary",
-      resolved:
-        "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300",
-      closed:
-        "bg-neutral-stone-200 dark:bg-neutral-stone-700 text-neutral-stone-800 dark:text-neutral-stone-300",
-      reopened:
-        "bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-300",
+export default memo(function RecentComplaints({ complaints }: { complaints: Complaint[] }) {
+  const getStatusConfig = (status: string) =>
+    STATUS_CONFIG[status] || {
+      label: status.replace(/_/g, " "),
+      className: "bg-muted text-muted-foreground border-border",
     };
-    return (
-      statusMap[status] ||
-      "bg-neutral-stone-200 dark:bg-neutral-stone-700 text-neutral-stone-800 dark:text-neutral-stone-200"
-    );
-  };
 
   return (
-    <Card className="stone-card elevation-3 overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between p-7 pb-5 bg-linear-to-br from-neutral-stone-50 to-white dark:from-dark-midnight dark:to-dark-surface">
-        <CardTitle className="text-2xl font-black tracking-tight text-foreground flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center text-primary elevation-1">
-            <FileText className="w-6 h-6" />
+    <Card className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-3xl overflow-hidden shadow-inner-lg h-full transition-all duration-500 hover:shadow-xl relative group/card">
+      <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
+      <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-border/50 bg-muted/10 relative z-10">
+        <CardTitle className="font-heading text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2.5">
+          <div className="p-1.5 bg-primary/10 text-primary rounded-xl border border-primary/20">
+            <FileText className="w-3.5 h-3.5" aria-hidden="true" />
           </div>
-          Recent Activity
+          Filing Activity
         </CardTitle>
         <Link
           href="/citizen/complaints"
-          className="text-xs font-black text-primary hover:text-primary-brand-dark hover:underline flex items-center gap-2 uppercase tracking-widest transition-all"
+          className="font-heading text-xs font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 group"
         >
-          View All <ArrowRight className="w-4 h-4" />
+          Audit All
+          <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
         </Link>
       </CardHeader>
-      <CardContent className="p-7 pt-4">
+
+      <CardContent className="p-0">
         {complaints.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="p-5 bg-muted dark:bg-dark-surface-elevated rounded-2xl mb-5 elevation-1">
-              <FileText className="w-10 h-10 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center mb-5 rotate-6 shadow-inner-lg border border-border/50">
+              <FileText className="w-7 h-7 text-muted-foreground/40" aria-hidden="true" />
             </div>
-            <p className="text-sm font-bold text-muted-foreground">
-              No recent activity
-            </p>
-            <p className="text-xs text-muted-foreground/80 mt-2 font-medium">
-              Your submitted complaints will appear here
+            <h3 className="font-heading text-xs font-black uppercase tracking-widest text-foreground">Neutral Record</h3>
+            <p className="font-sans text-xs font-bold text-muted-foreground uppercase tracking-tight mt-1 max-w-[240px] opacity-60">
+              System awaits initial report entry. All previous datasets have been cleared.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {complaints.map((item, i) => (
-              <Link key={item.id} href={`/citizen/complaints/${item.id}`}>
+          <div className="divide-y divide-border/40">
+            {complaints.map((item, i) => {
+              const statusConfig = getStatusConfig(item.status);
+              return (
                 <motion.div
+                  key={item.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: i * 0.05 }}
-                  whileHover={{ x: 6, scale: 1.01 }}
-                  className="flex items-center justify-between p-5 rounded-xl border-2 border-neutral-stone-200 dark:border-dark-border-primary hover:border-primary/40 dark:hover:border-primary/50 hover:bg-neutral-stone-50 dark:hover:bg-dark-surface-elevated transition-all group elevation-1 hover:elevation-2"
+                  transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative"
                 >
-                  <div className="flex items-center gap-5 min-w-0 flex-1">
-                    <div className="h-14 w-14 rounded-xl bg-white dark:bg-dark-surface-elevated border-2 border-neutral-stone-200 dark:border-dark-border-secondary flex items-center justify-center shrink-0 elevation-1 group-hover:elevation-2 transition-all">
-                      <span className="text-xs font-black text-neutral-stone-600 dark:text-dark-text-secondary font-mono tabular-nums">
-                        #{item.tracking_code.split("-").pop()}
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h5 className="font-black text-foreground truncate text-balance text-base">
-                        {item.title}
-                      </h5>
-                      <div className="flex items-center gap-3 mt-2 flex-wrap">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                          <Clock className="w-3.5 h-3.5" />{" "}
-                          {formatDistanceToNow(new Date(item.submitted_at))} ago
+                  <Link
+                    href={`/citizen/complaints/${item.id}`}
+                    className={cn(
+                      "flex items-center justify-between gap-6 px-6 py-5 rounded-2xl mx-2 my-1",
+                      "hover:bg-muted/40 transition-all duration-500 group outline-none",
+                      "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/20"
+                    )}
+                    aria-label={`${item.title}, status: ${statusConfig.label}`}
+                  >
+                    <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
+                    <div className="flex items-center gap-5 min-w-0 flex-1 relative z-10">
+                      {/* Tracking code chip */}
+                      <div className="w-12 h-12 rounded-2xl border border-border/50 bg-background flex items-center justify-center shrink-0 shadow-inner-sm group-hover:border-primary/30 transition-all duration-500 group-hover:scale-110 group-hover:shadow-md">
+                        <span className="font-heading text-xs font-black text-primary tabular-nums tracking-tighter">
+                          #{item.tracking_code.split("-").pop()}
+                        </span>
+                      </div>
+
+                      <div className="min-w-0 flex-1 space-y-1.5 transition-transform duration-500 group-hover:translate-x-1">
+                        <p className="font-heading text-xs font-black uppercase tracking-wide text-foreground truncate group-hover:text-primary transition-colors">
+                          {item.title}
                         </p>
-                        {item.address_text && (
-                          <>
-                            <span className="text-neutral-stone-300 dark:text-dark-border-primary">
-                              •
+                        <div className="flex items-center gap-4 flex-wrap">
+                          <span className="font-sans text-xs font-bold text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 opacity-70">
+                            <Clock className="w-3 h-3" aria-hidden="true" />
+                            <span className="font-heading">{formatDistanceToNow(new Date(item.submitted_at))}</span> AGO
+                          </span>
+                          {item.address_text && (
+                            <span className="font-sans text-xs font-bold text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 truncate opacity-70">
+                              <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
+                              <span className="truncate">{item.address_text}</span>
                             </span>
-                            <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5" /> {item.address_text}
-                            </p>
-                          </>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <Badge
-                    className={cn(
-                      "rounded-xl px-4 py-2 font-black text-xs uppercase border-0 shadow-sm transition-all",
-                      "group-hover:scale-105",
-                      getStatusColor(item.status)
-                    )}
-                  >
-                    {item.status.replace("_", " ")}
-                  </Badge>
+
+                    <Badge
+                      className={cn(
+                        "font-sans text-xs font-black uppercase tracking-wide px-3 py-1 rounded-lg border shadow-inner-sm whitespace-nowrap shrink-0 group-hover:shadow-md transition-all duration-500 relative z-10 group-hover:-translate-x-1",
+                        statusConfig.className
+                      )}
+                    >
+                      {statusConfig.label}
+                    </Badge>
+                  </Link>
                 </motion.div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
     </Card>
   );
-}
+});

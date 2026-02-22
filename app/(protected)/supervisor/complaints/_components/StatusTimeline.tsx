@@ -63,18 +63,18 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
   const formatStatus = (s: string) => s.replace("_", " ").toUpperCase();
 
   return (
-    <div className="stone-card dark:stone-card-elevated border-none overflow-hidden shadow-2xl transition-colors-smooth">
-      <CardHeader className="bg-primary/5 dark:bg-dark-surface/40 border-b border-primary/10 py-5">
+    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xs transition-colors">
+      <CardHeader className="bg-muted/20 border-b border-border py-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg border border-primary/20">
               <Activity className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-glow">
+              <span className="text-sm font-bold text-foreground">
                 Lifecycle Log
               </span>
-              <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-0.5">
+              <p className="text-xs text-muted-foreground font-medium mt-0.5">
                 Full Chain of Custody
               </p>
             </div>
@@ -82,7 +82,7 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
           {sortedHistory.length > 0 && (
             <Badge
               variant="outline"
-              className="text-[9px] font-black uppercase tracking-tighter border-primary/20 bg-primary/5"
+              className="text-xs font-black uppercase tracking-tighter border-primary/20 bg-primary/5"
             >
               {sortedHistory.length} Transitions
             </Badge>
@@ -90,18 +90,18 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-8">
+      <CardContent className="p-6">
         {sortedHistory.length === 0 ? (
-          <div className="text-center py-12 glass border-2 border-dashed border-primary/10 rounded-3xl opacity-50">
-            <Clock className="h-10 w-10 mx-auto text-primary/30 mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <div className="text-center py-12 border border-dashed border-border rounded-xl opacity-50">
+            <Clock className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+            <p className="text-sm font-bold text-muted-foreground">
               Waiting for initial event...
             </p>
           </div>
         ) : (
           <div className="relative">
             {/* 🛤️ The Structural Vertical Beam */}
-            <div className="absolute left-[15px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-primary via-primary/20 to-transparent" />
+            <div className="absolute left-[15px] top-2 bottom-2 w-[2px] bg-linear-to-b from-primary via-primary/20 to-transparent" />
 
             <div className="space-y-10">
               {sortedHistory.map((event, idx) => {
@@ -134,7 +134,7 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
                         <div className="flex items-center gap-3">
                           <Badge
                             className={cn(
-                              "px-3 py-1 font-black text-[10px] tracking-widest border-none shadow-sm",
+                              "px-3 py-1 font-black text-xs tracking-widest border-none shadow-sm",
                               config.color
                             )}
                           >
@@ -144,14 +144,14 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
                           {event.old_status && (
                             <>
                               <ArrowDown className="h-3 w-3 text-muted-foreground/40 -rotate-90" />
-                              <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest italic">
+                              <span className="text-xs font-black text-muted-foreground/40 uppercase tracking-widest italic">
                                 From {formatStatus(event.old_status)}
                               </span>
                             </>
                           )}
                         </div>
 
-                        <time className="text-[10px] font-mono font-bold text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md">
+                        <time className="text-xs font-mono font-bold text-muted-foreground/60 bg-muted/30 px-2 py-1 rounded-md">
                           {format(
                             new Date(event.created_at),
                             "HH:mm • MMM d, yyyy"
@@ -161,16 +161,16 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
 
                       <div
                         className={cn(
-                          "rounded-2xl p-4 transition-all duration-300 border",
+                          "rounded-xl p-4 transition-all duration-300 border",
                           isLatest
-                            ? "glass border-primary/20 shadow-lg"
-                            : "bg-muted/10 border-transparent hover:bg-muted/20"
+                            ? "bg-card border-border shadow-sm"
+                            : "bg-muted/30 border-transparent"
                         )}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <User className="h-3 w-3 text-primary" />
-                          <span className="text-[9px] font-black uppercase tracking-widest text-foreground/80">
-                            Authorized By: {event.changed_by || "System Core"}
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs font-semibold text-muted-foreground">
+                            Authorized By: <span className="text-foreground">{event.changed_by || "System Core"}</span>
                           </span>
                         </div>
 
@@ -179,7 +179,7 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
                             {event.note}
                           </p>
                         ) : (
-                          <p className="text-[10px] italic text-muted-foreground">
+                          <p className="text-xs italic text-muted-foreground">
                             Automated status transition recorded.
                           </p>
                         )}
@@ -194,7 +194,7 @@ export function StatusTimeline({ history }: StatusTimelineProps) {
       </CardContent>
 
       {/* Decorative footer line */}
-      <div className="h-1 w-full bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
+      <div className="h-1 w-full bg-linear-to-r from-transparent via-primary/10 to-transparent" />
     </div>
   );
 }

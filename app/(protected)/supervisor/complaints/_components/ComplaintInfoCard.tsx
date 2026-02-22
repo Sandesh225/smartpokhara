@@ -31,7 +31,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
             </Badge>
           )}
 
-          <span className="text-[10px] md:text-xs text-muted-foreground ml-auto flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-xs md:text-xs text-muted-foreground ml-auto flex items-center gap-1.5 flex-shrink-0">
             <Calendar className="w-3 h-3 md:w-3.5 md:h-3.5" />
             <span className="hidden sm:inline">
               {format(new Date(complaint.submitted_at), "PPP 'at' p")}
@@ -52,7 +52,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
         <div>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-1 h-4 md:h-5 bg-primary rounded-full" />
-            <h4 className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <h4 className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-wider">
               Description
             </h4>
           </div>
@@ -71,7 +71,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">
+                <p className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1">
                   Location
                 </p>
                 <p className="text-sm md:text-base font-bold text-foreground mb-1">
@@ -110,7 +110,7 @@ export function ComplaintInfoCard({ complaint }: ComplaintInfoCardProps) {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">
+                <p className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1">
                   Department
                 </p>
                 <p className="text-sm md:text-base font-bold text-foreground mb-1 truncate">

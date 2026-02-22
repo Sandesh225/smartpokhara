@@ -24,29 +24,38 @@ export function useUnifiedMessaging({
 
   // --- HELPERS to normalize data from different tables ---
 
-  const normalizeComplaintComment = (data: any): UnifiedMessage => ({
-    id: data.id,
-    content: data.content || data.comment, // handle variations
-    created_at: data.created_at,
-    author_id: data.author_id || data.user_id,
-    author_name: data.author_name || data.user?.user_profiles?.full_name || 'Unknown',
-    author_role: data.author_role || 'staff', // simplistic fallback
-    author_avatar: data.author_avatar || data.user?.user_profiles?.profile_photo_url,
-    is_internal: data.is_internal || false,
-  });
+  const normalizeComplaintComment = (data: any): UnifiedMessage => {
+    // RPC returns { id, content, created_at, is_internal, author: { id, full_name, role, profile_photo_url } }
+    const author = data.author || {};
+    return {
+      id: data.id,
+      content: data.content || data.comment,
+      created_at: data.created_at,
+      author_id: author.id || data.author_id || data.user_id,
+      author_name: author.full_name || data.author_name || author.name || 'Unknown',
+      author_role: author.role || data.author_role || 'staff',
+      author_avatar: author.profile_photo_url || data.author_avatar || data.user?.user_profiles?.profile_photo_url,
+      is_internal: data.is_internal || false,
+    };
+  };
 
-  const normalizeInternalNote = (data: any): UnifiedMessage => ({
-    id: data.id,
-    content: data.text || data.content,
-    created_at: data.created_at,
-    author_id: data.author_id || data.user_id, // check actual DB column
-    author_name: data.author?.profile?.full_name || 'Supervisor',
-    author_role: 'supervisor',
-    author_avatar: data.author?.profile?.avatar_url,
-    is_internal: true,
-    tags: data.tags,
-    visibility: data.visibility
-  });
+  const normalizeInternalNote = (data: any): UnifiedMessage => {
+    // Table: internal_notes
+    // Returns { id, content, created_at, tags, visibility, author: { profile: { full_name, profile_photo_url } } }
+    const authorProfile = data.author?.profile || {};
+    return {
+      id: data.id,
+      content: data.content || data.text,
+      created_at: data.created_at,
+      author_id: data.supervisor_id || data.author_id,
+      author_name: authorProfile.full_name || 'Supervisor',
+      author_role: 'supervisor',
+      author_avatar: authorProfile.profile_photo_url || authorProfile.avatar_url,
+      is_internal: true,
+      tags: data.tags,
+      visibility: data.visibility
+    };
+  };
 
   const normalizeDirectMessage = (data: any): UnifiedMessage => ({
     id: data.id,
@@ -80,6 +89,12 @@ export function useUnifiedMessaging({
         const result = await response.json();
         if (result.success && Array.isArray(result.data)) {
             data = result.data.map(normalizeComplaintComment);
+        } else {
+            console.warn("[Messaging] RPC Result unsuccessful or data not array:", result);
+            if (!result.success && result.error) {
+              // Optionally throw if we want to hit the catch block with specific info
+              throw new Error(result.error);
+            }
         }
       } 
       else if (channelType === 'OFFICIAL_NOTE') {
@@ -87,17 +102,20 @@ export function useUnifiedMessaging({
          // We might need an API route or direct query if RLS permits
          // For now, let's assume we can query if we are supervisor
          const { data: notes, error: notesError } = await supabase
-            .from('complaint_internal_notes') // Need to confirm table name!
+            .from('internal_notes') 
             .select(`
                 *,
-                author:users(
-                    profile:user_profiles(full_name, avatar_url, profile_photo_url)
+                author:users!internal_notes_supervisor_id_fkey(
+                    profile:user_profiles(full_name, profile_photo_url)
                 )
             `)
             .eq('complaint_id', channelId)
             .order('created_at', { ascending: false });
             
-         if (notesError) throw notesError;
+         if (notesError) {
+           console.error("[Messaging] Official note error:", notesError);
+           throw notesError;
+         }
          data = (notes || []).map(normalizeInternalNote);
       }
       else if (channelType === 'COMPLAINT_INTERNAL') {
@@ -114,7 +132,10 @@ export function useUnifiedMessaging({
             .eq('complaint_id', channelId)
             .order('created_at', { ascending: true });
 
-          if (commError) throw commError;
+          if (commError) {
+            console.error("[Messaging] Internal comments error:", commError);
+            throw commError;
+          }
            data = (comments || []).map(normalizeComplaintComment);
       }
       else if (channelType === 'DIRECT_MESSAGE') {
@@ -131,9 +152,13 @@ export function useUnifiedMessaging({
       }
 
       setMessages(data);
-    } catch (err) {
-      console.error("Failed to load messages:", err);
-      toast.error("Could not load channel history");
+    } catch (err: any) {
+      console.error("[Messaging] Failed to load messages:", {
+        message: err.message,
+        details: err.details || err,
+        stack: err.stack
+      });
+      toast.error(err.message || "Could not load channel history");
     } finally {
       setIsLoading(false);
     }
@@ -176,12 +201,10 @@ export function useUnifiedMessaging({
             });
         }
         else if (channelType === 'OFFICIAL_NOTE') {
-            // Using the API patterns we saw
-            // Likely need to insert into complaint_internal_notes
-            await supabase.from('complaint_internal_notes').insert({
+            await supabase.from('internal_notes').insert({
                 complaint_id: channelId,
-                user_id: currentUserId,
-                text: params.content,
+                supervisor_id: currentUserId,
+                content: params.content,
                 visibility: params.visibility || 'internal_only',
                 tags: params.tags || []
             });
@@ -216,7 +239,7 @@ export function useUnifiedMessaging({
     const tableMap = {
         'COMPLAINT_PUBLIC': 'complaint_comments',
         'COMPLAINT_INTERNAL': 'complaint_internal_comments',
-        'OFFICIAL_NOTE': 'complaint_internal_notes',
+        'OFFICIAL_NOTE': 'internal_notes',
         'DIRECT_MESSAGE': 'supervisor_staff_messages'
     };
     

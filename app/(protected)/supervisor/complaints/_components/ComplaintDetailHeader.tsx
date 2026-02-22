@@ -128,11 +128,11 @@ export function ComplaintDetailHeader({
   };
 
   const metadata = (
-    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-      <span className="opacity-70 truncate">
+    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+      <span className="truncate">
         {format(new Date(complaint.submitted_at), "MMM d, yyyy")}
       </span>
-      <span className="text-primary/30">•</span>
+      <span className="text-border">•</span>
       <PriorityIndicator priority={complaint.priority} size="sm" />
     </div>
   );
@@ -156,7 +156,7 @@ export function ComplaintDetailHeader({
         variant="outline"
         size="sm"
         onClick={() => setIsCloseDialogOpen(true)}
-        className="hidden sm:flex h-10 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider border-error-red/30 text-error-red hover:bg-error-red/10 transition-all"
+        className="hidden sm:flex h-10 px-4 rounded-lg font-semibold border-error-red/30 text-error-red hover:bg-error-red/10 transition-all text-sm"
       >
         <XCircle className="w-4 h-4 mr-2" />
         Close
@@ -167,10 +167,10 @@ export function ComplaintDetailHeader({
         onClick={loadStaffForAssignment}
         disabled={isLoadingStaff}
         className={cn(
-          "h-10 px-4 sm:px-6 rounded-xl text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all",
+          "h-10 px-4 sm:px-6 rounded-lg font-semibold shadow-sm transition-all text-sm",
           isAssigned
             ? "bg-warning-amber hover:bg-warning-amber/90"
-            : "bg-primary hover:bg-primary/90"
+            : "bg-primary hover:bg-primary/90 text-primary-foreground"
         )}
       >
         {isLoadingStaff ? (
@@ -219,8 +219,6 @@ export function ComplaintDetailHeader({
   return (
     <>
       <PageHeader
-        sticky
-        variant="glass"
         backHref="/supervisor/complaints"
         title={
           <div className="flex items-center gap-2">
@@ -231,7 +229,7 @@ export function ComplaintDetailHeader({
           </div>
         }
         badge={
-          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/10 text-[10px] font-black text-primary uppercase tracking-wider">
+          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/10 text-xs font-black text-primary uppercase tracking-wider">
             <Command className="w-3 h-3" />
             Ledger
           </span>

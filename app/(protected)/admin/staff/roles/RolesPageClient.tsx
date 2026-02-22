@@ -53,7 +53,7 @@ export default function RolesPageClient({ roles }: { roles: Role[] }) {
                 renderItem={(item) => (
                     <div className="flex flex-col">
                         <span className="font-bold">{item.label}</span>
-                        <span className="text-[10px] text-muted-foreground">{item.description}</span>
+                        <span className="text-xs text-muted-foreground">{item.description}</span>
                     </div>
                 )}
              />
@@ -83,7 +83,7 @@ export default function RolesPageClient({ roles }: { roles: Role[] }) {
                                         {key.replace(/_/g, ' ').replace('can ', '')}
                                     </span>
                                 </div>
-                                <Badge variant={value ? "default" : "secondary"} className="text-[10px]">
+                                <Badge variant={value ? "default" : "secondary"} className="text-xs">
                                     {value ? "Allowed" : "Denied"}
                                 </Badge>
                             </div>

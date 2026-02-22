@@ -29,6 +29,8 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 
@@ -78,198 +80,182 @@ export default function ParticipatoryBudgetingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Hero Section */}
-      <div className="bg-linear-to-b from-primary/5 to-background pt-16 pb-12 px-4 border-b border-primary/10">
-        <div className="container max-w-6xl mx-auto">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4">
-              <Megaphone className="w-3 h-3" /> Citizen Voice
+    <div className="min-h-screen bg-background">
+      {/* 1. Refined Hero Section */}
+      <div className="relative overflow-hidden bg-card pt-16 pb-20 px-6 border-b border-border">
+        {/* Subtle dynamic background element */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
+        
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="max-w-3xl space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest border border-primary/20">
+              <Megaphone className="w-3.5 h-3.5" /> Citizen Voice
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-foreground mb-4 tracking-tight leading-tight">
+            <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight leading-none uppercase">
               Participatory <span className="text-primary">Budgeting</span>
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed font-medium max-w-2xl">
               Empowering the citizens of Pokhara to directly decide how public funds are spent. 
-              Submit your ideas, vote for your priorities, and track the progress of winning projects.
+              Submit ideas, vote for priorities, and track winning projects.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="container max-w-6xl mx-auto px-4 -mt-8">
+      {/* 2. Content Section */}
+      <div className="max-w-6xl mx-auto px-6 mt-10 overflow-visible pb-24">
         {sortedCycles.length === 0 ? (
-          // --- Empty State ---
-          <Card className="border-2 border-dashed bg-card/50 backdrop-blur-sm">
-            <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="bg-muted rounded-full p-6 mb-6">
-                <Vote className="w-12 h-12 text-muted-foreground/50" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground">No Active Budget Cycles</h3>
-              <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-                There are currently no active fiscal cycles open for participation. 
-                Please check back later for the next fiscal year announcement.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-border rounded-xl p-20 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-6">
+              <Vote className="w-8 h-8 text-muted-foreground/40" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">No Active Budget Cycles</h3>
+            <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed">
+              There are currently no active fiscal cycles open. 
+              Keep an eye on announcements for the next session.
+            </p>
+          </div>
         ) : (
-          // --- Cycles Grid ---
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
             {sortedCycles.map((cycle) => {
               const now = new Date();
-              
-              // Phase Calculations
               const isFinalized = !!cycle.finalized_at;
               const isSubmissionOpen = !isFinalized && cycle.is_active && now >= new Date(cycle.submission_start_at) && now <= new Date(cycle.submission_end_at);
               const isVotingOpen = !isFinalized && cycle.is_active && now >= new Date(cycle.voting_start_at) && now <= new Date(cycle.voting_end_at);
               const isReviewPhase = !isFinalized && cycle.is_active && !isSubmissionOpen && !isVotingOpen && now < new Date(cycle.voting_start_at);
               const isClosed = !cycle.is_active || (now > new Date(cycle.voting_end_at) && !isFinalized);
 
-              // Styling Logic based on Phase
-              let cardStyle = "border-muted shadow-sm hover:shadow-md";
-              let headerStyle = "bg-muted/30";
-              let statusIcon = <Lock className="w-5 h-5 text-muted-foreground" />;
-              let statusText = "Closed";
-              let statusColor = "text-muted-foreground";
+              let statusLabel = "Closed";
+              let statusClass = "bg-muted text-muted-foreground border-border";
+              let statusIcon = <Lock className="w-3 h-3" />;
 
               if (isFinalized) {
-                cardStyle = "border-amber-400 border-2 shadow-amber-100/50 dark:shadow-amber-900/20 hover:shadow-xl hover:scale-[1.01]";
-                headerStyle = "bg-linear-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/20";
-                statusIcon = <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
-                statusText = "Winners Announced";
-                statusColor = "text-amber-700 dark:text-amber-400";
+                statusLabel = "Winners Announced";
+                statusClass = "bg-amber-100 text-amber-700 border-amber-200/50";
+                statusIcon = <Trophy className="w-3 h-3" />;
               } else if (isVotingOpen) {
-                cardStyle = "border-blue-500 border-2 shadow-blue-100/50 dark:shadow-blue-900/20 hover:shadow-xl hover:scale-[1.01]";
-                headerStyle = "bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/20";
-                statusIcon = <Vote className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
-                statusText = "Voting Active";
-                statusColor = "text-blue-700 dark:text-blue-400";
+                statusLabel = "Voting Active";
+                statusClass = "bg-primary/10 text-primary border-primary/20";
+                statusIcon = <Vote className="w-3 h-3" />;
               } else if (isSubmissionOpen) {
-                cardStyle = "border-emerald-500 border-2 shadow-emerald-100/50 dark:shadow-emerald-900/20 hover:shadow-xl hover:scale-[1.01]";
-                headerStyle = "bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/20";
-                statusIcon = <Plus className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
-                statusText = "Submissions Open";
-                statusColor = "text-emerald-700 dark:text-emerald-400";
+                statusLabel = "Submissions Open";
+                statusClass = "bg-emerald-100 text-emerald-700 border-emerald-200/50";
+                statusIcon = <Plus className="w-3 h-3" />;
               } else if (isReviewPhase) {
-                cardStyle = "border-purple-300 shadow-purple-100/50 dark:shadow-purple-900/20";
-                headerStyle = "bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/20";
-                statusIcon = <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
-                statusText = "In Review";
-                statusColor = "text-purple-700 dark:text-purple-400";
+                statusLabel = "Under Review";
+                statusClass = "bg-purple-100 text-purple-700 border-purple-200/50";
+                statusIcon = <Clock className="w-3 h-3" />;
               }
 
               return (
-                <Card key={cycle.id} className={`flex flex-col overflow-hidden transition-all duration-300 ${cardStyle}`}>
-                  {/* Card Header */}
-                  <div className={`px-6 py-5 ${headerStyle} border-b`}>
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center gap-2">
-                        {isFinalized && <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />}
-                        <h2 className="text-xl font-bold text-foreground line-clamp-1" title={cycle.title}>
-                          {cycle.title}
-                        </h2>
+                <div key={cycle.id} className="group flex flex-col bg-card border border-border rounded-xl overflow-hidden shadow-xs hover:border-primary/20 transition-all">
+                  <div className="p-6 md:p-8 space-y-6">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-xl font-black text-foreground tracking-tight uppercase group-hover:text-primary transition-colors">
+                            {cycle.title}
+                          </h2>
+                          {isFinalized && <Sparkles className="w-4 h-4 text-amber-500" />}
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                          {cycle.description || "Participate in this fiscal year's budgeting process."}
+                        </p>
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className={`bg-background/80 backdrop-blur-sm border-0 font-bold px-3 py-1 flex items-center gap-1.5 shadow-sm ${statusColor}`}
-                      >
+                      <span className={cn(
+                        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-widest border shrink-0",
+                        statusClass
+                      )}>
                         {statusIcon}
-                        {statusText}
-                      </Badge>
+                        {statusLabel}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">
-                      {cycle.description || "Participate in this fiscal year's budgeting process."}
-                    </p>
+
+                    <div className="bg-muted/30 border border-border/50 rounded-xl p-5 flex items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 flex items-center gap-1.5">
+                          <DollarSign className="w-3 h-3 text-primary" /> Total Pool
+                        </p>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-black text-foreground tabular-nums">
+                            NPR {(cycle.total_budget_amount / 100000).toFixed(1)}
+                          </span>
+                          <span className="text-xs font-bold text-muted-foreground uppercase">Lakhs</span>
+                        </div>
+                      </div>
+                      <div className="h-10 w-px bg-border/50" />
+                      <div className="space-y-1 text-right">
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Stage Dates</p>
+                        <p className="text-sm font-bold text-foreground">
+                          {formatDateSafe(cycle.submission_start_at, "MMM d")} - {formatDateSafe(cycle.voting_end_at, "MMM d")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6 px-1">
+                      <div className="space-y-1">
+                        <p className={cn(
+                          "text-xs font-black uppercase tracking-widest flex items-center gap-1.5",
+                          isSubmissionOpen ? "text-emerald-600" : "text-muted-foreground/60"
+                        )}>
+                          Submission
+                        </p>
+                        <p className="text-xs font-bold">{formatDateSafe(cycle.submission_start_at, "MMM d")} - {formatDateSafe(cycle.submission_end_at, "MMM d")}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className={cn(
+                          "text-xs font-black uppercase tracking-widest flex items-center gap-1.5",
+                          isVotingOpen ? "text-primary" : "text-muted-foreground/60"
+                        )}>
+                          Voting
+                        </p>
+                        <p className="text-xs font-bold">{formatDateSafe(cycle.voting_start_at, "MMM d")} - {formatDateSafe(cycle.voting_end_at, "MMM d")}</p>
+                      </div>
+                    </div>
                   </div>
 
-                  <CardContent className="flex-1 pt-6 px-6">
-                    {/* Budget Highlight */}
-                    <div className="mb-6 p-4 rounded-xl bg-linear-to-r from-muted/50 to-transparent border border-muted-foreground/10">
-                      <p className="text-xs font-bold uppercase text-muted-foreground mb-1 flex items-center gap-1">
-                        <DollarSign className="w-3 h-3" /> Total Fiscal Allocation
-                      </p>
-                      <p className="text-3xl font-black text-foreground">
-                        NPR {(cycle.total_budget_amount / 100000).toFixed(1)} <span className="text-lg font-bold text-muted-foreground">Lakhs</span>
-                      </p>
-                    </div>
-
-                    {/* Timeline Grid */}
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-                      <div className="space-y-1">
-                        <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isSubmissionOpen ? "text-emerald-600" : "text-muted-foreground"}`}>
-                          <Calendar className="w-3 h-3" /> Submission
-                        </span>
-                        <p className="text-sm font-medium">
-                          {formatDateSafe(cycle.submission_start_at, "MMM d")} - {formatDateSafe(cycle.submission_end_at, "MMM d")}
-                        </p>
-                        {isSubmissionOpen && (
-                          <p className="text-[10px] text-emerald-600 font-semibold animate-pulse">
-                            Closes {getTimeRemaining(cycle.submission_end_at)}
-                          </p>
-                        )}
+                  <div className="mt-auto px-6 md:px-8 pb-6 md:pb-8">
+                    {isFinalized ? (
+                      <Button asChild className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-amber-500/10">
+                        <Link href={`/citizen/participatory-budgeting/${cycle.id}`}>
+                          <Trophy className="mr-2 h-3.5 w-3.5" /> View Results
+                        </Link>
+                      </Button>
+                    ) : isVotingOpen ? (
+                      <Button asChild className="w-full h-11 bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-primary/10">
+                        <Link href={`/citizen/participatory-budgeting/${cycle.id}`}>
+                          <Vote className="mr-2 h-3.5 w-3.5" /> Enter Voting Area
+                        </Link>
+                      </Button>
+                    ) : isSubmissionOpen ? (
+                      <div className="flex gap-3">
+                        <Button asChild variant="outline" className="flex-1 h-11 border-border font-bold uppercase tracking-widest text-xs rounded-xl">
+                          <Link href={`/citizen/participatory-budgeting/${cycle.id}`}>
+                            See Ideas
+                          </Link>
+                        </Button>
+                        <Button asChild className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-emerald-600/10">
+                          <Link href={`/citizen/participatory-budgeting/${cycle.id}/new`}>
+                            <Plus className="mr-2 h-3.5 w-3.5" /> Submit Idea
+                          </Link>
+                        </Button>
                       </div>
-
-                      <div className="space-y-1">
-                        <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isVotingOpen ? "text-blue-600" : "text-muted-foreground"}`}>
-                          <Vote className="w-3 h-3" /> Voting
-                        </span>
-                        <p className="text-sm font-medium">
-                          {formatDateSafe(cycle.voting_start_at, "MMM d")} - {formatDateSafe(cycle.voting_end_at, "MMM d")}
-                        </p>
-                        {isVotingOpen && (
-                          <p className="text-[10px] text-blue-600 font-semibold animate-pulse">
-                            Ends {getTimeRemaining(cycle.voting_end_at)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-
-                  <Separator />
-
-                  <CardFooter className="bg-muted/5 p-6 pt-4">
-                    {/* Dynamic Action Buttons */}
-                    <div className="w-full grid grid-cols-1 gap-3">
-                      {isFinalized ? (
-                        <Button asChild size="lg" className="w-full bg-linear-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold shadow-md">
-                          <Link href={`/citizen/participatory-budgeting/${cycle.id}`} className="flex items-center justify-center">
-                            <Trophy className="mr-2 h-5 w-5" /> View Winners & Results
-                          </Link>
-                        </Button>
-                      ) : isVotingOpen ? (
-                        <Button asChild size="lg" className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-md">
-                          <Link href={`/citizen/participatory-budgeting/${cycle.id}`} className="flex items-center justify-center">
-                            <Vote className="mr-2 h-5 w-5" /> Cast Your Votes
-                          </Link>
-                        </Button>
-                      ) : isSubmissionOpen ? (
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <Button asChild size="lg" variant="outline" className="flex-1 border-2">
-                            <Link href={`/citizen/participatory-budgeting/${cycle.id}`}>
-                              View Proposals
-                            </Link>
-                          </Button>
-                          <Button asChild size="lg" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-                            <Link href={`/citizen/participatory-budgeting/${cycle.id}/new`}>
-                              <Plus className="mr-2 h-5 w-5" /> Submit Proposal
-                            </Link>
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button asChild variant="outline" className="w-full border-2 hover:bg-muted">
-                          <Link href={`/citizen/participatory-budgeting/${cycle.id}`} className="flex items-center justify-center">
-                            {isReviewPhase ? "View Submitted Proposals" : "View Archive"} <ArrowRight className="ml-2 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      )}
-                    </div>
-                  </CardFooter>
-                </Card>
+                    ) : (
+                      <Button asChild variant="outline" className="w-full h-11 border-border bg-muted/20 hover:bg-muted font-bold uppercase tracking-widest text-xs rounded-xl">
+                        <Link href={`/citizen/participatory-budgeting/${cycle.id}`}>
+                          {isReviewPhase ? "Review Proposals" : "View Archive"} <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
         )}
       </div>
     </div>
+
   );
 }

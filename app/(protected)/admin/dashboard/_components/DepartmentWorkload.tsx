@@ -60,7 +60,7 @@ export function DepartmentWorkload({ data }: { data: DeptType[] }) {
                     <h4 className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">
                       {dept.name}
                     </h4>
-                    <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">
+                    <span className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-widest">
                       ID: {dept.id.toString().slice(0, 8)}
                     </span>
                   </div>
@@ -71,7 +71,7 @@ export function DepartmentWorkload({ data }: { data: DeptType[] }) {
                     <span className="text-lg font-mono font-bold leading-none">
                       {total}
                     </span>
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase">
+                    <span className="text-xs font-bold text-muted-foreground uppercase">
                       Total
                     </span>
                   </div>
@@ -82,11 +82,11 @@ export function DepartmentWorkload({ data }: { data: DeptType[] }) {
               {/* Stacked Progress Bar (Admin Style) */}
               <div className="space-y-2">
                 <div className="flex justify-between items-end mb-1">
-                  <span className="text-[10px] font-bold text-primary tracking-wide">
+                  <span className="text-xs font-bold text-primary tracking-wide">
                     ACTIVE: {dept.active_count}
                   </span>
                   {dept.overdue_count > 0 && (
-                    <span className="text-[10px] font-bold text-destructive flex items-center gap-1">
+                    <span className="text-xs font-bold text-destructive flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" /> OVERDUE:{" "}
                       {dept.overdue_count}
                     </span>
@@ -111,10 +111,10 @@ export function DepartmentWorkload({ data }: { data: DeptType[] }) {
 
               {/* Quick Admin Footer Info */}
               <div className="mt-4 pt-3 border-t border-border/50 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <p className="text-[10px] text-muted-foreground italic">
+                <p className="text-xs text-muted-foreground italic">
                   Last updated: Just now
                 </p>
-                <button className="text-[10px] font-bold text-primary uppercase hover:underline">
+                <button className="text-xs font-bold text-primary uppercase hover:underline">
                   View Detail Report
                 </button>
               </div>

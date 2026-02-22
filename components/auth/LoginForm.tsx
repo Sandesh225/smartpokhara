@@ -76,29 +76,17 @@ export function LoginForm() {
       if (signInError) throw signInError;
       if (!data.user) throw new Error("Unable to sign in.");
 
-      const { data: rolesData, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("role:roles(role_type)")
-        .eq("user_id", data.user.id);
-
-      if (rolesError) console.error("Failed to fetch roles:", rolesError);
-
-      const roles =
-        rolesData?.map((ur: any) => ur.role?.role_type).filter(Boolean) ?? [];
-
-      const mockUser: CurrentUser = {
-        id: data.user.id,
-        email: data.user.email ?? email,
-        roles,
-        profile: data.user.user_metadata?.profile ?? null,
-      } as any;
+      // Use standardized dashboard config for redirection
+      const { data: config, error: configError } = await supabase.rpc("rpc_get_dashboard_config");
+      
+      if (configError) console.error("Failed to fetch dashboard config:", configError);
 
       toast.success("Welcome back!", {
         id: toastId,
         description: "Login successful. Loading your dashboard...",
       });
 
-      const dashboardPath = getDefaultDashboardPath(mockUser);
+      const dashboardPath = config?.dashboard_config?.default_route || "/citizen/dashboard";
       const finalDestination =
         redirectPath && redirectPath !== "/" ? redirectPath : dashboardPath;
 

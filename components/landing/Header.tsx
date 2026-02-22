@@ -77,7 +77,7 @@ export const Header = () => {
                 <span className="font-heading text-base sm:text-lg font-bold leading-none uppercase text-foreground">
                   Smart Pokhara
                 </span>
-                <span className="text-[9px] sm:text-[10px] font-bold text-secondary dark:text-secondary/90 uppercase tracking-widest mt-0.5">
+                <span className="text-xs sm:text-xs font-bold text-secondary dark:text-secondary/90 uppercase tracking-widest mt-0.5">
                   Metropolitan City
                 </span>
               </div>

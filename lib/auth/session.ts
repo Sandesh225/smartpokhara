@@ -1,12 +1,14 @@
 // lib/auth/session.ts
 import { createClient } from "@/lib/supabase/server";
 import type { CurrentUser, RoleType } from "@/lib/types/auth";
+import { cache } from "react";
 
 /**
  * Fetch the current user with full profile, staff context, and roles.
- * Optimized for performance using Parallel Fetching.
+ * Wrapped in React.cache() to ensure it only hits the database ONCE per request lifecycle,
+ * even if called across multiple layouts and pages concurrently.
  */
-export async function getCurrentUserWithRoles(): Promise<CurrentUser | null> {
+export const getCurrentUserWithRoles = cache(async (): Promise<CurrentUser | null> => {
   const supabase = await createClient();
 
   try {
@@ -100,7 +102,7 @@ export async function getCurrentUserWithRoles(): Promise<CurrentUser | null> {
     console.error("Unexpected error in getCurrentUserWithRoles:", error);
     return null;
   }
-}
+});
 
 /**
  * Helper to check if a user needs to verify their email

@@ -120,7 +120,7 @@ export default function AdminComplaintsPage() {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <p className="text-xs md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Total
             </p>
             <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
@@ -141,7 +141,7 @@ export default function AdminComplaintsPage() {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <p className="text-xs md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Pending
             </p>
             <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
@@ -161,7 +161,7 @@ export default function AdminComplaintsPage() {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <p className="text-xs md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
               In Progress
             </p>
             <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">
@@ -181,7 +181,7 @@ export default function AdminComplaintsPage() {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <p className="text-xs md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Resolved
             </p>
             <p className="text-xl md:text-2xl lg:text-3xl font-black text-foreground tracking-tight">

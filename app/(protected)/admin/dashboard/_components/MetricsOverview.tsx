@@ -11,6 +11,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UniversalStatCard } from "@/components/shared";
 
 interface MetricsOverviewProps {
   metrics: AdminDashboardMetrics;
@@ -64,73 +65,19 @@ export function MetricsOverview({ metrics }: MetricsOverviewProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {cards.map((card, idx) => (
-        <div
+        <UniversalStatCard
           key={idx}
-          className={cn(
-            "stone-card group relative p-6 overflow-hidden transition-all duration-500 hover:elevation-5 border-none",
-            "bg-linear-to-br from-card to-muted/20"
-          )}
-        >
-          {/* Machhapuchhre Mist Gradient Overlay */}
-          <div
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-            style={{
-              background: `radial-gradient(circle at top right, rgb(${card.accent} / 0.08), transparent 70%)`,
-            }}
-          />
-
-          <div className="flex justify-between items-start mb-6 relative z-10">
-            {/* Icon with Lakeside Glass effect */}
-            <div
-              className={cn(
-                "p-3 rounded-2xl glass-strong shadow-xs transition-transform group-hover:scale-110 duration-300",
-                card.bg
-              )}
-            >
-              <card.icon className={cn("w-6 h-6", card.color)} />
-            </div>
-
-            {/* Admin Trend Badge */}
-            <div
-              className={cn(
-                "flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg font-mono border",
-                card.trendUp
-                  ? "bg-green-500/10 text-green-600 border-green-500/20"
-                  : "bg-red-500/10 text-red-600 border-red-500/20"
-              )}
-            >
-              {card.trendUp ? (
-                <ArrowUpRight className="w-3 h-3 stroke-[3]" />
-              ) : (
-                <ArrowDownRight className="w-3 h-3 stroke-[3]" />
-              )}
-              {card.trend}
-            </div>
-          </div>
-
-          <div className="space-y-2 relative z-10">
-            <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                {card.label}
-              </h3>
-              <div className="h-px flex-1 bg-border/50 group-hover:bg-primary/20 transition-colors" />
-            </div>
-
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-foreground font-mono tracking-tighter tabular-nums">
-                {card.value}
-              </p>
-              {card.trendUp && (
-                <TrendingUp className="w-4 h-4 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-              )}
-            </div>
-
-            <p className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-1 italic">
-              <span className="w-1 h-1 rounded-full bg-primary" />
-              Live system metric
-            </p>
-          </div>
-        </div>
+          label={card.label}
+          value={card.value}
+          icon={card.icon}
+          color={card.color}
+          bg={card.bg}
+          trend={{
+             value: card.trend,
+             isPositive: card.trendUp,
+          }}
+          subtitle="Live system metric"
+        />
       ))}
     </div>
   );

@@ -36,7 +36,7 @@ export function ComplaintStatusChart({
             </div>
             Status Distribution
           </CardTitle>
-          <span className="text-[10px] font-mono font-bold px-2 py-1 rounded-full bg-muted text-muted-foreground uppercase tracking-widest">
+          <span className="text-xs font-mono font-bold px-2 py-1 rounded-full bg-muted text-muted-foreground uppercase tracking-widest">
             Live Data
           </span>
         </div>
@@ -91,7 +91,7 @@ export function ComplaintStatusChart({
                         </p>
                         <p className="text-lg font-mono font-bold text-foreground">
                           {payload[0].value}{" "}
-                          <span className="text-[10px] text-muted-foreground ml-1">
+                          <span className="text-xs text-muted-foreground ml-1">
                             UNITS
                           </span>
                         </p>
@@ -107,7 +107,7 @@ export function ComplaintStatusChart({
                 iconType="circle"
                 iconSize={8}
                 formatter={(value) => (
-                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
+                  <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide ml-1">
                     {value}
                   </span>
                 )}

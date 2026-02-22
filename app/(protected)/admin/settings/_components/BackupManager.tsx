@@ -35,7 +35,7 @@ export default function BackupManager() {
           </div>
           <Badge
             variant="outline"
-            className="border-success-green/30 bg-success-green/10 text-success-green text-[10px] font-bold"
+            className="border-success-green/30 bg-success-green/10 text-success-green text-xs font-bold"
           >
             AUTO-ENABLED
           </Badge>
@@ -58,7 +58,7 @@ export default function BackupManager() {
                   <p className="font-mono text-xs md:text-sm text-foreground font-bold truncate">
                     {backup.name}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {backup.date} • {backup.size}
                   </p>
                 </div>

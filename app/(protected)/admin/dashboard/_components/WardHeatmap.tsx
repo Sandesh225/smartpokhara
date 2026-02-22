@@ -62,7 +62,7 @@ export function WardHeatmap({ data }: { data: WardStat[] }) {
                 <Info className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
               </TooltipTrigger>
               <TooltipContent className="glass-strong max-w-[200px]">
-                <p className="text-[10px] leading-tight font-medium">
+                <p className="text-xs leading-tight font-medium">
                   Wards are shaded based on relative complaint volume. Darker
                   blue indicates higher activity.
                 </p>
@@ -81,7 +81,7 @@ export function WardHeatmap({ data }: { data: WardStat[] }) {
                 <TooltipTrigger asChild>
                   <div
                     className={cn(
-                      "aspect-square rounded-xl flex items-center justify-center text-[10px] font-mono font-bold cursor-pointer transition-all duration-300 border-2",
+                      "aspect-square rounded-xl flex items-center justify-center text-xs font-mono font-bold cursor-pointer transition-all duration-300 border-2",
                       "hover:scale-110 hover:elevation-4 active:scale-95",
                       getIntensityStyles(w.count)
                     )}
@@ -94,14 +94,14 @@ export function WardHeatmap({ data }: { data: WardStat[] }) {
                   className="glass-strong border-white/20 p-3 elevation-5"
                 >
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                       Ward Unit
                     </p>
                     <p className="text-lg font-mono font-bold text-primary leading-none">
                       #{w.ward.toString().padStart(2, "0")}
                     </p>
                     <div className="h-px bg-border w-full my-2" />
-                    <p className="text-[10px] font-medium text-foreground">
+                    <p className="text-xs font-medium text-foreground">
                       Total Complaints:{" "}
                       <span className="font-bold text-primary">{w.count}</span>
                     </p>
@@ -114,10 +114,10 @@ export function WardHeatmap({ data }: { data: WardStat[] }) {
 
         {/* Legend - Administrative Style */}
         <div className="flex flex-wrap items-center gap-6 mt-8 py-3 px-4 rounded-2xl bg-muted/30 border border-border/40">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mr-auto">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mr-auto">
             Activity Legend
           </span>
-          <div className="flex items-center gap-4 text-[10px] font-bold text-muted-foreground">
+          <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-md bg-muted border border-border"></div>{" "}
               Empty

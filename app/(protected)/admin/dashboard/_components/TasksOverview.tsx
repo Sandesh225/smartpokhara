@@ -23,7 +23,7 @@ export function TasksOverview({ tasks }: { tasks: DashboardTask[] }) {
             </div>
             Operations Feed
           </CardTitle>
-          <Badge className="glass text-[10px] font-mono font-bold border-primary/10 text-primary">
+          <Badge className="glass text-xs font-mono font-bold border-primary/10 text-primary">
             {tasks.length} ACTIVE
           </Badge>
         </div>
@@ -73,7 +73,7 @@ export function TasksOverview({ tasks }: { tasks: DashboardTask[] }) {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 text-[11px]">
+                    <div className="flex items-center gap-3 text-sm">
                       <span className="flex items-center gap-1 text-muted-foreground font-medium">
                         <User className="w-3 h-3" />
                         {task.assignee}
@@ -100,7 +100,7 @@ export function TasksOverview({ tasks }: { tasks: DashboardTask[] }) {
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <div
                     className={cn(
-                      "text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border",
+                      "text-xs px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border",
                       task.is_overdue
                         ? "bg-destructive/10 text-destructive border-destructive/20"
                         : "bg-primary/5 text-primary border-primary/10"
@@ -118,7 +118,7 @@ export function TasksOverview({ tasks }: { tasks: DashboardTask[] }) {
 
       {/* Admin Quick Link */}
       <div className="p-3 border-t border-border/50 bg-muted/20">
-        <button className="w-full py-2 text-[11px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors">
+        <button className="w-full py-2 text-sm font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors">
           View Full Task Management Board
         </button>
       </div>

@@ -314,7 +314,7 @@ export default function BroadcastPage() {
                   <div key={item.id} className="p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors bg-gray-50/50">
                     <div className="flex justify-between items-start mb-1">
                       <span className={cn(
-                        "text-[10px] px-2 py-0.5 rounded-full font-medium uppercase",
+                        "text-xs px-2 py-0.5 rounded-full font-medium uppercase",
                         item.announcement_type === 'urgent' ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
                       )}>
                         {item.announcement_type}

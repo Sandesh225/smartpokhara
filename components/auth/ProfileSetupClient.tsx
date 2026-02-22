@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   MapPin,
@@ -19,6 +20,7 @@ import {
   ArrowLeft,
   Info,
   AlertCircle,
+  Trophy,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,6 +52,7 @@ export function ProfileSetupClient() {
   const [fetching, setFetching] = useState(true);
   const [wards, setWards] = useState<Ward[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<FormData>({
@@ -176,26 +179,35 @@ export function ProfileSetupClient() {
 
     try {
       const { error } = await supabase.rpc("rpc_update_user_profile", {
-  p_full_name: formData.full_name,
-  p_full_name_nepali: formData.full_name_nepali,
-  p_phone: formData.phone,
-  // FIX: Convert empty string to null for Date
-  p_date_of_birth: formData.date_of_birth ? formData.date_of_birth : null, 
-  p_gender: formData.gender,
-  p_citizenship_number: formData.citizenship_number,
-  // FIX: Convert empty string to null for UUID
-  p_ward_id: formData.ward_id ? formData.ward_id : null, 
-  p_address_line1: formData.address_line1,
-  p_address_line2: formData.address_line2,
-  p_landmark: formData.landmark,
-  p_language_preference: formData.language_preference,
-});
+        p_full_name: formData.full_name,
+        p_full_name_nepali: formData.full_name_nepali,
+        p_phone: formData.phone,
+        p_date_of_birth: formData.date_of_birth ? formData.date_of_birth : null,
+        p_gender: formData.gender,
+        p_citizenship_number: formData.citizenship_number,
+        p_ward_id: formData.ward_id ? formData.ward_id : null,
+        p_address_line1: formData.address_line1,
+        p_address_line2: formData.address_line2,
+        p_landmark: formData.landmark,
+        p_language_preference: formData.language_preference,
+      });
 
       if (error) throw error;
 
+      // DYNAMIC REDIRECTION: Fetch route based on role
+      const { data: config } = await supabase.rpc("rpc_get_dashboard_config");
+      const targetRoute = config?.dashboard_config?.default_route || "/citizen/dashboard";
+
       toast.success("Profile successfully activated!", { id: toastId });
-      router.push("/citizen/dashboard");
-      router.refresh();
+      
+      // SHOW SUCCESS SCREEN
+      setIsSuccess(true);
+      
+      // Delay to allow animation to show
+      setTimeout(() => {
+        router.push(targetRoute);
+        router.refresh();
+      }, 2000);
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile", { id: toastId });
     } finally {
@@ -228,7 +240,7 @@ export function ProfileSetupClient() {
           <div className="inline-flex p-4 rounded-3xl bg-primary/10 dark:bg-primary/20 ring-1 ring-primary/20 mb-4 shadow-xl shadow-primary/5">
             <Shield className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/70">
             Digital Identity Setup
           </h1>
           <p className="text-muted-foreground max-w-lg mx-auto text-lg">
@@ -271,7 +283,7 @@ export function ProfileSetupClient() {
             ))}
           </div>
           {/* Progress Line */}
-          <div className="absolute top-6 left-0 w-full h-0.5 bg-border -z-0">
+          <div className="absolute top-6 left-0 w-full h-0.5 bg-border z-0">
             <div
               className="h-full bg-primary transition-all duration-700 ease-in-out shadow-[0_0_10px_rgba(var(--primary),0.5)]"
               style={{ width: currentStep === 1 ? "0%" : "100%" }}
@@ -280,276 +292,290 @@ export function ProfileSetupClient() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-card/60 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[2.5rem] overflow-hidden transition-all duration-300 ring-1 ring-white/5">
+        <div className="bg-card/60 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[2.5rem] overflow-hidden transition-all duration-300 ring-1 ring-white/5 min-h-[500px] flex flex-col justify-center">
           <div className="p-8 sm:p-10">
-            {currentStep === 1 ? (
-              <div className="grid gap-8 animate-in fade-in slide-in-from-right-8 duration-500">
-                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
-                  <Fingerprint className="h-6 w-6 text-primary" />
-                  <div>
-                    <h2 className="text-xl font-bold">Personal Information</h2>
-                    <p className="text-xs text-muted-foreground">
-                      Official identification details
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {/* Full Name English */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      Full Name (English){" "}
-                      <span className="text-primary">*</span>
-                    </label>
-                    <input
-                      name="full_name"
-                      value={formData.full_name}
-                      onChange={handleChange}
-                      placeholder="e.g. Arjun Kumar Karki"
-                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
-                        errors.full_name
-                          ? "border-destructive focus:border-destructive"
-                          : "border-input/50 focus:border-primary"
-                      }`}
-                    />
-                    {errors.full_name && (
-                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
-                        <AlertCircle className="h-3 w-3" />
-                        {errors.full_name}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Full Name Nepali */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-muted-foreground">
-                      पूरा नाम (नेपाली)
-                    </label>
-                    <input
-                      name="full_name_nepali"
-                      value={formData.full_name_nepali}
-                      onChange={handleChange}
-                      placeholder="e.g. अर्जुन कुमार कार्की"
-                      className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                    />
-                  </div>
-
-                  {/* Phone */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      Mobile Number <span className="text-primary">*</span>
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <input
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="98XXXXXXXX"
-                        className={`w-full bg-background/50 border-2 pl-11 pr-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
-                          errors.phone
-                            ? "border-destructive"
-                            : "border-input/50 focus:border-primary"
-                        }`}
-                      />
-                    </div>
-                    {errors.phone && (
-                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
-                        <AlertCircle className="h-3 w-3" />
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Gender */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      Gender <span className="text-primary">*</span>
-                    </label>
-                    <select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none ${
-                        errors.gender
-                          ? "border-destructive"
-                          : "border-input/50 focus:border-primary"
-                      }`}
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {errors.gender && (
-                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
-                        <AlertCircle className="h-3 w-3" />
-                        {errors.gender}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* DOB */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" /> Date of Birth
-                    </label>
-                    <input
-                      name="date_of_birth"
-                      type="date"
-                      value={formData.date_of_birth}
-                      onChange={handleChange}
-                      className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                    />
-                  </div>
-
-                  {/* Citizenship */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                      <FileText className="h-4 w-4" /> Citizenship Number
-                    </label>
-                    <input
-                      name="citizenship_number"
-                      value={formData.citizenship_number}
-                      onChange={handleChange}
-                      placeholder="XX-XX-XX-XXXX"
-                      className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-6">
-                  <button
-                    onClick={() => validateStep(1) && setCurrentStep(2)}
-                    className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:translate-y-[-2px] active:translate-y-[0] transition-all flex items-center justify-center gap-2 group"
+            <AnimatePresence mode="wait">
+              {isSuccess ? (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  className="flex flex-col items-center text-center space-y-6 py-12"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
+                    transition={{
+                      scale: { type: "spring", stiffness: 260, damping: 20, delay: 0.2 },
+                      rotate: { type: "tween", duration: 0.5, delay: 0.2 },
+                    }}
+                    className="h-24 w-24 bg-primary rounded-full flex items-center justify-center shadow-2xl shadow-primary/40"
                   >
-                    Continue to Address
-                    <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-8 animate-in fade-in slide-in-from-right-8 duration-500">
-                <div className="flex items-center gap-3 pb-4 border-b border-border/50">
-                  <MapPin className="h-6 w-6 text-primary" />
-                  <div>
-                    <h2 className="text-xl font-bold">Residential Details</h2>
-                    <p className="text-xs text-muted-foreground">
-                      Current living address
+                    <Trophy className="h-12 w-12 text-primary-foreground" />
+                  </motion.div>
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-primary/60">
+                      Welcome to Digital Pokhara!
+                    </h2>
+                    <p className="text-muted-foreground text-lg">
+                      Your profile has been verified and activated.
                     </p>
                   </div>
-                </div>
-
-                <div className="grid gap-6">
-                  {/* Ward Selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />{" "}
-                      Ward Office
-                      <span className="text-primary">*</span>
-                    </label>
-                    <select
-                      name="ward_id"
-                      value={formData.ward_id}
-                      onChange={handleChange}
-                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
-                        errors.ward_id
-                          ? "border-destructive"
-                          : "border-input/50 focus:border-primary"
-                      }`}
-                    >
-                      <option value="">Select Your Ward</option>
-                      {wards.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          Ward No. {w.ward_number} — {w.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.ward_id && (
-                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
-                        <AlertCircle className="h-3 w-3" />
-                        {errors.ward_id}
-                      </p>
-                    )}
+                  <div className="flex items-center gap-2 text-primary font-medium animate-pulse">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Redirecting to your dashboard...
                   </div>
-
-                  {/* Address Line 1 */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">
-                      Primary Address <span className="text-primary">*</span>
-                    </label>
-                    <input
-                      name="address_line1"
-                      value={formData.address_line1}
-                      onChange={handleChange}
-                      placeholder="Tole, House Number or Area Name"
-                      className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
-                        errors.address_line1
-                          ? "border-destructive"
-                          : "border-input/50 focus:border-primary"
-                      }`}
-                    />
-                    {errors.address_line1 && (
-                      <p className="text-xs text-destructive font-medium flex gap-1 items-center">
-                        <AlertCircle className="h-3 w-3" />
-                        {errors.address_line1}
+                </motion.div>
+              ) : currentStep === 1 ? (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid gap-8"
+                >
+                  <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                    <Fingerprint className="h-6 w-6 text-primary" />
+                    <div>
+                      <h2 className="text-xl font-bold">Personal Information</h2>
+                      <p className="text-xs text-muted-foreground">
+                        Official identification details
                       </p>
-                    )}
+                    </div>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-6">
+                    {/* Full Name English */}
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-muted-foreground">
-                        Landmark
+                      <label className="text-sm font-semibold flex items-center gap-2">
+                        Full Name (English) <span className="text-primary">*</span>
                       </label>
                       <input
-                        name="landmark"
-                        value={formData.landmark}
+                        name="full_name"
+                        value={formData.full_name}
                         onChange={handleChange}
-                        placeholder="Near Temple, School, or Chowk"
+                        placeholder="e.g. Arjun Kumar Karki"
+                        className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                          errors.full_name
+                            ? "border-destructive focus:border-destructive"
+                            : "border-input/50 focus:border-primary"
+                        }`}
+                      />
+                      {errors.full_name && (
+                        <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.full_name}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Full Name Nepali */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-muted-foreground">पूरा नाम (नेपाली)</label>
+                      <input
+                        name="full_name_nepali"
+                        value={formData.full_name_nepali}
+                        onChange={handleChange}
+                        placeholder="e.g. अर्जुन कुमार कार्की"
                         className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
                       />
                     </div>
+
+                    {/* Phone */}
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                        <Languages className="h-4 w-4" /> Language Preference
+                      <label className="text-sm font-semibold flex items-center gap-2">
+                        Mobile Number <span className="text-primary">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          placeholder="98XXXXXXXX"
+                          className={`w-full bg-background/50 border-2 pl-11 pr-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                            errors.phone ? "border-destructive" : "border-input/50 focus:border-primary"
+                          }`}
+                        />
+                      </div>
+                      {errors.phone && (
+                        <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.phone}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Gender */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold flex items-center gap-2">
+                        Gender <span className="text-primary">*</span>
                       </label>
                       <select
-                        name="language_preference"
-                        value={formData.language_preference}
+                        name="gender"
+                        value={formData.gender}
                         onChange={handleChange}
-                        className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                        className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none ${
+                          errors.gender ? "border-destructive" : "border-input/50 focus:border-primary"
+                        }`}
                       >
-                        <option value="en">English</option>
-                        <option value="ne">नेपाली (Nepali)</option>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
                       </select>
                     </div>
-                  </div>
-                </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                  <button
-                    onClick={() => setCurrentStep(1)}
-                    className="flex-1 bg-muted/50 text-foreground font-bold py-4 rounded-xl border-2 border-border/50 hover:bg-muted transition-all flex items-center justify-center gap-2"
-                  >
-                    <ArrowLeft className="h-5 w-5" /> Back
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className="flex-[2] bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        Activate Profile <Check className="h-5 w-5" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
+                    {/* DOB */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" /> Date of Birth
+                      </label>
+                      <input
+                        name="date_of_birth"
+                        type="date"
+                        value={formData.date_of_birth}
+                        onChange={handleChange}
+                        className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                      />
+                    </div>
+
+                    {/* Citizenship */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                        <FileText className="h-4 w-4" /> Citizenship Number
+                      </label>
+                      <input
+                        name="citizenship_number"
+                        value={formData.citizenship_number}
+                        onChange={handleChange}
+                        placeholder="XX-XX-XX-XXXX"
+                        className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-6">
+                    <button
+                      onClick={() => validateStep(1) && setCurrentStep(2)}
+                      className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:translate-y-[-2px] active:translate-y-0 transition-all flex items-center justify-center gap-2 group"
+                    >
+                      Continue to Address
+                      <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid gap-8"
+                >
+                  <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                    <MapPin className="h-6 w-6 text-primary" />
+                    <div>
+                      <h2 className="text-xl font-bold">Residential Details</h2>
+                      <p className="text-xs text-muted-foreground">Current living address</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6">
+                    {/* Ward Selection */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" /> Ward Office
+                        <span className="text-primary">*</span>
+                      </label>
+                      <select
+                        name="ward_id"
+                        value={formData.ward_id}
+                        onChange={handleChange}
+                        className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                          errors.ward_id ? "border-destructive" : "border-input/50 focus:border-primary"
+                        }`}
+                      >
+                        <option value="">Select Your Ward</option>
+                        {wards.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            Ward No. {w.ward_number} — {w.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.ward_id && (
+                        <p className="text-xs text-destructive font-medium flex gap-1 items-center">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.ward_id}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Address Line 1 */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold">
+                        Primary Address <span className="text-primary">*</span>
+                      </label>
+                      <input
+                        name="address_line1"
+                        value={formData.address_line1}
+                        onChange={handleChange}
+                        placeholder="Tole, House Number or Area Name"
+                        className={`w-full bg-background/50 border-2 px-4 py-3 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none ${
+                          errors.address_line1 ? "border-destructive" : "border-input/50 focus:border-primary"
+                        }`}
+                      />
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-muted-foreground">Landmark</label>
+                        <input
+                          name="landmark"
+                          value={formData.landmark}
+                          onChange={handleChange}
+                          placeholder="Near Temple, School, or Chowk"
+                          className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                          <Languages className="h-4 w-4" /> Language Preference
+                        </label>
+                        <select
+                          name="language_preference"
+                          value={formData.language_preference}
+                          onChange={handleChange}
+                          className="w-full bg-background/50 border-2 border-input/50 px-4 py-3 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                        >
+                          <option value="en">English</option>
+                          <option value="ne">नेपाली (Nepali)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                    <button
+                      onClick={() => setCurrentStep(1)}
+                      className="flex-1 bg-muted/50 text-foreground font-bold py-4 rounded-xl border-2 border-border/50 hover:bg-muted transition-all flex items-center justify-center gap-2"
+                    >
+                      <ArrowLeft className="h-5 w-5" /> Back
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={loading}
+                      className="flex-2 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    >
+                      {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Activate Profile"}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Footer Info */}

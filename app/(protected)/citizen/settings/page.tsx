@@ -253,7 +253,7 @@ export default function SettingsPage() {
                       ) : (
                         <div className="flex flex-col items-center">
                             <Camera className="h-6 w-6 text-white mb-1" />
-                            <span className="text-[10px] text-white font-medium">Change</span>
+                            <span className="text-xs text-white font-medium">Change</span>
                         </div>
                       )}
                     </div>
@@ -267,7 +267,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="text-center space-y-1">
                     <p className="text-xs font-medium text-slate-700">Profile Photo</p>
-                    <p className="text-[10px] text-slate-500 max-w-[150px] mx-auto leading-tight">
+                    <p className="text-xs text-slate-500 max-w-[150px] mx-auto leading-tight">
                         JPG, PNG or GIF. Max 2MB.
                     </p>
                   </div>
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                         <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                         <Input id="email" value={userProfile?.email || ""} disabled className="pl-9 bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" />
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-1.5 px-1">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1.5 px-1">
                         <Lock className="h-3 w-3" />
                         Email cannot be changed directly
                       </div>

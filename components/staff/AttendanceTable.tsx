@@ -60,7 +60,7 @@ export function AttendanceTable({ staff }: { staff: any[] }) {
                     </Avatar>
                     <div>
                       <p className="font-bold text-gray-900">{s.full_name || "Unknown Staff"}</p>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wide">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">
                         {s.role?.replace(/_/g, ' ') || "Staff"}
                       </p>
                     </div>
@@ -86,7 +86,7 @@ export function AttendanceTable({ staff }: { staff: any[] }) {
                 </td>
                 <td className="px-6 py-4">
                   {s.attendance?.check_in_location ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
                       <MapPin className="h-3 w-3" /> GPS OK
                     </span>
                   ) : <span className="text-gray-300 text-xs">—</span>}

@@ -64,6 +64,7 @@ import {
   type CycleAnalytics,
   type SimulationResult 
 } from "@/features/participatory-budgeting";
+import { cn } from "@/lib/utils";
 
 export default function AdminCycleControlCenter() {
   const params = useParams();
@@ -201,10 +202,10 @@ export default function AdminCycleControlCenter() {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
         <div className="relative">
-          <div className="absolute inset-0 bg-linear-to-r from-primary/20 to-purple-500/20 blur-3xl animate-pulse" />
-          <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
+          <div className="absolute inset-0 bg-primary/20 blur-3xl animate-pulse" />
+          <Loader2 className="h-10 w-10 animate-spin text-primary relative z-10" />
         </div>
-        <p className="text-muted-foreground font-medium animate-pulse">
+        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground animate-pulse">
           Establishing Admin Session...
         </p>
       </div>
@@ -221,182 +222,184 @@ export default function AdminCycleControlCenter() {
     new Date() <= new Date(cycle.submission_end_at);
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl space-y-8 animate-in fade-in duration-500 px-4 sm:px-6">
-      {/* 1. Enhanced Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b">
-        <div className="space-y-3">
+    <div className="space-y-6 max-w-7xl mx-auto pb-24 px-6 md:px-8">
+      {/* 1. Header Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-8 md:p-10 shadow-sm mt-6 text-center">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-50" />
+        
+        <div className="relative space-y-4 max-w-3xl mx-auto">
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => router.back()}
-            className="mb-2 pl-0 hover:pl-2 transition-all duration-300 text-muted-foreground hover:text-foreground"
+            className="h-8 gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Cycles
+            <ArrowLeft className="h-3 w-3" />
+            Back to Cycles
           </Button>
-
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <Settings2 className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-foreground tracking-tight">
-                {cycle.title}
-              </h1>
-              <div className="flex items-center gap-3 mt-2 flex-wrap">
-                <Badge
-                  variant={cycle.is_active ? "default" : "secondary"}
-                  className={`px-3 py-1 ${
-                    cycle.is_active
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white border-0"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {cycle.is_active ? (
-                    <><Unlock className="h-3 w-3 mr-1.5" /> ACTIVE</>
-                  ) : (
-                    <><Lock className="h-3 w-3 mr-1.5" /> PAUSED</>
-                  )}
-                </Badge>
-
-                {isVotingActive && (
-                  <Badge className="bg-blue-600 text-white border-0 px-3 py-1">
-                    <Users className="w-3 h-3 mr-1.5" /> Voting Live
-                  </Badge>
-                )}
-
-                {isSubmissionActive && !isVotingActive && (
-                  <Badge className="bg-purple-600 text-white border-0 px-3 py-1">
-                    <FileText className="w-3 h-3 mr-1.5" /> Submissions Open
-                  </Badge>
-                )}
-
-                {cycle.finalized_at && (
-                  <Badge className="bg-amber-500 text-white border-0 px-3 py-1 animate-in zoom-in">
-                    <Award className="w-3 h-3 mr-1.5" /> Winners Announced
-                  </Badge>
-                )}
-              </div>
-            </div>
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest border border-primary/20">
+            Control Center
           </div>
-        </div>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-foreground uppercase leading-tight">
+            Cycle <span className="text-primary">Management</span>
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">
+            Overseeing <span className="text-foreground font-bold">{cycle.title}</span>. Monitor live engagement and finalize democratic outcomes.
+          </p>
 
-        <div className="flex flex-col gap-3 w-full lg:w-auto">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/admin/participatory-budgeting/${cycle.id}/edit`)}
-            className="w-full lg:w-auto"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Edit Configuration
-          </Button>
-          
-          <Card className="bg-muted/40 border-dashed shadow-sm">
-            <CardContent className="p-4 flex items-center justify-between gap-6">
-              <div className="space-y-0.5">
-                <Label htmlFor="active-toggle" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Emergency Lock
-                </Label>
-                <p className="text-[10px] text-muted-foreground">Stop all public activity</p>
-              </div>
-              <Switch
-                id="active-toggle"
-                checked={cycle.is_active}
-                onCheckedChange={handleToggleActive}
-              />
-            </CardContent>
-          </Card>
+          <div className="flex items-center justify-center gap-3 pt-4">
+             <Badge variant="outline" className={cn(
+               "h-7 px-3 text-xs font-black uppercase tracking-widest rounded-full",
+               cycle.is_active ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted text-muted-foreground"
+             )}>
+               {cycle.is_active ? "Live" : "Paused"}
+             </Badge>
+             {cycle.finalized_at && (
+               <Badge variant="outline" className="h-7 px-3 text-xs font-black uppercase tracking-widest rounded-full bg-amber-500/10 text-amber-600 border-amber-500/20">
+                 Published
+               </Badge>
+             )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/admin/participatory-budgeting/${cycle.id}/edit`)}
+                className="h-7 text-xs font-black uppercase tracking-widest rounded-md px-3 border-border hover:bg-muted"
+              >
+                <Settings className="w-3 h-3 mr-1.5" />
+                Configure
+              </Button>
+          </div>
         </div>
       </div>
 
-      {/* 2. Contextual Alerts */}
+      {/* 2. Global Strategy Bar */}
+      <div className="bg-muted/10 border border-border p-4 rounded-xl flex items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 px-4 py-2 bg-card border border-border rounded-lg shadow-xs">
+            <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Live Activity</span>
+            <Switch
+              checked={cycle.is_active}
+              onCheckedChange={handleToggleActive}
+              className="scale-75"
+            />
+          </div>
+          <Separator orientation="vertical" className="h-4" />
+          <div className="flex items-center gap-6 text-xs font-black uppercase tracking-widest text-muted-foreground/60">
+             <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-primary" /> Submission Active</span>
+             <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-muted" /> Voting Active</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Alerts */}
       {!cycle.is_active && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Cycle Paused:</strong> Citizens cannot interact with this cycle.
+        <Alert variant="destructive" className="rounded-xl border-rose-200/50 bg-rose-50 dark:bg-rose-950/20 py-3">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          <AlertDescription className="text-xs font-black uppercase tracking-widest text-rose-600">
+            System Restricted: <span className="font-medium normal-case tracking-normal">Citizen interactions are currently disabled for this cycle.</span>
           </AlertDescription>
         </Alert>
       )}
 
       {votingEnded && !cycle.finalized_at && (
-        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-          <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <AlertDescription className="text-blue-800 dark:text-blue-300">
-            <strong>Action Required:</strong> Voting has ended. Please run the winner simulation below to finalize results.
+        <Alert className="rounded-xl border-primary/20 bg-primary/5 py-3">
+          <Trophy className="h-3.5 w-3.5 text-primary" />
+          <AlertDescription className="text-xs font-black uppercase tracking-widest text-primary">
+            Awaiting Finalization: <span className="font-medium normal-case tracking-normal text-foreground/80">Voting has concluded. Initialize the winner simulation to publish results.</span>
           </AlertDescription>
         </Alert>
       )}
 
       {cycle.finalized_at && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-6 rounded-xl flex items-start gap-4">
-          <div className="p-3 bg-green-100 dark:bg-green-800 rounded-full">
-            <Trophy className="h-6 w-6 text-green-700 dark:text-green-300" />
+        <div className="bg-emerald-500/5 border border-emerald-500/20 p-8 rounded-2xl flex items-start gap-6">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <Trophy className="w-8 h-8 text-emerald-600" />
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-green-800 dark:text-green-300">Cycle Completed</h3>
-            <p className="text-green-700 dark:text-green-400 mt-1">
-              Winners were officially announced on {format(new Date(cycle.finalized_at), "PPP 'at' p")}.
-              The results are now public on the citizen portal.
+          <div className="space-y-3">
+            <h3 className="text-lg font-black uppercase tracking-tight text-emerald-900 leading-none">Democratic Results Published</h3>
+            <p className="text-sm text-emerald-800/70 leading-relaxed max-w-2xl">
+              Cycle outcome officially announced on <span className="text-emerald-900 font-bold">{format(new Date(cycle.finalized_at), "PPP")}</span>.
+              The citizens can now view winning projects in the implementation tracker.
             </p>
             {cycle.concluding_message && (
-              <div className="mt-4 p-4 bg-white dark:bg-black/20 rounded-lg border border-green-200 dark:border-green-800/50">
-                <p className="text-sm italic text-muted-foreground">"{cycle.concluding_message}"</p>
+              <div className="mt-4 p-4 bg-muted/20 rounded-xl border border-emerald-500/20 border-dashed">
+                <p className="text-sm italic text-muted-foreground leading-relaxed">"{cycle.concluding_message}"</p>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* 3. Main Control Tabs */}
+      {/* 4. Tabular Controls */}
       {!cycle.finalized_at && (
-        <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[600px] h-12 p-1 bg-muted/60">
-            <TabsTrigger value="overview" className="h-10 font-medium">Overview</TabsTrigger>
-            <TabsTrigger value="analytics" className="h-10 font-medium">Analytics</TabsTrigger>
-            <TabsTrigger value="selection" className="h-10 font-bold data-[state=active]:text-primary">
-              <Trophy className="w-4 h-4 mr-2" /> Winner Selection
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="overview" className="space-y-10">
+          <div className="flex justify-center">
+            <TabsList className="h-12 p-1.5 bg-muted/30 border border-border rounded-xl">
+              <TabsTrigger value="overview" className="h-9 px-8 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs">Config</TabsTrigger>
+              <TabsTrigger value="analytics" className="h-9 px-8 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs">Analytics</TabsTrigger>
+              <TabsTrigger 
+                value="selection" 
+                className="h-9 px-8 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Simulation
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Tab: Overview */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Calendar className="w-5 h-5 text-primary"/> Timeline</CardTitle>
+          <TabsContent value="overview">
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card className="rounded-xl border-border shadow-xs">
+                <CardHeader className="p-6 border-b border-border/50 bg-muted/10">
+                  <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-primary"/> Phase Timeline
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="relative pl-6 border-l-2 border-muted space-y-8">
-                    <div className="relative">
-                      <div className="absolute -left-[31px] bg-purple-500 h-4 w-4 rounded-full border-4 border-background" />
-                      <p className="text-sm font-bold text-purple-600 mb-1">Submission Phase</p>
-                      <p className="text-sm font-medium">{format(new Date(cycle.submission_start_at), "MMM d")} - {format(new Date(cycle.submission_end_at), "MMM d, yyyy")}</p>
+                <CardContent className="p-8 space-y-12">
+                  <div className="flex items-start gap-6 group">
+                    <div className="w-2.5 h-2.5 rounded-full bg-primary mt-1.5 shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest text-primary">Submission Phase</p>
+                      <p className="text-xl font-black text-foreground">
+                        {format(new Date(cycle.submission_start_at), "MMM d")} — {format(new Date(cycle.submission_end_at), "MMM d, yyyy")}
+                      </p>
                     </div>
-                    <div className="relative">
-                      <div className="absolute -left-[31px] bg-blue-500 h-4 w-4 rounded-full border-4 border-background" />
-                      <p className="text-sm font-bold text-blue-600 mb-1">Voting Phase</p>
-                      <p className="text-sm font-medium">{format(new Date(cycle.voting_start_at), "MMM d")} - {format(new Date(cycle.voting_end_at), "MMM d, yyyy")}</p>
+                  </div>
+                  <div className="flex items-start gap-6 group opacity-60">
+                    <div className="w-2.5 h-2.5 rounded-full bg-muted mt-1.5" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Voting Phase</p>
+                      <p className="text-xl font-black text-foreground">
+                        {format(new Date(cycle.voting_start_at), "MMM d")} — {format(new Date(cycle.voting_end_at), "MMM d, yyyy")}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><DollarSign className="w-5 h-5 text-primary"/> Fiscal Limits</CardTitle>
+              <Card className="rounded-xl border-border shadow-xs">
+                <CardHeader className="p-6 border-b border-border/50 bg-muted/10">
+                  <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <DollarSign className="w-3.5 h-3.5 text-primary"/> Fiscal Constraints
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="bg-muted/40 p-4 rounded-lg">
-                    <p className="text-xs font-bold uppercase text-muted-foreground mb-1">Total Pool</p>
-                    <p className="text-3xl font-black">NPR {(cycle.total_budget_amount / 100000).toFixed(1)}L</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-muted/40 p-4 rounded-lg">
-                      <p className="text-xs font-bold uppercase text-muted-foreground mb-1">Min Project</p>
-                      <p className="font-semibold">{(cycle.min_project_cost / 100000).toFixed(1)}L</p>
+                <CardContent className="p-0">
+                  <div className="p-8 border-b border-border/50">
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-2">Cycle Budget Limit</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-black text-foreground tracking-tighter">
+                        NPR {(cycle.total_budget_amount / 100000).toFixed(1)}
+                      </span>
+                      <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Lakhs</span>
                     </div>
-                    <div className="bg-muted/40 p-4 rounded-lg">
-                      <p className="text-xs font-bold uppercase text-muted-foreground mb-1">Max Votes</p>
-                      <p className="font-semibold">{cycle.max_votes_per_user} per citizen</p>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <div className="p-8 border-r border-border/50">
+                       <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Min Project</p>
+                       <p className="text-xl font-black text-foreground">{(cycle.min_project_cost / 100000).toFixed(1)} Lakhs</p>
+                    </div>
+                    <div className="p-8">
+                       <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Max Votes</p>
+                       <p className="text-xl font-black text-foreground">{cycle.max_votes_per_user}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -404,137 +407,163 @@ export default function AdminCycleControlCenter() {
             </div>
           </TabsContent>
 
-          {/* Tab: Analytics */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-2xl font-bold">{analytics?.totalVotes.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Total Valid Votes</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-2xl font-bold">{analytics?.totalProposals.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Total Proposals</p>
-                </CardContent>
-              </Card>
+          <TabsContent value="analytics" className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { label: "Gross Participation", val: analytics?.totalVotes || 0, icon: Users, color: "text-primary", bg: "bg-primary/5" },
+                { label: "Proposals Logged", val: analytics?.totalProposals || 0, icon: FileText, color: "text-secondary", bg: "bg-secondary/5" },
+                { label: "Community Signal", val: (analytics?.participationRate || 0).toFixed(1) + "%", icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/5" },
+              ].map((stat, i) => (
+                <Card key={i} className="rounded-xl border-border shadow-xs overflow-hidden">
+                  <CardContent className="p-6 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-1.5">{stat.label}</p>
+                      <p className="text-3xl font-black text-foreground tracking-tight">{stat.val}</p>
+                    </div>
+                    <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", stat.bg)}>
+                      <stat.icon className={cn("w-6 h-6", stat.color)} />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
             
-            <Card>
-              <CardHeader><CardTitle>Ward Breakdown</CardTitle></CardHeader>
-              <CardContent>
-                {analytics && Object.entries(analytics.votesByWard).map(([ward, count]) => (
-                  <div key={ward} className="mb-4">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{ward}</span>
-                      <span className="font-bold">{count} votes</span>
-                    </div>
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary" style={{ width: `${(count / (analytics.totalVotes || 1)) * 100}%` }} />
-                    </div>
+            <Card className="rounded-2xl border-border shadow-xs overflow-hidden">
+               <CardHeader className="p-8 border-b border-border/50 bg-muted/10 flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground">Ward Distributions</CardTitle>
+                    <CardDescription className="text-xs uppercase font-medium tracking-widest mt-1">Geographic density of citizen engagement</CardDescription>
                   </div>
-                ))}
-              </CardContent>
+                  <PieChart className="w-5 h-5 text-muted-foreground/40" />
+               </CardHeader>
+               <CardContent className="p-8">
+                 <div className="grid sm:grid-cols-2 gap-x-16 gap-y-8">
+                   {analytics && Object.entries(analytics.votesByWard).map(([ward, count]) => (
+                     <div key={ward} className="space-y-3">
+                       <div className="flex justify-between text-xs font-black uppercase tracking-widest">
+                         <span className="text-foreground">{ward}</span>
+                         <span className="text-primary">{count} votes</span>
+                       </div>
+                       <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden">
+                         <div className="h-full bg-primary/80 transition-all duration-1000" style={{ width: `${(count / (analytics.totalVotes || 1)) * 100}%` }} />
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Tab: Winner Selection (The Important One) */}
-          <TabsContent value="selection" className="space-y-8">
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* Left Column: Controls */}
-              <div className="lg:col-span-1 space-y-6">
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Run Simulation</CardTitle>
-                    <CardDescription>Calculate winners based on budget & votes.</CardDescription>
+          <TabsContent value="selection" className="space-y-10">
+            <div className="grid lg:grid-cols-3 gap-10">
+              {/* Controls */}
+              <div className="lg:col-span-1">
+                <Card className="rounded-2xl border-primary/20 shadow-xl overflow-hidden sticky top-8">
+                  <CardHeader className="p-8 bg-primary/5 border-b border-primary/10">
+                    <CardTitle className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-3">
+                      <Sparkles className="w-5 h-5"/> Allocation Engine
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Test Budget Amount (NPR)</Label>
+                  <CardContent className="p-8 space-y-8">
+                    <div className="space-y-3">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Simulated Budget Cap (NPR)</Label>
                       <Input 
                         type="number" 
                         value={budgetOverride} 
                         onChange={(e) => setBudgetOverride(e.target.value)}
-                        className="font-mono"
+                        className="h-14 font-black text-xl border-border bg-muted/10 focus:bg-background rounded-xl"
                       />
                     </div>
                     <Button 
                       onClick={runSimulation} 
                       disabled={mutations.runSimulation.isPending} 
-                      className="w-full" 
-                      size="lg"
+                      className="w-full h-14 bg-primary text-white font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 transition-all" 
                     >
-                      {mutations.runSimulation.isPending ? <Loader2 className="animate-spin mr-2"/> : <PlayCircle className="mr-2"/>}
-                      Calculate Winners
+                      {mutations.runSimulation.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2"/> : null}
+                      Initialize Simulation
                     </Button>
-                  </CardContent>
-                </Card>
 
-                {simulation && (
-                   <Card className="border-green-200 bg-green-50/50 dark:bg-green-900/10">
-                     <CardContent className="pt-6 space-y-4">
-                       <div>
-                         <p className="text-xs font-bold uppercase text-muted-foreground">Allocated</p>
-                         <p className="text-2xl font-black text-green-700">NPR {simulation.totalCost.toLocaleString()}</p>
-                       </div>
-                       <div>
-                         <p className="text-xs font-bold uppercase text-muted-foreground">Surplus</p>
-                         <p className="text-2xl font-black text-slate-600">NPR {simulation.remainingBudget.toLocaleString()}</p>
-                       </div>
-                       <Separator />
-                       <div className="space-y-2">
-                          <Button variant="outline" className="w-full bg-background" onClick={exportResults}>
-                            <Download className="mr-2 h-4 w-4" /> Export CSV
+                    {simulation && (
+                      <div className="pt-6 space-y-6 animate-in fade-in slide-in-from-top-4">
+                        <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 space-y-4">
+                          <div className="flex justify-between items-start">
+                            <p className="text-xs font-black uppercase tracking-widest text-emerald-600">Projected Spend</p>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          </div>
+                          <p className="text-2xl font-black text-emerald-700 tracking-tight">NPR {simulation.totalCost.toLocaleString()}</p>
+                          <div className="h-1.5 w-full bg-emerald-100 rounded-full overflow-hidden">
+                             <div className="h-full bg-emerald-500" style={{ width: `${(simulation.totalCost / parseFloat(budgetOverride || '1')) * 100}%` }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Button variant="outline" className="w-full h-12 text-xs font-black uppercase tracking-widest rounded-xl border-border/60" onClick={exportResults}>
+                            <Download className="mr-2 h-4 w-4" /> Comprehensive CSV Export
                           </Button>
                           
                           {canFinalize && (
                             <Button 
-                              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold" 
+                              className="w-full h-14 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/20 mt-4" 
                               onClick={() => setShowFinalizeDialog(true)}
                             >
-                              <Megaphone className="mr-2 h-4 w-4" /> Finalize Results
+                              <Megaphone className="mr-2 h-5 w-5" /> Official Publication
                             </Button>
                           )}
-                       </div>
-                     </CardContent>
-                   </Card>
-                )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Right Column: Results List */}
+              {/* Results */}
               <div className="lg:col-span-2">
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle>Projected Winners</CardTitle>
-                    <CardDescription>
-                      {simulation ? `${simulation.selectedProposals.length} projects selected` : "Run simulation to see results"}
-                    </CardDescription>
+                <Card className="rounded-2xl border-border shadow-xs min-h-[600px] flex flex-col overflow-hidden">
+                  <CardHeader className="p-8 border-b border-border/50 bg-muted/5">
+                    <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground flex items-center justify-between">
+                       Provisional Success List
+                       {simulation && <span className="text-xs bg-muted px-2.5 py-1 rounded-full">{simulation.selectedProposals.length} Projects Selected</span>}
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-6 flex-1">
                     {simulation ? (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {simulation.selectedProposals.map((p, i) => (
-                          <div key={p.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-all">
-                            <div className="flex items-center gap-4">
-                              <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                          <div key={p.id} className="group relative flex items-center justify-between p-6 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-md transition-all">
+                            <div className="flex items-center gap-6">
+                              <div className="h-12 w-12 rounded-xl bg-muted group-hover:bg-primary/5 border border-border flex items-center justify-center font-black text-lg transition-colors">
                                 {i + 1}
                               </div>
-                              <div>
-                                <p className="font-bold text-sm line-clamp-1">{p.title}</p>
-                                <p className="text-xs text-muted-foreground">{p.category.replace(/_/g, ' ')} • {p.vote_count} votes</p>
+                              <div className="space-y-2">
+                                <p className="font-black text-base text-foreground group-hover:text-primary transition-colors leading-tight">{p.title}</p>
+                                <div className="flex items-center gap-3">
+                                  <Badge variant="secondary" className="bg-muted border-none text-xs font-black uppercase tracking-widest px-2 py-0.5">
+                                    {p.category.replace(/_/g, ' ')}
+                                  </Badge>
+                                  <span className="text-xs font-black text-emerald-600 flex items-center gap-1">
+                                    <TrendingUp className="w-3 h-3" /> {p.vote_count} VOTES
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                            <div className="text-right font-mono text-sm font-bold">
-                              NPR {(p.technical_cost || p.estimated_cost).toLocaleString()}
+                            <div className="text-right">
+                              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40 mb-1 leading-none">Cost Point</p>
+                              <p className="text-lg font-black text-foreground tabular-nums">
+                                {( (p.technical_cost || p.estimated_cost) / 100000).toFixed(2)}L
+                              </p>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="h-64 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed rounded-xl">
-                        <BarChart3 className="w-12 h-12 opacity-20 mb-2" />
-                        <p>No results yet</p>
+                      <div className="h-full py-32 flex flex-col items-center justify-center text-center max-w-sm mx-auto space-y-6">
+                        <div className="w-24 h-24 rounded-[32px] bg-muted/30 border border-border flex items-center justify-center">
+                          <BarChart3 className="w-10 h-10 text-muted-foreground/20" />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Engine Standby</p>
+                          <p className="text-sm text-muted-foreground/60 leading-relaxed font-medium">Define simulation parameters and initialize the engine to identify winning projects based on voting density and fiscal constraints.</p>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -547,44 +576,49 @@ export default function AdminCycleControlCenter() {
 
       {/* 4. Finalization Modal */}
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Confirm & Announce Winners</DialogTitle>
-            <DialogDescription>
-              This action will officially close the cycle and publish these {simulation?.selectedProposals.length} winners to the public. This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
+          <div className="bg-primary px-8 py-10 text-primary-foreground relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-white/10 rounded-full blur-3xl opacity-50" />
+            <h2 className="text-3xl font-black tracking-tight uppercase leading-none">Commit Results</h2>
+            <p className="text-sm opacity-80 mt-3 font-medium leading-relaxed max-w-sm">
+              This will finalize the democratic process for this cycle. <span className="text-white font-bold underline underline-offset-4">This action is irreversible.</span>
+            </p>
+          </div>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Public Announcement Message</Label>
+          <div className="p-8 space-y-8 bg-card">
+            <div className="space-y-3">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Strategic Announcement Message</Label>
               <Textarea 
-                placeholder="Write a message to the citizens (e.g. 'Thank you for voting! We are excited to build these projects...')"
+                placeholder="Compose a concluding narrative for the community..."
                 value={concludingMessage}
                 onChange={(e) => setConcludingMessage(e.target.value)}
-                rows={4}
+                className="min-h-[160px] resize-none border-border bg-muted/10 focus:bg-background rounded-2xl p-6 text-sm font-medium leading-relaxed"
               />
             </div>
             
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <Label htmlFor="notify" className="cursor-pointer">Send Email Notifications</Label>
-              <Switch id="notify" checked={notifyCitizens} onCheckedChange={setNotifyCitizens} />
+            <div className="flex items-center justify-between p-6 bg-muted/10 rounded-2xl border border-border/50">
+              <div className="space-y-1">
+                <Label htmlFor="notify" className="text-xs font-black uppercase tracking-widest text-foreground cursor-pointer">Broadcasting</Label>
+                <p className="text-xs text-muted-foreground font-medium">Trigger email alerts for all 1,204 active voters</p>
+              </div>
+              <Switch id="notify" checked={notifyCitizens} onCheckedChange={setNotifyCitizens} className="scale-110" />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowFinalizeDialog(false)}>Cancel</Button>
+          <div className="px-8 py-6 bg-muted/30 border-t border-border flex items-center gap-4">
+            <Button variant="ghost" className="flex-1 h-14 text-xs font-black uppercase tracking-widest rounded-2xl" onClick={() => setShowFinalizeDialog(false)}>Abondon Process</Button>
             <Button 
-              className="bg-amber-500 hover:bg-amber-600 text-white" 
+              className="flex-2 h-14 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-amber-500/20" 
               onClick={handleFinalize} 
               disabled={mutations.finalizeWinners.isPending || !concludingMessage}
             >
-              {mutations.finalizeWinners.isPending ? <Loader2 className="animate-spin mr-2"/> : <Send className="mr-2 h-4 w-4"/>}
-              Confirm & Publish
+              {mutations.finalizeWinners.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2"/> : <Send className="w-5 h-5 mr-2"/>}
+              Publish Results
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
+
   );
 }

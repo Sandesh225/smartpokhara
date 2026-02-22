@@ -55,7 +55,7 @@ export function ComplaintActionsMenu({
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-border">
-        <DropdownMenuLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+        <DropdownMenuLabel className="text-xs font-black text-muted-foreground uppercase tracking-widest">
           Actions
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

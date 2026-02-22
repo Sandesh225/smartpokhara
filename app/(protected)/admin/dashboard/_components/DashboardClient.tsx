@@ -68,10 +68,10 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
             Synchronizing Command Center
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Badge variant="outline" className="text-[10px] tracking-widest uppercase">
+            <Badge variant="outline" className="text-xs tracking-widest uppercase">
               Pokhara Node 01
             </Badge>
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase">
+            <span className="text-xs text-muted-foreground font-semibold uppercase">
               Encrypted Uplink Active
             </span>
           </div>
@@ -105,16 +105,16 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
 
           <div className="flex items-center gap-2 md:gap-3 self-start sm:self-auto">
             <div className="hidden lg:flex flex-col items-end mr-2 md:mr-4">
-              <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              <span className="text-xs md:text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 System Status
               </span>
-              <span className="text-[10px] md:text-xs font-bold text-success-green uppercase">
+              <span className="text-xs md:text-xs font-bold text-success-green uppercase">
                 Optimal
               </span>
             </div>
             <button
               onClick={() => refresh()}
-              className="h-9 md:h-11 px-3 md:px-5 flex items-center gap-2 text-[10px] md:text-xs font-bold bg-card hover:bg-accent transition-all rounded-xl border border-border shadow-sm active:scale-95"
+              className="h-9 md:h-11 px-3 md:px-5 flex items-center gap-2 text-xs md:text-xs font-bold bg-card hover:bg-accent transition-all rounded-xl border border-border shadow-sm active:scale-95"
             >
               <RefreshCcw className="w-3 h-3 md:w-3.5 md:h-3.5" />
               <span className="hidden sm:inline">REFRESH</span>
@@ -133,7 +133,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
             <TabsTrigger
               key={tab}
               value={tab}
-              className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
+              className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 font-bold uppercase tracking-widest text-xs md:text-xs transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
             >
               {tab}
             </TabsTrigger>
@@ -154,7 +154,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                   </CardTitle>
                   <Badge
                     variant="outline"
-                    className="font-mono text-[9px] md:text-[10px] bg-background self-start sm:self-auto"
+                    className="font-mono text-xs md:text-xs bg-background self-start sm:self-auto"
                   >
                     7 DAY CYCLE
                   </Badge>
@@ -317,7 +317,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
               <QuickActionsPanel />
               <Card className="stone-card border border-border">
                 <CardHeader className="p-4 md:p-6">
-                  <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-muted-foreground">
+                  <CardTitle className="text-xs md:text-xs font-black uppercase tracking-widest text-muted-foreground">
                     Infrastructure Monitor
                   </CardTitle>
                 </CardHeader>
@@ -326,7 +326,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                     <span className="text-xs md:text-sm font-bold text-success-green">
                       API Gateway
                     </span>
-                    <Badge className="bg-success-green text-[8px] md:text-[9px] px-2 py-0.5">
+                    <Badge className="bg-success-green text-xs md:text-xs px-2 py-0.5">
                       OPERATIONAL
                     </Badge>
                   </div>
@@ -334,7 +334,7 @@ export function DashboardClient({ initialData }: { initialData: AdminDashboardDa
                     <span className="text-xs md:text-sm font-bold text-info-blue">
                       DB Cluster
                     </span>
-                    <Badge className="bg-info-blue text-[8px] md:text-[9px] px-2 py-0.5">
+                    <Badge className="bg-info-blue text-xs md:text-xs px-2 py-0.5">
                       SYNCED
                     </Badge>
                   </div>

@@ -3,6 +3,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/lib/types/database.types";
 import { subDays, format } from "date-fns";
+import { cache } from "react";
 
 type ComplaintStatus =
   | "pending"
@@ -24,27 +25,37 @@ const OVERDUE_STATUSES: ComplaintStatus[] = [
   "reopened",
 ];
 
+// ==========================================
+// INTERNAL CACHED FETCHERS (Server Only)
+// ==========================================
+
+export const getCachedJurisdiction = cache(async (client: SupabaseClient<Database>, supervisorId: string) => {
+  const { data, error } = await client
+    .from("supervisor_profiles")
+    .select("assigned_wards, assigned_departments, supervisor_level")
+    .eq("user_id", supervisorId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error("[SupervisorAPI] Jurisdiction fetch error:", error);
+    return { is_senior: false, wards: [] as string[], depts: [] as string[] };
+  }
+
+  return {
+    is_senior: data.supervisor_level === "senior",
+    wards: (data.assigned_wards as string[]) || [],
+    depts: (data.assigned_departments as string[]) || [],
+  };
+});
+
 export const supervisorApi = {
 
   // ==========================================
   // 1. JURISDICTION HELPER
   // ==========================================
   async getJurisdiction(client: SupabaseClient<Database>, supervisorId: string) {
-    const { data, error } = await client
-      .from("supervisor_profiles")
-      .select("assigned_wards, assigned_departments, supervisor_level")
-      .eq("user_id", supervisorId)
-      .single();
-
-    if (error || !data) {
-      return { is_senior: false, wards: [] as string[], depts: [] as string[] };
-    }
-
-    return {
-      is_senior: data.supervisor_level === "senior",
-      wards: (data.assigned_wards as string[]) || [],
-      depts: (data.assigned_departments as string[]) || [],
-    };
+    // Rely on the cached internal helper to prevent 4x duplicate fetches
+    return getCachedJurisdiction(client, supervisorId);
   },
 
   // ==========================================
@@ -55,7 +66,11 @@ export const supervisorApi = {
       p_supervisor_id: supervisorId,
     });
 
-    if (error || !data) {
+    if (error) {
+      console.error("[RPC] rpc_get_supervisor_dashboard_v2 failed:", error);
+    }
+
+    if (!data) {
       return {
         activeCount: 0,
         unassignedCount: 0,
@@ -120,32 +135,97 @@ export const supervisorApi = {
   // 3. STAFF & ATTENDANCE MANAGEMENT
   // ==========================================
   async getSupervisedStaff(client: SupabaseClient<Database>, supervisorId: string) {
-    const { data, error } = await client.rpc("rpc_get_team_overview", {
-      p_supervisor_id: supervisorId,
-    });
+    try {
+      // 1. Get Supervisor Jurisdiction
+      const { data: jur, error: jurErr } = await client
+        .from("supervisor_profiles")
+        .select("assigned_wards, assigned_departments, supervisor_level")
+        .eq("user_id", supervisorId)
+        .maybeSingle();
 
-    if (error || !data || !(data as any).team_members) return [];
+      if (jurErr || !jur) {
+        if (jurErr) console.error("[SupervisorAPI] Jurisdiction lookup failed:", jurErr);
+        // Fallback for senior admins or users without explicit profiles
+        return [];
+      }
 
-    return ((data as any).team_members as any[]).map((member: any) => ({
-      user_id: member.user_id as string,
-      full_name: (member.full_name as string) || "Staff Member",
-      avatar_url: member.avatar_url as string || undefined,
-      role: member.staff_role as string,
-      status: (member.availability_status as string) || "off_duty",
-      workload: (member.current_workload as number) || 0,
-      performance_rating: (member.performance_rating as number) || 0,
-      staff_code: member.staff_code as string || null,
-      department_id: member.department_id as string || null,
-      ward_id: member.ward_id as string || null,
-      staff_role: member.staff_role as string,
-      is_supervisor: false,
-      current_workload: (member.current_workload as number) || 0,
-      max_concurrent_assignments: 5,
-      availability_status: (member.availability_status as any) || "off_duty",
-      last_known_location: null,
-      last_active_at: null,
-      is_active: true,
-    }));
+      // 2. Query Staff matching wards or depts
+      let query = client.from("staff_profiles").select(`
+        *,
+        user:users!inner(
+          profile:user_profiles(full_name, profile_photo_url)
+        )
+      `);
+
+      if (jur.supervisor_level !== "senior") {
+        const filters: string[] = [];
+        const wards = jur.assigned_wards as string[];
+        const depts = jur.assigned_departments as string[];
+
+        if (wards && wards.length > 0) {
+          filters.push(`ward_id.in.(${wards.join(",")})`);
+        }
+        if (depts && depts.length > 0) {
+          filters.push(`department_id.in.(${depts.join(",")})`);
+        }
+        
+        if (filters.length > 0) {
+          query = query.or(filters.join(","));
+        } else {
+          // Non-senior supervisor with no assignments sees no staff
+          return [];
+        }
+      }
+
+      const { data: staff, error: staffErr } = await query;
+      
+      if (staffErr) {
+        console.error("[SupervisorAPI] Failed to fetch supervised staff:", staffErr);
+        return [];
+      }
+
+      // 3. Dynamic Workload Calculation
+      const staffIds = (staff || []).map((s) => s.user_id);
+      
+      const { data: activeCounts } = staffIds.length > 0 
+        ? await client
+            .from("complaints")
+            .select("assigned_staff_id")
+            .in("assigned_staff_id", staffIds)
+            .in("status", ["assigned", "in_progress", "under_review", "reopened"])
+        : { data: [] };
+
+      const workloadMap: Record<string, number> = {};
+      activeCounts?.forEach(c => {
+        if (c.assigned_staff_id) {
+          workloadMap[c.assigned_staff_id] = (workloadMap[c.assigned_staff_id] || 0) + 1;
+        }
+      });
+
+      return (staff || []).map((s: any) => ({
+        user_id: s.user_id as string,
+        full_name: s.user?.profile?.full_name || "Staff Member",
+        avatar_url: s.user?.profile?.profile_photo_url || undefined,
+        role: s.staff_role as string,
+        status: (s.availability_status as string) || "available",
+        workload: workloadMap[s.user_id] || 0,
+        performance_rating: (s.performance_rating as number) || 4.2,
+        staff_code: s.staff_code as string || null,
+        department_id: s.department_id as string || null,
+        ward_id: s.ward_id as string || null,
+        staff_role: s.staff_role as string,
+        is_supervisor: s.is_supervisor || false,
+        current_workload: workloadMap[s.user_id] || 0,
+        max_concurrent_assignments: s.max_concurrent_assignments || 10,
+        availability_status: (s.availability_status as any) || "available",
+        last_known_location: s.last_known_location,
+        last_active_at: s.last_active_at,
+        is_active: s.is_active ?? true,
+      }));
+    } catch (err) {
+      console.error("[SupervisorAPI] Error in getSupervisedStaff:", err);
+      return [];
+    }
   },
 
   async getStaffMetrics(client: SupabaseClient<Database>, supervisorId: string) {
@@ -307,11 +387,11 @@ export const supervisorApi = {
     const counts = { open: 0, in_progress: 0, resolved: 0, closed: 0 };
 
     data.forEach((c) => {
-      const s = c.status as ComplaintStatus;
-      if (s === "received") {
+      const s = (c.status as string || "").toLowerCase();
+      if (s === "received" || s === "pending") {
         counts.open++;
       } else if (
-        (["assigned", "in_progress", "under_review", "reopened"] as ComplaintStatus[]).includes(s)
+        ["assigned", "in_progress", "under_review", "reopened"].includes(s)
       ) {
         counts.in_progress++;
       } else if (s === "resolved") {
@@ -335,8 +415,8 @@ export const supervisorApi = {
 
     let receivedQuery = client
       .from("complaints")
-      .select("submitted_at")
-      .gte("submitted_at", thirtyDaysAgo);
+      .select("submitted_at, created_at")
+      .or(`submitted_at.gte.${thirtyDaysAgo},created_at.gte.${thirtyDaysAgo}`);
 
     let resolvedQuery = client
       .from("complaints")
@@ -355,12 +435,19 @@ export const supervisorApi = {
         receivedQuery = receivedQuery.or(filters.join(","));
         resolvedQuery = resolvedQuery.or(filters.join(","));
       } else {
+        // Fallback for non-senior without assignments
         return [];
       }
     }
 
-    const { data: receivedData } = await receivedQuery;
-    const { data: resolvedData } = await resolvedQuery;
+    // Parallel Data Fetching
+    const [receivedRes, resolvedRes] = await Promise.all([
+      receivedQuery,
+      resolvedQuery,
+    ]);
+
+    const receivedData = receivedRes.data;
+    const resolvedData = resolvedRes.data;
 
     // Build a map pre-populated with the last 30 days
     const trendMap = new Map<string, { total: number; resolved: number }>();
@@ -371,7 +458,9 @@ export const supervisorApi = {
 
     // FIX: was `trendMap.get(day).total++` inside a broken .map() call
     receivedData?.forEach((c: any) => {
-      const day = format(new Date(c.submitted_at), "MMM dd");
+      const dateStr = c.submitted_at || c.created_at;
+      if (!dateStr) return;
+      const day = format(new Date(dateStr), "MMM dd");
       const entry = trendMap.get(day);
       if (entry) entry.total++;
     });
@@ -399,32 +488,72 @@ export const supervisorApi = {
       .from("complaint_status_history")
       .select(`
         id, created_at, new_status,
-        complaint:complaints!inner(id, tracking_code, ward_id, assigned_department_id),
+        complaint:complaints(id, tracking_code, ward_id, assigned_department_id),
         actor:users!changed_by(profile:user_profiles(full_name))
       `)
       .order("created_at", { ascending: false })
       .limit(10);
 
-    if (!scope.is_senior) {
-      const filters: string[] = [];
-      if (scope.wards.length > 0)
-        filters.push(`ward_id.in.(${scope.wards.join(",")})`);
-      if (scope.depts.length > 0)
-        filters.push(`assigned_department_id.in.(${scope.depts.join(",")})`);
-      if (filters.length > 0)
-        query = query.or(filters.join(","), { foreignTable: "complaints" });
-    }
+    let recentComplaintsQuery = client
+      .from("complaints")
+      .select(`
+         id, created_at, tracking_code, status, ward_id, assigned_department_id,
+         reporter:user_profiles(full_name)
+      `)
+      .order("created_at", { ascending: false })
+      .limit(15);
+      
+    // Parallel Data Fetching
+    const [historyRes, recentComplaintsRes] = await Promise.all([
+      query,
+      recentComplaintsQuery,
+    ]);
 
-    const { data } = await query;
-    if (!data) return [];
+    const statusHistory = historyRes.data;
+    const rawRecent = recentComplaintsRes.data;
+    
+    const filteredHistory = scope.is_senior 
+      ? (statusHistory || [])
+      : (statusHistory || []).filter((log: any) => {
+          if (!log.complaint) return false;
+          const matchesWard = scope.wards.length > 0 && scope.wards.includes(log.complaint.ward_id);
+          const matchesDept = scope.depts.length > 0 && scope.depts.includes(log.complaint.assigned_department_id);
+          return matchesWard || matchesDept;
+        });
 
-    return data.map((log: any) => ({
-      id: log.id as string,
-      type: log.new_status as string,
-      description: `${log.actor?.profile?.full_name ?? "System"} updated ${log.complaint?.tracking_code} to ${log.new_status}`,
-      timestamp: log.created_at as string,
-      link: `/supervisor/complaints/${log.complaint?.id}`,
-    }));
+    const filteredRecent = scope.is_senior
+      ? (rawRecent || [])
+      : (rawRecent || []).filter((c: any) => {
+          const matchesWard = scope.wards.length > 0 && scope.wards.includes(c.ward_id);
+          const matchesDept = scope.depts.length > 0 && scope.depts.includes(c.assigned_department_id);
+          return matchesWard || matchesDept;
+        });
+
+    const activities: any[] = [];
+
+    (filteredHistory).forEach((log: any) => {
+      activities.push({
+        id: log.id,
+        type: "status_change",
+        description: `${log.actor?.profile?.full_name ?? "System"} updated ${log.complaint?.tracking_code ?? "Unknown"} to ${log.new_status}`,
+        timestamp: log.created_at,
+        link: log.complaint ? `/supervisor/complaints/${log.complaint.id}` : "#",
+      });
+    });
+
+    (filteredRecent).forEach((c: any) => {
+      activities.push({
+        id: c.id,
+        type: "new_report",
+        description: `New report ${c.tracking_code} received from ${c.reporter?.full_name ?? "Citizen"}`,
+        timestamp: c.created_at,
+        link: `/supervisor/complaints/${c.id}`,
+      });
+    });
+
+    return activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 10);
   },
 
   async getWardHeatmapData(client: SupabaseClient<Database>) {
@@ -480,11 +609,29 @@ export const supervisorApi = {
     return Object.values(stats);
   },
 
-  async getCategoryBreakdown(client: SupabaseClient<Database>) {
-    const { data, error } = await client
+  async getCategoryBreakdown(client: SupabaseClient<Database>, supervisorId?: string) {
+    let query = client
       .from("complaints")
       .select("category:complaint_categories(name)");
 
+    if (supervisorId) {
+      const scope = await this.getJurisdiction(client, supervisorId);
+      if (!scope.is_senior) {
+        const filters: string[] = [];
+        if (scope.wards.length > 0)
+          filters.push(`ward_id.in.(${scope.wards.join(",")})`);
+        if (scope.depts.length > 0)
+          filters.push(`assigned_department_id.in.(${scope.depts.join(",")})`);
+
+        if (filters.length > 0) {
+          query = query.or(filters.join(","));
+        } else {
+          return [];
+        }
+      }
+    }
+
+    const { data, error } = await query;
     if (error) return [];
 
     const counts: Record<string, number> = {};

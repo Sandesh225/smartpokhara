@@ -134,14 +134,14 @@ export function TrendGraph({ data, range, onRangeChange }: TrendGraphProps) {
                 if (active && payload && payload.length) {
                   return (
                     <div className="glass-strong p-4 rounded-2xl border border-white/20 elevation-4 min-w-[140px]">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">
                         {payload[0].payload.fullDate}
                       </p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-mono font-bold text-primary">
                           {payload[0].value}
                         </span>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                        <span className="text-xs font-bold text-muted-foreground uppercase">
                           Reports
                         </span>
                       </div>

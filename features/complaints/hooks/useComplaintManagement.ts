@@ -17,7 +17,7 @@ export interface AdminComplaintFilters {
   date_range: { from: Date | null; to: Date | null };
 }
 
-export function useComplaintManagement() {
+export function useComplaintManagement(role: "ADMIN" | "SUPERVISOR" | "CITIZEN" = "ADMIN") {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -52,10 +52,27 @@ export function useComplaintManagement() {
         pageSize: 20
       };
 
-      const result = await complaintsApi.searchComplaints(supabase, apiFilters);
+      let result;
+      if (role === "SUPERVISOR") {
+         const { data: { session } } = await supabase.auth.getSession();
+         if (!session?.user) throw new Error("No user");
+         
+         result = await complaintsApi.getJurisdictionComplaints(
+           supabase, 
+           session.user.id, 
+           apiFilters, 
+           page, 
+           20
+         );
+      } else {
+         result = await complaintsApi.searchComplaints(supabase, apiFilters);
+      }
       
       setComplaints(result.data || []);
-      setTotalCount(result.total || 0);
+      
+      // Handle the union type variance between different API calls safely.
+      const totalProp = (result as any).count ?? (result as any).total ?? 0;
+      setTotalCount(totalProp);
     } catch (error: any) {
       console.error("Fetch Complaints Error:", error);
       toast.error("Failed to load complaints");

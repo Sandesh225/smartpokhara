@@ -76,144 +76,112 @@ export default function CreateCyclePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12 px-4 sm:px-6">
-      {/* Header */}
-      <div className="space-y-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.back()}
-          className="pl-0 hover:pl-2 transition-all duration-300"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Cycles
-        </Button>
-
-        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 dark:to-transparent border border-primary/20 p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary/20 dark:bg-primary/30 rounded-xl">
-              <Calendar className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Create New Budget Cycle
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Set up a new participatory budgeting cycle for citizen engagement
-              </p>
-            </div>
+    <div className="space-y-6 max-w-7xl mx-auto pb-24 px-6 md:px-8">
+      {/* 1. Header Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-8 md:p-10 shadow-sm mt-6 text-center">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-50" />
+        
+        <div className="relative space-y-4 max-w-2xl mx-auto">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="h-8 gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back to Cycles
+          </Button>
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest border border-primary/20">
+            Internal Governance
           </div>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-foreground uppercase leading-tight">
+            Create <span className="text-primary">Budget Cycle</span>
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">
+            Initialize a new democratic fiscal period and define the parameters for citizen engagement.
+          </p>
         </div>
       </div>
 
-      {/* Info Alert */}
-      <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        <AlertDescription className="text-blue-900 dark:text-blue-200">
-          A budget cycle consists of two phases: <strong>Submission Period</strong> (citizens propose projects) 
-          and <strong>Voting Period</strong> (citizens vote on approved proposals).
-        </AlertDescription>
-      </Alert>
-
-      {/* Main Form */}
-      <Card className="shadow-xl bg-linear-to-br from-card to-card/95">
-        <CardHeader className="bg-linear-to-br from-muted/30 to-transparent dark:from-muted/20 border-b">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-primary" />
-            Cycle Configuration
-          </CardTitle>
-          <CardDescription>
-            Fill in all required information to create the budget cycle
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="pt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold flex items-center gap-2 text-foreground pb-2 border-b">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-black">1</span>
-                  Basic Information
-                </h3>
-
+      {/* 2. Main Form Content */}
+      <div className="max-w-4xl mx-auto py-8">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+            {/* Section 1: Core Configuration */}
+            <Card className="rounded-xl border border-border shadow-xs bg-card">
+              <CardHeader className="p-8 border-b border-border/50 bg-muted/10 space-y-1">
+                 <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-black text-xs">01</div>
+                   <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground">Cycle Definition</CardTitle>
+                 </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-8">
                 <FormField
                   control={form.control}
                   name="title"
-                  rules={{ required: "Title is required" }}
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Cycle Title *</FormLabel>
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Cycle Title</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="e.g. Fiscal Year 2081/82 - Community Infrastructure" 
+                        <Input
+                          placeholder="e.g. FY 2081/82 - Sustainable Urban Development"
+                          className="h-14 font-black text-xl bg-muted/10 border-border/50 focus:border-primary transition-all rounded-xl shadow-none"
                           {...field}
-                          className="bg-linear-to-br from-background to-muted/10 dark:from-background dark:to-muted/5 border-2 focus:border-primary"
+                          required
                         />
                       </FormControl>
-                      <FormDescription>
-                        A clear, descriptive name for this budget cycle
-                      </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-xs font-bold uppercase" />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="description"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Description</FormLabel>
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Administrative Description</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Describe the focus and goals of this budgeting cycle..."
-                          className="min-h-[100px] bg-linear-to-br from-background to-muted/10 dark:from-background dark:to-muted/5 border-2 focus:border-primary"
-                          {...field} 
+                        <Textarea
+                          placeholder="Describe the scope and objectives for this cycle..."
+                          className="min-h-[120px] rounded-xl bg-muted/10 border-border/50 focus:border-primary transition-all p-6 text-sm font-medium leading-relaxed"
+                          {...field}
                         />
                       </FormControl>
-                      <FormDescription>
-                        Optional context about what this cycle aims to achieve
-                      </FormDescription>
-                      <FormMessage />
+                      <FormDescription className="text-xs font-bold uppercase tracking-widest opacity-40">Internal context for other administrators</FormDescription>
+                      <FormMessage className="text-xs font-bold uppercase" />
                     </FormItem>
                   )}
                 />
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Budget Configuration */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold flex items-center gap-2 text-foreground pb-2 border-b">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-black">2</span>
-                  Budget Configuration
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Section 2: Fiscal Parameters */}
+            <Card className="rounded-xl border border-border shadow-xs bg-card">
+              <CardHeader className="p-8 border-b border-border/50 bg-muted/10 space-y-1">
+                 <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-black text-xs">02</div>
+                   <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground">Fiscal Parameters</CardTitle>
+                 </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
                   <FormField
                     control={form.control}
                     name="total_budget_amount"
-                    rules={{ 
-                      required: "Total budget is required",
-                      min: { value: 1, message: "Budget must be greater than 0" }
-                    }}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-semibold flex items-center gap-2">
-                          <DollarSign className="w-4 h-4 text-primary" />
-                          Total Budget (NPR) *
-                        </FormLabel>
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Total Pool Allocation (NPR)</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="50000000"
-                            className="font-mono font-bold text-lg bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
-                            {...field} 
-                            onChange={e => field.onChange(Number(e.target.value))} 
+                          <Input
+                            type="number"
+                            className="h-12 bg-muted/10 border-border/50 font-black text-base rounded-xl"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription>
-                          Total available: NPR {Number(field.value || 0).toLocaleString()}
-                        </FormDescription>
-                        <FormMessage />
+                        <FormDescription className="text-xs font-bold uppercase tracking-widest opacity-40">NPR {field.value.toLocaleString()}</FormDescription>
+                        <FormMessage className="text-xs font-bold uppercase" />
                       </FormItem>
                     )}
                   />
@@ -221,29 +189,19 @@ export default function CreateCyclePage() {
                   <FormField
                     control={form.control}
                     name="max_votes_per_user"
-                    rules={{ 
-                      required: "Vote limit is required",
-                      min: { value: 1, message: "At least 1 vote required" }
-                    }}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-semibold flex items-center gap-2">
-                          <Users className="w-4 h-4 text-primary" />
-                          Max Votes per Citizen *
-                        </FormLabel>
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Citizen Vote Limit</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="3"
-                            className="bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
-                            {...field} 
-                            onChange={e => field.onChange(Number(e.target.value))} 
+                          <Input
+                            type="number"
+                            className="h-12 bg-muted/10 border-border/50 font-black text-base rounded-xl"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription>
-                          How many proposals each citizen can vote for
-                        </FormDescription>
-                        <FormMessage />
+                        <FormDescription className="text-xs font-bold uppercase tracking-widest opacity-40">Max projects per user</FormDescription>
+                        <FormMessage className="text-xs font-bold uppercase" />
                       </FormItem>
                     )}
                   />
@@ -252,21 +210,17 @@ export default function CreateCyclePage() {
                     control={form.control}
                     name="min_project_cost"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-semibold">Minimum Project Cost (NPR)</FormLabel>
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Min Project Cap</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="100000"
-                            className="font-mono bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
-                            {...field} 
-                            onChange={e => field.onChange(Number(e.target.value))} 
+                          <Input
+                            type="number"
+                            className="h-12 bg-muted/10 border-border/50 font-bold text-sm rounded-xl"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription>
-                          Optional: Minimum cost for proposals
-                        </FormDescription>
-                        <FormMessage />
+                        <FormMessage className="text-xs font-bold uppercase" />
                       </FormItem>
                     )}
                   />
@@ -275,169 +229,124 @@ export default function CreateCyclePage() {
                     control={form.control}
                     name="max_project_cost"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-semibold">Maximum Project Cost (NPR)</FormLabel>
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">Max Project Cap</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="5000000"
-                            className="font-mono bg-linear-to-br from-background to-muted/10 border-2 focus:border-primary"
-                            {...field} 
-                            onChange={e => field.onChange(Number(e.target.value))} 
+                          <Input
+                            type="number"
+                            className="h-12 bg-muted/10 border-border/50 font-bold text-sm rounded-xl"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
                           />
                         </FormControl>
-                        <FormDescription>
-                          Optional: Maximum cost for proposals
-                        </FormDescription>
-                        <FormMessage />
+                        <FormMessage className="text-xs font-bold uppercase" />
                       </FormItem>
                     )}
                   />
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Timeline Configuration */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold flex items-center gap-2 text-foreground pb-2 border-b">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-black">3</span>
-                  Timeline Configuration
-                </h3>
-
-                <Alert className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800">
-                  <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                  <AlertDescription className="text-purple-900 dark:text-purple-200">
-                    <strong>Important:</strong> Voting period should start after the submission period ends to allow for proposal review.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-950/20 rounded-xl border-2 border-purple-200 dark:border-purple-800">
-                    <h4 className="font-bold text-sm text-purple-900 dark:text-purple-200 flex items-center gap-2">
-                      <span className="text-xl">📝</span>
-                      Submission Period
+            {/* Section 3: Strategic Timeline */}
+            <Card className="rounded-xl border border-border shadow-xs bg-card">
+              <CardHeader className="p-8 border-b border-border/50 bg-muted/10 space-y-1">
+                 <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-black text-xs">03</div>
+                   <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground">Strategic Timeline</CardTitle>
+                 </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Submission Period
                     </h4>
-
                     <FormField
                       control={form.control}
                       name="submission_start_at"
-                      rules={{ required: "Submission start date is required" }}
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-semibold text-xs">Start Date & Time *</FormLabel>
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Launch Phase</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="datetime-local" 
-                              className="bg-white dark:bg-slate-900 border-2 focus:border-primary"
-                              {...field} 
-                            />
+                            <Input type="datetime-local" className="h-12 rounded-xl bg-muted/10 border-border/50 font-bold text-xs" {...field} />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="submission_end_at"
-                      rules={{ required: "Submission end date is required" }}
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-semibold text-xs">End Date & Time *</FormLabel>
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Closure Phase</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="datetime-local" 
-                              className="bg-white dark:bg-slate-900 border-2 focus:border-primary"
-                              {...field} 
-                            />
+                            <Input type="datetime-local" className="h-12 rounded-xl bg-muted/10 border-border/50 font-bold text-xs" {...field} />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border-2 border-blue-200 dark:border-blue-800">
-                    <h4 className="font-bold text-sm text-blue-900 dark:text-blue-200 flex items-center gap-2">
-                      <span className="text-xl">🗳️</span>
-                      Voting Period
+                  <div className="space-y-6">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-emerald-600 flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Voting Window
                     </h4>
-
                     <FormField
                       control={form.control}
                       name="voting_start_at"
-                      rules={{ required: "Voting start date is required" }}
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-semibold text-xs">Start Date & Time *</FormLabel>
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Ballot Opens</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="datetime-local" 
-                              className="bg-white dark:bg-slate-900 border-2 focus:border-primary"
-                              {...field} 
-                            />
+                            <Input type="datetime-local" className="h-12 rounded-xl bg-muted/10 border-border/50 font-bold text-xs" {...field} />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="voting_end_at"
-                      rules={{ required: "Voting end date is required" }}
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="font-semibold text-xs">End Date & Time *</FormLabel>
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Ballot Finalization</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="datetime-local" 
-                              className="bg-white dark:bg-slate-900 border-2 focus:border-primary"
-                              {...field} 
-                            />
+                            <Input type="datetime-local" className="h-12 rounded-xl bg-muted/10 border-border/50 font-bold text-xs" {...field} />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Submit Button */}
-              <div className="flex gap-4 pt-4">
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  onClick={() => router.back()}
-                  disabled={mutations.createCycle.isPending}
-                  className="flex-1 border-2"
-                >
-                  Cancel
-                </Button>
-
-                <Button 
-                  type="submit" 
-                  className="flex-1 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300" 
-                  disabled={mutations.createCycle.isPending}
-                  size="lg"
-                >
-                  {mutations.createCycle.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Creating Cycle...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-5 w-5" />
-                      Create Budget Cycle
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            {/* Action Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 max-w-2xl mx-auto w-full">
+              <Button 
+                type="submit" 
+                className="flex-2 h-14 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 transition-all text-sm"
+                disabled={mutations.createCycle.isPending}
+              >
+                {mutations.createCycle.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                )}
+                Initialize Fiscal Cycle
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1 h-14 text-muted-foreground font-black uppercase tracking-widest text-xs rounded-xl hover:text-foreground"
+                onClick={() => router.back()}
+              >
+                Cancel Initialization
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
+
   );
 }

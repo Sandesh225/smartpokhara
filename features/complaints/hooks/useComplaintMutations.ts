@@ -19,7 +19,7 @@ export function useCreateComplaint() {
       // 2. Upload Attachments if any
       if (data.media && data.media.length > 0) {
         const uploadPromises = data.media.map((file) =>
-          complaintsApi.uploadAttachment(supabase, result.complaint_id, file)
+          complaintsApi.uploadAttachment(supabase, result.id, file)
         );
         await Promise.all(uploadPromises);
       }

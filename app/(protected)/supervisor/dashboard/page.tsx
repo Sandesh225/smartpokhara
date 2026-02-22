@@ -6,8 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { DashboardContent } from "./_components/DashboardContent";
 import { DashboardSkeleton } from "./_components/DashboardSkeleton";
 
-export const dynamic = "force-dynamic";
-
 export default async function SupervisorDashboard() {
   const user = await getCurrentUserWithRoles();
   if (!user) redirect("/login");
@@ -15,22 +13,26 @@ export default async function SupervisorDashboard() {
   const supabase = await createClient();
 
   // Parallel Data Fetching on Server
+ // Parallel Data Fetching on Server
   const [
     metrics,
     statusData,
-    categoryData,
+    categoryData,   // <-- We will fix this
     trendData,
     activityData,
     staffData,
   ] = await Promise.all([
     supervisorApi.getComplaintMetrics(supabase, user.id),
     supervisorApi.getStatusDistribution(supabase, user.id),
-    supervisorApi.getCategoryBreakdown(supabase),
+    
+    // ❌ OLD: supervisorApi.getCategoryBreakdown(supabase),
+    // ✅ NEW: Pass user.id so it filters correctly!
+    supervisorApi.getCategoryBreakdown(supabase, user.id), 
+    
     supervisorApi.getTrendData(supabase, user.id),
     supervisorApi.getRecentActivity(supabase, user.id),
     supervisorApi.getSupervisedStaff(supabase, user.id),
   ]);
-
   const alerts: any[] = [];
   if (metrics.overdueCount > 0) {
     alerts.push({

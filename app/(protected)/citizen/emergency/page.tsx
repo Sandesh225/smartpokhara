@@ -161,7 +161,7 @@ export default function EmergencyPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-100 text-red-700 text-xs font-black uppercase tracking-[0.2em] shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-100 text-red-700 text-xs font-black uppercase tracking-wider shadow-sm"
           >
             <AlertTriangle className="h-4 w-4 animate-pulse" /> 24/7 Response
             Center
@@ -274,7 +274,7 @@ export default function EmergencyPage() {
                                   {contact.number}
                                 </span>
                                 <span className="h-1 w-1 rounded-full bg-slate-300" />
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                <span className="text-xs font-bold text-slate-400 uppercase">
                                   {contact.location}
                                 </span>
                               </div>

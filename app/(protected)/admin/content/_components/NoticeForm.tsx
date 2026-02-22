@@ -114,7 +114,7 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5 md:space-y-6">
       {/* TITLE */}
       <div className="space-y-2">
-        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+        <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <Type className="w-3.5 h-3.5" />
           Title
         </Label>
@@ -136,7 +136,7 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
 
       {/* EXCERPT */}
       <div className="space-y-2">
-        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+        <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <AlignLeft className="w-3.5 h-3.5" />
           Excerpt (Short Summary)
         </Label>
@@ -158,7 +158,7 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
 
       {/* TYPE */}
       <div className="space-y-2">
-        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+        <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <Tag className="w-3.5 h-3.5" />
           Notice Type
         </Label>
@@ -182,7 +182,7 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
 
       {/* CONTENT */}
       <div className="space-y-2">
-        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+        <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <FileText className="w-3.5 h-3.5" />
           Content
         </Label>
@@ -226,7 +226,7 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
         {/* WARD SELECTION */}
         {!isPublic && (
           <div className="space-y-2 animate-in fade-in slide-in-from-top-2 pt-4 border-t-2 border-border">
-            <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5" />
               Target Ward
             </Label>
@@ -273,7 +273,7 @@ export function NoticeForm({ onSubmit, initialData }: NoticeFormProps) {
 
       {/* EXPIRY DATE */}
       <div className="space-y-2">
-        <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+        <Label className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <Calendar className="w-3.5 h-3.5" />
           Expires At (Optional)
         </Label>

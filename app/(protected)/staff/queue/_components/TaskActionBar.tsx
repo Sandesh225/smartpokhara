@@ -94,17 +94,17 @@ export function TaskActionBar({
   // 1. Team View (If NOT Assigned to Me)
   if (!isAssignee) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 lg:static lg:bg-transparent lg:border-0 lg:p-0 z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-md border-t border-border p-4 lg:static lg:bg-transparent lg:border-0 lg:p-0 z-40">
         <div className="max-w-3xl mx-auto flex gap-3">
           <button
             onClick={handleMessageAssignee}
-            className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-card border border-border text-foreground py-3 rounded-xl font-bold hover:bg-muted transition-all active:scale-95 shadow-xs"
           >
             <MessageSquare className="h-5 w-5" /> Message Assignee
           </button>
           <button
             onClick={() => toast.info("Help request sent to supervisor")}
-            className="flex-1 flex items-center justify-center gap-2 bg-orange-50 text-orange-700 border border-orange-200 py-3 rounded-xl font-bold hover:bg-orange-100 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-warning-amber/10 text-warning-amber border border-warning-amber/20 py-3 rounded-xl font-bold hover:bg-warning-amber/20 transition-all active:scale-95 shadow-xs"
           >
             <ShieldAlert className="h-5 w-5" /> Request Help
           </button>
@@ -120,13 +120,13 @@ export function TaskActionBar({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 lg:static lg:bg-transparent lg:border-0 lg:p-0 z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-md border-t border-border p-4 lg:static lg:bg-transparent lg:border-0 lg:p-0 z-40">
         <div className="max-w-3xl mx-auto flex gap-3">
           {showStart ? (
             <button
               onClick={handleStartWork}
               disabled={isLoading}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-md shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -139,7 +139,7 @@ export function TaskActionBar({
             <>
               {normalizedStatus === "completed" ||
               normalizedStatus === "awaiting_approval" ? (
-                <div className="w-full py-3 bg-green-50 text-green-700 text-center font-bold rounded-xl border border-green-200">
+                <div className="w-full py-3 bg-success-green/10 text-success-green text-center font-bold rounded-xl border border-success-green/20">
                   Work Completed ✓
                 </div>
               ) : (
@@ -147,14 +147,14 @@ export function TaskActionBar({
                   <button
                     onClick={handleAddLog}
                     disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 bg-card border border-border text-foreground py-3 rounded-xl font-bold hover:bg-muted transition-all active:scale-95 shadow-xs"
                   >
                     <PlusSquare className="h-5 w-5" /> Log Update
                   </button>
-                  <button
+                   <button
                     onClick={() => setIsCompleteModalOpen(true)}
                     disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-colors shadow-sm"
+                    className="flex-1 flex items-center justify-center gap-2 bg-success-green text-white py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-md shadow-success-green/20 active:scale-95"
                   >
                     <CheckCircle2 className="h-5 w-5" /> Complete
                   </button>

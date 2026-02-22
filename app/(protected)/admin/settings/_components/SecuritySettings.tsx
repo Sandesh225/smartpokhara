@@ -92,7 +92,7 @@ export default function SecuritySettings({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* SESSION TIMEOUT */}
           <div className="space-y-2">
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <Clock className="w-3 h-3" />
               Session Timeout
             </label>
@@ -109,14 +109,14 @@ export default function SecuritySettings({
                 minutes
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Auto-logout inactive users
             </p>
           </div>
 
           {/* PASSWORD EXPIRY */}
           <div className="space-y-2">
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <Key className="w-3 h-3" />
               Password Expiry
             </label>
@@ -133,7 +133,7 @@ export default function SecuritySettings({
                 days
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Force password reset interval
             </p>
           </div>

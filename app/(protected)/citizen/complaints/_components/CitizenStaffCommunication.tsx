@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Send,
-  MessageSquare,
   User,
   Shield,
   Clock,
@@ -12,9 +11,10 @@ import {
   CheckCircle2,
   Wifi,
   WifiOff,
-  UserCircle,
   Sparkles,
 } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -27,7 +27,7 @@ interface Message {
   author_avatar: string | null;
 }
 
-interface CitizenStaffCommunicationProps {
+interface Props {
   complaintId: string;
   currentUserId: string;
   userRole: "citizen" | "staff" | "supervisor" | "admin";
@@ -35,11 +35,10 @@ interface CitizenStaffCommunicationProps {
   citizenName?: string;
 }
 
-function formatTimeAgo(date: string) {
-  const now = new Date().getTime();
-  const then = new Date(date).getTime();
-  const seconds = Math.floor((now - then) / 1000);
-
+function timeAgo(date: string): string {
+  const seconds = Math.floor(
+    (Date.now() - new Date(date).getTime()) / 1000
+  );
   if (seconds < 60) return "just now";
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -52,29 +51,26 @@ export default function CitizenStaffCommunication({
   userRole,
   assignedStaffName,
   citizenName,
-}: CitizenStaffCommunicationProps) {
+}: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<
+  const [success, setSuccess] = useState(false);
+  const [connection, setConnection] = useState<
     "connected" | "disconnected" | "connecting"
   >("connecting");
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const channelRef = useRef<any>(null);
-  const retryCountRef = useRef(0);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const retryRef = useRef(0);
 
   const loadMessages = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
+
       const response = await fetch("/api/supabase/rpc", {
         method: "POST",
         headers: {
@@ -87,51 +83,41 @@ export default function CitizenStaffCommunication({
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
       const result = await response.json();
 
-      if (result.success && result.data) {
-        const messagesData = Array.isArray(result.data) ? result.data : [];
-        setMessages(messagesData);
-        setConnectionStatus("connected");
-        retryCountRef.current = 0;
-        setError(null);
-      } else if (result.error) {
-        throw new Error(result.error);
-      } else {
-        setMessages([]);
-        setError("Unexpected response format");
+      if (!response.ok || !result.success) {
+        throw new Error(result.error ?? `HTTP ${response.status}`);
       }
-    } catch (err: any) {
-      console.error("Error loading messages:", err);
-      setError(err.message || "Failed to load messages");
-      setConnectionStatus("disconnected");
 
-      if (retryCountRef.current < 5) {
-        retryCountRef.current += 1;
+      setMessages(Array.isArray(result.data) ? result.data : []);
+      setConnection("connected");
+      retryRef.current = 0;
+      setError(null);
+    } catch (err: any) {
+      setError(err.message ?? "Failed to load messages");
+      setConnection("disconnected");
+
+      if (retryRef.current < 5) {
+        retryRef.current += 1;
         setTimeout(
-          () => loadMessages(),
-          Math.min(1000 * 2 ** retryCountRef.current, 30000)
+          loadMessages,
+          Math.min(1000 * 2 ** retryRef.current, 30000)
         );
       }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, [complaintId]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || isSending) return;
+    if (!text.trim() || sending) return;
 
-    setIsSending(true);
+    setSending(true);
     setError(null);
 
     const tempMessage: Message = {
-      id: `temp-${Date.now()}`,
-      content: newMessage.trim(),
+      id: `tmp-${Date.now()}`,
+      content: text.trim(),
       created_at: new Date().toISOString(),
       is_internal: false,
       author_role: userRole,
@@ -141,20 +127,18 @@ export default function CitizenStaffCommunication({
     };
 
     setMessages((prev) => [...prev, tempMessage]);
-    const originalMessage = newMessage;
-    setNewMessage("");
+    const originalText = text;
+    setText("");
 
     try {
       const response = await fetch("/api/supabase/rpc", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           function: "rpc_add_complaint_comment_v2",
           params: {
             p_complaint_id: complaintId,
-            p_content: originalMessage.trim(),
+            p_content: originalText.trim(),
             p_is_internal: false,
           },
         }),
@@ -163,26 +147,25 @@ export default function CitizenStaffCommunication({
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(
-          result.error || result.message || "Failed to send message"
-        );
+        throw new Error(result.error ?? "Failed to send");
       }
 
-      setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== tempMessage.id)
+      );
+
       await loadMessages();
-
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
-
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 2000);
       textareaRef.current?.focus();
     } catch (err: any) {
-      console.error("Error sending message:", err);
-      setError(err.message || "Failed to send message");
-
-      setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
-      setNewMessage(originalMessage);
+      setError(err.message ?? "Failed to send");
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== tempMessage.id)
+      );
+      setText(originalText);
     } finally {
-      setIsSending(false);
+      setSending(false);
     }
   };
 
@@ -196,13 +179,15 @@ export default function CitizenStaffCommunication({
   useEffect(() => {
     loadMessages();
 
-    const setupRealtime = async () => {
+    (async () => {
       try {
-        const supabaseModule = await import("@/lib/supabase/client");
-        const supabase = supabaseModule.createClient();
+        const { createClient } = await import(
+          "@/lib/supabase/client"
+        );
+        const supabase = createClient();
 
         channelRef.current = supabase
-          .channel(`complaint_comments_${complaintId}`)
+          .channel(`complaint-${complaintId}`)
           .on(
             "postgres_changes",
             {
@@ -211,308 +196,261 @@ export default function CitizenStaffCommunication({
               table: "complaint_comments",
               filter: `complaint_id=eq.${complaintId}`,
             },
-            (payload) => {
-              console.log("New comment received via realtime:", payload.new);
-              loadMessages();
-            }
+            loadMessages
           )
           .subscribe((status) => {
-            console.log("Realtime subscription status:", status);
             if (status === "SUBSCRIBED") {
-              setConnectionStatus("connected");
-            } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
-              setConnectionStatus("disconnected");
+              setConnection("connected");
+            } else if (
+              status === "CLOSED" ||
+              status === "CHANNEL_ERROR"
+            ) {
+              setConnection("disconnected");
+            } else {
+              setConnection("connecting");
             }
           });
-      } catch (err) {
-        console.error("Realtime setup error:", err);
-        setConnectionStatus("disconnected");
+      } catch {
+        setConnection("disconnected");
       }
-    };
-
-    setupRealtime();
+    })();
 
     return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-      }
+      channelRef.current?.unsubscribe();
     };
   }, [complaintId, loadMessages]);
 
   useEffect(() => {
-    if (messagesEndRef.current && messages.length > 0) {
+    if (messages.length > 0) {
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
   }, [messages.length]);
 
-  const chatPartnerName = userRole === "citizen" 
-    ? (assignedStaffName || "Assigned Staff")
-    : (citizenName || "Citizen");
+  const partnerName =
+    userRole === "citizen"
+      ? assignedStaffName ?? "Assigned Staff"
+      : citizenName ?? "Citizen";
 
   return (
-    <div className="glass rounded-3xl overflow-hidden border border-white/50 shadow-2xl">
-      {/* Enhanced Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600" />
-        <div className="absolute inset-0 bg-grid-pattern opacity-20" />
-        
-        <div className="relative px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Connection Status Indicator */}
-              <div className="relative">
-                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg transition-all ${
-                  connectionStatus === "connected" 
-                    ? "bg-white text-emerald-600" 
-                    : connectionStatus === "disconnected"
-                    ? "bg-red-500 text-white"
-                    : "bg-amber-500 text-white"
-                }`}>
-                  {connectionStatus === "connected" ? (
-                    <Wifi className="w-6 h-6" />
-                  ) : connectionStatus === "disconnected" ? (
-                    <WifiOff className="w-6 h-6" />
-                  ) : (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  )}
-                </div>
-                {connectionStatus === "connected" && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-emerald-400 rounded-full border-2 border-white animate-pulse" />
-                )}
-              </div>
+    <section className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-accent text-accent-foreground flex items-center justify-center">
+            {connection === "connected" ? (
+              <Wifi className="w-4 h-4" />
+            ) : connection === "disconnected" ? (
+              <WifiOff className="w-4 h-4 text-destructive" />
+            ) : (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
+          </div>
 
-              {/* Header Text */}
-              <div>
-                <h3 className="font-bold text-white text-xl flex items-center gap-2">
-                  {userRole === "citizen" ? (
-                    <Shield className="w-5 h-5" />
-                  ) : (
-                    <UserCircle className="w-5 h-5" />
-                  )}
-                  Chat with {chatPartnerName}
-                </h3>
-                <p className="text-sm text-white/80 font-medium">
-                  {connectionStatus === "connected"
-                    ? "🟢 Live • Real-time updates enabled"
-                    : connectionStatus === "disconnected"
-                    ? "🔴 Offline • Reconnecting..."
-                    : "🟡 Connecting..."}
-                </p>
-              </div>
-            </div>
-
-            {/* Stats Badge */}
-            <div className="hidden sm:flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-2xl px-5 py-3">
-              <MessageSquare className="w-5 h-5 text-white" />
-              <div className="text-right">
-                <p className="font-bold text-white text-lg">{messages.length}</p>
-                <p className="text-xs text-white/70 font-medium">Messages</p>
-              </div>
-            </div>
+          <div className="flex flex-col">
+            <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+              {userRole === "citizen" ? (
+                <Shield className="w-4 h-4 text-primary" />
+              ) : (
+                <User className="w-4 h-4 text-primary" />
+              )}
+              Chat with {partnerName}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {connection === "connected"
+                ? "Live · Real-time"
+                : connection === "disconnected"
+                ? "Offline · Reconnecting"
+                : "Connecting"}
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Messages Container */}
-      <div className="h-[600px] overflow-y-auto p-8 space-y-6 bg-gradient-to-b from-slate-50 to-white relative">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-        
-        <div className="relative z-10">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-4">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full" />
-                  <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto relative" />
-                </div>
-                <p className="text-sm text-slate-600 font-medium">Loading conversation...</p>
-              </div>
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-4 max-w-sm">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-purple-500/20 blur-3xl rounded-full" />
-                  <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center mx-auto">
-                    <Sparkles className="w-10 h-10 text-purple-600" />
-                  </div>
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 text-lg mb-2">Start the conversation</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    {userRole === "citizen" 
-                      ? "Send a message to the assigned staff member about your complaint"
-                      : "Reach out to the citizen regarding their complaint"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            messages.map((msg) => {
-              const isCurrentUser = msg.author_id === currentUserId;
-              const isStaffMessage = msg.author_role !== "citizen";
+        <span className="text-xs font-semibold bg-muted text-muted-foreground border border-border px-3 py-1 rounded-full">
+          {messages.length} messages
+        </span>
+      </header>
 
-              return (
+      {/* Messages */}
+      <div className="h-96 overflow-y-auto px-6 py-5 space-y-5 bg-background scrollbar-hide">
+        {loading ? (
+          <div className="flex items-center justify-center h-full gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            <span className="text-xs text-muted-foreground">
+              Loading messages
+            </span>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">
+              No messages yet
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              Start the conversation to coordinate resolution.
+            </p>
+          </div>
+        ) : (
+          messages.map((message, index) => {
+            const isMine =
+              message.author_id === currentUserId;
+            const isStaff =
+              message.author_role !== "citizen";
+
+            return (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: index * 0.02 }}
+                className={cn(
+                  "flex gap-3",
+                  isMine && "flex-row-reverse"
+                )}
+              >
+                <div className="flex-shrink-0 mt-1">
+                  {message.author_avatar ? (
+                    <img
+                      src={message.author_avatar}
+                      alt={message.author_name}
+                      className="w-8 h-8 rounded-lg object-cover border border-border"
+                    />
+                  ) : isStaff ? (
+                    <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                      <Shield className="w-4 h-4" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg bg-secondary text-secondary-foreground flex items-center justify-center">
+                      <User className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+
                 <div
-                  key={msg.id}
-                  className={`flex gap-4 ${isCurrentUser ? "flex-row-reverse" : ""} animate-in slide-in-from-bottom-2`}
+                  className={cn(
+                    "max-w-[75%] flex flex-col",
+                    isMine && "items-end"
+                  )}
                 >
-                  {/* Avatar */}
-                  <div className="flex-shrink-0">
-                    {msg.author_avatar ? (
-                      <img
-                        src={msg.author_avatar}
-                        alt={msg.author_name}
-                        className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-lg"
-                      />
-                    ) : isStaffMessage ? (
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold border-2 border-white shadow-lg">
-                        <Shield className="w-6 h-6" />
-                      </div>
-                    ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white font-bold border-2 border-white shadow-lg">
-                        <User className="w-6 h-6" />
-                      </div>
+                  {!isMine && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-semibold text-foreground">
+                        {message.author_name}
+                      </span>
+                      {isStaff && (
+                        <span className="text-xs font-semibold bg-accent text-accent-foreground border border-border px-2 py-0.5 rounded-full">
+                          Staff
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div
+                    className={cn(
+                      "rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap break-words",
+                      isMine
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border text-foreground"
                     )}
+                  >
+                    {message.content}
                   </div>
 
-                  {/* Message Bubble */}
-                  <div className={`flex-1 max-w-[75%] ${isCurrentUser ? "items-end" : ""}`}>
-                    {!isCurrentUser && (
-                      <div className="flex items-center gap-2 mb-2 px-2">
-                        <span className="text-sm font-bold text-slate-800">
-                          {msg.author_name}
-                        </span>
-                        {isStaffMessage && (
-                          <span className="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-full font-bold shadow-md">
-                            STAFF
-                          </span>
-                        )}
-                      </div>
+                  <div
+                    className={cn(
+                      "flex items-center gap-1 mt-1 text-xs text-muted-foreground",
+                      isMine && "flex-row-reverse"
                     )}
-
-                    <div
-                      className={`rounded-3xl px-6 py-4 shadow-lg transition-all hover:shadow-xl ${
-                        isCurrentUser
-                          ? "bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 text-white"
-                          : "bg-white border-2 border-slate-200 text-slate-900"
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                        {msg.content}
-                      </p>
-                    </div>
-
-                    <div
-                      className={`flex items-center gap-2 mt-2 px-2 ${
-                        isCurrentUser ? "justify-end" : ""
-                      }`}
-                    >
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-xs text-slate-500 font-medium">
-                        {formatTimeAgo(msg.created_at)}
-                      </span>
-                    </div>
+                  >
+                    <Clock className="w-3 h-3" />
+                    <span>{timeAgo(message.created_at)}</span>
                   </div>
                 </div>
-              );
-            })
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+              </motion.div>
+            );
+          })
+        )}
+        <div ref={endRef} />
       </div>
 
-      {/* Success Toast */}
-      {showSuccess && (
-        <div className="mx-8 mb-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-2xl p-4 flex items-center gap-3 shadow-lg animate-in slide-in-from-bottom-2">
-          <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
-          <p className="text-sm font-bold text-emerald-900">
-            Message sent successfully!
-          </p>
+      {/* Notices */}
+      {success && (
+        <div className="mx-6 mb-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-accent border border-border">
+          <CheckCircle2 className="w-4 h-4 text-primary" />
+          <span className="text-xs font-semibold text-foreground">
+            Message sent successfully
+          </span>
         </div>
       )}
 
-      {/* Error Alert */}
       {error && (
-        <div className="mx-8 mb-4 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl p-4 flex items-center gap-3 shadow-lg">
-          <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
-          <p className="text-sm text-red-900 flex-1 font-medium">{error}</p>
+        <div className="mx-6 mb-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive">
+          <AlertCircle className="w-4 h-4 text-destructive" />
+          <span className="text-xs text-destructive flex-1">
+            {error}
+          </span>
           <button
             onClick={() => setError(null)}
-            className="ml-auto text-red-700 hover:text-red-900 font-bold text-xl transition-colors"
+            className="text-destructive font-semibold"
           >
             ×
           </button>
         </div>
       )}
 
-      {/* Input Area */}
-      <div className="p-8 bg-gradient-to-b from-slate-50 to-white border-t-2 border-slate-200">
-        <div className="flex gap-4">
+      {/* Input */}
+      <footer className="px-6 py-4 border-t border-border bg-card">
+        <div className="flex gap-3 items-end">
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`Message ${chatPartnerName}...`}
-              className="w-full px-6 py-4 pr-16 border-2 border-slate-300 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition-all shadow-sm"
-              rows={3}
-              disabled={isSending || connectionStatus === "disconnected"}
+              placeholder={`Message ${partnerName}`}
+              rows={2}
               maxLength={1000}
+              disabled={
+                sending || connection === "disconnected"
+              }
+              className="w-full resize-none rounded-2xl border border-input bg-background px-4 py-3 pr-14 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-primary transition-all disabled:opacity-50 scrollbar-hide"
             />
-            <div className="absolute bottom-4 right-4">
-              <span
-                className={`text-xs font-mono font-bold ${
-                  newMessage.length > 800 ? "text-orange-600" : "text-slate-400"
-                }`}
-              >
-                {newMessage.length}/1000
-              </span>
-            </div>
+            <span className="absolute bottom-3 right-4 text-xs font-mono text-muted-foreground">
+              {text.length}/1000
+            </span>
           </div>
+
           <button
             onClick={sendMessage}
             disabled={
-              !newMessage.trim() ||
-              isSending ||
-              connectionStatus === "disconnected"
+              !text.trim() ||
+              sending ||
+              connection === "disconnected"
             }
-            className={`self-end px-8 py-4 rounded-2xl font-bold text-white transition-all flex items-center gap-3 shadow-lg ${
-              !newMessage.trim() ||
-              isSending ||
-              connectionStatus === "disconnected"
-                ? "bg-slate-300 cursor-not-allowed"
-                : "bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 hover:shadow-2xl hover:scale-105 active:scale-95"
-            }`}
+            className={cn(
+              "w-10 h-10 rounded-2xl flex items-center justify-center transition-all",
+              !text.trim() ||
+                sending ||
+                connection === "disconnected"
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "bg-primary text-primary-foreground hover:opacity-90 active:scale-95"
+            )}
           >
-            {isSending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+            {sending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <>
-                <Send className="w-5 h-5" />
-                <span className="hidden sm:inline">Send</span>
-              </>
+              <Send className="w-4 h-4" />
             )}
           </button>
         </div>
-        <div className="flex items-center justify-between mt-4 px-2">
-          <p className="text-xs text-slate-500 font-medium">
-            Press{" "}
-            <kbd className="px-3 py-1.5 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono font-bold">
-              Enter
-            </kbd>{" "}
-            to send • {" "}
-            <kbd className="px-3 py-1.5 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono font-bold">
-              Shift + Enter
-            </kbd>{" "}
-            for new line
-          </p>
-        </div>
-      </div>
-    </div>
+
+        <p className="text-xs text-muted-foreground mt-2">
+          Press Enter to send · Shift + Enter for new line
+        </p>
+      </footer>
+    </section>
   );
 }

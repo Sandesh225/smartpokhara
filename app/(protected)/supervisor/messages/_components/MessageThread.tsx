@@ -108,13 +108,13 @@ export function MessageThread({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="bg-white px-6 py-3 border-b border-gray-200 flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-          <User className="h-4 w-4 text-gray-500" />
+      <div className="bg-card px-6 py-3 border-b border-border flex items-center gap-3">
+        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+          <User className="h-4 w-4 text-muted-foreground/70" />
         </div>
-        <h3 className="font-semibold text-gray-900">{otherUserName}</h3>
+        <h3 className="font-semibold text-foreground">{otherUserName}</h3>
       </div>
 
       {/* Messages Area */}
@@ -130,15 +130,15 @@ export function MessageThread({
                 className={cn(
                   "max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow-sm wrap-break-word",
                   isMe
-                    ? "bg-blue-600 text-white rounded-br-none"
-                    : "bg-white text-gray-800 border border-gray-200 rounded-bl-none"
+                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    : "bg-card text-foreground border border-border rounded-bl-none"
                 )}
               >
                 <p>{msg.message_text}</p>
                 <p
                   className={cn(
-                    "text-[10px] mt-1 text-right",
-                    isMe ? "text-blue-200" : "text-gray-400"
+                    "text-xs mt-1 text-right",
+                    isMe ? "text-primary-foreground/70" : "text-muted-foreground"
                   )}
                 >
                   {format(new Date(msg.created_at), "h:mm a")}
@@ -150,19 +150,19 @@ export function MessageThread({
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-gray-200">
+      <div className="p-4 bg-card border-t border-border">
         <form onSubmit={handleSend} className="flex gap-2">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 bg-gray-50 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+            className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-background transition-colors"
           />
           <button
             type="submit"
             disabled={!inputText.trim() || isSending}
-            className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSending ? (
               <Loader2 className="h-5 w-5 animate-spin" />

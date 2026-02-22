@@ -119,11 +119,11 @@ export default function NoticeDetailPage() {
         </motion.div>
 
         <div className="flex flex-wrap gap-3 mb-4">
-          <Badge className="bg-[rgb(var(--accent-nature))] text-white border-0 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-xl shadow-black/20">
+          <Badge className="bg-[rgb(var(--accent-nature))] text-white border-0 px-4 py-1.5 text-xs font-black uppercase tracking-widest shadow-xl shadow-black/20">
             {notice.notice_type?.replace("_", " ")}
           </Badge>
           {notice.is_urgent && (
-            <Badge className="bg-[rgb(var(--error-red))] text-white border-0 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest animate-pulse flex items-center gap-1">
+            <Badge className="bg-[rgb(var(--error-red))] text-white border-0 px-4 py-1.5 text-xs font-black uppercase tracking-widest animate-pulse flex items-center gap-1">
               <AlertOctagon className="w-3 h-3" /> Urgent
             </Badge>
           )}
@@ -164,7 +164,7 @@ export default function NoticeDetailPage() {
               <Feather className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Authority ID</p>
+              <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">Authority ID</p>
               <code className="text-sm font-mono font-bold text-foreground">{notice.id}</code>
             </div>
           </div>
@@ -207,7 +207,7 @@ function MetaItem({ icon: Icon, label, value }: any) {
         <Icon className="w-4 h-4 text-white" />
       </div>
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-white/50">{label}</p>
+        <p className="text-xs font-black uppercase tracking-widest text-white/50">{label}</p>
         <p className="text-sm font-bold text-white">{value}</p>
       </div>
     </div>

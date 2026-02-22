@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 type ReviewStepProps = {
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; name_nepali?: string | null }[];
   wards: { id: string; ward_number: number; name: string }[];
   previews: string[];
   attachments: File[];
@@ -36,7 +36,12 @@ export function ReviewStep({
       title: "Category & Title",
       step: 0,
       items: [
-        { label: "Category", value: selectedCategory?.name || "Not selected" },
+        { 
+          label: "Category", 
+          value: selectedCategory 
+            ? `${selectedCategory.name} ${selectedCategory.name_nepali ? `(${selectedCategory.name_nepali})` : ""}`
+            : "Not selected" 
+        },
         { label: "Title", value: values.title || "Not provided" },
       ],
     },
@@ -72,72 +77,82 @@ export function ReviewStep({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold mb-1">Review Your Complaint</h2>
-        <p className="text-sm text-muted-foreground">
-          Please verify all information before submitting
+      <div className="space-y-1.5 pb-6 border-b border-border">
+        <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Final Verification</h2>
+        <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+          Verify logic vectors and operational data prior to transmission.
         </p>
       </div>
 
       {/* Review Sections */}
-      <div className="space-y-4">
-        {sections.map((section) => (
+      <div className="grid gap-6">
+        {sections.map((section) => ( section.items.some(i => i.value) && (
           <div
             key={section.title}
-            className="bg-muted/30 rounded-lg p-4 border"
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-lg"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-sm">{section.title}</h3>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/20 group-hover:bg-primary transition-colors" />
+            
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-black uppercase tracking-wider text-foreground">
+                {section.title}
+              </h3>
               <button
                 type="button"
                 onClick={() => jumpToStep(section.step)}
-                className="text-xs text-primary hover:underline flex items-center gap-1"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-all"
               >
                 <Edit2 className="w-3 h-3" />
-                Edit
+                Refresh
               </button>
             </div>
-            <div className="space-y-2">
+
+            <div className="space-y-6">
               {section.items.map((item) => (
                 <div
                   key={item.label}
-                  className="flex flex-col sm:flex-row sm:items-start gap-1"
+                  className="space-y-1.5"
                 >
-                  <span className="text-xs font-medium text-muted-foreground w-28">
-                    {item.label}:
-                  </span>
-                  <span className="text-sm flex-1">{item.value}</span>
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">
+                    {item.label}
+                  </p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-foreground leading-relaxed">
+                    {item.value}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
-        ))}
+        )))}
 
         {/* Attachments */}
         {attachments.length > 0 && (
-          <div className="bg-muted/30 rounded-lg p-4 border">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-sm flex items-center gap-2">
-                <Image className="w-4 h-4" />
-                Attachments ({attachments.length})
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:shadow-lg">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/20 group-hover:bg-primary transition-colors" />
+            
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+                <Image className="w-4 h-4 text-primary" />
+                Attached Records ({attachments.length})
               </h3>
               <button
                 type="button"
                 onClick={() => jumpToStep(2)}
-                className="text-xs text-primary hover:underline flex items-center gap-1"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-all"
               >
                 <Edit2 className="w-3 h-3" />
-                Edit
+                Modify
               </button>
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
               {previews.map((preview, index) => (
-                <img
-                  key={index}
-                  src={preview}
-                  alt={`Attachment ${index + 1}`}
-                  className="w-full h-16 object-cover rounded border"
-                />
+                <div key={index} className="aspect-square rounded-xl overflow-hidden border border-border bg-muted/20">
+                  <img
+                    src={preview}
+                    alt={`Attachment ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -145,24 +160,25 @@ export function ReviewStep({
       </div>
 
       {/* Confirmation Message */}
-      <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-          <div>
-            <h4 className="font-semibold text-sm mb-1">Ready to Submit</h4>
-            <p className="text-xs text-muted-foreground">
-              Once submitted, your complaint will be assigned a tracking code
-              and routed to the appropriate ward officer for review.
+      <div className="relative overflow-hidden p-6 rounded-2xl border border-primary/20 bg-primary/5 group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/20 transition-all" />
+        <div className="flex items-start gap-4 relative z-10">
+          <div className="p-3 bg-card border border-primary/10 rounded-xl shadow-xs">
+            <CheckCircle2 className="w-6 h-6 text-primary" />
+          </div>
+          <div className="space-y-1.5 pt-0.5">
+            <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Readiness</h4>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed opacity-60 max-w-md">
+              Upon initializing transmission, this report will be encrypted and routed to the corresponding sector officer for immediate resolution protocols.
             </p>
           </div>
         </div>
       </div>
 
       {/* Terms */}
-      <div className="p-3 bg-muted/30 rounded-lg border border-dashed">
-        <p className="text-xs text-muted-foreground">
-          By submitting this complaint, you confirm that the information
-          provided is accurate to the best of your knowledge.
+      <div className="px-6 py-4 rounded-xl border border-dashed border-border bg-muted/10">
+        <p className="text-xs font-black text-muted-foreground/40 uppercase tracking-widest text-center leading-relaxed">
+          Initialization implies confirmation of data accuracy and adherence to municipal reporting directives.
         </p>
       </div>
     </div>

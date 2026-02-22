@@ -98,7 +98,7 @@ export default function CategoryManager({
                   </h4>
                   <Badge
                     variant="outline"
-                    className="text-[10px] font-bold border-primary/30 bg-primary/10 text-primary"
+                    className="text-xs font-bold border-primary/30 bg-primary/10 text-primary"
                   >
                     ACTIVE
                   </Badge>
@@ -192,7 +192,7 @@ function CategoryRow({ category, departments, onCancel, isNew }: any) {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4">
         {/* NAME */}
         <div className="md:col-span-3 space-y-1.5">
-          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
             Category Name
           </label>
           <input
@@ -206,7 +206,7 @@ function CategoryRow({ category, departments, onCancel, isNew }: any) {
 
         {/* DEPARTMENT */}
         <div className="md:col-span-3 space-y-1.5">
-          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+          <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
             <Building2 className="w-3 h-3" />
             Department Mapping
           </label>
@@ -226,7 +226,7 @@ function CategoryRow({ category, departments, onCancel, isNew }: any) {
 
         {/* SLA DAYS */}
         <div className="md:col-span-2 space-y-1.5">
-          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+          <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
             <Clock className="w-3 h-3" />
             SLA (Days)
           </label>
@@ -242,7 +242,7 @@ function CategoryRow({ category, departments, onCancel, isNew }: any) {
 
         {/* DESCRIPTION */}
         <div className="md:col-span-2 space-y-1.5">
-          <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
             Description
           </label>
           <input

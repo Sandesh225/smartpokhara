@@ -104,7 +104,7 @@ export function UserDetailsCard({ user }: UserDetailsProps) {
         {/* LEFT COLUMN */}
         <div className="space-y-4 md:space-y-5">
           <div>
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider block mb-2">
               Full Name
             </label>
             <div className="flex items-center gap-2 text-sm md:text-base font-black text-foreground">
@@ -113,7 +113,7 @@ export function UserDetailsCard({ user }: UserDetailsProps) {
           </div>
 
           <div>
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider block mb-2">
               Email Address
             </label>
             <div className="flex items-center gap-2">
@@ -127,7 +127,7 @@ export function UserDetailsCard({ user }: UserDetailsProps) {
           </div>
 
           <div>
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider block mb-2">
               Phone Number
             </label>
             <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export function UserDetailsCard({ user }: UserDetailsProps) {
         {/* RIGHT COLUMN */}
         <div className="space-y-4 md:space-y-5">
           <div>
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider block mb-2">
               Auth Provider
             </label>
             <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ export function UserDetailsCard({ user }: UserDetailsProps) {
           </div>
 
           <div>
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider block mb-2">
               Joined Date
             </label>
             <div className="flex items-center gap-2">
@@ -176,7 +176,7 @@ export function UserDetailsCard({ user }: UserDetailsProps) {
           </div>
 
           <div>
-            <label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+            <label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider block mb-2">
               Last Login
             </label>
             <div className="flex items-center gap-2">

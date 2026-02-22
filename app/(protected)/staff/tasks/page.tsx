@@ -4,6 +4,16 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/types/database.types";
 import { UniversalTaskTable } from "@/components/staff/shared/UniversalTaskTable";
+import { LayoutGrid, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 type Task = any; // Simplified for build fix, should use ProjectTask type from features/tasks
 
@@ -107,95 +117,56 @@ export default function StaffTasksPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-[1600px] mx-auto p-4 md:p-6 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="border-b border-gray-200 pb-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">My Tasks</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              View and manage tasks assigned to you by admin/supervisors.
-            </p>
+      <div>
+        <h1 className="text-xl font-black text-foreground flex items-center gap-3 uppercase tracking-tight">
+          <div className="p-2.5 bg-primary/10 text-primary rounded-xl border border-primary/20">
+            <LayoutGrid className="w-5 h-5" />
           </div>
-        </div>
+          My Task Board
+        </h1>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1 pl-0.5">
+          Manage and track your assigned tasks and assignments.
+        </p>
       </div>
 
-      {/* Filters */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-          <div>
-            <label
-              htmlFor="search"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Search
-            </label>
-            <input
-              type="text"
-              id="search"
-              placeholder="Search tasks..."
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={filters.search}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, search: e.target.value }))
-              }
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="status"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Status
-            </label>
-            <select
-              id="status"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={filters.status}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, status: e.target.value }))
-              }
-            >
-              <option value="">All Status</option>
-              <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="on_hold">On Hold</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="priority"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Priority
-            </label>
-            <select
-              id="priority"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={filters.priority}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, priority: e.target.value }))
-              }
-            >
-              <option value="">All Priorities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() =>
-                setFilters({ status: "", priority: "", search: "" })
-              }
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Clear Filters
-            </button>
-          </div>
+      {/* Filter Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-4 rounded-xl border border-border shadow-xs">
+        <div className="relative flex-1 group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors h-4 w-4" />
+          <Input
+            placeholder="Search tasks..."
+            className="pl-10 bg-muted/50 border-border focus:bg-card transition-all placeholder:text-xs placeholder:font-bold placeholder:uppercase placeholder:tracking-widest h-10 rounded-xl"
+            value={filters.search}
+            onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+          />
+        </div>
+
+        <div className="flex gap-2 w-full md:w-auto">
+          <Select value={filters.status} onValueChange={(val) => setFilters(prev => ({ ...prev, status: val }))}>
+            <SelectTrigger className="w-full md:w-40 bg-muted/50 border-border h-10 rounded-xl text-xs font-bold uppercase tracking-widest">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-border shadow-xl">
+              <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">All Status</SelectItem>
+              <SelectItem value="pending" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">Pending</SelectItem>
+              <SelectItem value="in_progress" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">In Progress</SelectItem>
+              <SelectItem value="completed" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.priority} onValueChange={(val) => setFilters(prev => ({ ...prev, priority: val }))}>
+            <SelectTrigger className="w-full md:w-40 bg-muted/50 border-border h-10 rounded-xl text-xs font-bold uppercase tracking-widest">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-border shadow-xl">
+              <SelectItem value="all" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">All Priority</SelectItem>
+              <SelectItem value="high" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">High</SelectItem>
+              <SelectItem value="medium" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">Medium</SelectItem>
+              <SelectItem value="low" className="text-xs font-bold uppercase tracking-widest focus:bg-primary/10 accent-primary">Low</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

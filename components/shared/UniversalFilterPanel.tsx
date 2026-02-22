@@ -185,7 +185,7 @@ export function UniversalFilterPanel({
         <Filter className="h-4 w-4" />
         Filters
         {activeCount > 0 && (
-          <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center dark:shadow-glow-sm">
+          <span className="bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center dark:shadow-glow-sm">
             {activeCount}
           </span>
         )}
@@ -229,7 +229,7 @@ export function UniversalFilterPanel({
             <div key={field.id} className="pb-2 border-b border-gray-100 dark:border-primary/5 last:border-0">
               <button
                 onClick={() => toggleSection(field.id)}
-                className="flex w-full items-center justify-between text-[11px] font-black uppercase tracking-widest text-muted-foreground dark:text-dark-text-tertiary mb-3 hover:text-primary transition-colors group"
+                className="flex w-full items-center justify-between text-sm font-black uppercase tracking-widest text-muted-foreground dark:text-dark-text-tertiary mb-3 hover:text-primary transition-colors group"
               >
                 <span>{field.label}</span>
                 <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", expandedSections[field.id] ? "rotate-180" : "")} />
@@ -283,7 +283,7 @@ export function UniversalFilterPanel({
                                   {opt.label}
                                 </span>
                                 {opt.count !== undefined && (
-                                  <span className="text-[10px] font-mono opacity-50">{opt.count}</span>
+                                  <span className="text-xs font-mono opacity-50">{opt.count}</span>
                                 )}
                               </label>
                             );
@@ -315,7 +315,7 @@ export function UniversalFilterPanel({
           <Button
             variant="outline"
             onClick={onClearFilters}
-            className="w-full gap-2 border-dashed border-muted-foreground/30 text-[10px] font-black uppercase tracking-widest hover:border-primary hover:text-primary"
+            className="w-full gap-2 border-dashed border-muted-foreground/30 text-xs font-black uppercase tracking-widest hover:border-primary hover:text-primary"
           >
             <RotateCcw className="h-3 w-3" />
             Reset Filters

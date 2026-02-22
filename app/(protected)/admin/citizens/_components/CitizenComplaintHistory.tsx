@@ -64,7 +64,7 @@ export default function ComplaintHistory({
                   <div className="flex items-center gap-2 self-start sm:self-auto">
                     <span
                       className={cn(
-                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap",
+                        "px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border whitespace-nowrap",
                         statusColors[c.status] || "bg-muted"
                       )}
                     >

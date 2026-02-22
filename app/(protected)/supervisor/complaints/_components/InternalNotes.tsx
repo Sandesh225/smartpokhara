@@ -32,12 +32,12 @@ export function InternalNotes({
 }: InternalNotesProps) {
   return (
     <Card className="p-6">
-      <div className="flex items-center gap-2 mb-6 text-amber-700">
+      <div className="flex items-center gap-2 mb-4 text-foreground/80">
         <StickyNote className="h-5 w-5" />
-        <h3 className="font-bold uppercase tracking-wider text-sm">Internal Work Log & Notes</h3>
+        <h3 className="font-bold text-sm">Internal Work Log & Notes</h3>
       </div>
 
-      <div className="bg-amber-50/50 rounded-xl border border-amber-100 overflow-hidden h-[400px]">
+      <div className="bg-card rounded-xl border border-border overflow-hidden h-[400px] shadow-xs">
         <UniversalMessaging
           channelType="OFFICIAL_NOTE"
           channelId={complaintId}

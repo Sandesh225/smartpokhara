@@ -79,27 +79,27 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
       {/* 1. Basic Info */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-2">Task Details</h3>
+      <div className="bg-card p-6 rounded-xl border border-border shadow-xs space-y-4">
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">Task Details</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Task Title <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-foreground mb-1">Task Title <span className="text-destructive">*</span></label>
             <input 
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full p-2.5 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary outline-none"
               placeholder="e.g. Inspect Water Pump Station A"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Task Type</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Task Type</label>
             <select 
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full p-2.5 border border-gray-300 rounded-lg bg-white"
+              className="w-full p-2.5 border border-border bg-background rounded-lg"
             >
               <option value="preventive_maintenance">Preventive Maintenance</option>
               <option value="inspection">Inspection</option>
@@ -110,11 +110,11 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Priority</label>
             <select 
               value={priority}
               onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high" | "urgent")}
-              className="w-full p-2.5 border border-gray-300 rounded-lg bg-white"
+              className="w-full p-2.5 border border-border bg-background rounded-lg"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -124,12 +124,12 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Description</label>
             <textarea 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+              className="w-full p-2.5 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none"
               placeholder="Detailed instructions for the staff..."
             />
           </div>
@@ -137,19 +137,19 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
       </div>
 
       {/* 2. Assignment & Schedule */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-2">Assignment & Schedule</h3>
+      <div className="bg-card p-6 rounded-xl border border-border shadow-xs space-y-4">
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">Assignment & Schedule</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Assign To <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-foreground mb-1">Assign To <span className="text-destructive">*</span></label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <select 
                 required
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg bg-white appearance-none"
+                className="w-full pl-9 pr-4 py-2.5 border border-border bg-background rounded-lg appearance-none"
               >
                 <option value="">Select Staff Member</option>
                 {supervisedStaff.map(s => (
@@ -160,15 +160,15 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Due Date <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-foreground mb-1">Due Date <span className="text-destructive">*</span></label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input 
                 type="datetime-local"
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg outline-none"
+                className="w-full pl-9 pr-4 py-2.5 border border-border bg-background rounded-lg outline-none"
               />
             </div>
           </div>
@@ -176,8 +176,8 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
       </div>
 
       {/* 3. Checklist */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-2">Checklist (Optional)</h3>
+      <div className="bg-card p-6 rounded-xl border border-border shadow-xs space-y-4">
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">Checklist (Optional)</h3>
         
         <div className="flex gap-2">
           <input 
@@ -186,12 +186,12 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
             onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddChecklist(e)}
             placeholder="Add a checklist item..."
-            className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm outline-none"
+            className="flex-1 p-2.5 border border-border bg-background rounded-lg text-sm outline-none"
           />
           <button 
             type="button"
             onClick={handleAddChecklist}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+            className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors border border-border"
           >
             <Plus className="h-5 w-5" />
           </button>
@@ -199,12 +199,12 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
 
         <ul className="space-y-2">
           {checklist.map((item, idx) => (
-            <li key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 group">
-              <span className="text-sm text-gray-700">{item}</span>
+            <li key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border group">
+              <span className="text-sm text-foreground">{item}</span>
               <button 
                 type="button" 
                 onClick={() => removeChecklist(idx)}
-                className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -217,16 +217,16 @@ export function TaskCreationForm({ supervisedStaff, supervisorId }: Props) {
         <button 
           type="button" 
           onClick={() => router.back()}
-          className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="px-6 py-2.5 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-muted"
         >
           Cancel
         </button>
         <button 
           type="submit" 
           disabled={loading}
-          className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 shadow-sm"
+          className="px-6 py-2.5 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2 shadow-sm"
         >
-          {loading ? <LoadingSpinner size="sm" className="text-white" /> : <Save className="h-4 w-4" />}
+          {loading ? <LoadingSpinner size="sm" className="text-primary-foreground" /> : <Save className="h-4 w-4" />}
           Create Task
         </button>
       </div>

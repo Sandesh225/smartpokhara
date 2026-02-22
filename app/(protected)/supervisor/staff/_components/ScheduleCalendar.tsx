@@ -17,20 +17,20 @@ const SHIFTS = [
 export function ScheduleCalendar() {
   const getTypeColor = (type: string) => {
     switch(type) {
-      case 'working': return "bg-green-100 text-green-700 border-green-200";
-      case 'off': return "bg-gray-100 text-gray-500 border-gray-200";
-      case 'leave': return "bg-red-100 text-red-700 border-red-200";
-      case 'on_call': return "bg-amber-100 text-amber-700 border-amber-200";
-      default: return "bg-gray-50";
+      case 'working': return "bg-success-green/10 text-success-green border-success-green/20";
+      case 'off': return "bg-muted text-muted-foreground border-border";
+      case 'leave': return "bg-destructive/10 text-destructive border-destructive/20";
+      case 'on_call': return "bg-warning-amber/10 text-warning-amber border-warning-amber/20";
+      default: return "bg-muted/30";
     }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-      <h3 className="text-base font-semibold text-gray-900 mb-4">Upcoming Schedule</h3>
+    <div className="bg-card rounded-xl border border-border shadow-xs p-6">
+      <h3 className="text-base font-semibold text-foreground mb-4">Upcoming Schedule</h3>
       <div className="grid grid-cols-7 gap-2">
         {DAYS.map(day => (
-          <div key={day} className="text-center text-xs font-semibold text-gray-500 uppercase mb-2">
+          <div key={day} className="text-center text-xs font-semibold text-muted-foreground uppercase mb-2">
             {day}
           </div>
         ))}
@@ -40,7 +40,7 @@ export function ScheduleCalendar() {
             getTypeColor(shift.type)
           )}>
             <span className="text-xs font-bold block mb-1">{shift.type.replace('_', ' ').toUpperCase()}</span>
-            <span className="text-[10px] opacity-80">{shift.label}</span>
+            <span className="text-xs opacity-80">{shift.label}</span>
           </div>
         ))}
       </div>

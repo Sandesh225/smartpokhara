@@ -79,10 +79,10 @@ export default function SchedulePage() {
         {/* Main Calendar Area */}
         <div className="lg:col-span-3">
           {loading ? (
-            <div className="h-96 w-full flex flex-col items-center justify-center bg-white rounded-2xl border border-gray-200">
-              <LoadingSpinner className="w-8 h-8 text-blue-600 mb-4" />
-              <p className="text-gray-400 text-sm animate-pulse">
-                Loading schedule...
+            <div className="h-96 w-full flex flex-col items-center justify-center bg-card rounded-2xl border border-border border-dashed">
+              <LoadingSpinner className="w-8 h-8 text-primary mb-4" />
+              <p className="text-muted-foreground/40 text-xs font-bold uppercase tracking-widest animate-pulse italic">
+                Syncing schedule...
               </p>
             </div>
           ) : viewMode === "day" ? (
@@ -98,11 +98,12 @@ export default function SchedulePage() {
 
         {/* Right Sidebar: Upcoming Tasks */}
         <div className="space-y-6">
-          <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
-            <h3 className="font-bold text-lg mb-1">Quick Note</h3>
-            <p className="text-blue-100 text-sm leading-relaxed">
+          <div className="bg-info-blue/10 rounded-2xl p-6 text-info-blue border border-info-blue/20 shadow-xs relative overflow-hidden group">
+            <div className="absolute -top-10 -right-10 h-32 w-32 bg-info-blue/5 rounded-full blur-3xl group-hover:scale-150 transition-transform" />
+            <h3 className="font-black text-xs uppercase tracking-widest mb-2 relative z-10">Quick Note</h3>
+            <p className="text-sm font-bold leading-relaxed relative z-10 opacity-90">
               Shift timings are subject to change by ward supervisors. Check
-              daily.
+              daily for updates.
             </p>
           </div>
 

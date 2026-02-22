@@ -47,22 +47,22 @@ export function TasksTable({
           <table className="w-full text-sm">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Task
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Assignee
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Priority
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Deadline
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Status
                 </th>
-                <th className="px-4 py-3 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-right text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Actions
                 </th>
               </tr>
@@ -84,7 +84,7 @@ export function TasksTable({
                       <div className="text-xs text-muted-foreground truncate max-w-[250px] mt-1">
                         {task.description}
                       </div>
-                      <div className="text-[10px] font-mono text-muted-foreground mt-1">
+                      <div className="text-xs font-mono text-muted-foreground mt-1">
                         {task.tracking_code}
                       </div>
                     </td>
@@ -114,7 +114,7 @@ export function TasksTable({
                         {format(new Date(task.due_date), "MMM d, yyyy")}
                       </div>
                       {isOverdue && (
-                        <div className="text-[10px] text-error-red font-bold uppercase mt-0.5">
+                        <div className="text-xs text-error-red font-bold uppercase mt-0.5">
                           Overdue
                         </div>
                       )}
@@ -179,7 +179,7 @@ export function TasksTable({
                   >
                     {task.title}
                   </Link>
-                  <p className="text-[10px] font-mono text-muted-foreground mt-1">
+                  <p className="text-xs font-mono text-muted-foreground mt-1">
                     {task.tracking_code}
                   </p>
                 </div>
@@ -197,7 +197,7 @@ export function TasksTable({
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6 border border-border">
                     <AvatarImage src={task.assignee?.avatar_url} />
-                    <AvatarFallback className="text-[10px]">
+                    <AvatarFallback className="text-xs">
                       {task.assignee?.full_name?.[0] || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -211,7 +211,7 @@ export function TasksTable({
               {/* Status & Deadline */}
               <div className="flex items-center justify-between gap-2 pt-3 border-t border-border">
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">
+                  <p className="text-xs text-muted-foreground uppercase font-bold mb-1">
                     Deadline
                   </p>
                   <p
@@ -227,7 +227,7 @@ export function TasksTable({
                   defaultValue={task.status}
                   onValueChange={(val) => onStatusChange(task.id, val)}
                 >
-                  <SelectTrigger className="h-8 w-[120px] text-[10px]">
+                  <SelectTrigger className="h-8 w-[120px] text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -257,7 +257,7 @@ function BadgePriority({ priority }: { priority: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border",
         config[priority] || config.medium
       )}
     >

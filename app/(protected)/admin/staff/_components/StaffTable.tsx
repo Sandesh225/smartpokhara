@@ -18,6 +18,8 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { StatusBadge } from "@/components/shared";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +29,6 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 interface StaffTableProps {
   data: AdminStaffListItem[];
@@ -60,19 +61,19 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Staff Member
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Assignment
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest w-[200px]">
+                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest w-[200px]">
                   Workload
                 </th>
-                <th className="px-4 py-3 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-4 py-3 text-right text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Actions
                 </th>
               </tr>
@@ -137,7 +138,7 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
 
                   {/* Status */}
                   <td className="px-4 py-4">
-                    <StatusBadge status={staff.availability_status} />
+                    <StatusBadge status={staff.availability_status} variant="staff" />
                   </td>
 
                   {/* Workload */}
@@ -148,7 +149,7 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
                           <Clock className="w-3 h-3 text-primary" />
                           {staff.current_workload || 0} Active
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           Cap: 10
                         </span>
                       </div>
@@ -177,7 +178,7 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel className="text-[10px] font-black uppercase">
+                          <DropdownMenuLabel className="text-xs font-black uppercase">
                             Manage Staff
                           </DropdownMenuLabel>
                           <DropdownMenuSeparator />
@@ -290,7 +291,7 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
             {/* Status & Workload */}
             <div className="pt-3 border-t border-border space-y-2">
               <div className="flex items-center justify-between">
-                <StatusBadge status={staff.availability_status} />
+                <StatusBadge status={staff.availability_status} variant="staff" />
                 <span className="text-xs font-bold text-foreground">
                   {staff.current_workload || 0}/10 Tasks
                 </span>
@@ -311,72 +312,6 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// STATUS BADGE COMPONENT
-// ═══════════════════════════════════════════════════════════
-
-function StatusBadge({ status }: { status: string }) {
-  const config = {
-    available: {
-      color: "bg-success-green",
-      text: "text-success-green",
-      bg: "bg-success-green/10",
-      label: "Available",
-    },
-    busy: {
-      color: "bg-warning-amber",
-      text: "text-warning-amber",
-      bg: "bg-warning-amber/10",
-      label: "Busy",
-    },
-    on_break: {
-      color: "bg-info-blue",
-      text: "text-info-blue",
-      bg: "bg-info-blue/10",
-      label: "On Break",
-    },
-    off_duty: {
-      color: "bg-muted-foreground",
-      text: "text-muted-foreground",
-      bg: "bg-muted",
-      label: "Off Duty",
-    },
-    on_leave: {
-      color: "bg-secondary",
-      text: "text-secondary",
-      bg: "bg-secondary/10",
-      label: "On Leave",
-    },
-    default: {
-      color: "bg-muted-foreground",
-      text: "text-muted-foreground",
-      bg: "bg-muted",
-      label: "Offline",
-    },
-  };
-
-  const style = config[status as keyof typeof config] || config.default;
-
-  return (
-    <div
-      className={cn(
-        "inline-flex items-center gap-1.5 md:gap-2 px-2 md:px-2.5 py-1 rounded-full border border-transparent",
-        style.bg
-      )}
-    >
-      <span
-        className={cn(
-          "h-1.5 w-1.5 md:h-2 md:w-2 rounded-full",
-          style.color,
-          status === "available" && "animate-pulse"
-        )}
-      />
-      <span className={cn("text-[10px] md:text-xs font-bold", style.text)}>
-        {style.label}
-      </span>
-    </div>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════
 // SKELETON LOADER

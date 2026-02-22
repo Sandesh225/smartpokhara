@@ -11,10 +11,11 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
   const unassignedCount = metrics?.unassigned_complaints ?? metrics?.unassignedCount ?? 0;
   const resolvedTodayCount = metrics?.resolved_today ?? metrics?.resolvedTodayCount ?? 0;
   const overdueCount = metrics?.overdue_complaints ?? metrics?.overdueCount ?? 0;
+  const slaComplianceRate = metrics?.sla_compliance_rate ?? metrics?.slaComplianceRate ?? null;
 
   // Dynamically calculate compliance if not provided by the API
   const totalForSla = activeCount + resolvedTodayCount + overdueCount;
-  const compliance = metrics?.slaComplianceRate ?? 
+  const compliance = slaComplianceRate ?? 
     (totalForSla > 0 ? Math.round(((totalForSla - overdueCount) / totalForSla) * 100) : 100);
 
   const cards = [
@@ -23,7 +24,7 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
       value: activeCount,
       icon: Briefcase,
       color: "text-primary",
-      bg: "bg-primary/10",
+      bg: "bg-primary/10 border-primary/20",
       href: "/supervisor/complaints?status=active",
       subtitle: "Total workload",
     },
@@ -31,8 +32,8 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
       label: "Unassigned Queue",
       value: unassignedCount,
       icon: AlertCircle,
-      color: "text-orange-500",
-      bg: "bg-orange-500/10",
+      color: "text-warning-amber",
+      bg: "bg-warning-amber/10 border-warning-amber/20",
       href: "/supervisor/complaints/unassigned",
       subtitle: "Pending allocation",
     },
@@ -40,8 +41,8 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
       label: "SLA Compliance",
       value: `${compliance}%`,
       icon: compliance >= 80 ? CheckCircle2 : AlertCircle,
-      color: compliance >= 80 ? "text-success" : "text-destructive",
-      bg: compliance >= 80 ? "bg-success/10" : "bg-destructive/10",
+      color: compliance >= 80 ? "text-success-green" : "text-destructive",
+      bg: compliance >= 80 ? "bg-success-green/10 border-success-green/20" : "bg-destructive/10 border-destructive/20",
       href: "/supervisor/analytics?view=sla",
       subtitle: compliance >= 80 ? "Above target" : "Below target",
     },
@@ -49,8 +50,8 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
       label: "Resolved Today",
       value: resolvedTodayCount,
       icon: CheckCircle2,
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
+      color: "text-info-blue",
+      bg: "bg-info-blue/10 border-info-blue/20",
       href: "/supervisor/complaints?status=resolved&period=today",
       subtitle: "Daily throughput",
     },
@@ -86,63 +87,67 @@ export function QuickActions({ counts }: { counts: any }) {
       icon: Users,
       href: "/supervisor/complaints/unassigned",
       badge: counts.unassigned,
-      gradient: "from-blue-500/20 to-primary/20",
+      bg: "bg-info-blue/10",
+      color: "text-info-blue",
     },
     {
       label: "Review Overdue",
       icon: Clock,
       href: "/supervisor/complaints/overdue",
       badge: counts.overdue,
-      gradient: "from-destructive/20 to-red-600/20",
+      bg: "bg-destructive/10",
+      color: "text-destructive",
     },
     {
       label: "View Analytics",
       icon: BarChart3,
       href: "/supervisor/analytics",
-      gradient: "from-purple-500/20 to-indigo-600/20",
+      bg: "bg-primary/10",
+      color: "text-primary",
     },
     {
       label: "Team Calendar",
       icon: Calendar,
       href: "/supervisor/calendar",
-      gradient: "from-emerald-500/20 to-success/20",
+      bg: "bg-success-green/10",
+      color: "text-success-green",
     },
   ];
 
   return (
-    <div className="stone-card p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-foreground">
+    <div className="bg-card border border-border rounded-xl shadow-xs p-5 md:p-6 transition-all duration-300">
+      <div className="flex items-center justify-between mb-5 md:mb-6">
+        <h3 className="text-base md:text-lg font-bold text-foreground tracking-tight">
           Operational Shortcuts
         </h3>
-        <button className="text-xs font-bold text-primary flex items-center gap-1 group">
+        <button className="text-xs font-bold text-primary flex items-center gap-1 group hover:text-primary/80 transition-colors">
           View All{" "}
           <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {actions.map((action) => (
           <Link
             key={action.label}
             href={action.href}
-            className="group relative stone-card p-4 border-border/40 hover:border-primary/50 transition-all bg-linear-to-br from-transparent to-muted/10"
+            className="group relative bg-background border border-border hover:border-primary/50 hover:bg-muted/30 rounded-lg p-3 md:p-4 transition-all duration-200 block"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  "h-10 w-10 rounded-lg flex items-center justify-center bg-linear-to-br transition-transform group-hover:scale-110",
-                  action.gradient
+                  "h-10 w-10 shrink-0 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105",
+                  action.bg
                 )}
               >
-                <action.icon className="h-5 w-5 text-foreground" />
+                <action.icon className={cn("h-5 w-5", action.color)} />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                   {action.label}
                 </h4>
               </div>
               {action.badge > 0 && (
-                <span className="h-5 min-w-[1.25rem] px-1 rounded-full bg-destructive text-[10px] font-bold text-white flex items-center justify-center shadow-lg">
+                <span className="h-5 min-w-[1.25rem] px-1 rounded-full bg-destructive text-xs font-bold text-white flex items-center justify-center shadow-lg">
                   {action.badge}
                 </span>
               )}

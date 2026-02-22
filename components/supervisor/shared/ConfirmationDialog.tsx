@@ -116,7 +116,7 @@ export function ConfirmationDialog({
               <button
                 onClick={onClose}
                 disabled={isLoading}
-                className="flex-1 rounded-xl border border-gray-300 dark:border-primary/20 bg-white dark:bg-transparent px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-dark-text-tertiary hover:bg-gray-50 dark:hover:bg-primary/5 transition-all disabled:opacity-50"
+                className="flex-1 rounded-xl border border-gray-300 dark:border-primary/20 bg-white dark:bg-transparent px-4 py-2.5 text-xs font-black uppercase tracking-widest text-gray-700 dark:text-dark-text-tertiary hover:bg-gray-50 dark:hover:bg-primary/5 transition-all disabled:opacity-50"
               >
                 {cancelLabel}
               </button>
@@ -124,7 +124,7 @@ export function ConfirmationDialog({
                 onClick={onConfirm}
                 disabled={isLoading}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-70",
+                  "flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-70",
                   btn
                 )}
               >

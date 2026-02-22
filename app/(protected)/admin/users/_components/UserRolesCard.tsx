@@ -310,7 +310,7 @@ export function UserRolesCard({
           <div className="bg-info-blue/5 border-2 border-info-blue/20 rounded-lg p-3 md:p-4">
             <div className="flex items-center gap-2 mb-2">
               <MapPin className="w-4 h-4 text-info-blue" />
-              <span className="text-[10px] md:text-[11px] font-bold text-info-blue uppercase tracking-wider">
+              <span className="text-xs md:text-sm font-bold text-info-blue uppercase tracking-wider">
                 Current Jurisdiction
               </span>
             </div>
@@ -346,7 +346,7 @@ export function UserRolesCard({
 
         {/* ACTIVE ROLES */}
         <div className="space-y-3">
-          <Label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <Label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
             Active Roles
           </Label>
           {user.user_roles && user.user_roles.length > 0 ? (
@@ -365,7 +365,7 @@ export function UserRolesCard({
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-[10px] font-bold",
+                          "text-xs font-bold",
                           getRoleBadgeStyle(ur.role?.role_type || "")
                         )}
                       >
@@ -374,13 +374,13 @@ export function UserRolesCard({
                       {ur.is_primary && (
                         <Badge
                           variant="outline"
-                          className="text-[10px] font-bold border-warning-amber/30 bg-warning-amber/10 text-warning-amber"
+                          className="text-xs font-bold border-warning-amber/30 bg-warning-amber/10 text-warning-amber"
                         >
                           PRIMARY
                         </Badge>
                       )}
                     </div>
-                    <p className="text-[10px] md:text-xs text-muted-foreground font-medium">
+                    <p className="text-xs md:text-xs text-muted-foreground font-medium">
                       Assigned:{" "}
                       {ur.assigned_at
                         ? new Date(ur.assigned_at).toLocaleDateString("en-US", {
@@ -420,7 +420,7 @@ export function UserRolesCard({
 
         {/* ADD NEW ROLE */}
         <div className="space-y-4">
-          <Label className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <Label className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
             Assign New Role
           </Label>
 
@@ -437,7 +437,7 @@ export function UserRolesCard({
                       <span>{role.name}</span>
                       {(role.role_type === "dept_head" ||
                         role.role_type === "admin") && (
-                        <Badge className="text-[10px]" variant="secondary">
+                        <Badge className="text-xs" variant="secondary">
                           Supervisor
                         </Badge>
                       )}

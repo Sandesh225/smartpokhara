@@ -18,7 +18,7 @@ export function AttendanceTracker({ logs }: { logs: any[] }) {
                  </div>
                  <div className="text-right">
                     <div className="font-mono font-bold text-slate-700">{log.total_hours_worked || 0} hrs</div>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${log.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${log.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                        {log.status}
                     </span>
                  </div>

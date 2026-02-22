@@ -111,7 +111,7 @@ export default function NoticeCard({
                     ease: "easeInOut",
                   }}
                 >
-                  <Badge className="bg-destructive text-destructive-foreground border-0 hover:bg-destructive px-3 py-1.5 shadow-lg shadow-destructive/30 font-black text-[10px]">
+                  <Badge className="bg-destructive text-destructive-foreground border-0 hover:bg-destructive px-3 py-1.5 shadow-lg shadow-destructive/30 font-black text-xs">
                     <AlertOctagon className="w-3 h-3 mr-1.5" /> URGENT
                   </Badge>
                 </motion.div>
@@ -120,7 +120,7 @@ export default function NoticeCard({
               <Badge
                 variant="outline"
                 className={cn(
-                  "capitalize font-bold border-2 px-3 py-1.5 text-[10px] backdrop-blur-sm",
+                  "capitalize font-bold border-2 px-3 py-1.5 text-xs backdrop-blur-sm",
                   typeConfig.color,
                   typeConfig.bg,
                   typeConfig.border
@@ -131,12 +131,12 @@ export default function NoticeCard({
               </Badge>
 
               {isUnread && (
-                <Badge className="bg-warning-amber text-white border-0 hover:bg-warning-amber px-3 py-1.5 font-black text-[10px] shadow-md">
+                <Badge className="bg-warning-amber text-white border-0 hover:bg-warning-amber px-3 py-1.5 font-black text-xs shadow-md">
                   <Sparkles className="w-3 h-3 mr-1.5" /> New
                 </Badge>
               )}
 
-              <div className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground tabular-nums">
+              <div className="ml-auto flex items-center gap-1.5 text-sm font-bold text-muted-foreground tabular-nums">
                 <Clock className="w-3.5 h-3.5" />
                 {format(new Date(notice.published_at), "MMM d, yyyy")}
               </div>

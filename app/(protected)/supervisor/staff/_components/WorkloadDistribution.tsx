@@ -11,9 +11,9 @@ interface WorkloadDistributionProps {
 }
 
 const getBarColor = (percentage: number) => {
-  if (percentage >= 80) return "#DC2626";
-  if (percentage >= 60) return "#F59E0B";
-  return "#2563EB";
+  if (percentage >= 80) return "var(--destructive)";
+  if (percentage >= 60) return "var(--warning-amber)";
+  return "var(--primary)";
 };
 
 export function WorkloadDistribution({ staff }: WorkloadDistributionProps) {
@@ -24,15 +24,15 @@ export function WorkloadDistribution({ staff }: WorkloadDistributionProps) {
   }));
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-80">
-      <h3 className="text-sm font-semibold text-gray-900 mb-4">Team Workload Distribution</h3>
+    <div className="bg-card p-6 rounded-xl border border-border shadow-xs h-80">
+      <h3 className="text-sm font-semibold text-foreground mb-4">Team Workload Distribution</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
           <XAxis type="number" domain={[0, 100]} hide />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={80} />
+          <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "var(--foreground)" }} width={80} />
           <Tooltip 
-             cursor={{fill: '#f3f4f6'}}
-             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+             cursor={{fill: 'var(--muted)'}}
+             contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', backgroundColor: 'var(--card)' }}
           />
           <Bar dataKey="workload" barSize={20} radius={[0, 4, 4, 0]}>
             {data.map((entry, index) => (

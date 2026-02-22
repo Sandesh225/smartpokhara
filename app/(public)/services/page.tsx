@@ -161,12 +161,12 @@ export default function ServicesPage() {
                       {/* Online/Offline Badge */}
                       <div className="absolute top-6 right-6">
                         {service.status === "online" ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded-full text-xs font-bold uppercase tracking-wider">
                             <CheckCircle2 className="w-3 h-3" />
                             Digital
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-600 border border-blue-500/20 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-600 border border-blue-500/20 rounded-full text-xs font-bold uppercase tracking-wider">
                             <AlertCircle className="w-3 h-3" />
                             Office
                           </span>
@@ -181,18 +181,18 @@ export default function ServicesPage() {
                       </p>
 
                       <div className="grid grid-cols-2 gap-3 mb-5 py-3 border-y border-border/50">
-                        <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                           <Clock className="w-3.5 h-3.5 text-primary-brand" />
                           <span>{service.processing}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                           <CreditCard className="w-3.5 h-3.5 text-primary-brand" />
                           <span>{service.fee}</span>
                         </div>
                       </div>
 
                       <div className="mb-6">
-                        <p className="text-[11px] font-bold text-foreground uppercase tracking-wider mb-2">Requirements:</p>
+                        <p className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">Requirements:</p>
                         <ul className="space-y-1.5">
                           {service.documents.map((doc, dIdx) => (
                             <li key={dIdx} className="text-xs text-muted-foreground flex items-start gap-2">

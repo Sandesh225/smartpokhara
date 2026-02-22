@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
-import { MapPin, AlertCircle, Home, Loader2, Sparkles } from "lucide-react";
+import { MapPin, AlertCircle, Home, Loader2, Sparkles, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
@@ -77,11 +78,11 @@ export function LocationStep({ wards }: LocationStepProps) {
   return (
     <div className="space-y-6">
       {/* Header with Auto-fill Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold mb-1">Location Information</h2>
-          <p className="text-sm text-muted-foreground">
-            Specify where the issue is located
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-border">
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Zone Assignment</h2>
+          <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+            Specify the geographic coordinates or sector for resolution.
           </p>
         </div>
 
@@ -89,58 +90,46 @@ export function LocationStep({ wards }: LocationStepProps) {
           type="button"
           onClick={() => fillFromProfile(false)}
           disabled={loadingProfile}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors self-start sm:self-center"
+          className="inline-flex items-center gap-3 px-6 h-11 text-xs font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-all active:scale-95 border border-primary/10 shadow-xs"
         >
           {loadingProfile ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
             <Home className="w-3.5 h-3.5" />
           )}
-          Use my registered address
+          Import Profile Vectors
         </button>
       </div>
 
-      {/* Ward Selection */}
-      <div>
-        <label className="block text-sm font-medium mb-2">
-          Ward <span className="text-destructive">*</span>
+      {/* Sector Selection */}
+      <div className="space-y-3">
+        <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
+          Assigned Ward <span className="text-primary ml-1">•</span>
         </label>
         <Controller
           name="ward_id"
           control={control}
           render={({ field }) => (
-            <div className="relative">
+            <div className="relative group">
               <select
                 {...field}
-                className="w-full px-3 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                className="w-full h-12 px-5 rounded-xl border border-border bg-background text-sm font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all group-hover:border-primary/20"
               >
-                <option value="">Select ward...</option>
+                <option value="">Select Sector Specification...</option>
                 {wards.map((ward) => (
                   <option key={ward.id} value={ward.id}>
-                    Ward {ward.ward_number} - {ward.name}
+                    Sector 0{ward.ward_number} — {ward.name}
                   </option>
                 ))}
               </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/40">
+                <ChevronRight className="w-4 h-4 rotate-90" />
               </div>
             </div>
           )}
         />
         {errors.ward_id && (
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-destructive">
+          <div className="flex items-center gap-2 px-1 text-xs font-black uppercase tracking-widest text-destructive">
             <AlertCircle className="w-3 h-3" />
             {errors.ward_id.message as string}
           </div>
@@ -148,9 +137,9 @@ export function LocationStep({ wards }: LocationStepProps) {
       </div>
 
       {/* Address */}
-      <div>
-        <label className="block text-sm font-medium mb-2">
-          Detailed Address <span className="text-destructive">*</span>
+      <div className="space-y-3">
+        <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
+          Detailed Location Identity <span className="text-primary ml-1">•</span>
         </label>
         <Controller
           name="address_text"
@@ -159,16 +148,16 @@ export function LocationStep({ wards }: LocationStepProps) {
             <div className="relative group">
               <textarea
                 {...field}
-                rows={3}
-                placeholder="Enter street name, landmark, or other location details..."
-                className="w-full px-3 py-2 rounded-lg border bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                rows={4}
+                placeholder="Enter street name, landmark markers, or specific operational zone data..."
+                className="w-full px-6 py-4 rounded-2xl border border-border bg-background text-sm font-bold uppercase tracking-widest placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all group-hover:border-primary/20"
               />
               {/* Magic Wand Hint */}
               {!field.value && !loadingProfile && (
                 <button
                   type="button"
                   onClick={() => fillFromProfile(false)}
-                  className="absolute bottom-3 right-3 text-muted-foreground hover:text-primary transition-colors"
+                  className="absolute bottom-4 right-4 p-2 rounded-lg bg-primary/5 text-primary hover:bg-primary/10 transition-colors shadow-xs"
                   title="Auto-fill from profile"
                 >
                   <Sparkles className="w-4 h-4" />
@@ -178,7 +167,7 @@ export function LocationStep({ wards }: LocationStepProps) {
           )}
         />
         {errors.address_text && (
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-destructive">
+          <div className="flex items-center gap-2 px-1 text-xs font-black uppercase tracking-widest text-destructive">
             <AlertCircle className="w-3 h-3" />
             {errors.address_text.message as string}
           </div>
@@ -186,17 +175,18 @@ export function LocationStep({ wards }: LocationStepProps) {
       </div>
 
       {/* GPS Coordinates (Optional) */}
-      <div className="p-4 bg-muted/50 rounded-lg border border-dashed">
-        <div className="flex items-start gap-3">
-          <MapPin className="w-5 h-5 text-primary mt-0.5" />
-          <div>
-            <h4 className="font-semibold text-sm mb-1">
-              GPS Location (Optional)
+      <div className="relative overflow-hidden p-6 rounded-2xl border border-border bg-muted/20 group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-all" />
+        <div className="flex items-start gap-4 relative z-10">
+          <div className="p-3 bg-card border border-border rounded-xl shadow-xs">
+            <MapPin className="w-5 h-5 text-primary" />
+          </div>
+          <div className="space-y-1.5">
+            <h4 className="text-xs font-black uppercase tracking-widest text-foreground">
+              Geospatial Vectoring <span className="text-muted-foreground/40 font-bold ml-1">(Optional)</span>
             </h4>
-            <p className="text-xs text-muted-foreground">
-              Adding GPS coordinates helps our team locate the issue precisely.
-              (Your current location will be requested upon submission if
-              supported).
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed opacity-60 max-w-sm">
+              Attaching precise GPS telemetry facilitates high-accuracy resolution. Coordinates will be requested upon final submission.
             </p>
           </div>
         </div>

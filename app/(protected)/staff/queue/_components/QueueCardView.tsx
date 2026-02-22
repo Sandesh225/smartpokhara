@@ -38,49 +38,49 @@ export function QueueCardView({ items, showAssignee = false }: QueueCardViewProp
         <Link 
           key={item.id} 
           href={`/staff/queue/${item.id}`}
-          className="block bg-white rounded-xl border border-gray-200 shadow-sm p-4 active:scale-[0.99] transition-all hover:border-blue-300 hover:shadow-md relative"
+          className="block bg-card rounded-xl border border-border shadow-xs p-4 active:scale-[0.99] transition-all hover:border-primary/50 hover:shadow-md relative"
         >
           <div className="flex justify-between items-start mb-3">
              <div className="flex items-center gap-2">
                 <span className={cn(
-                  "text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide",
-                  item.type === 'complaint' ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
+                  "text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wide",
+                  item.type === 'complaint' ? "bg-primary/10 text-primary border border-primary/20" : "bg-info-blue/10 text-info-blue border border-info-blue/20"
                 )}>
                   {item.type === 'complaint' ? 'CMP' : 'TSK'}
                 </span>
-                <span className="text-xs font-mono text-gray-500">{item.tracking_code}</span>
+                <span className="text-xs font-mono font-bold text-muted-foreground">#{item.tracking_code.split('-').pop()}</span>
              </div>
              <StatusBadge status={item.status} />
           </div>
 
-          <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-1">{item.title}</h3>
+          <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-1">{item.title}</h3>
           
           <div className="flex items-center gap-2 mb-4">
              <PriorityIndicator priority={item.priority} size="sm" />
-             <span className="text-xs text-gray-400">•</span>
-             <span className="text-xs text-gray-500 truncate max-w-[150px]">{item.category}</span>
+             <span className="text-xs text-muted-foreground/30">•</span>
+             <span className="text-xs text-muted-foreground truncate max-w-[150px] font-medium">{item.category}</span>
           </div>
 
           {showAssignee && item.assignee && (
-            <div className="flex items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg border border-gray-100">
-               <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            <div className="flex items-center gap-2 mb-4 p-2 bg-muted/50 rounded-lg border border-border">
+               <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-border">
                  {item.assignee.avatar ? (
                     <img src={item.assignee.avatar} alt="" className="w-full h-full object-cover" />
                  ) : (
-                    <User className="w-3 h-3 text-gray-500" />
+                    <User className="w-3 h-3 text-muted-foreground" />
                  )}
                </div>
-               <span className="text-xs font-medium text-gray-700">{item.assignee.name}</span>
+               <span className="text-xs font-bold text-foreground">{item.assignee.name}</span>
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-3 border-t border-border">
              <div className="space-y-1">
                <DistanceIndicator address={item.location} distanceMeters={null} />
                <CountdownTimer deadline={item.due_at} />
              </div>
              
-             <div className="h-8 w-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+             <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all">
                 <ArrowRight className="w-4 h-4" />
              </div>
           </div>

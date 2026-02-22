@@ -278,37 +278,37 @@ export function UserTable({
             <thead className="border-b-2 border-border bg-muted/50 sticky top-0 z-10">
               <tr>
                 <th className="px-4 md:px-6 py-3 text-left">
-                  <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     User
                   </span>
                 </th>
                 <th className="px-4 md:px-6 py-3 text-left">
-                  <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     Email
                   </span>
                 </th>
                 <th className="px-4 md:px-6 py-3 text-left">
-                  <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     Roles
                   </span>
                 </th>
                 <th className="px-4 md:px-6 py-3 text-left">
-                  <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     Status
                   </span>
                 </th>
                 <th className="px-4 md:px-6 py-3 text-left">
-                  <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     Verified
                   </span>
                 </th>
                 <th className="px-4 md:px-6 py-3 text-left">
-                  <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     Created
                   </span>
                 </th>
                 <th className="px-4 md:px-6 py-3 text-right">
-                  <span className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     Actions
                   </span>
                 </th>
@@ -349,7 +349,7 @@ export function UserTable({
                           <span className="text-sm md:text-base font-black text-foreground">
                             {name}
                           </span>
-                          <span className="mt-0.5 text-[10px] md:text-xs text-muted-foreground font-mono">
+                          <span className="mt-0.5 text-xs md:text-xs text-muted-foreground font-mono">
                             ID: {user.id.slice(0, 8)}...
                           </span>
                         </div>
@@ -369,7 +369,7 @@ export function UserTable({
                               <Badge
                                 key={`${user.id}-role-${idx}`}
                                 variant="outline"
-                                className="border-primary/30 bg-primary/5 text-primary text-[10px] md:text-xs font-bold"
+                                className="border-primary/30 bg-primary/5 text-primary text-xs md:text-xs font-bold"
                               >
                                 <Shield className="w-3 h-3 mr-1" />
                                 {ur.role?.name ?? "Role"}
@@ -386,7 +386,7 @@ export function UserTable({
                         <Badge
                           variant="outline"
                           className={cn(
-                            "text-[10px] md:text-xs font-bold gap-1",
+                            "text-xs md:text-xs font-bold gap-1",
                             user.is_active
                               ? "border-success-green/30 bg-success-green/10 text-success-green"
                               : "border-error-red/30 bg-error-red/10 text-error-red"
@@ -409,7 +409,7 @@ export function UserTable({
                         <Badge
                           variant="outline"
                           className={cn(
-                            "text-[10px] md:text-xs font-bold gap-1",
+                            "text-xs md:text-xs font-bold gap-1",
                             user.is_verified
                               ? "border-info-blue/30 bg-info-blue/10 text-info-blue"
                               : "border-warning-amber/30 bg-warning-amber/10 text-warning-amber"
@@ -440,7 +440,7 @@ export function UserTable({
                                   year: "numeric",
                                 })}
                               </span>
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className="text-xs text-muted-foreground">
                                 {createdAt.toLocaleTimeString("en-US", {
                                   hour: "2-digit",
                                   minute: "2-digit",

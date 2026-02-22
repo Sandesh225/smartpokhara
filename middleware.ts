@@ -69,63 +69,64 @@ export async function middleware(request: NextRequest) {
   // Handle authenticated users
   if (user) {
     try {
-      // Check profile completion status
-      const { data: profileCheck } = await supabase.rpc(
-        "rpc_is_profile_complete"
-      );
+      // For authenticated users not on an explicit flow, fetch their profile and dash configs in parallel
+      // but only if we are actually checking an auth bounds.
+      if (isAuthPage || isProtected || isSetupProfile) {
+        const [profileCheckRes, configRes] = await Promise.all([
+          supabase.rpc("rpc_is_profile_complete"),
+          supabase.rpc("rpc_get_dashboard_config"),
+        ]);
 
-      // If profile is incomplete and not on setup page, redirect to setup
-      if (!profileCheck?.is_complete && !isSetupProfile) {
-        return NextResponse.redirect(new URL("/setup-profile", request.url));
-      }
+        const profileCheck = profileCheckRes.data;
+        const config = configRes.data;
 
-      // If profile is complete and on setup page, redirect to dashboard
-      if (profileCheck?.is_complete && isSetupProfile) {
-        const { data: config } = await supabase.rpc("rpc_get_dashboard_config");
-        const targetRoute =
-          config?.dashboard_config?.default_route || "/citizen/dashboard";
-        return NextResponse.redirect(new URL(targetRoute, request.url));
-      }
-
-      // Handle auth pages for logged-in users
-      if (isAuthPage || isProtected) {
-        const { data: config, error } = await supabase.rpc(
-          "rpc_get_dashboard_config"
-        );
-
-        if (error || !config || !config.authenticated) {
-          console.error("Middleware RPC Error:", error);
-          if (isAuthPage) return response;
-          return NextResponse.redirect(new URL("/login", request.url));
+        // If profile is incomplete and not on setup page, redirect to setup
+        if (!profileCheck?.is_complete && !isSetupProfile) {
+          return NextResponse.redirect(new URL("/setup-profile", request.url));
         }
 
-        const targetDashboard = config.dashboard_config.default_route;
+        // If profile is complete and on setup page, redirect to dashboard
+        if (profileCheck?.is_complete && isSetupProfile) {
+          const targetRoute =
+            config?.dashboard_config?.default_route || "/citizen/dashboard";
+          return NextResponse.redirect(new URL(targetRoute, request.url));
+        }
 
-        // Redirect from auth pages to dashboard
-        if (isAuthPage) {
-          if (pathname !== targetDashboard) {
-            return NextResponse.redirect(new URL(targetDashboard, request.url));
+        // Handle auth pages for logged-in users
+        if (isAuthPage || isProtected) {
+          if (configRes.error || !config || !config.authenticated) {
+            console.error("Middleware RPC Error:", configRes.error);
+            if (isAuthPage) return response;
+            return NextResponse.redirect(new URL("/login", request.url));
           }
-          return response;
-        }
 
-        // Check portal access for protected routes
-        if (isProtected) {
-          const currentPortal = pathname.split("/")[1];
-          const allowedPortals = config.dashboard_config.available_portals;
-          const isAllowed = allowedPortals.includes(currentPortal);
+          const targetDashboard = config.dashboard_config.default_route;
 
-          if (!isAllowed && pathname !== targetDashboard) {
-            return NextResponse.redirect(new URL(targetDashboard, request.url));
+          // Redirect from auth pages to dashboard
+          if (isAuthPage) {
+            if (pathname !== targetDashboard) {
+              return NextResponse.redirect(new URL(targetDashboard, request.url));
+            }
+            return response;
+          }
+
+          // Check portal access for protected routes
+          if (isProtected) {
+            const currentPortal = pathname.split("/")[1];
+            const allowedPortals = config.dashboard_config.available_portals;
+            const isAllowed = allowedPortals.includes(currentPortal);
+
+            if (!isAllowed && pathname !== targetDashboard) {
+              return NextResponse.redirect(new URL(targetDashboard, request.url));
+            }
           }
         }
       }
     } catch (err) {
       console.error("Middleware Exception:", err);
-      if (pathname !== "/citizen/dashboard") {
-        return NextResponse.redirect(
-          new URL("/citizen/dashboard", request.url)
-        );
+      // If we hit an exception in a protected route, it's safer to redirect to login
+      if (isProtected) {
+        return NextResponse.redirect(new URL("/login", request.url));
       }
     }
   }

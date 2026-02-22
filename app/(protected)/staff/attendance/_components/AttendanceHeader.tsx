@@ -59,7 +59,7 @@ function StatCard({ icon, label, value, subText, isStatus }: any) {
           {value}
         </p>
 
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {subText}
         </p>
       </div>

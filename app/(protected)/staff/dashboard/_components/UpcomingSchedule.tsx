@@ -31,7 +31,7 @@ export function UpcomingSchedule({ shifts }: { shifts: Shift[] }) {
 
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/20">
-      <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30 dark:bg-muted/10">
+      <div className="p-5 border-b border-border flex items-center justify-between bg-muted/10">
         <h3 className="font-bold text-foreground flex items-center gap-2 text-sm uppercase tracking-wider">
           <Calendar className="h-4 w-4 text-primary" />
           Upcoming Shifts
@@ -52,16 +52,16 @@ export function UpcomingSchedule({ shifts }: { shifts: Shift[] }) {
           return (
             <div
               key={shift.id}
-              className="p-4 hover:bg-muted/50 dark:hover:bg-muted/30 transition-colors group"
+              className="p-4 hover:bg-muted transition-colors group"
             >
               <div className="flex items-start gap-3">
                 {/* Date Box */}
-                <div className={`flex flex-col items-center justify-center h-12 w-12 rounded-lg border text-xs font-bold shadow-sm transition-all ${
+                <div className={`flex flex-col items-center justify-center h-12 w-12 rounded-lg border text-xs font-bold shadow-xs transition-all ${
                   isToday
-                    ? "bg-primary border-primary text-primary-foreground dark:bg-primary dark:border-primary/80"
-                    : "bg-card border-border text-foreground dark:bg-muted/50"
+                    ? "bg-primary border-primary text-primary-foreground"
+                    : "bg-card border-border text-foreground"
                 }`}>
-                  <span className={`text-[9px] uppercase ${
+                  <span className={`text-xs uppercase ${
                     isToday ? "text-primary-foreground/80" : "text-muted-foreground"
                   }`}>
                     {format(shiftDate, "MMM")}
@@ -80,7 +80,7 @@ export function UpcomingSchedule({ shifts }: { shifts: Shift[] }) {
                     {isToday && (
                       <Badge
                         variant="outline"
-                        className="border-primary/20 bg-primary/10 text-primary text-[10px] h-5 px-1.5 shadow-none dark:border-primary/30 dark:bg-primary/20"
+                        className="border-primary/20 bg-primary/10 text-primary text-xs h-5 px-1.5 shadow-none"
                       >
                         Today
                       </Badge>
@@ -88,7 +88,7 @@ export function UpcomingSchedule({ shifts }: { shifts: Shift[] }) {
                   </div>
 
                   <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1.5">
-                    <div className="flex items-center gap-1.5 bg-muted dark:bg-muted/50 px-2 py-1 rounded-md">
+                    <div className="flex items-center gap-1.5 bg-muted px-2 py-1 rounded-md">
                       <Clock className="h-3 w-3" />
                       <span className="font-medium text-foreground">
                         {shift.start} - {shift.end}
@@ -110,7 +110,7 @@ export function UpcomingSchedule({ shifts }: { shifts: Shift[] }) {
       {/* Footer */}
       <Link
         href="/staff/schedule"
-        className="mt-auto border-t border-border p-3 text-center text-xs font-medium text-muted-foreground hover:text-primary dark:hover:text-primary/90 hover:bg-muted/50 dark:hover:bg-muted/30 transition-colors flex items-center justify-center gap-1"
+        className="mt-auto border-t border-border p-3 text-center text-xs font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-all flex items-center justify-center gap-1"
       >
         See Full Schedule <ArrowRight className="h-3 w-3" />
       </Link>

@@ -92,7 +92,7 @@ export function StaffForm({ departments, wards, onSubmit }: StaffFormProps) {
               placeholder="e.g. Ram Bahadur Gurung"
             />
             {errors.full_name && (
-              <p className="text-destructive text-[10px] font-bold">
+              <p className="text-destructive text-xs font-bold">
                 {errors.full_name.message}
               </p>
             )}
@@ -109,7 +109,7 @@ export function StaffForm({ departments, wards, onSubmit }: StaffFormProps) {
               placeholder="staff.name@pokhara.gov.np"
             />
             {errors.email && (
-              <p className="text-destructive text-[10px] font-bold">
+              <p className="text-destructive text-xs font-bold">
                 {errors.email.message}
               </p>
             )}
@@ -126,7 +126,7 @@ export function StaffForm({ departments, wards, onSubmit }: StaffFormProps) {
             placeholder="98XXXXXXXX"
           />
           {errors.phone && (
-            <p className="text-destructive text-[10px] font-bold">
+            <p className="text-destructive text-xs font-bold">
               {errors.phone.message}
             </p>
           )}

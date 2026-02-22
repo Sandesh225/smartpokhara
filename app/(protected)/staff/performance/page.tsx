@@ -25,16 +25,16 @@ export default async function PerformancePage() {
   ]);
 
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto pb-20">
+    <div className="space-y-6 p-6 max-w-7xl mx-auto pb-24">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
-          <BarChart2 className="w-6 h-6" />
+        <div className="p-2.5 bg-info-blue/10 text-info-blue rounded-xl border border-info-blue/20">
+          <BarChart2 className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Performance Dashboard
+          <h1 className="text-xl font-black text-foreground uppercase tracking-tight">
+            Performance Insights
           </h1>
-          <p className="text-sm text-gray-500">Analytics for {user.email}</p>
+          <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-0.5">Analytics for {user.email}</p>
         </div>
       </div>
 
@@ -42,8 +42,8 @@ export default async function PerformancePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AchievementsList achievements={achievements} />
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-center">
-          <p className="text-gray-400 text-sm italic">
+        <div className="bg-card p-6 rounded-xl border border-border shadow-xs flex items-center justify-center border-dashed">
+          <p className="text-muted-foreground/40 text-xs font-bold uppercase tracking-widest italic">
             Detailed metrics loading...
           </p>
         </div>

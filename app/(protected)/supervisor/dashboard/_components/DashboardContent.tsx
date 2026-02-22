@@ -45,7 +45,7 @@ export function DashboardContent({
       <DashboardMetrics metrics={metrics} />
 
       {/* Quick Actions Bar */}
-      <div className="stone-card p-1 shadow-sm">
+      <div className="w-full">
         <QuickActions
           counts={{
             unassigned: metrics.unassignedCount,
@@ -58,8 +58,8 @@ export function DashboardContent({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (Charts & Tables) */}
         <div className="lg:col-span-2 space-y-6">
-          <section className="stone-card p-6 shadow-md">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <section className="bg-card border border-border rounded-xl shadow-xs p-5 md:p-6 transition-all duration-300">
+            <h2 className="text-base md:text-lg font-bold text-foreground tracking-tight mb-4 md:mb-5">
               Operational Performance
             </h2>
             <ComplaintsOverview
@@ -69,7 +69,7 @@ export function DashboardContent({
             />
           </section>
 
-          <section className="stone-card shadow-md overflow-hidden">
+          <section className="bg-card border border-border rounded-xl shadow-xs transition-all duration-300 overflow-hidden">
             <TeamOverview staff={staffData} />
           </section>
         </div>
@@ -77,16 +77,16 @@ export function DashboardContent({
         {/* Right Column (Sidebar/Feeds) */}
         <div className="space-y-6">
           {/* Alerts Panel */}
-          <div className="min-h-[200px] stone-card border-primary/20 bg-primary/5 p-4">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-primary mb-3">
+          <div className="min-h-[200px] bg-warning-amber/5 border border-warning-amber/20 rounded-xl p-5 md:p-6 shadow-xs">
+            <h3 className="text-sm font-bold text-warning-amber mb-4">
               Critical Alerts
             </h3>
             <RealTimeAlerts initialAlerts={alerts} />
           </div>
 
           {/* Activity Feed Panel */}
-          <div className="min-h-[400px] stone-card p-6 shadow-md">
-            <h3 className="text-lg font-semibold mb-4">Live Activity</h3>
+          <div className="min-h-[400px] bg-card border border-border rounded-xl p-5 md:p-6 shadow-xs">
+            <h3 className="text-base md:text-lg font-bold text-foreground tracking-tight mb-4 md:mb-5">Live Activity</h3>
             <ActivityFeed initialActivity={activityData} />
           </div>
         </div>

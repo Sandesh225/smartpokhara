@@ -1,14 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
-import { isStaff, isAdmin } from "@/lib/auth/role-helpers";
+import { enforceRole } from "@/lib/auth/require-role";
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUserWithRoles();
-  if (!user) redirect("/login");
-
-  if (!isStaff(user) && !isAdmin(user)) {
-    redirect("/citizen/dashboard");
-  }
+  enforceRole(user, ["admin", "dept_head", "dept_staff", "ward_staff", "field_staff", "call_center"]);
 
   return <>{children}</>;
 }

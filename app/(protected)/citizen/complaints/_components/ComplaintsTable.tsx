@@ -3,7 +3,6 @@
 import { Complaint } from "@/features/complaints";
 import { UniversalComplaintsTable } from "@/components/complaints/shared/UniversalComplaintsTable";
 import { ComplaintActionType } from "@/types/complaints-ui";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface ComplaintsTableProps {
@@ -27,21 +26,15 @@ export function ComplaintsTable({
   currentPage,
   pageSize,
   onPageChange,
-  onSortChange, 
+  onSortChange,
 }: ComplaintsTableProps) {
-  const router = useRouter();
 
   const handleAction = (action: ComplaintActionType, complaint: Complaint) => {
-    switch (action) {
-      case "DELETE":
-         // This is "Cancel Request" for citizen
-        if (confirm("Are you sure you want to cancel this complaint?")) {
-           toast.success("Complaint cancellation request sent.");
-           // Trigger actual cancel logic
-        }
-        break;
-      default:
-        break;
+    if (action === "DELETE") {
+      if (confirm("Cancel this complaint? This cannot be undone.")) {
+        toast.success("Cancellation request submitted.");
+        // trigger actual cancel logic here
+      }
     }
   };
 
@@ -52,9 +45,9 @@ export function ComplaintsTable({
       portalMode="CITIZEN"
       pagination={{
         pageIndex: currentPage,
-        pageSize: pageSize,
-        total: total,
-        onPageChange: onPageChange,
+        pageSize,
+        total,
+        onPageChange,
       }}
       onAction={handleAction}
     />

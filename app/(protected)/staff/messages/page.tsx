@@ -140,28 +140,31 @@ export default function StaffMessagesPage() {
 
   if (loading)
     return (
-      <div className="h-96 flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" />
+      <div className="h-96 flex flex-col items-center justify-center bg-card rounded-2xl border border-border border-dashed m-6">
+        <Loader2 className="animate-spin text-primary mb-4" />
+        <p className="text-xs font-black text-muted-foreground uppercase tracking-widest animate-pulse italic">
+          Syncing conversations...
+        </p>
       </div>
     );
 
   // VIEW: NO CONVERSATIONS
   if (conversations.length === 0 && !loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] p-6 text-center bg-white m-4 rounded-xl border border-gray-200">
-        <div className="bg-blue-50 p-4 rounded-full mb-4">
-          <MessageSquare className="h-8 w-8 text-blue-600" />
+      <div className="flex flex-col items-center justify-center h-[60vh] p-12 text-center bg-card m-6 rounded-2xl border border-border shadow-xs">
+        <div className="bg-info-blue/10 p-5 rounded-2xl mb-6 border border-info-blue/20">
+          <MessageSquare className="h-10 w-10 text-info-blue" />
         </div>
-        <h3 className="text-lg font-bold text-gray-900">No Messages Yet</h3>
-        <p className="text-sm text-gray-500 mb-6 max-w-xs">
+        <h3 className="text-sm font-black text-foreground uppercase tracking-widest">No Messages Yet</h3>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight mb-8 max-w-xs opacity-60">
           You don't have any active chats with supervisors. Start a support
           request if needed.
         </p>
         <button
           onClick={handleCreateSupport}
-          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 text-xs"
         >
-          <PlusCircle className="h-5 w-5" /> Contact Support
+          <PlusCircle className="h-4 w-4" /> Contact Support
         </button>
       </div>
     );
@@ -171,31 +174,31 @@ export default function StaffMessagesPage() {
   const activeConversation = conversations.find((c) => c.id === activeChatId);
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-100px)] bg-white md:rounded-xl md:border md:border-gray-200 md:overflow-hidden m-2 md:m-6">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-120px)] bg-card md:rounded-2xl md:border md:border-border md:overflow-hidden m-2 md:m-6 shadow-xs">
       {/* Sidebar List (Mobile: Top Bar, Desktop: Left Col) */}
-      <div className="w-full md:w-80 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col">
-        <div className="p-4 font-bold text-gray-700 border-b border-gray-200 hidden md:block">
+      <div className="w-full md:w-80 bg-muted/30 border-b md:border-b-0 md:border-r border-border flex flex-col">
+        <div className="p-5 font-black text-xs text-muted-foreground uppercase tracking-wider border-b border-border hidden md:block">
           Inbox
         </div>
-        <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto p-2 gap-2">
+        <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto p-3 gap-3">
           {conversations.map((conv) => (
             <button
               key={conv.id}
               onClick={() => setActiveChatId(conv.id)}
-              className={`flex items-center gap-3 p-3 rounded-lg text-left min-w-[200px] md:min-w-0 transition-colors ${
+              className={`flex items-center gap-4 p-4 rounded-xl text-left min-w-[240px] md:min-w-0 transition-all active:scale-[0.98] ${
                 activeChatId === conv.id
-                  ? "bg-white shadow-sm border border-blue-100"
-                  : "hover:bg-gray-100"
+                  ? "bg-card shadow-lg ring-1 ring-border border-l-4 border-l-primary"
+                  : "hover:bg-muted/50 border-l-4 border-l-transparent"
               }`}
             >
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">
+              <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black shrink-0 border border-primary/20 shadow-inner">
                 {conv.otherUserName[0]}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-gray-900 truncate">
+                <p className="text-xs font-black text-foreground uppercase tracking-tight truncate">
                   {conv.otherUserName}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-tighter truncate opacity-60">
                   {conv.lastMessage || "Click to view"}
                 </p>
               </div>
@@ -205,7 +208,7 @@ export default function StaffMessagesPage() {
       </div>
 
       {/* Chat Thread */}
-      <div className="flex-1 flex flex-col bg-white min-w-0">
+      <div className="flex-1 flex flex-col bg-card min-w-0">
         {activeChatId ? (
              <UniversalMessaging
                 channelType="DIRECT_MESSAGE"
@@ -218,8 +221,9 @@ export default function StaffMessagesPage() {
                 className="h-full border-0 shadow-none rounded-none"
              />
         ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-                Select a conversation to start chatting
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground/30 gap-4 opacity-50">
+                <MessageSquare className="w-12 h-12" />
+                <p className="text-xs font-black uppercase tracking-widest italic">Select a conversation to start chatting</p>
             </div>
         )}
       </div>

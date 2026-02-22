@@ -31,25 +31,25 @@ interface TaskInfoCardProps {
 
 export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-5">
+    <div className="bg-card rounded-xl shadow-xs border border-border p-5 space-y-5">
       <div>
-        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-          <FileText className="w-4 h-4" /> Description
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
+          <FileText className="w-3.5 h-3.5" /> Description
         </h3>
-        <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap font-medium">
           {assignment.description || "No description provided."}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border">
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0 border border-border">
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">Due Date</p>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">Due Date</p>
+              <p className="text-sm font-bold text-foreground">
                 {assignment.due_at
                   ? format(new Date(assignment.due_at), "PPP p")
                   : "No Deadline"}
@@ -58,12 +58,12 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0 border border-border">
               <UserCheck className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">Assigned By</p>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">Assigned By</p>
+              <p className="text-sm font-bold text-foreground">
                 {assignment.assigned_by_name}
               </p>
             </div>
@@ -72,16 +72,16 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
 
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0 border border-border">
               <MapPin className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">Location</p>
-              <p className="text-sm font-semibold text-gray-900 line-clamp-2">
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">Location</p>
+              <p className="text-sm font-bold text-foreground line-clamp-2">
                 {assignment.location || "N/A"}
               </p>
               {assignment.ward !== "N/A" && (
-                <span className="inline-block mt-1 text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 font-medium">
+                <span className="inline-block mt-1 text-xs bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-bold border border-border uppercase">
                   {assignment.ward}
                 </span>
               )}
@@ -91,21 +91,22 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
       </div>
 
       {assignment.instructions && (
-        <div className="pt-4 border-t border-gray-100">
-          <p className="text-xs font-bold text-gray-500 uppercase mb-1">
+        <div className="pt-4 border-t border-border">
+          <p className="text-xs font-bold text-warning-amber uppercase mb-2 tracking-widest flex items-center gap-1.5">
+            <div className="w-1 h-3 bg-warning-amber rounded-full" />
             Supervisor Instructions
           </p>
-          <p className="text-sm text-gray-800 bg-yellow-50 p-3 rounded-lg border border-yellow-100">
-            {assignment.instructions}
-          </p>
+          <div className="text-sm text-foreground bg-warning-amber/5 p-4 rounded-xl border border-warning-amber/10 font-medium leading-relaxed italic">
+            "{assignment.instructions}"
+          </div>
         </div>
       )}
 
       {/* Citizen Attachments Section */}
       {assignment.attachments && assignment.attachments.length > 0 && (
-        <div className="pt-4 border-t border-gray-100">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-            <Image className="w-4 h-4" />
+        <div className="pt-4 border-t border-border">
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+            <Image className="w-3.5 h-3.5" />
             Citizen Attachments ({assignment.attachments.length})
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -115,7 +116,7 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
                 href={attachment.file_path}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all"
+                className="group relative aspect-square bg-muted rounded-lg overflow-hidden border border-border hover:border-primary/50 hover:shadow-md transition-all active:scale-[0.98]"
               >
                 <img
                   src={attachment.file_path}
@@ -125,7 +126,7 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-1">
                     <ExternalLink className="h-5 w-5 text-white" />
-                    <span className="text-[10px] text-white font-medium">
+                    <span className="text-xs text-white font-medium">
                       View Full Size
                     </span>
                   </div>

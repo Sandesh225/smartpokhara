@@ -105,7 +105,7 @@ export function SLACountdown({
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-500/20 uppercase tracking-wide">
+      <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-500/20 uppercase tracking-wide">
         <CheckCircle2 className="h-3 w-3" />
         SLA Met
       </span>
@@ -114,7 +114,7 @@ export function SLACountdown({
 
   // RENDER: Loading State
   if (!timeLeft)
-    return <span className="text-[10px] font-mono text-muted-foreground animate-pulse">CALC_SLA...</span>;
+    return <span className="text-xs font-mono text-muted-foreground animate-pulse">CALC_SLA...</span>;
 
   // RENDER: Progress Bar Variant
   if (variant === "progress") {
@@ -133,7 +133,7 @@ export function SLACountdown({
           >
             {timeLeft.str}
           </span>
-          <span className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">Remaining</span>
+          <span className="text-xs text-muted-foreground font-black uppercase tracking-wider">Remaining</span>
         </div>
         <div className="h-1.5 w-full bg-muted dark:bg-muted/50 rounded-full overflow-hidden">
           <div
@@ -156,7 +156,7 @@ export function SLACountdown({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wide transition-all shadow-sm border",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wide transition-all shadow-sm border",
         timeLeft.overdue
           ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50 animate-pulse"
           : timeLeft.urgent

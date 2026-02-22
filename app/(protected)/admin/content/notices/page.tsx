@@ -96,7 +96,7 @@ export default function NoticesPage() {
                       {notice.is_urgent && (
                         <Badge
                           variant="outline"
-                          className="border-error-red/30 bg-error-red/10 text-error-red text-[10px] font-bold gap-1"
+                          className="border-error-red/30 bg-error-red/10 text-error-red text-xs font-bold gap-1"
                         >
                           <AlertCircle className="w-3 h-3" />
                           URGENT
@@ -105,7 +105,7 @@ export default function NoticesPage() {
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-[10px] font-bold capitalize",
+                          "text-xs font-bold capitalize",
                           getNoticeTypeColor(notice.notice_type)
                         )}
                       >

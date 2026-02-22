@@ -49,19 +49,19 @@ export function ComplaintsOverview({
   const hasStatusData = statusData && statusData.length > 0;
   const hasTrendData = trendData && trendData.length > 0;
 
-  // Chart colors that harmonize with Machhapuchhre Modern
+  // Chart colors that harmonize with Machhapuchhre Modern via explicit tokens
   const colors = {
-    primary: isDark ? "#5EB4D2" : "#2B5F75", // Electric Blue vs Deep Navy
-    success: "#10B981",
-    warning: "#F59E0B",
-    muted: isDark ? "#374151" : "#E5E7EB",
-    grid: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    primary: "var(--primary)", 
+    success: "var(--success-green)",
+    warning: "var(--warning-amber)",
+    muted: "var(--muted-foreground)",
+    grid: "var(--border)",
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1. Volume Trend Chart - Spans 2 columns */}
-      <div className="lg:col-span-2 stone-card group overflow-hidden">
+      <div className="lg:col-span-2 group overflow-hidden">
         {/* Header with Glass Gradient */}
         <div className="px-6 py-4 border-b border-border/50 bg-linear-to-r from-primary/5 to-transparent">
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -73,7 +73,7 @@ export function ComplaintsOverview({
                 <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
                   Volume Trend
                 </h3>
-                <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                <p className="text-xs font-semibold text-muted-foreground">
                   Historical Analysis
                 </p>
               </div>
@@ -93,7 +93,7 @@ export function ComplaintsOverview({
               data={trendData}
               xKey="date"
               series={[
-                { key: "count", name: "Complaints", color: colors.primary },
+                { key: "total", name: "Complaints", color: colors.primary },
               ]}
               height={280}
               gridColor={colors.grid}
@@ -109,7 +109,7 @@ export function ComplaintsOverview({
       </div>
 
       {/* 2. Status Distribution - 1 column */}
-      <div className="stone-card group overflow-hidden">
+      <div className="group overflow-hidden">
         <div className="px-6 py-4 border-b border-border/50 bg-linear-to-r from-secondary/5 to-transparent">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center border border-secondary/20 shadow-inner">
@@ -119,7 +119,7 @@ export function ComplaintsOverview({
               <h3 className="text-base font-bold text-foreground group-hover:text-secondary transition-colors">
                 Resolution Status
               </h3>
-              <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+              <p className="text-xs font-semibold text-muted-foreground">
                 Departmental Health
               </p>
             </div>
