@@ -25,10 +25,10 @@ async getUserComplaints(
       // FIX: Removed the '!' exclamation marks to enable LEFT JOINS
       .select(`
         *,
-        category:complaint_categories (name, icon, color),
-        subcategory:complaint_subcategories (name),
-        ward:wards (ward_number, name),
-        department:departments (name)
+        category:complaint_categories!complaints_category_id_fkey (name, icon, color),
+        subcategory:complaint_subcategories!complaints_subcategory_id_fkey (name),
+        ward:wards!complaints_ward_id_fkey (ward_number, name),
+        department:departments!complaints_assigned_department_id_fkey (name)
       `, { count: "exact" })
       .eq("citizen_id", userId);
 
@@ -79,7 +79,7 @@ async getUserComplaints(
           id, email, phone,
           profile:user_profiles (full_name, profile_photo_url)
       ),
-      assigned_staff_profile:user_profiles (
+      assigned_staff_profile:user_profiles!complaints_assigned_staff_profile_fkey (
           user_id, 
           full_name, 
           profile_photo_url,

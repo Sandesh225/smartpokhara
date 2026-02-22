@@ -175,6 +175,15 @@ export interface Complaint {
     name_nepali?: string;
   };
   department?: { id: string; name: string; code: string };
+  assigned_staff_profile?: {
+    user_id: string;
+    full_name: string;
+    profile_photo_url?: string;
+    staff?: {
+      staff_code: string;
+      staff_role: string;
+    };
+  };
   assigned_staff?: {
     id: string;
     full_name?: string;
