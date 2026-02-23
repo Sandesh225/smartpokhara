@@ -73,7 +73,7 @@ function Card({ icon: Icon, title, badge, children, className }: {
   return (
     <div className={cn("bg-card border border-border rounded-xl overflow-hidden", className)}>
       <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-        <Icon className="w-4 h-4 text-primary flex-shrink-0" />
+        <Icon className="w-4 h-4 text-primary shrink-0" />
         <span className="font-semibold text-sm text-foreground">{title}</span>
         {badge !== undefined && (
           <span className="ml-auto text-xs font-bold uppercase tracking-wider bg-muted text-muted-foreground px-2 py-0.5 rounded-full border border-border">
@@ -95,6 +95,15 @@ export default function ComplaintDetailPage() {
 
   const { data: user }      = useCurrentUser();
   const { data: complaint, isLoading, isRefetching, refetch } = useComplaint(id);
+
+  useEffect(() => {
+    if (complaint) {
+      console.log("[DEBUG] Raw Complaint Record:", complaint);
+      console.log("[DEBUG] assigned_staff_profile:", (complaint as any).assigned_staff_profile);
+      console.log("[DEBUG] assigned_staff (direct join):", (complaint as any).assigned_staff);
+      console.log("[DEBUG] assigned_staff_id:", (complaint as any).assigned_staff_id);
+    }
+  }, [complaint]);
 
   const [tab, setTab]                 = useState<"overview" | "timeline" | "communication">("overview");
   const [lightbox, setLightbox]       = useState<string | null>(null);
@@ -197,11 +206,11 @@ export default function ComplaintDetailPage() {
           {/* Status + priority pills */}
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold", s.pill)}>
-              <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", s.dot)} />
+              <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} />
               {s.label}
             </span>
             <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold", p.pill)}>
-              <PIcon className="w-3 h-3 flex-shrink-0" /> {p.label} Priority
+              <PIcon className="w-3 h-3 shrink-0" /> {p.label} Priority
             </span>
           </div>
 
@@ -232,7 +241,7 @@ export default function ComplaintDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
             {META.map(({ label, value, icon: Icon }) => (
               <div key={label} className="flex items-start gap-3 bg-muted/40 border border-border rounded-xl px-4 py-3">
-                <div className="p-1.5 rounded-lg bg-accent flex-shrink-0 mt-0.5">
+                <div className="p-1.5 rounded-lg bg-accent shrink-0 mt-0.5">
                   <Icon className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <div className="min-w-0">
@@ -369,7 +378,7 @@ export default function ComplaintDetailPage() {
                           <span className="font-semibold text-sm text-foreground capitalize">
                             {h.new_status.replace(/_/g, " ")}
                           </span>
-                          <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border flex-shrink-0 ml-3">
+                          <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border shrink-0 ml-3">
                             {format(new Date(h.created_at), "MMM dd · HH:mm")}
                           </span>
                         </div>
@@ -428,7 +437,7 @@ export default function ComplaintDetailPage() {
               {staff ? (
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center text-base font-bold flex-shrink-0">
+                    <div className="h-11 w-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center text-base font-bold shrink-0">
                       {staff.full_name?.charAt(0) ?? "S"}
                     </div>
                     <div className="min-w-0">
@@ -466,8 +475,8 @@ export default function ComplaintDetailPage() {
                   { label: "Filed",      value: format(new Date(complaint.submitted_at), "MMM dd, yyyy"), icon: Calendar },
                 ].map(({ label, value, icon: Icon }) => (
                   <div key={label} className="flex items-center gap-3 px-5 py-2.5">
-                    <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm font-semibold text-muted-foreground w-20 flex-shrink-0">{label}</span>
+                    <Icon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-sm font-semibold text-muted-foreground w-20 shrink-0">{label}</span>
                     <span className="text-xs font-bold text-foreground truncate ml-auto text-right">{value}</span>
                   </div>
                 ))}

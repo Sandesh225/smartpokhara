@@ -44,6 +44,19 @@ export function useComplaint(id: string) {
         complaintsApi.getComplaintDetails(supabase, id)
       ]);
       
+      // Bypass RLS to fetch staff profile if missing but assigned_staff_id exists
+      if (complaint && complaint.assigned_staff_id && !complaint.assigned_staff_profile?.full_name) {
+        try {
+          const { getAssignedStaffProfile } = await import("../actions");
+          const staffProfile = await getAssignedStaffProfile(complaint.assigned_staff_id);
+          if (staffProfile) {
+            complaint.assigned_staff_profile = staffProfile;
+          }
+        } catch (error) {
+          console.error("Failed to fetch staff profile via Server Action:", error);
+        }
+      }
+      
       return {
         ...complaint,
         ...details

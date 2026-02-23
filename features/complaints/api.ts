@@ -28,7 +28,8 @@ async getUserComplaints(
         category:complaint_categories!complaints_category_id_fkey (name, icon, color),
         subcategory:complaint_subcategories!complaints_subcategory_id_fkey (name),
         ward:wards!complaints_ward_id_fkey (ward_number, name),
-        department:departments!complaints_assigned_department_id_fkey (name)
+        department:departments!complaints_assigned_department_id_fkey (name),
+        assigned_staff_profile:user_profiles!complaints_assigned_staff_profile_fkey (full_name)
       `, { count: "exact" })
       .eq("citizen_id", userId);
 
@@ -86,6 +87,14 @@ async getUserComplaints(
           staff:staff_profiles!staff_profiles_user_profile_fkey (
             staff_code, 
             staff_role
+          )
+      ),
+      assigned_staff:staff_profiles!fk_assigned_staff_profile (
+          staff_code,
+          staff_role,
+          user:user_profiles!staff_profiles_user_profile_fkey (
+              full_name,
+              profile_photo_url
           )
       )
     `)

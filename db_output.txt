@@ -1,0 +1,91 @@
+Fetching complaint CMP-20260221-C748...
+Complaint:
+{
+  "id": "beb147cb-bfd7-4011-a722-52d35b2d2110",
+  "tracking_code": "CMP-20260221-C748",
+  "assigned_staff_id": "a0bb5db3-ca74-4960-a9fe-6d8a87622ed4",
+  "status": "in_progress"
+}
+
+Fetching user_profile for a0bb5db3-ca74-4960-a9fe-6d8a87622ed4...
+User Profile: [
+  {
+    "id": "f500bf62-01e3-4338-b27a-6915f810c54f",
+    "user_id": "a0bb5db3-ca74-4960-a9fe-6d8a87622ed4",
+    "full_name": "Deepak Karki",
+    "full_name_nepali": "दीपक कार्की",
+    "date_of_birth": "2000-11-11",
+    "gender": "Male",
+    "citizenship_number": "5454",
+    "ward_id": "4c94d9eb-6efc-4bcd-86ae-1b5eef7ea0e2",
+    "address_line1": "Building Dept",
+    "address_line2": "",
+    "landmark": "",
+    "profile_photo_url": null,
+    "language_preference": "en",
+    "notification_preferences": {
+      "sms": true,
+      "email": true,
+      "in_app": true
+    },
+    "created_at": "2026-02-21T15:47:38.094817+00:00",
+    "updated_at": "2026-02-21T16:32:51.030895+00:00"
+  }
+]
+
+Fetching staff_profile for a0bb5db3-ca74-4960-a9fe-6d8a87622ed4...
+Staff Profile: [
+  {
+    "id": "9d5c5bec-d41c-43a2-b642-9f0e90338414",
+    "user_id": "a0bb5db3-ca74-4960-a9fe-6d8a87622ed4",
+    "staff_code": "DEP-2501-1571",
+    "department_id": "f8da085d-2c49-4155-9ed9-9a824265b412",
+    "ward_id": null,
+    "staff_role": "dept_staff",
+    "is_supervisor": false,
+    "is_active": true,
+    "max_concurrent_assignments": 5,
+    "current_workload": 7,
+    "specializations": [
+      "permit_inspection",
+      "construction_monitoring"
+    ],
+    "employment_date": null,
+    "termination_date": null,
+    "performance_rating": 0,
+    "availability_status": "off_duty",
+    "last_known_location": null,
+    "metadata": {},
+    "created_at": "2026-02-21T15:47:38.094817+00:00",
+    "updated_at": "2026-02-21T16:41:47.934058+00:00"
+  }
+]
+
+Checking RLS on user_profiles...
+Anon User Profile Fetch: []
+Anon Staff Profile Fetch: [
+  {
+    "id": "9d5c5bec-d41c-43a2-b642-9f0e90338414",
+    "user_id": "a0bb5db3-ca74-4960-a9fe-6d8a87622ed4",
+    "staff_code": "DEP-2501-1571",
+    "department_id": "f8da085d-2c49-4155-9ed9-9a824265b412",
+    "ward_id": null,
+    "staff_role": "dept_staff",
+    "is_supervisor": false,
+    "is_active": true,
+    "max_concurrent_assignments": 5,
+    "current_workload": 7,
+    "specializations": [
+      "permit_inspection",
+      "construction_monitoring"
+    ],
+    "employment_date": null,
+    "termination_date": null,
+    "performance_rating": 0,
+    "availability_status": "off_duty",
+    "last_known_location": null,
+    "metadata": {},
+    "created_at": "2026-02-21T15:47:38.094817+00:00",
+    "updated_at": "2026-02-21T16:41:47.934058+00:00"
+  }
+]
