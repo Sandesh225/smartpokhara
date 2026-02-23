@@ -10,5 +10,14 @@ export default async function SupervisorLayout({
   const user = await getCurrentUserWithRoles();
   enforceRole(user, ["dept_head", "admin"]);
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
+      <main id="main-content" role="main">
+        {children}
+      </main>
+    </div>
+  );
 }

@@ -8,7 +8,12 @@ export default async function CitizenLayout({ children }: { children: React.Reac
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans animate-fade-in">
-      {children}
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
+      <main id="main-content" role="main">
+        {children}
+      </main>
     </div>
   );
 }

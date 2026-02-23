@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, TrendingUp, BarChart3, Star } from "lucide-react";
+import { CheckCircle2, TrendingUp, BarChart3, ClipboardList } from "lucide-react";
 import { UniversalStatCard } from "@/components/shared/UniversalStatCard";
 
 interface DashboardStats {
@@ -9,35 +9,37 @@ interface DashboardStats {
   slaCompliance: number;
   avgResolutionTime: number;
   avgRating: number;
+  totalAssigned: number;
+  totalDone: number;
 }
 
 export function TodaySummary({ stats }: { stats: DashboardStats }) {
   const metrics = [
     {
-      label: "Completed Today",
-      value: stats.completed_today || 0,
-      icon: CheckCircle2,
-      color: "text-info-blue",
-      bg: "bg-info-blue/10",
-    },
-    {
-      label: "Monthly Total",
-      value: stats.totalCompleted || 0,
-      icon: BarChart3,
+      label: "Total Assigned",
+      value: stats.totalAssigned || 0,
+      icon: ClipboardList,
       color: "text-primary",
       bg: "bg-primary/10",
+    },
+    {
+      label: "Completed",
+      value: stats.totalDone || 0,
+      icon: CheckCircle2,
+      color: "text-success-green",
+      bg: "bg-success-green/10",
+    },
+    {
+      label: "Completed Today",
+      value: stats.completed_today || 0,
+      icon: BarChart3,
+      color: "text-info-blue",
+      bg: "bg-info-blue/10",
     },
     {
       label: "SLA Score",
       value: `${stats.slaCompliance || 0}%`,
       icon: TrendingUp,
-      color: "text-success-green",
-      bg: "bg-success-green/10",
-    },
-    {
-      label: "Avg Rating",
-      value: stats.avgRating ? stats.avgRating.toFixed(1) : "5.0",
-      icon: Star,
       color: "text-warning-amber",
       bg: "bg-warning-amber/10",
     },

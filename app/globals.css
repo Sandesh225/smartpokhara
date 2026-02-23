@@ -142,7 +142,7 @@
   --chart-2: rgb(43, 95, 117);
   --chart-3: rgb(95, 158, 160);
   --chart-4: rgb(27, 47, 59);
-  --chart-5: rgb(15, 23, 32);
+  --chart-5: rgb(15, 23, 42);
 
   --sidebar: rgb(20, 25, 35);
   --sidebar-foreground: rgb(226, 232, 240);
@@ -173,5 +173,35 @@
 
   .text-eyebrow-sm {
     @apply font-heading text-sm font-bold uppercase tracking-wider;
+  }
+
+  /* ── Performance Utilities ────────────────────────────────────
+   * Additive classes for rendering optimization.
+   * Apply to dashboard cards, off-screen sections, and animated elements. */
+
+  /* CSS containment for dashboard cards — prevents layout/paint spillover */
+  .perf-card {
+    contain: layout style paint;
+  }
+
+  /* Auto content-visibility for below-fold or heavy sections */
+  .perf-offscreen {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px;
+  }
+
+  /* GPU-accelerated layer for animated elements */
+  .perf-gpu {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* ── Accessibility ────────────────────────────────────────────
+   * Skip-to-content link — hidden until focused via keyboard. */
+  .skip-to-content {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100
+           focus:px-6 focus:py-3 focus:rounded-xl focus:bg-primary focus:text-primary-foreground
+           focus:font-heading focus:text-sm focus:font-bold focus:shadow-lg
+           focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
   }
 }

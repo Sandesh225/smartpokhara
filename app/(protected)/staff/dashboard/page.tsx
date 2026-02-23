@@ -35,17 +35,21 @@ export default async function StaffDashboard() {
     completionStats,
     upcomingShifts,
     todayAttendanceLog,
+    assignmentCounts,
   ] = await Promise.all([
     staffApi.getStaffAssignments(supabase, userId),
     staffApi.getMyPerformance(supabase, userId),
     staffApi.getCompletionStats(supabase, userId),
     staffApi.getUpcomingShifts(supabase, userId),
     staffApi.getTodayStatus(supabase, userId),
+    staffApi.getAssignmentCounts(supabase, userId),
   ]);
 
   const dashboardStats = {
     ...performance,
     completed_today: completionStats?.completed_today || 0,
+    totalAssigned: assignmentCounts.totalAssigned,
+    totalDone: assignmentCounts.totalDone,
   };
 
   // Determine Attendance Status
@@ -80,38 +84,44 @@ export default async function StaffDashboard() {
   };
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500 pb-12 px-4 sm:px-6 lg:px-8">
       {/* 1. Header */}
       <DashboardHeader user={user} status={headerStatus} />
 
       {/* 2. Stats */}
-      <TodaySummary stats={dashboardStats} />
+      <section aria-label="Today's performance summary" className="perf-card">
+        <TodaySummary stats={dashboardStats} />
+      </section>
 
       {/* 3. Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {/* Left: Tasks */}
-        <div className="lg:col-span-2 xl:col-span-3 space-y-6">
+        <section aria-label="Today's task queue" className="lg:col-span-2 xl:col-span-3 space-y-6">
           <MyTasksToday tasks={assignments} />
-        </div>
+        </section>
 
         {/* Right: Operations */}
-        <div className="space-y-6">
+        <aside aria-label="Operations sidebar" className="space-y-6">
           {/* Attendance Card */}
-          <TodayAttendanceCard
-            status={attendanceStatus}
-            checkInTime={checkInTime}
-            checkOutTime={checkOutTime}
-            location={location}
-          />
+          <section aria-label="Attendance status" className="perf-offscreen">
+            <TodayAttendanceCard
+              status={attendanceStatus}
+              checkInTime={checkInTime}
+              checkOutTime={checkOutTime}
+              location={location}
+            />
+          </section>
 
           {/* Schedule Widget */}
-          <UpcomingSchedule shifts={upcomingShifts} />
+          <section aria-label="Upcoming schedule" className="perf-offscreen">
+            <UpcomingSchedule shifts={upcomingShifts} />
+          </section>
 
           {/* Alerts */}
-          <div className="min-h-[200px]">
+          <section aria-label="Real-time alerts" className="min-h-[200px] perf-offscreen">
              <RealTimeAlerts userId={userId} />
-          </div>
-        </div>
+          </section>
+        </aside>
       </div>
     </div>
   );

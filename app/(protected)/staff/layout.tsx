@@ -6,5 +6,14 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   const user = await getCurrentUserWithRoles();
   enforceRole(user, ["admin", "dept_head", "dept_staff", "ward_staff", "field_staff", "call_center"]);
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
+      <main id="main-content" role="main">
+        {children}
+      </main>
+    </div>
+  );
 }

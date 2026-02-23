@@ -404,14 +404,6 @@ export default function ComplaintDetailPage() {
                     assignedStaffName={staff.full_name || "Assigned Staff"}
                     citizenName={complaint.citizen?.profile?.full_name || "Citizen"}
                   />
-                  {complaint.assigned_department_id && (
-                    <div className="pt-5 border-t border-dashed border-border">
-                      <p className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
-                        <Shield className="w-3.5 h-3.5" /> Department Communication
-                      </p>
-                      <StaffCommunication complaintId={id} currentUserId={user.id} isStaff={false} />
-                    </div>
-                  )}
                 </div>
               ) : (
                 <Card icon={MessageSquare} title="Communication">

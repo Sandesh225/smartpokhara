@@ -192,21 +192,23 @@ export function DashboardContent({
         </AnimatePresence>
 
         {/* ── Stats Row ── */}
-        <motion.div
-          variants={fadeUp} initial="hidden" animate="visible" custom={1}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        >
-          {statCards.map((stat) => (
-            <UniversalStatCard
-              key={stat.id}
-              icon={stat.icon}
-              label={stat.label}
-              value={stat.value}
-              onClick={() => router.push(`/citizen/complaints?status=${stat.id}`)}
-              iconClassName={stat.iconClassName}
-            />
-          ))}
-        </motion.div>
+        <section aria-label="Request statistics">
+          <motion.div
+            variants={fadeUp} initial="hidden" animate="visible" custom={1}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 perf-card"
+          >
+            {statCards.map((stat) => (
+              <UniversalStatCard
+                key={stat.id}
+                icon={stat.icon}
+                label={stat.label}
+                value={stat.value}
+                onClick={() => router.push(`/citizen/complaints?status=${stat.id}`)}
+                iconClassName={stat.iconClassName}
+              />
+            ))}
+          </motion.div>
+        </section>
 
         {/* ── Quick Actions ── */}
         <motion.section
@@ -233,18 +235,24 @@ export function DashboardContent({
             variants={fadeUp} initial="hidden" animate="visible" custom={3}
             className="lg:col-span-2"
           >
-            <RecentComplaints complaints={complaints} />
+            <section aria-label="Recent complaint activity">
+              <RecentComplaints complaints={complaints} />
+            </section>
           </motion.div>
 
           <div className="space-y-6 lg:space-y-8">
-            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
-              <RecentNotices notices={notices} />
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} className="perf-offscreen">
+              <section aria-label="Public announcements">
+                <RecentNotices notices={notices} />
+              </section>
             </motion.div>
-            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}>
-              <PendingBills
-                bills={bills}
-                totalPendingAmount={totalPendingAmount}
-              />
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5} className="perf-offscreen">
+              <section aria-label="Pending financial obligations">
+                <PendingBills
+                  bills={bills}
+                  totalPendingAmount={totalPendingAmount}
+                />
+              </section>
             </motion.div>
           </div>
         </div>

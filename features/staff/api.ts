@@ -553,6 +553,26 @@ export const staffApi = {
       };
   },
 
+  /** Get total assigned vs completed assignment counts for a staff member */
+  async getAssignmentCounts(client: SupabaseClient<Database>, staffId: string) {
+    const [totalRes, doneRes] = await Promise.all([
+      client
+        .from("staff_work_assignments")
+        .select("*", { count: "exact", head: true })
+        .eq("staff_id", staffId),
+      client
+        .from("staff_work_assignments")
+        .select("*", { count: "exact", head: true })
+        .eq("staff_id", staffId)
+        .eq("assignment_status", "completed"),
+    ]);
+
+    return {
+      totalAssigned: totalRes.count || 0,
+      totalDone: doneRes.count || 0,
+    };
+  },
+
   async getUpcomingShifts(client: SupabaseClient<Database>, userId: string) {
        return [
            { id: "s1", date: new Date().toISOString().split("T")[0], start: "09:00", end: "17:00", type: "Regular", location: "Office" },

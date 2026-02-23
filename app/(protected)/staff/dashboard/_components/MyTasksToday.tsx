@@ -54,14 +54,15 @@ export function MyTasksToday({ tasks }: { tasks: any[] }) {
         </div>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4" role="list" aria-label="Today's assigned tasks">
         {localTasks.map((task) => (
           <a
             href={`/staff/queue/${task.id}`}
             key={task.id}
             className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+            role="listitem"
           >
-            <Card className="p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/50 group-active:scale-[0.99] bg-card border-border overflow-hidden relative">
+            <Card className="p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/50 group-active:scale-[0.99] bg-card border-border overflow-hidden relative perf-card">
               <div className="flex items-start justify-between gap-3 mb-3 relative z-10">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="inline-flex items-center text-eyebrow bg-muted px-2 py-1 rounded border border-border text-muted-foreground">

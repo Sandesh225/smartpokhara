@@ -31,34 +31,36 @@ export function DashboardContent({
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8 bg-background min-h-screen transition-colors duration-300">
       {/* Page Header */}
-      <div className="flex flex-col gap-1">
+      <header>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Dashboard Overview
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mt-1">
           Monitor complaints, team performance, and key metrics for your
           jurisdiction.
         </p>
-      </div>
+      </header>
 
       {/* Header Metrics Cards */}
-      <DashboardMetrics metrics={metrics} />
+      <section aria-label="Key performance metrics" className="perf-card">
+        <DashboardMetrics metrics={metrics} />
+      </section>
 
       {/* Quick Actions Bar */}
-      <div className="w-full">
+      <nav aria-label="Operational shortcuts">
         <QuickActions
           counts={{
             unassigned: metrics.unassignedCount,
             overdue: metrics.overdueCount,
           }}
         />
-      </div>
+      </nav>
 
       {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (Charts & Tables) */}
         <div className="lg:col-span-2 space-y-6">
-          <section className="bg-card border border-border rounded-xl shadow-xs p-5 md:p-6 transition-all duration-300">
+          <section aria-label="Operational performance charts" className="bg-card border border-border rounded-xl shadow-xs p-5 md:p-6 transition-all duration-300 perf-offscreen">
             <h2 className="text-base md:text-lg font-bold text-foreground tracking-tight mb-4 md:mb-5">
               Operational Performance
             </h2>
@@ -69,27 +71,27 @@ export function DashboardContent({
             />
           </section>
 
-          <section className="bg-card border border-border rounded-xl shadow-xs transition-all duration-300 overflow-hidden">
+          <section aria-label="Team member overview" className="bg-card border border-border rounded-xl shadow-xs transition-all duration-300 overflow-hidden perf-offscreen">
             <TeamOverview staff={staffData} />
           </section>
         </div>
 
         {/* Right Column (Sidebar/Feeds) */}
-        <div className="space-y-6">
+        <aside aria-label="Alerts and activity" className="space-y-6">
           {/* Alerts Panel */}
-          <div className="min-h-[200px] bg-warning-amber/5 border border-warning-amber/20 rounded-xl p-5 md:p-6 shadow-xs">
+          <section aria-label="Critical alerts" className="min-h-[200px] bg-warning-amber/5 border border-warning-amber/20 rounded-xl p-5 md:p-6 shadow-xs">
             <h3 className="text-sm font-bold text-warning-amber mb-4">
               Critical Alerts
             </h3>
             <RealTimeAlerts initialAlerts={alerts} />
-          </div>
+          </section>
 
           {/* Activity Feed Panel */}
-          <div className="min-h-[400px] bg-card border border-border rounded-xl p-5 md:p-6 shadow-xs">
+          <section aria-label="Live activity feed" className="min-h-[400px] bg-card border border-border rounded-xl p-5 md:p-6 shadow-xs perf-offscreen">
             <h3 className="text-base md:text-lg font-bold text-foreground tracking-tight mb-4 md:mb-5">Live Activity</h3>
             <ActivityFeed initialActivity={activityData} />
-          </div>
-        </div>
+          </section>
+        </aside>
       </div>
     </div>
   );
