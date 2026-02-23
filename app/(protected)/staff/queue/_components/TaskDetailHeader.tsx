@@ -15,26 +15,26 @@ interface TaskDetailHeaderProps {
 
 export function TaskDetailHeader({ trackingId, status, priority, title, isComplaint, backHref }: TaskDetailHeaderProps) {
   return (
-    <div className="bg-white border-b border-gray-200 sticky top-0 z-30 px-4 py-4 sm:px-6 shadow-sm">
+    <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-30 px-4 py-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-start gap-4">
           <Link 
             href={backHref}
-            className="mt-1 p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+            className="mt-1 p-2 -ml-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-2">
                <div className="flex items-center gap-2">
-                 <h1 className="text-xl font-bold text-gray-900">{trackingId}</h1>
-                 <span className={`text-xs uppercase font-bold px-1.5 py-0.5 rounded ${isComplaint ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                 <h1 className="text-xl font-black text-foreground tracking-tight">{trackingId}</h1>
+                 <span className={`text-xs uppercase font-bold px-2 py-0.5 rounded border ${isComplaint ? 'bg-primary/10 text-primary border-primary/20' : 'bg-muted text-foreground border-border'}`}>
                    {isComplaint ? 'Complaint' : 'Task'}
                  </span>
                </div>
                <PriorityIndicator priority={priority} />
             </div>
-            <h2 className="text-sm text-gray-600 font-medium line-clamp-1 mb-2">{title}</h2>
+            <h2 className="text-sm text-muted-foreground font-semibold line-clamp-1 mb-3">{title}</h2>
             <StatusBadge status={status} />
           </div>
         </div>

@@ -139,7 +139,7 @@ export function TaskActionBar({
             <>
               {normalizedStatus === "completed" ||
               normalizedStatus === "awaiting_approval" ? (
-                <div className="w-full py-3 bg-success-green/10 text-success-green text-center font-bold rounded-xl border border-success-green/20">
+                <div className="w-full py-3 bg-primary/10 text-primary text-center font-bold rounded-xl border border-primary/20">
                   Work Completed ✓
                 </div>
               ) : (
@@ -154,7 +154,7 @@ export function TaskActionBar({
                    <button
                     onClick={() => setIsCompleteModalOpen(true)}
                     disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-2 bg-success-green text-white py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-md shadow-success-green/20 active:scale-95"
+                    className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-md shadow-primary/20 active:scale-95"
                   >
                     <CheckCircle2 className="h-5 w-5" /> Complete
                   </button>

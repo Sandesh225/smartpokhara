@@ -87,9 +87,9 @@ export default async function TaskDetailPage({ params }: PageProps) {
         {/* ----------------------------- */}
         {/* We only render the chat if it's a complaint and we have a valid complaint ID */}
         {assignment.type === "complaint" && realComplaintId && (
-          <div className="pt-4 border-t border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Communication History</h3>
-            <div className="h-[600px] border rounded-xl overflow-hidden shadow-sm">
+          <div className="pt-4 border-t border-border">
+            <h3 className="text-lg font-black tracking-tight text-foreground mb-4">Communication History</h3>
+            <div className="h-[600px] border border-border bg-card rounded-xl overflow-hidden shadow-sm">
                 <UniversalMessaging
                     channelType="COMPLAINT_PUBLIC"
                     channelId={realComplaintId}

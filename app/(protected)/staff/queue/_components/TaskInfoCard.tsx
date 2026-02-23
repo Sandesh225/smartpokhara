@@ -33,7 +33,7 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
   return (
     <div className="bg-card rounded-xl shadow-xs border border-border p-5 space-y-5">
       <div>
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
+        <h3 className="text-eyebrow text-muted-foreground mb-2 flex items-center gap-2">
           <FileText className="w-3.5 h-3.5" /> Description
         </h3>
         <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap font-medium">
@@ -48,7 +48,7 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">Due Date</p>
+              <p className="text-eyebrow text-muted-foreground">Due Date</p>
               <p className="text-sm font-bold text-foreground">
                 {assignment.due_at
                   ? format(new Date(assignment.due_at), "PPP p")
@@ -62,7 +62,7 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
               <UserCheck className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">Assigned By</p>
+              <p className="text-eyebrow text-muted-foreground">Assigned By</p>
               <p className="text-sm font-bold text-foreground">
                 {assignment.assigned_by_name}
               </p>
@@ -76,7 +76,7 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
               <MapPin className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">Location</p>
+              <p className="text-eyebrow text-muted-foreground">Location</p>
               <p className="text-sm font-bold text-foreground line-clamp-2">
                 {assignment.location || "N/A"}
               </p>
@@ -105,7 +105,7 @@ export function TaskInfoCard({ assignment }: TaskInfoCardProps) {
       {/* Citizen Attachments Section */}
       {assignment.attachments && assignment.attachments.length > 0 && (
         <div className="pt-4 border-t border-border">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+          <h3 className="text-eyebrow text-muted-foreground mb-3 flex items-center gap-2">
             <Image className="w-3.5 h-3.5" />
             Citizen Attachments ({assignment.attachments.length})
           </h3>
