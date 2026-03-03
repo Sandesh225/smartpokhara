@@ -69,62 +69,105 @@ export async function middleware(request: NextRequest) {
   // Handle authenticated users
   if (user) {
     try {
-      // For authenticated users not on an explicit flow, fetch their profile and dash configs in parallel
-      // but only if we are actually checking an auth bounds.
-      if (isAuthPage || isProtected || isSetupProfile) {
+      // 1. Skip checks for non-portal/setup routes
+      if (!isAuthPage && !isProtected && !isSetupProfile) {
+        return response;
+      }
+
+      // 2. Check for cached metadata to avoid RPC calls
+      const metadataCookie = request.cookies.get("app-user-metadata")?.value;
+      let profileCheck: any = null;
+      let config: any = null;
+      let metadataCached = false;
+
+      if (metadataCookie) {
+        try {
+          const cached = JSON.parse(metadataCookie);
+          // Simple validation: Ensure metadata is recent (e.g., less than 1 hour old)
+          if (cached && cached.version === "1.0" && (Date.now() - cached.timestamp < 3600000)) {
+            profileCheck = cached.profileCheck;
+            config = cached.config;
+            metadataCached = true;
+          }
+        } catch (e) {
+          console.error("Error parsing metadata cookie:", e);
+        }
+      }
+
+      // 3. Fetch metadata if not cached
+      if (!metadataCached) {
         const [profileCheckRes, configRes] = await Promise.all([
           supabase.rpc("rpc_is_profile_complete"),
           supabase.rpc("rpc_get_dashboard_config"),
         ]);
 
-        const profileCheck = profileCheckRes.data;
-        const config = configRes.data;
+        profileCheck = profileCheckRes.data;
+        config = configRes.data;
 
-        // If profile is incomplete and not on setup page, redirect to setup
-        if (!profileCheck?.is_complete && !isSetupProfile) {
-          return NextResponse.redirect(new URL("/setup-profile", request.url));
+        // 4. Update the response with the new metadata cookie
+        // We'll set it for 1 hour to balance performance and eventual consistency
+        if (profileCheck && config) {
+          const metadataToCache = JSON.stringify({
+            profileCheck,
+            config,
+            timestamp: Date.now(),
+            version: "1.0"
+          });
+          
+          response.cookies.set("app-user-metadata", metadataToCache, {
+            path: "/",
+            maxAge: 3600,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+          });
+        }
+      }
+
+      // Redirection logic using profileCheck and config
+      
+      // If profile is incomplete and not on setup page, redirect to setup
+      if (!profileCheck?.is_complete && !isSetupProfile) {
+        return NextResponse.redirect(new URL("/setup-profile", request.url));
+      }
+
+      // If profile is complete and on setup page, redirect to dashboard
+      if (profileCheck?.is_complete && isSetupProfile) {
+        const targetRoute =
+          config?.dashboard_config?.default_route || "/citizen/dashboard";
+        return NextResponse.redirect(new URL(targetRoute, request.url));
+      }
+
+      // Handle auth pages for logged-in users
+      if (isAuthPage || isProtected) {
+        if (!config || !config.authenticated) {
+          if (isAuthPage) return response;
+          return NextResponse.redirect(new URL("/login", request.url));
         }
 
-        // If profile is complete and on setup page, redirect to dashboard
-        if (profileCheck?.is_complete && isSetupProfile) {
-          const targetRoute =
-            config?.dashboard_config?.default_route || "/citizen/dashboard";
-          return NextResponse.redirect(new URL(targetRoute, request.url));
+        const targetDashboard = config.dashboard_config.default_route;
+
+        // Redirect from auth pages to dashboard
+        if (isAuthPage) {
+          if (pathname !== targetDashboard) {
+            return NextResponse.redirect(new URL(targetDashboard, request.url));
+          }
+          return response;
         }
 
-        // Handle auth pages for logged-in users
-        if (isAuthPage || isProtected) {
-          if (configRes.error || !config || !config.authenticated) {
-            console.error("Middleware RPC Error:", configRes.error);
-            if (isAuthPage) return response;
-            return NextResponse.redirect(new URL("/login", request.url));
-          }
+        // Check portal access for protected routes
+        if (isProtected) {
+          const currentPortal = pathname.split("/")[1];
+          const allowedPortals = config.dashboard_config.available_portals || [];
+          const isAllowed = allowedPortals.includes(currentPortal);
 
-          const targetDashboard = config.dashboard_config.default_route;
-
-          // Redirect from auth pages to dashboard
-          if (isAuthPage) {
-            if (pathname !== targetDashboard) {
-              return NextResponse.redirect(new URL(targetDashboard, request.url));
-            }
-            return response;
-          }
-
-          // Check portal access for protected routes
-          if (isProtected) {
-            const currentPortal = pathname.split("/")[1];
-            const allowedPortals = config.dashboard_config.available_portals;
-            const isAllowed = allowedPortals.includes(currentPortal);
-
-            if (!isAllowed && pathname !== targetDashboard) {
-              return NextResponse.redirect(new URL(targetDashboard, request.url));
-            }
+          if (!isAllowed && pathname !== targetDashboard) {
+            return NextResponse.redirect(new URL(targetDashboard, request.url));
           }
         }
       }
     } catch (err) {
       console.error("Middleware Exception:", err);
-      // If we hit an exception in a protected route, it's safer to redirect to login
       if (isProtected) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
