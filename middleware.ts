@@ -11,6 +11,29 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  const url = request.nextUrl;
+  const pathname = url.pathname;
+
+  const isAuthPage = ["/login", "/register", "/forgot-password"].some((p) =>
+    pathname.startsWith(p)
+  );
+  const isResetPasswordPage = pathname.startsWith("/reset-password");
+  const isPublicInvitation = pathname.startsWith("/staff/accept-invitation");
+  const isSetupProfile = pathname.startsWith("/setup-profile");
+
+  const isProtected = ["/citizen", "/staff", "/supervisor", "/admin"].some(
+    (p) => pathname.startsWith(p)
+  );
+
+  // Allow password reset right away without hitting the database
+  if (isResetPasswordPage) return response;
+
+  // Optimization: If the route is completely public and not related to our auth flows or protected areas, 
+  // skip the expensive Supabase API calls completely to prevent Edge Network 504 Timeouts.
+  if (!isAuthPage && !isPublicInvitation && !isSetupProfile && !isProtected) {
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -36,26 +59,11 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Get user session
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const url = request.nextUrl;
-  const pathname = url.pathname;
-
-  const isAuthPage = ["/login", "/register", "/forgot-password"].some((p) =>
-    pathname.startsWith(p)
-  );
-  const isResetPasswordPage = pathname.startsWith("/reset-password");
-  const isPublicInvitation = pathname.startsWith("/staff/accept-invitation");
-  const isSetupProfile = pathname.startsWith("/setup-profile");
-
-  const isProtected = ["/citizen", "/staff", "/supervisor", "/admin"].some(
-    (p) => pathname.startsWith(p)
-  );
-
-  // Allow password reset and public pages
-  if (isResetPasswordPage) return response;
   if (isPublicInvitation && !user) return response;
 
   // Redirect unauthenticated users
@@ -69,11 +77,6 @@ export async function middleware(request: NextRequest) {
   // Handle authenticated users
   if (user) {
     try {
-      // 1. Skip checks for non-portal/setup routes
-      if (!isAuthPage && !isProtected && !isSetupProfile) {
-        return response;
-      }
-
       // 2. Check for cached metadata to avoid RPC calls
       const metadataCookie = request.cookies.get("app-user-metadata")?.value;
       let profileCheck: any = null;
