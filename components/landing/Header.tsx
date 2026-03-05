@@ -53,10 +53,10 @@ export const Header = () => {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 w-full transition-all duration-300 no-print border-b border-border dark:border-border/50 ${
+        className={`sticky top-0 z-50 w-full transition-all duration-300 no-print border-b border-border ${
           isScrolled
-            ? "bg-background/95 dark:bg-background/90 backdrop-blur-md shadow-sm"
-            : "bg-background/80 dark:bg-background/70 backdrop-blur-sm"
+            ? "bg-background/95 backdrop-blur-md shadow-sm"
+            : "bg-background/80 backdrop-blur-sm"
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -70,14 +70,14 @@ export const Header = () => {
               href="/"
               className="flex items-center gap-2 sm:gap-3 group rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
-              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary dark:bg-primary/90 text-primary-foreground shadow-lg transition-all group-hover:scale-105">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg transition-all group-hover:scale-105">
                 <Landmark className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div className="flex flex-col">
                 <span className="font-heading text-base sm:text-lg font-bold leading-none uppercase text-foreground">
                   Smart Pokhara
                 </span>
-                <span className="text-xs sm:text-xs font-bold text-secondary dark:text-secondary/90 uppercase tracking-widest mt-0.5">
+                <span className="text-xs sm:text-xs font-bold text-secondary uppercase tracking-widest mt-0.5">
                   Metropolitan City
                 </span>
               </div>
@@ -118,7 +118,7 @@ export const Header = () => {
                 </Link>
                 <Link
                   href="/register"
-                  className="px-6 py-2 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-full shadow-md transition-all hover:scale-105"
+                  className="px-6 py-2 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary rounded-full shadow-md transition-all hover:scale-105"
                 >
                   Register
                 </Link>
@@ -146,7 +146,7 @@ export const Header = () => {
         <>
           {/* Backdrop */}
           <div
-            className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm animate-in fade-in duration-200"
+            className="lg:hidden fixed inset-0 bg-background/50 z-40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setIsMenuOpen(false)}
           />
 
@@ -179,26 +179,26 @@ export const Header = () => {
                 <Link
                   href="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-center py-3 font-bold border-2 border-primary text-primary rounded-xl hover:bg-primary/5 transition-colors"
+                  className="flex items-center justify-center py-3 font-bold border-2 border-primary text-primary rounded-xl hover:bg-accent transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-center py-3 font-bold bg-primary text-primary-foreground rounded-xl shadow-md hover:bg-primary/90 transition-all"
+                  className="flex items-center justify-center py-3 font-bold bg-primary text-primary-foreground rounded-xl shadow-md hover:bg-primary transition-all"
                 >
                   Register
                 </Link>
               </div>
 
               {/* Emergency / Support Card */}
-              <div className="mt-6 p-4 rounded-xl bg-muted/50 border border-border">
+              <div className="mt-6 p-4 rounded-xl bg-muted border border-border">
                 <a
                   href="tel:+97761521105"
                   className="flex items-center gap-3 group"
                 >
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
+                  <div className="h-10 w-10 rounded-lg bg-accent flex items-center justify-center transition-colors group-hover:bg-accent">
                     <Phone className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex flex-col">

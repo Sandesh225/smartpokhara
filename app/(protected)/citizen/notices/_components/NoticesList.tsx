@@ -93,13 +93,13 @@ export default function NoticesList({
       className="space-y-6"
     >
       <Card className="border-2 border-border overflow-hidden rounded-3xl shadow-xl">
-        <CardHeader className="pb-6 border-b-2 border-border bg-gradient-to-br from-muted/30 to-transparent">
+        <CardHeader className="pb-6 border-b-2 border-border bg-linear-to-br from-muted/30 to-transparent">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <motion.div
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400 }}
-                className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-xl"
+                className="h-14 w-14 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-xl"
               >
                 <Bell className="h-7 w-7 text-white" strokeWidth={2.5} />
               </motion.div>
@@ -115,7 +115,7 @@ export default function NoticesList({
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
                       >
-                        <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black rounded-full animate-pulse px-3 py-1 shadow-lg">
+                        <Badge className="bg-linear-to-r from-amber-500 to-amber-600 text-white font-black rounded-full animate-pulse px-3 py-1 shadow-lg">
                           {unreadCount} New
                         </Badge>
                       </motion.div>
@@ -239,7 +239,7 @@ export default function NoticesList({
                           className={cn(
                             "h-10 w-10 rounded-xl font-black text-sm transition-all",
                             page === pageNum
-                              ? "bg-gradient-to-br from-primary to-secondary text-whiteshadow-xl scale-110"
+                              ? "bg-linear-to-br from-primary to-secondary text-white shadow-xl scale-110"
                               : "text-muted-foreground hover:text-foreground hover:bg-background"
                           )}
                         >

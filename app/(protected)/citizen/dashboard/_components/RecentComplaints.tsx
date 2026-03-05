@@ -10,12 +10,12 @@ import { Complaint } from "@/features/complaints";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   received: { label: "Logged", className: "bg-muted text-muted-foreground border-border" },
-  under_review: { label: "Reviewing", className: "bg-accent/50 text-accent-foreground border-accent" },
-  assigned: { label: "Delegated", className: "bg-primary/10 text-primary border-primary/20" },
-  in_progress: { label: "Operating", className: "bg-secondary/10 text-secondary border-secondary/20 font-black animate-pulse" },
-  resolved: { label: "Completed", className: "bg-secondary/10 text-secondary border-secondary/20" },
+  under_review: { label: "Reviewing", className: "bg-accent text-accent-foreground border-accent" },
+  assigned: { label: "Delegated", className: "bg-primary text-primary-foreground border-primary" },
+  in_progress: { label: "Operating", className: "bg-secondary text-secondary-foreground border-secondary font-black animate-pulse" },
+  resolved: { label: "Completed", className: "bg-secondary text-secondary-foreground border-secondary" },
   closed: { label: "Archived", className: "bg-muted text-muted-foreground border-border" },
-  reopened: { label: "Active", className: "bg-primary/10 text-primary border-primary/20" },
+  reopened: { label: "Active", className: "bg-primary text-primary-foreground border-primary" },
 };
 
 export default memo(function RecentComplaints({ complaints }: { complaints: Complaint[] }) {
@@ -26,11 +26,11 @@ export default memo(function RecentComplaints({ complaints }: { complaints: Comp
     };
 
   return (
-    <Card className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-3xl overflow-hidden shadow-inner-lg h-full transition-all duration-500 hover:shadow-xl relative group/card">
+    <Card className="bg-card backdrop-blur-sm border border-border rounded-3xl overflow-hidden shadow-inner-lg h-full transition-all duration-500 hover:shadow-xl relative group/card">
       <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
-      <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-border/50 bg-muted/10 relative z-10">
+      <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-border bg-muted/10 relative z-10">
         <CardTitle className="font-heading text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2.5">
-          <div className="p-1.5 bg-primary/10 text-primary rounded-xl border border-primary/20">
+          <div className="p-1.5 bg-primary text-primary-foreground rounded-xl border border-primary">
             <FileText className="w-3.5 h-3.5" aria-hidden="true" />
           </div>
           Filing Activity
@@ -71,7 +71,7 @@ export default memo(function RecentComplaints({ complaints }: { complaints: Comp
                     href={`/citizen/complaints/${item.id}`}
                     className={cn(
                       "flex items-center justify-between gap-6 px-6 py-5 rounded-2xl mx-2 my-1",
-                      "hover:bg-muted/40 transition-all duration-500 group outline-none",
+                      "hover:bg-muted transition-all duration-500 group outline-none",
                       "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/20"
                     )}
                     aria-label={`${item.title}, status: ${statusConfig.label}`}

@@ -15,8 +15,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { getDefaultDashboardPath } from "@/lib/auth/role-helpers";
-import type { CurrentUser } from "@/lib/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,7 +74,6 @@ export function LoginForm() {
       if (signInError) throw signInError;
       if (!data.user) throw new Error("Unable to sign in.");
 
-      // Use standardized dashboard config for redirection
       const { data: config, error: configError } = await supabase.rpc("rpc_get_dashboard_config");
       
       if (configError) console.error("Failed to fetch dashboard config:", configError);
@@ -103,8 +100,6 @@ export function LoginForm() {
     }
   };
 
-  const isFormValid = email && password && !emailError && !passwordError;
-
   return (
     <form
       onSubmit={handleLogin}
@@ -117,8 +112,8 @@ export function LoginForm() {
           <div
             className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-all duration-200 z-10 ${
               emailFocused || email
-                ? "text-primary dark:text-primary/90"
-                : "text-muted-foreground dark:text-muted-foreground/80"
+                ? "text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <Mail className="h-5 w-5" />
@@ -140,7 +135,7 @@ export function LoginForm() {
             placeholder="name@example.com"
           />
           {email && !emailError && !emailFocused && (
-            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary dark:text-secondary/90" />
+            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
           )}
           {emailError && !emailFocused && (
             <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-destructive" />
@@ -160,7 +155,7 @@ export function LoginForm() {
           <Label htmlFor="password">Password</Label>
           <Link
             href="/forgot-password"
-            className="text-xs font-medium text-primary dark:text-primary/90 hover:text-secondary dark:hover:text-secondary/90 transition-colors hover:underline"
+            className="text-xs font-medium text-primary hover:text-secondary transition-colors hover:underline"
           >
             Forgot password?
           </Link>
@@ -169,8 +164,8 @@ export function LoginForm() {
           <div
             className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-all duration-200 z-10 ${
               passwordFocused || password
-                ? "text-primary dark:text-primary/90"
-                : "text-muted-foreground dark:text-muted-foreground/80"
+                ? "text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <Lock className="h-5 w-5" />
@@ -213,7 +208,6 @@ export function LoginForm() {
       </div>
 
       {/* Submit Button */}
-      {/* Submit Button */}
       <Button
         type="submit"
         disabled={loading}
@@ -232,10 +226,10 @@ export function LoginForm() {
       {/* Divider */}
       <div className="relative py-4">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border dark:border-border/50" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center">
-          <span className="px-4 text-sm font-medium text-muted-foreground dark:text-muted-foreground/80 bg-background dark:bg-background">
+          <span className="px-4 text-sm font-medium text-muted-foreground bg-background">
             New to Smart Pokhara?
           </span>
         </div>
@@ -244,7 +238,7 @@ export function LoginForm() {
       {/* Register Link */}
       <Link
         href="/register"
-        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border dark:border-border/50 hover:border-primary dark:hover:border-primary/80 bg-background dark:bg-card text-foreground dark:text-foreground/95 font-semibold hover:bg-accent dark:hover:bg-accent/80 transition-all active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border hover:border-primary bg-background text-foreground font-semibold hover:bg-accent transition-all active:scale-[0.98]"
       >
         Create an account
         <ArrowRight className="h-5 w-5" />

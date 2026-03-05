@@ -18,11 +18,11 @@ import { cn } from "@/lib/utils";
 const StatusCell = ({ status }: { status: string }) => {
   const config: Record<string, string> = {
     received: "bg-muted text-foreground border-border",
-    assigned: "bg-info-blue/10 text-info-blue border-info-blue/20",
-    in_progress: "bg-secondary/10 text-secondary border-secondary/20",
-    resolved: "bg-success-green/10 text-success-green border-success-green/20",
+    assigned: "bg-primary text-primary-foreground border-primary",
+    in_progress: "bg-secondary text-secondary-foreground border-secondary",
+    resolved: "bg-primary text-primary-foreground border-primary",
     closed: "bg-muted text-muted-foreground border-border",
-    rejected: "bg-error-red/10 text-error-red border-error-red/20",
+    rejected: "bg-destructive text-destructive-foreground border-destructive",
   };
 
   return (
@@ -109,7 +109,7 @@ export const getComplaintColumns = (
     header: "Tracking ID",
     cell: ({ row }) => (
       <div className="flex items-center gap-2 group/copy">
-        <span className="font-mono text-xs font-black text-primary hover:text-primary/80 cursor-pointer transition-colors px-2.5 py-1 bg-primary/5 rounded-lg border border-primary/10">
+        <span className="font-mono text-xs font-black text-primary hover:text-primary cursor-pointer transition-colors px-2.5 py-1 bg-accent rounded-lg border border-primary">
           #{row.original.tracking_code}
         </span>
         <Button
@@ -137,7 +137,7 @@ export const getComplaintColumns = (
         <span className="font-black text-foreground uppercase tracking-tight text-sm leading-tight group-hover:text-primary transition-colors">
           {row.original.title}
         </span>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground opacity-60">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {row.original.ward && (
              <span className="flex items-center gap-1">
                <MapPin className="h-3 w-3" /> {row.original.ward.ward_number}
@@ -145,7 +145,7 @@ export const getComplaintColumns = (
           )}
           {row.original.category && (
             <>
-              <span className="text-border/40">•</span>
+              <span className="text-border">•</span>
               <span className="flex items-center gap-1 truncate max-w-[120px]">
                 <Building2 className="h-3 w-3" /> {row.original.category.name}
               </span>

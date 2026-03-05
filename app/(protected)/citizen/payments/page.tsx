@@ -219,8 +219,8 @@ export default function PaymentsPage() {
                 </p>
                 <p className="text-2xl font-bold">{statistics.pending}</p>
               </div>
-              <div className="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900/20">
-                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+              <div className="p-3 rounded-full bg-secondary text-secondary-foreground border border-secondary">
+                <Clock className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
@@ -235,8 +235,8 @@ export default function PaymentsPage() {
                 </p>
                 <p className="text-2xl font-bold">{statistics.overdue}</p>
               </div>
-              <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/20">
-                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="p-3 rounded-full bg-destructive text-destructive-foreground border border-destructive">
+                <AlertCircle className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
@@ -253,8 +253,8 @@ export default function PaymentsPage() {
                   NPR {statistics.totalDue.toFixed(2)}
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20">
-                <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-3 rounded-full bg-accent text-accent-foreground border border-accent">
+                <CreditCard className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
@@ -271,8 +271,8 @@ export default function PaymentsPage() {
                   NPR {statistics.paidThisMonth.toFixed(2)}
                 </p>
               </div>
-              <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/20">
-                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="p-3 rounded-full bg-primary text-primary-foreground border border-primary">
+                <TrendingUp className="h-6 w-6" />
               </div>
             </div>
           </CardContent>

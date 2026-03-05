@@ -28,33 +28,33 @@ export default function NoticeCard({
   const getTypeConfig = (type: string) => {
     const configs = {
       announcement: {
-        color: "text-primary dark:text-primary",
-        bg: "bg-primary/10 dark:bg-primary/20",
-        border: "border-primary/30 dark:border-primary/30",
+        color: "text-primary",
+        bg: "bg-primary/10",
+        border: "border-primary/30",
         icon: "📢",
       },
       emergency: {
         color: "text-destructive",
-        bg: "bg-destructive/10 dark:bg-destructive/20",
+        bg: "bg-destructive/10",
         border: "border-destructive/30",
         icon: "🚨",
       },
       tender: {
         color: "text-foreground",
-        bg: "bg-muted dark:bg-muted",
-        border: "border-border dark:border-border",
+        bg: "bg-muted",
+        border: "border-border",
         icon: "📋",
       },
       event: {
-        color: "text-secondary dark:text-secondary",
-        bg: "bg-secondary/10 dark:bg-secondary/20",
-        border: "border-secondary/30 dark:border-secondary/30",
+        color: "text-secondary",
+        bg: "bg-secondary/10",
+        border: "border-secondary/30",
         icon: "🎉",
       },
       vacancy: {
-        color: "text-warning-amber",
-        bg: "bg-warning-amber/10",
-        border: "border-warning-amber/30",
+        color: "text-accent",
+        bg: "bg-accent/10",
+        border: "border-accent/30",
         icon: "💼",
       },
     };
@@ -77,9 +77,9 @@ export default function NoticeCard({
         <div
           className={cn(
             "stone-card relative overflow-hidden transition-all duration-300",
-            "hover:shadow-xl dark:hover:shadow-2xl hover:border-primary/40 dark:hover:border-primary/40",
+            "hover:shadow-xl hover:border-primary/40",
             isUnread &&
-              "ring-2 ring-primary/30 dark:ring-primary/40 bg-primary/[0.02] dark:bg-primary/[0.05]",
+              "ring-2 ring-primary/30 bg-primary/5",
             isUrgent && "ring-2 ring-destructive/40 animate-pulse"
           )}
         >
@@ -92,12 +92,12 @@ export default function NoticeCard({
               "absolute left-0 top-0 bottom-0 w-1.5 z-10",
               isUrgent
                 ? "bg-destructive"
-                : "bg-primary dark:bg-primary"
+                : "bg-primary"
             )}
           />
 
           {/* Hover Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 dark:to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-linear-to-br from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           <div className="p-6 pl-8 flex flex-col h-full gap-4 relative z-10">
             {/* Header with Badges */}
@@ -144,7 +144,7 @@ export default function NoticeCard({
 
             {/* Content */}
             <div className="space-y-3 flex-1">
-              <h3 className="text-xl font-black text-foreground leading-tight group-hover:text-primary dark:group-hover:text-primary transition-colors line-clamp-2">
+              <h3 className="text-xl font-black text-foreground leading-tight group-hover:text-primary transition-colors line-clamp-2">
                 {notice.title}
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
@@ -157,18 +157,18 @@ export default function NoticeCard({
             </div>
 
             {/* Footer */}
-            <div className="pt-4 border-t border-border/50 dark:border-border flex items-center justify-between gap-4">
+            <div className="pt-4 border-t border-border/50 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 text-xs font-medium">
                 {notice.ward_number ? (
-                  <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-muted px-3 py-1.5 rounded-lg">
-                    <MapPin className="w-3.5 h-3.5 text-primary dark:text-primary" />
+                  <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg">
+                    <MapPin className="w-3.5 h-3.5 text-primary" />
                     <span className="font-bold">
                       Ward {notice.ward_number}
                     </span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-muted px-3 py-1.5 rounded-lg">
-                    <MapPin className="w-3.5 h-3.5 text-secondary dark:text-secondary" />
+                  <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg">
+                    <MapPin className="w-3.5 h-3.5 text-secondary" />
                     <span className="font-bold">Metropolitan</span>
                   </div>
                 )}
@@ -185,9 +185,9 @@ export default function NoticeCard({
                 size="sm"
                 className={cn(
                   "rounded-xl font-bold transition-all shadow-sm group/btn",
-                  "bg-background dark:bg-background text-foreground border-2 border-border dark:border-border",
-                  "hover:bg-primary dark:hover:bg-primary hover:text-primary-foreground hover:border-primary dark:hover:border-primary",
-                  "hover:shadow-lg hover:shadow-primary/20 dark:hover:shadow-primary/30",
+                  "bg-background text-foreground border-2 border-border",
+                  "hover:bg-primary hover:text-primary-foreground hover:border-primary",
+                  "hover:shadow-lg hover:shadow-primary/20",
                   "active:scale-95"
                 )}
               >
@@ -216,7 +216,7 @@ export default function NoticeCard({
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 dark:bg-primary/30 rounded-full blur-3xl pointer-events-none"
+              className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none"
             />
           )}
         </div>

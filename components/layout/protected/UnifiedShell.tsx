@@ -21,8 +21,8 @@ export function UnifiedShell({ user, dashboardType, counts, children }: Props) {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background relative">
       {/* Universal Background Decor */}
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-primary/3 rounded-full blur-3xl -z-10 pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-secondary/3 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
 
       <UnifiedSidebar 
         user={user} 

@@ -101,7 +101,7 @@ export default function ProfilePage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary-brand" />
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground animate-pulse">
             Loading your profile…
           </p>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="h-12 rounded-2xl px-6 font-bold text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+            className="h-12 rounded-2xl px-6 font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sign Out
@@ -143,7 +143,7 @@ export default function ProfilePage() {
         <section className="stone-card p-6 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black flex items-center gap-2">
-              <User className="h-5 w-5 text-primary-brand" />
+              <User className="h-5 w-5 text-primary" />
               Profile Information
             </h2>
           </div>
@@ -166,7 +166,7 @@ export default function ProfilePage() {
         {/* ================= Security Section ================= */}
         <section className="stone-card p-6 max-w-3xl">
           <h2 className="text-2xl font-black flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary-brand" />
+            <Shield className="h-5 w-5 text-primary" />
             Security
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -181,7 +181,7 @@ export default function ProfilePage() {
         {/* ================= Notifications Section ================= */}
         <section className="stone-card p-6 max-w-4xl">
           <h2 className="text-2xl font-black flex items-center gap-2">
-            <Bell className="h-5 w-5 text-primary-brand" />
+            <Bell className="h-5 w-5 text-primary" />
             Notification Preferences
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -197,14 +197,14 @@ export default function ProfilePage() {
         </section>
 
         {/* ================= Danger Zone ================= */}
-        <section className="rounded-3xl border border-red-500/30 bg-red-500/5 p-6 max-w-3xl">
-          <h3 className="text-xs font-black uppercase tracking-widest text-red-500 mb-4">
+        <section className="rounded-3xl border border-destructive/30 bg-destructive/5 p-6 max-w-3xl">
+          <h3 className="text-xs font-black uppercase tracking-widest text-destructive mb-4">
             Danger Zone
           </h3>
           <Button
             variant="ghost"
             onClick={handleDeleteAccount}
-            className="justify-start rounded-xl font-bold text-red-500 hover:bg-red-500/10"
+            className="justify-start rounded-xl font-bold text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete Account

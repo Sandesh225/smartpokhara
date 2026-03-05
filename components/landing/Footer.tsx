@@ -22,7 +22,7 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-muted/40 border-t border-border mt-auto no-print transition-colors duration-400">
+    <footer className="w-full bg-muted border-t border-border mt-auto no-print transition-colors duration-400">
       <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Main Footer Content */}
         <div className="pt-12 sm:pt-16 pb-12">
@@ -66,7 +66,7 @@ export const Footer = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={social.label}
-                    className="h-11 w-11 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground transition-all duration-300 hover:-translate-y-1 hover:bg-accent hover:text-accent-foreground hover:border-primary/30 shadow-sm"
+                    className="h-11 w-11 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground transition-all duration-300 hover:-translate-y-1 hover:bg-accent hover:text-accent-foreground hover:border-primary shadow-sm"
                   >
                     <social.icon className="h-4 w-4" />
                   </a>
@@ -84,7 +84,7 @@ export const Footer = () => {
                     placeholder="Your email address"
                     className="flex-1 px-4 py-2.5 text-sm font-sans rounded-xl bg-card border border-input focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-inner-sm placeholder:text-muted-foreground"
                   />
-                  <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-heading font-bold hover:bg-primary/90 transition-all duration-300 active:scale-95 shadow-md shadow-primary/20">
+                  <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-heading font-bold hover:bg-primary transition-all duration-300 active:scale-95 shadow-md">
                     <Send className="h-4 w-4" />
                   </button>
                 </div>
@@ -103,7 +103,7 @@ export const Footer = () => {
                       href={link.href}
                       className="font-sans text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-3 group"
                     >
-                      <span className="text-muted-foreground/50 group-hover:text-primary transition-colors">{link.icon}</span>
+                      <span className="text-muted-foreground group-hover:text-primary transition-colors">{link.icon}</span>
                       <span className="group-hover:translate-x-1 transition-transform duration-300">
                         {link.label}
                       </span>
@@ -148,7 +148,7 @@ export const Footer = () => {
                     rel="noopener noreferrer"
                     className="flex gap-4 font-sans text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors group"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-accent/50 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
+                    <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center shrink-0 group-hover:bg-primary transition-colors">
                       <MapPin className="w-4 h-4 text-primary group-hover:scale-110 transition-transform duration-300" />
                     </div>
                     <span className="leading-relaxed pt-1">
@@ -161,7 +161,7 @@ export const Footer = () => {
                     href={`tel:${CONTACT_INFO.phone}`}
                     className="flex gap-4 font-mono text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors group"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-accent/50 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
+                    <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center shrink-0 group-hover:bg-primary transition-colors">
                       <Phone className="w-4 h-4 text-primary group-hover:-rotate-12 transition-transform duration-300" />
                     </div>
                     <span className="pt-1.5">{CONTACT_INFO.phone}</span>
@@ -172,7 +172,7 @@ export const Footer = () => {
                     href={`mailto:${CONTACT_INFO.email}`}
                     className="flex gap-4 font-sans text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors break-all group"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-accent/50 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
+                    <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center shrink-0 group-hover:bg-primary transition-colors">
                       <Mail className="w-4 h-4 text-primary group-hover:scale-110 transition-transform duration-300" />
                     </div>
                     <span className="pt-1.5">{CONTACT_INFO.email}</span>
@@ -184,7 +184,7 @@ export const Footer = () => {
                 href={CONTACT_INFO.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2 px-5 py-3 text-sm font-heading font-bold text-secondary bg-secondary/10 rounded-xl hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 group"
+                className="mt-8 inline-flex items-center gap-2 px-5 py-3 text-sm font-heading font-bold text-secondary bg-accent rounded-xl hover:bg-secondary hover:text-secondary-foreground transition-all duration-300 group"
               >
                 Visit Official Website
                 <ExternalLink className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -201,7 +201,7 @@ export const Footer = () => {
               <p className="mb-1 font-medium">
                 © {currentYear} Pokhara Metropolitan City. All rights reserved.
               </p>
-              <p className="text-xs opacity-70">
+              <p className="text-xs text-muted-foreground">
                 Government of Nepal | Gandaki Province
               </p>
             </div>

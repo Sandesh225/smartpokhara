@@ -101,9 +101,9 @@ export default function ServicesPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-1 w-full">
         {/* Hero Section - Tightened Padding */}
-        <section className="relative py-12 sm:py-16 md:py-20 bg-gradient-to-br from-primary-brand-dark to-primary-brand text-primary-foreground overflow-hidden">
+        <section className="relative py-12 sm:py-16 md:py-20 bg-linear-to-br from-primary-brand-dark to-primary-brand text-primary-foreground overflow-hidden">
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:40px_40px]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-size-[40px_40px]" />
           </div>
 
           <div className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl text-center md:text-left">
@@ -122,11 +122,11 @@ export default function ServicesPage() {
               </p>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <button className="inline-flex items-center gap-2 px-8 py-3.5 bg-background text-primary-brand font-bold rounded-full hover:bg-background/90 transition-all hover:scale-105 shadow-xl">
+                <button className="inline-flex items-center gap-2 px-8 py-3.5 bg-background text-primary-brand font-bold rounded-full hover:bg-background transition-all hover:scale-105 shadow-xl">
                   Digital Portal
                   <ArrowRight className="w-5 h-5" />
                 </button>
-                <button className="inline-flex items-center gap-2 px-8 py-3.5 bg-white/5 border border-white/20 text-primary-foreground font-bold rounded-full hover:bg-white/10 transition-all backdrop-blur-sm">
+                <button className="inline-flex items-center gap-2 px-8 py-3.5 bg-white/5 border border-white text-primary-foreground font-bold rounded-full hover:bg-white/10 transition-all backdrop-blur-sm">
                   Service Forms
                   <Download className="w-5 h-5" />
                 </button>
@@ -141,7 +141,7 @@ export default function ServicesPage() {
             {SERVICES.map((category, idx) => (
               <div key={idx} className="mb-12 last:mb-0">
                 <div className="flex items-center gap-4 mb-8">
-                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center shadow-lg`}>
+                  <div className={`h-12 w-12 rounded-xl bg-linear-to-br ${category.color} flex items-center justify-center shadow-lg`}>
                     <category.icon className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -156,17 +156,17 @@ export default function ServicesPage() {
                   {category.services.map((service, sIdx) => (
                     <article
                       key={sIdx}
-                      className="group relative bg-card border border-border dark:border-border/50 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                      className="group relative bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                     >
                       {/* Online/Offline Badge */}
                       <div className="absolute top-6 right-6">
                         {service.status === "online" ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 border border-green-500/20 rounded-full text-xs font-bold uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 border border-green-500 rounded-full text-xs font-bold uppercase tracking-wider">
                             <CheckCircle2 className="w-3 h-3" />
                             Digital
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-600 border border-blue-500/20 rounded-full text-xs font-bold uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-600 border border-blue-500 rounded-full text-xs font-bold uppercase tracking-wider">
                             <AlertCircle className="w-3 h-3" />
                             Office
                           </span>
@@ -180,7 +180,7 @@ export default function ServicesPage() {
                         {service.description}
                       </p>
 
-                      <div className="grid grid-cols-2 gap-3 mb-5 py-3 border-y border-border/50">
+                      <div className="grid grid-cols-2 gap-3 mb-5 py-3 border-y border-border">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                           <Clock className="w-3.5 h-3.5 text-primary-brand" />
                           <span>{service.processing}</span>
@@ -216,11 +216,11 @@ export default function ServicesPage() {
         </section>
 
         {/* Support Footer - py-12 */}
-        <section className="py-12 bg-muted/30">
+        <section className="py-12 bg-muted">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-primary-brand/10 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-2xl bg-accent flex items-center justify-center">
                   <Phone className="w-5 h-5 text-primary-brand" />
                 </div>
                 <div>
@@ -229,7 +229,7 @@ export default function ServicesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-primary-brand/10 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-2xl bg-accent flex items-center justify-center">
                   <Mail className="w-5 h-5 text-primary-brand" />
                 </div>
                 <div>
@@ -238,7 +238,7 @@ export default function ServicesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-secondary/10 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-2xl bg-accent flex items-center justify-center">
                   <Clock className="w-5 h-5 text-secondary" />
                 </div>
                 <div>

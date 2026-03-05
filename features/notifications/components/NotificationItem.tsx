@@ -45,23 +45,23 @@ interface NotificationItemProps {
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
     case "complaint_status":
-      return <FileText className="h-5 w-5 text-blue-500" />;
+      return <FileText className="h-5 w-5 text-primary" />;
     case "bill_generated":
-      return <CreditCard className="h-5 w-5 text-emerald-500" />;
+      return <CreditCard className="h-5 w-5 text-primary" />;
     case "new_notice":
-      return <Megaphone className="h-5 w-5 text-amber-500" />;
+      return <Megaphone className="h-5 w-5 text-accent" />;
     case "system_announcement":
-      return <AlertTriangle className="h-5 w-5 text-rose-500" />;
+      return <AlertTriangle className="h-5 w-5 text-destructive" />;
     default:
-      return <Info className="h-5 w-5 text-slate-400" />;
+      return <Info className="h-5 w-5 text-muted-foreground" />;
   }
 };
 
 const priorityBadgeClass = {
-  low: "bg-slate-100 text-slate-600 border-slate-200",
-  normal: "bg-blue-50 text-blue-700 border-blue-100",
-  high: "bg-orange-50 text-orange-700 border-orange-100",
-  urgent: "bg-red-50 text-red-700 border-red-100",
+  low: "bg-muted text-muted-foreground border-border",
+  normal: "bg-primary/10 text-primary border-primary/20",
+  high: "bg-accent/10 text-accent border-accent/20",
+  urgent: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 export function NotificationItem({ notification, isSelected, onSelect }: NotificationItemProps) {
@@ -75,22 +75,22 @@ export function NotificationItem({ notification, isSelected, onSelect }: Notific
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ scale: 1.01, x: 4 }}
       className={cn(
-        "group relative flex items-start gap-5 p-6 rounded-[2rem] border transition-all duration-300",
+        "group relative flex items-start gap-5 p-6 rounded-4xl border transition-all duration-300",
         !n.is_read
-          ? "bg-white border-blue-200 shadow-xl shadow-blue-900/5 ring-1 ring-blue-50"
-          : "bg-slate-50/50 border-slate-200 opacity-75"
+          ? "bg-card border-primary/20 shadow-xl shadow-primary/5 ring-1 ring-primary/10"
+          : "bg-muted/50 border-border opacity-75"
       )}
     >
       <div className="pt-1">
         <input
           type="checkbox"
-          className="h-6 w-6 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+          className="h-6 w-6 rounded-lg border-border text-primary focus:ring-primary cursor-pointer accent-primary"
           checked={isSelected}
           onChange={() => onSelect(n.id)}
         />
       </div>
 
-      <div className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-inner">
+      <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center shrink-0 shadow-inner">
         {getNotificationIcon(n.type)}
       </div>
 
@@ -100,7 +100,7 @@ export function NotificationItem({ notification, isSelected, onSelect }: Notific
             <h3
               className={cn(
                 "text-xl font-black tracking-tight",
-                !n.is_read ? "text-slate-900 dark:text-slate-100" : "text-slate-600 dark:text-slate-400"
+                !n.is_read ? "text-foreground" : "text-muted-foreground"
               )}
             >
               {n.title}
@@ -115,15 +115,15 @@ export function NotificationItem({ notification, isSelected, onSelect }: Notific
               {n.priority}
             </Badge>
             {!n.is_read && (
-              <span className="h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse" />
+              <span className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
             )}
           </div>
-          <time className="text-xs font-bold text-slate-400 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
+          <time className="text-xs font-bold text-muted-foreground bg-background border border-border px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
             {format(new Date(n.created_at), "MMM d, yyyy • h:mm a")}
           </time>
         </div>
 
-        <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
+        <p className="text-muted-foreground text-lg leading-relaxed">
           {n.message}
         </p>
 
@@ -131,7 +131,7 @@ export function NotificationItem({ notification, isSelected, onSelect }: Notific
           <div className="pt-2">
             <Button
               variant="outline"
-              className="rounded-xl font-bold hover:bg-blue-600 hover:text-white transition-all group/btn bg-transparent border-2"
+              className="rounded-xl font-bold hover:bg-primary hover:text-primary-foreground transition-all group/btn bg-transparent border-2"
               asChild
             >
               <a href={n.action_url}>

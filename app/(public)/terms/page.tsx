@@ -12,7 +12,7 @@ export default function TermsOfServicePage() {
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-secondary/10 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center p-3 bg-accent rounded-full mb-4">
             <Scale className="w-10 h-10 text-secondary" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight">
@@ -21,13 +21,13 @@ export default function TermsOfServicePage() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Please read these terms carefully before using the Smart Pokhara portal.
           </p>
-          <p className="text-sm text-muted-foreground/80">
+          <p className="text-sm text-muted-foreground">
             Last Updated: February 20, 2026
           </p>
         </div>
 
         {/* Content */}
-        <div className="prose prose-lg dark:prose-invert max-w-none space-y-8">
+        <div className="prose prose-lg max-w-none space-y-8">
           <section className="bg-card border border-border rounded-2xl p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <Users className="w-6 h-6 text-primary" />
@@ -52,7 +52,7 @@ export default function TermsOfServicePage() {
               <li>Use the platform only for lawful municipal purposes.</li>
               <li>Not interfere with or disrupt the integrity or performance of the platform.</li>
             </ul>
-             <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground border border-border/50">
+             <div className="mt-4 p-4 bg-muted rounded-lg text-sm text-muted-foreground border border-border">
                 <strong>Note:</strong> False reporting or misuse of the complaint system may lead to account suspension or legal action.
              </div>
           </section>

@@ -12,7 +12,7 @@ export default function DataProtectionPage() {
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center p-3 bg-accent rounded-full mb-4">
             <Database className="w-10 h-10 text-purple-500" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight">
@@ -24,7 +24,7 @@ export default function DataProtectionPage() {
         </div>
 
         {/* Content */}
-        <div className="prose prose-lg dark:prose-invert max-w-none space-y-8">
+        <div className="prose prose-lg max-w-none space-y-8">
            <section className="bg-card border border-border rounded-2xl p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-foreground mb-4">Data Governance</h2>
             <p>

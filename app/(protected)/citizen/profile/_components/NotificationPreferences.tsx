@@ -93,9 +93,9 @@ export default function NotificationPreferences({
   };
 
   return (
-    <Card className="rounded-3xl border bg-background text-foreground shadow-sm dark:shadow-none overflow-hidden">
+    <Card className="rounded-3xl border bg-background text-foreground overflow-hidden">
       {/* ================= Header ================= */}
-      <CardHeader className="border-b bg-muted/40 dark:bg-muted/20 card-padding">
+      <CardHeader className="card-padding border-b bg-muted/40">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
             <BellRing className="h-7 w-7" />
@@ -173,7 +173,7 @@ export default function NotificationPreferences({
             ].map((item) => (
               <div
                 key={item.key}
-                className="flex items-center justify-between p-5 rounded-2xl border bg-muted/40 dark:bg-muted/20 hover:bg-muted transition-all"
+                className="flex items-center justify-between p-5 rounded-2xl border bg-muted/40 hover:bg-muted transition-all"
               >
                 <div className="space-y-1">
                   <Label className="font-bold">{item.label}</Label>
@@ -195,7 +195,7 @@ export default function NotificationPreferences({
         <Separator />
 
         {/* Digest */}
-        <section className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 rounded-3xl border bg-muted/30 dark:bg-muted/20">
+        <section className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 rounded-3xl border bg-muted/30">
           <div>
             <Label className="text-lg font-black">Digest Frequency</Label>
             <p className="text-xs text-muted-foreground mt-1">
@@ -220,7 +220,7 @@ export default function NotificationPreferences({
       </CardContent>
 
       {/* ================= Footer ================= */}
-      <CardFooter className="border-t bg-muted/50 dark:bg-muted/30 card-padding flex justify-between items-center">
+      <CardFooter className="border-t bg-muted/50 card-padding flex justify-between items-center">
         <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-primary" />
           Encrypted
@@ -230,8 +230,8 @@ export default function NotificationPreferences({
           onClick={handleSave}
           disabled={isSaving}
           className="h-12 min-w-[180px] rounded-2xl font-black
-                     bg-foreground text-background
-                     hover:bg-foreground/90
+                     bg-primary text-primary-foreground
+                     hover:opacity-90
                      active:scale-95"
         >
           {isSaving ? (
@@ -257,7 +257,7 @@ function ChannelCard({ id, label, desc, icon: Icon, checked, onToggle }: any) {
         "flex items-center justify-between p-6 rounded-3xl border transition-all",
         checked
           ? "bg-background border-primary ring-4 ring-primary/10"
-          : "bg-muted/40 border-border opacity-70"
+          : "bg-muted/40 border-border"
       )}
     >
       <div className="flex items-center gap-4">

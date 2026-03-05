@@ -14,7 +14,7 @@ import { ComplaintsTable } from "./ComplaintsTable";
 
 // ─── Skeleton pulse ───────────────────────────────────────────────────────────
 function Pulse({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div className={cn("animate-pulse rounded-xl bg-muted/80 dark:bg-muted/50", className)} style={style} />;
+  return <div className={cn("animate-pulse rounded-xl bg-muted", className)} style={style} />;
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ function StatCard({ label, value, icon: Icon, barColor, iconBg, iconColor, delay
             {value}
           </span>
         </div>
-        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-400 group-hover:scale-110", iconBg)}>
+        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-400 group-hover:scale-110", iconBg)}>
           <Icon className={cn("w-6 h-6", iconColor)} />
         </div>
       </div>
@@ -107,9 +107,9 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
   // Strictly utilizing theme colors: Primary, Secondary, Accent, and Muted
   const STATS: StatProps[] = [
     { label: "Total Filed",   value: currentStats?.total       || 0, icon: FileText,    barColor: "bg-foreground",  iconBg: "bg-muted",          iconColor: "text-foreground",       delay: 0    },
-    { label: "Pending",       value: currentStats?.open        || 0, icon: Clock,       barColor: "bg-secondary",   iconBg: "bg-secondary/10",   iconColor: "text-secondary",        delay: 0.1  },
-    { label: "In Progress",   value: currentStats?.in_progress || 0, icon: Activity,    barColor: "bg-accent",      iconBg: "bg-accent/20",      iconColor: "text-accent-foreground",delay: 0.2  },
-    { label: "Resolved",      value: currentStats?.resolved    || 0, icon: CheckCircle, barColor: "bg-primary",     iconBg: "bg-primary/10",     iconColor: "text-primary",          delay: 0.3  },
+    { label: "Pending",       value: currentStats?.open        || 0, icon: Clock,       barColor: "bg-secondary",   iconBg: "bg-secondary",      iconColor: "text-secondary-foreground", delay: 0.1  },
+    { label: "In Progress",   value: currentStats?.in_progress || 0, icon: Activity,    barColor: "bg-accent",      iconBg: "bg-accent",         iconColor: "text-accent-foreground", delay: 0.2  },
+    { label: "Resolved",      value: currentStats?.resolved    || 0, icon: CheckCircle, barColor: "bg-primary",     iconBg: "bg-primary",        iconColor: "text-primary-foreground",  delay: 0.3  },
   ];
 
   return (
@@ -118,7 +118,7 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
       {/* ── Page header ── */}
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/40 border border-primary/10 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent border border-primary mb-4">
             <Fingerprint className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs font-bold uppercase tracking-wide text-primary">Citizen Portal</span>
           </div>
@@ -130,13 +130,13 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
             className="inline-flex items-center gap-2 h-11 px-4 rounded-xl border border-border
               bg-card text-sm font-semibold text-foreground shadow-sm
-              hover:bg-muted hover:border-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50"
+              hover:bg-muted hover:border-primary transition-all duration-300 active:scale-95 disabled:opacity-50"
           >
             <RefreshCw className={cn("w-4 h-4 text-muted-foreground", isRefetching && "animate-spin text-primary")} />
             <span className="hidden sm:inline">Refresh</span>
@@ -189,7 +189,7 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
 
           {/* Right meta */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/20 border border-primary/10">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent border border-primary">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -229,7 +229,7 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
               transition={{ duration: 0.3 }}
               className="flex flex-col items-center justify-center py-24 px-6 text-center"
             >
-              <div className="w-16 h-16 rounded-2xl bg-accent/30 border border-primary/10 flex items-center justify-center mb-6 shadow-sm">
+              <div className="w-16 h-16 rounded-2xl bg-accent border border-primary flex items-center justify-center mb-6 shadow-sm">
                 <Inbox className="w-7 h-7 text-primary" />
               </div>
               <h3 className="text-xl font-heading font-bold text-foreground mb-2">

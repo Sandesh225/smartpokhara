@@ -62,7 +62,7 @@ export default function ChangePasswordForm() {
 
   return (
     <Card className="max-w-xl">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b bg-muted/30">
         <CardTitle className="text-base flex items-center gap-2">
           <Lock className="h-4 w-4 text-primary" />
           Change Password
@@ -159,7 +159,7 @@ export default function ChangePasswordForm() {
           </div>
 
           {/* Info */}
-          <div className="p-3 bg-muted/50 rounded-lg border">
+          <div className="p-3 bg-muted/50 rounded-lg border border-border">
             <div className="flex items-start gap-2">
               <ShieldCheck className="h-4 w-4 text-primary mt-0.5" />
               <p className="text-xs text-muted-foreground">

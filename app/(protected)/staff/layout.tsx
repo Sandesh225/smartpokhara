@@ -8,9 +8,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <a href="#main-content" className="skip-to-content">
-        Skip to main content
-      </a>
+      
       <main id="main-content" role="main">
         {children}
       </main>

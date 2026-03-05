@@ -27,10 +27,10 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-card border-r-2 border-border/60 w-72 shadow-2xl lg:shadow-none">
+    <div className="flex flex-col h-full bg-card border-r-2 border-border w-72 shadow-2xl lg:shadow-none">
       <div className="h-20 flex items-center justify-between px-6 border-b-2 border-border bg-linear-to-br from-muted/30 to-transparent">
         <Link href={`/${dashboardType}/dashboard`} className="flex items-center gap-3 group" onClick={() => setIsOpen(false)}>
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary text-white shadow-lg">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary text-primary-foreground shadow-lg">
             <Shield className="h-6 w-6" />
           </div>
           <div>
@@ -40,7 +40,7 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
             </span>
           </div>
         </Link>
-        <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="lg:hidden">
+        <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="lg:hidden text-muted-foreground hover:text-foreground">
           <X className="h-5 w-5" />
         </Button>
       </div>
@@ -90,7 +90,7 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
                 <span>{item.name}</span>
               </div>
               {badgeCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-black text-white shadow-md">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-black text-destructive-foreground shadow-md">
                   {badgeCount > 99 ? "99+" : badgeCount}
                 </span>
               )}

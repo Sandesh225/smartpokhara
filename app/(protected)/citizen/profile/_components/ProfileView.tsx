@@ -26,12 +26,12 @@ export default function ProfileView({ profile, onEdit }: ProfileViewProps) {
     <div className="space-y-6">
       {/* Header Card */}
       <Card>
-        <div className="h-24 bg-gradient-to-r from-primary/20 to-primary/5" />
+        <div className="h-24 bg-linear-to-r from-primary/20 to-primary/10" />
         
         <CardContent className="p-6 relative">
           <div className="flex flex-col sm:flex-row gap-6 items-start -mt-16">
             <div className="relative">
-              <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+              <Avatar className="h-24 w-24 border-4 border-border shadow-lg">
                 <AvatarImage
                   src={profile.profile_photo_url || ""}
                   alt={profile.full_name}

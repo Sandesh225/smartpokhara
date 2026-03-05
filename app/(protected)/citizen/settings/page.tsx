@@ -213,23 +213,23 @@ export default function SettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Settings</h1>
-        <p className="text-slate-500 text-lg">Manage your account settings and preferences.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
+        <p className="text-muted-foreground text-lg">Manage your account settings and preferences.</p>
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px] mb-8">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Profile</TabsTrigger>
-          <TabsTrigger value="preferences" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Preferences</TabsTrigger>
+          <TabsTrigger value="profile" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Profile</TabsTrigger>
+          <TabsTrigger value="preferences" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Preferences</TabsTrigger>
         </TabsList>
 
         {/* --- PROFILE TAB --- */}
         <TabsContent value="profile" className="space-y-6">
-          <Card className="border-slate-200 shadow-sm overflow-hidden">
-            <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600" />
+          <Card className="border-border shadow-sm overflow-hidden">
+            <div className="h-2 bg-linear-to-r from-primary to-accent" />
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-blue-600" />
+                <User className="h-5 w-5 text-primary" />
                 Personal Information
               </CardTitle>
               <CardDescription>
@@ -241,9 +241,9 @@ export default function SettingsPage() {
                 {/* Avatar Section */}
                 <div className="flex flex-col items-center gap-4 w-full md:w-auto">
                   <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                    <Avatar className="h-32 w-32 border-4 border-white shadow-xl ring-2 ring-slate-100 transition-all group-hover:ring-blue-200">
+                    <Avatar className="h-32 w-32 border-4 border-border shadow-xl ring-2 ring-muted transition-all group-hover:ring-primary/20">
                       <AvatarImage src={userProfile?.profile_photo_url || undefined} className="object-cover" />
-                      <AvatarFallback className="text-4xl bg-slate-100 text-slate-400 font-semibold">
+                      <AvatarFallback className="text-4xl bg-muted text-muted-foreground font-semibold">
                         {userProfile?.full_name?.charAt(0).toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -266,14 +266,14 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="text-xs font-medium text-slate-700">Profile Photo</p>
-                    <p className="text-xs text-slate-500 max-w-[150px] mx-auto leading-tight">
+                    <p className="text-xs font-medium text-foreground">Profile Photo</p>
+                    <p className="text-xs text-muted-foreground max-w-[150px] mx-auto leading-tight">
                         JPG, PNG or GIF. Max 2MB.
                     </p>
                   </div>
                 </div>
 
-                <div className="hidden md:block w-px bg-slate-200 self-stretch mx-2" />
+                <div className="hidden md:block w-px bg-border self-stretch mx-2" />
 
                 {/* Form Section */}
                 <form id="profile-form" onSubmit={handleSubmit(onProfileSubmit)} className="flex-1 space-y-5 w-full">
@@ -281,10 +281,10 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="full_name">Full Name</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                        <Input id="full_name" className="pl-9 bg-slate-50/50 focus:bg-white transition-colors" {...register("full_name")} />
+                        <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input id="full_name" className="pl-9 bg-muted/50 focus:bg-background transition-colors" {...register("full_name")} />
                       </div>
-                      {errors.full_name && <p className="text-xs text-red-500 font-medium mt-1">{errors.full_name.message}</p>}
+                      {errors.full_name && <p className="text-xs text-destructive font-medium mt-1">{errors.full_name.message}</p>}
                     </div>
                     
                     <div className="space-y-2">
@@ -297,8 +297,8 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                        <Input id="email" value={userProfile?.email || ""} disabled className="pl-9 bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" />
+                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input id="email" value={userProfile?.email || ""} disabled className="pl-9 bg-muted text-muted-foreground cursor-not-allowed border-border" />
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1.5 px-1">
                         <Lock className="h-3 w-3" />
@@ -309,10 +309,10 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number</Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input id="phone" className="pl-9 bg-slate-50/50 focus:bg-white transition-colors" {...register("phone")} placeholder="98XXXXXXXX" />
                       </div>
-                      {errors.phone && <p className="text-xs text-red-500 font-medium mt-1">{errors.phone.message}</p>}
+                      {errors.phone && <p className="text-xs text-destructive font-medium mt-1">{errors.phone.message}</p>}
                     </div>
                   </div>
 
@@ -355,7 +355,7 @@ export default function SettingsPage() {
                               ))}
                            </SelectContent>
                         </Select>
-                        {errors.ward_id && <p className="text-xs text-red-500 font-medium mt-1">{errors.ward_id.message}</p>}
+                        {errors.ward_id && <p className="text-xs text-destructive font-medium mt-1">{errors.ward_id.message}</p>}
                      </div>
                   </div>
 
@@ -365,21 +365,21 @@ export default function SettingsPage() {
                        <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                        <Input id="address" className="pl-9 bg-slate-50/50 focus:bg-white transition-colors" {...register("address_line1")} placeholder="e.g. Khudi, Talchowk, Pokhara-30" />
                     </div>
-                    {errors.address_line1 && <p className="text-xs text-red-500 font-medium mt-1">{errors.address_line1.message}</p>}
+                    {errors.address_line1 && <p className="text-xs text-destructive font-medium mt-1">{errors.address_line1.message}</p>}
                   </div>
                 </form>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col sm:flex-row justify-between items-center border-t bg-slate-50/50 p-6 gap-4">
-              <div className="text-xs text-slate-500 flex items-center gap-2 bg-blue-50/50 px-3 py-2 rounded-md border border-blue-100 w-full sm:w-auto">
-                  <Info className="h-4 w-4 text-blue-500 shrink-0" />
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center border-t bg-muted/50 p-6 gap-4">
+              <div className="text-xs text-muted-foreground flex items-center gap-2 bg-accent/10 px-3 py-2 rounded-md border border-accent/20 w-full sm:w-auto">
+                  <Info className="h-4 w-4 text-primary shrink-0" />
                   <span>Some fields may require verification to change later.</span>
               </div>
               <Button 
                 type="submit" 
                 form="profile-form" 
                 disabled={savingProfile || !isDirty} 
-                className="w-full sm:w-auto min-w-[140px] bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md"
+                className="w-full sm:w-auto min-w-[140px] bg-linear-to-r from-primary to-accent hover:opacity-90 shadow-md"
               >
                 {savingProfile ? (
                   <>
@@ -394,19 +394,19 @@ export default function SettingsPage() {
             </CardFooter>
           </Card>
 
-          <Card className="border-red-100 shadow-sm overflow-hidden">
-             <div className="h-1 bg-red-500/20" />
+          <Card className="border-destructive/20 shadow-sm overflow-hidden">
+             <div className="h-1 bg-destructive/20" />
              <CardHeader>
-                <CardTitle className="text-red-700 flex items-center gap-2 text-lg">
+                <CardTitle className="text-destructive flex items-center gap-2 text-lg">
                     <Shield className="h-5 w-5" /> Danger Zone
                 </CardTitle>
                 <CardDescription>Actions that affect your account access and security.</CardDescription>
              </CardHeader>
              <CardContent>
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-red-50/50 rounded-lg border border-red-100">
-                    <div className="text-sm text-slate-700">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                    <div className="text-sm text-foreground">
                         <p className="font-medium">Sign Out</p>
-                        <p className="text-slate-500">Sign out from all devices securely.</p>
+                        <p className="text-muted-foreground">Sign out from all devices securely.</p>
                     </div>
                     <Button variant="destructive" onClick={handleSignOut} className="w-full sm:w-auto shadow-sm">
                         <LogOut className="mr-2 h-4 w-4" /> Sign Out
@@ -423,15 +423,15 @@ export default function SettingsPage() {
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Bell className="h-5 w-5 text-indigo-600" /> Notifications
+                            <Bell className="h-5 w-5 text-accent" /> Notifications
                         </CardTitle>
                         <CardDescription>Choose how and when you want to be notified.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-0 divide-y divide-slate-100">
+                    <CardContent className="space-y-0 divide-y divide-border">
                         <div className="flex items-center justify-between py-4">
                             <div className="space-y-0.5">
-                                <Label className="text-base font-medium text-slate-900">Email Notifications</Label>
-                                <p className="text-sm text-slate-500">Receive updates via your registered email.</p>
+                                <Label className="text-base font-medium text-foreground">Email Notifications</Label>
+                                <p className="text-sm text-muted-foreground">Receive updates via your registered email.</p>
                             </div>
                             <Switch 
                                 checked={preferences.email_notifications}
@@ -441,7 +441,7 @@ export default function SettingsPage() {
                         
                         <div className="flex items-center justify-between py-4">
                             <div className="space-y-0.5">
-                                <Label className="text-base font-medium text-slate-900">SMS Notifications</Label>
+                                <Label className="text-base font-medium text-foreground">SMS Notifications</Label>
                                 <p className="text-sm text-slate-500">Receive urgent updates via SMS.</p>
                             </div>
                             <Switch 
@@ -452,7 +452,7 @@ export default function SettingsPage() {
                         
                         <div className="flex items-center justify-between py-4">
                             <div className="space-y-0.5">
-                                <Label className="text-base font-medium text-slate-900">Push Notifications</Label>
+                                <Label className="text-base font-medium text-foreground">Push Notifications</Label>
                                 <p className="text-sm text-slate-500">Receive instant alerts on your device.</p>
                             </div>
                             <Switch 
@@ -466,14 +466,14 @@ export default function SettingsPage() {
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Smartphone className="h-5 w-5 text-indigo-600" /> Alert Types
+                            <Smartphone className="h-5 w-5 text-accent" /> Alert Types
                         </CardTitle>
                         <CardDescription>Select which events trigger a notification.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-0 divide-y divide-slate-100">
                         <div className="flex items-center justify-between py-4">
                             <div className="flex flex-col">
-                                <Label className="font-medium text-slate-900">Complaint Updates</Label>
+                                <Label className="font-medium text-foreground">Complaint Updates</Label>
                                 <span className="text-xs text-slate-500">Status changes and new comments</span>
                             </div>
                             <Switch 
@@ -483,7 +483,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex items-center justify-between py-4">
                             <div className="flex flex-col">
-                                <Label className="font-medium text-slate-900">New Bills</Label>
+                                <Label className="font-medium text-foreground">New Bills</Label>
                                 <span className="text-xs text-slate-500">Tax invoices and utility bills</span>
                             </div>
                             <Switch 
@@ -493,7 +493,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex items-center justify-between py-4">
                             <div className="flex flex-col">
-                                <Label className="font-medium text-slate-900">Public Notices</Label>
+                                <Label className="font-medium text-foreground">Public Notices</Label>
                                 <span className="text-xs text-slate-500">General announcements and ward news</span>
                             </div>
                             <Switch 
@@ -505,8 +505,8 @@ export default function SettingsPage() {
                 </Card>
              </div>
           ) : (
-              <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-slate-300" />
+              <div className="py-12 text-center text-muted-foreground bg-muted/30 rounded-xl border border-dashed">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground/50" />
                   Loading preferences...
               </div>
           )}

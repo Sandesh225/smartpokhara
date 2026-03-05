@@ -68,7 +68,7 @@ export default memo(function PendingBills({ bills, totalPendingAmount, loading =
   if (loading) {
     return (
       <Card className="border border-border rounded-2xl overflow-hidden shadow-inner-sm">
-        <CardHeader className="pb-3 bg-muted/20">
+        <CardHeader className="pb-3 bg-muted">
           <Skeleton className="h-4 w-32 rounded-full" />
           <Skeleton className="h-3 w-48 mt-2 rounded-full" />
         </CardHeader>
@@ -80,13 +80,13 @@ export default memo(function PendingBills({ bills, totalPendingAmount, loading =
   }
 
   return (
-    <Card className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-3xl overflow-hidden shadow-inner-lg transition-all duration-500 hover:shadow-xl group/card relative">
+    <Card className="bg-card backdrop-blur-sm border border-border rounded-3xl overflow-hidden shadow-inner-lg transition-all duration-500 hover:shadow-xl group/card relative">
       <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
-      <CardHeader className="pb-6 border-b border-border/50 bg-muted/10 relative z-10">
+      <CardHeader className="pb-6 border-b border-border bg-muted/10 relative z-10">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <CardTitle className="font-heading text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2.5">
-              <div className="p-1.5 bg-primary/10 text-primary rounded-xl border border-primary/20">
+              <div className="p-1.5 bg-primary text-primary-foreground rounded-xl border border-primary">
                 <CreditCard className="h-3.5 w-3.5" aria-hidden="true" />
               </div>
               Financial Obligations
@@ -105,10 +105,9 @@ export default memo(function PendingBills({ bills, totalPendingAmount, loading =
           )}
         </div>
 
-        {/* Overdue warning */}
         {overdueCount > 0 && (
-          <div className="flex items-center gap-2.5 mt-5 px-4 py-3 rounded-xl border border-destructive/20 bg-destructive/10 animate-pulse shadow-inner-sm">
-            <AlertCircle className="h-4 w-4 text-destructive shrink-0" aria-hidden="true" />
+          <div className="flex items-center gap-2.5 mt-5 px-4 py-3 rounded-xl border border-destructive bg-destructive text-destructive-foreground animate-pulse shadow-inner-sm">
+            <AlertCircle className="h-4 w-4 text-destructive-foreground shrink-0" aria-hidden="true" />
             <p className="font-sans text-xs font-black text-destructive uppercase tracking-widest">
               Critical: <span className="font-heading">{overdueCount}</span> {overdueCount === 1 ? 'Bill' : 'Bills'} breach deadline
             </p>
@@ -119,7 +118,7 @@ export default memo(function PendingBills({ bills, totalPendingAmount, loading =
       <CardContent className="p-0">
         {bills.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-5 rotate-3 shadow-inner-lg">
+            <div className="w-16 h-16 rounded-2xl bg-primary text-primary-foreground border border-primary flex items-center justify-center mb-5 rotate-3 shadow-inner-lg">
               <CheckCircle2 className="h-8 w-8 text-primary" aria-hidden="true" />
             </div>
             <h3 className="font-heading text-xs font-black uppercase tracking-widest text-foreground">Accounts Clear</h3>
@@ -151,7 +150,7 @@ export default memo(function PendingBills({ bills, totalPendingAmount, loading =
                 >
                   <div className={cn(
                     "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 transition-all duration-500",
-                    "hover:bg-muted/40 group outline-none focus-within:bg-muted/50 rounded-2xl mx-2 my-1"
+                    "hover:bg-muted group outline-none focus-within:bg-muted rounded-2xl mx-2 my-1"
                   )}>
                     <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
                     <div className="flex items-center gap-4 min-w-0 flex-1 relative z-10">

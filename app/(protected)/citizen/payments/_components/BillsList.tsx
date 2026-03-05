@@ -69,7 +69,7 @@ export default function BillsList({
   const getStatusBadge = (status: string, isOverdue: boolean) => {
     if (status === "completed") {
       return (
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+        <Badge variant="outline" className="bg-primary text-primary-foreground border-primary">
           <CheckCircle className="mr-1 h-3 w-3" />
           Paid
         </Badge>
@@ -86,7 +86,7 @@ export default function BillsList({
     }
 
     return (
-      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+      <Badge variant="outline" className="bg-secondary text-secondary-foreground border-secondary">
         <Clock className="mr-1 h-3 w-3" />
         Pending
       </Badge>
@@ -162,11 +162,11 @@ export default function BillsList({
         </CardHeader>
         <CardContent>
           <div className="py-12 text-center">
-            <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <CreditCard className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-medium text-foreground">
               No bills found
             </h3>
-            <p className="mt-2 text-gray-500">
+            <p className="mt-2 text-muted-foreground">
               {searchTerm || currentFilter !== "all"
                 ? "Try adjusting your filters or search term"
                 : "You don't have any pending bills at the moment"}
@@ -210,7 +210,7 @@ export default function BillsList({
           <div className="flex items-center gap-2">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search bills..."
                 value={searchTerm}
@@ -254,8 +254,8 @@ export default function BillsList({
                 key={bill.id}
                 className={cn(
                   "group p-4 border rounded-lg hover:shadow-md transition-all cursor-pointer",
-                  isOverdue && "border-red-200 bg-red-50/50",
-                  bill.status === "completed" && "border-green-200 bg-green-50/50"
+                  isOverdue && "border-destructive bg-destructive/10",
+                  bill.status === "completed" && "border-primary bg-primary/10"
                 )}
                 onClick={() => router.push(`/citizen/payments/${bill.id}`)}
               >
@@ -263,7 +263,7 @@ export default function BillsList({
                   {/* Left Section - Bill Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-blue-600">
+                      <h4 className="font-semibold text-foreground group-hover:text-primary">
                         {getBillTypeLabel(bill.bill_type)}
                       </h4>
                       {getStatusBadge(bill.status, isOverdue)}
@@ -274,7 +274,7 @@ export default function BillsList({
                       )}
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-3">
                       <div className="flex items-center">
                         <FileText className="mr-1 h-3 w-3" />
                         Bill #{bill.bill_number}
@@ -298,16 +298,16 @@ export default function BillsList({
                   {/* Right Section - Amount & Actions */}
                   <div className="flex flex-col items-end gap-3">
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-2xl font-bold text-foreground">
                         NPR {totalAmount.toFixed(2)}
                       </div>
                       {isOverdue && lateFee > 0 && (
-                        <div className="text-sm text-red-600">
+                        <div className="text-sm text-destructive">
                           Includes NPR {lateFee.toFixed(2)} late fee
                         </div>
                       )}
                       {bill.status === "pending" && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Base: NPR {bill.base_amount.toFixed(2)}
                           {bill.tax_amount > 0 && ` + Tax: NPR ${bill.tax_amount.toFixed(2)}`}
                         </div>
@@ -349,7 +349,7 @@ export default function BillsList({
                           View Receipt
                         </Button>
                       )}
-                      <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                      <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
                     </div>
                   </div>
                 </div>

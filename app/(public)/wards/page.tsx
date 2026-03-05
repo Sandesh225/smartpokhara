@@ -101,57 +101,57 @@ export default function WardsPage() {
 
       <main className="flex-1 w-full">
         {/* Hero Section */}
-        <section className="relative py-16 sm:py-20 md:py-24 bg-gradient-to-br from-primary to-secondary text-primary-foreground overflow-hidden">
+        <section className="relative py-16 sm:py-20 md:py-24 bg-linear-to-br from-primary to-secondary text-primary-foreground overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
           </div>
 
           <div className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-foreground/10 rounded-full mb-6 border border-primary-foreground/20">
                 <Building2 className="w-4 h-4" />
-                <span className="text-sm font-semibold">33 Wards</span>
+                <span className="text-sm font-black uppercase tracking-widest">33 Wards</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
                 Ward Directory
               </h1>
               
-              <p className="text-lg sm:text-xl text-primary-foreground/90 mb-8">
+              <p className="text-lg sm:text-xl text-primary-foreground font-medium mb-8 leading-relaxed">
                 Find your ward office, contact representatives, and access local services. Your ward is your first point of contact.
               </p>
 
               {/* Search Box */}
-              <div className="relative max-w-xl">
+              <div className="relative max-w-xl group">
                 <input
                   type="text"
                   placeholder="Search by ward number, name, or location..."
-                  className="w-full px-6 py-4 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-primary-foreground placeholder:text-primary-foreground/60 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  className="w-full px-6 py-4 pl-12 bg-primary-foreground/10 backdrop-blur-md border border-primary-foreground/20 rounded-2xl text-primary-foreground placeholder:text-primary-foreground/60 focus:outline-none focus:ring-4 focus:ring-primary-foreground/20 transition-all font-medium"
                 />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-foreground/60" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-foreground/60 group-hover:text-primary-foreground transition-colors" />
               </div>
             </div>
           </div>
         </section>
 
         {/* Quick Stats */}
-        <section className="py-12 bg-muted/30 dark:bg-muted/10">
+        <section className="py-12 bg-muted">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-xl p-6 text-center shadow-sm">
-                <div className="text-3xl sm:text-4xl font-bold text-primary dark:text-primary/90 mb-2">
+              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-sm">
+                <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">
                   33
                 </div>
                 <p className="text-sm text-muted-foreground">Total Wards</p>
               </div>
-              <div className="bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-xl p-6 text-center shadow-sm">
-                <div className="text-3xl sm:text-4xl font-bold text-primary dark:text-primary/90 mb-2">
+              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-sm">
+                <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">
                   250k+
                 </div>
                 <p className="text-sm text-muted-foreground">Total Population</p>
               </div>
-              <div className="bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-xl p-6 text-center shadow-sm">
-                <div className="text-3xl sm:text-4xl font-bold text-primary dark:text-primary/90 mb-2">
+              <div className="bg-card border border-border rounded-xl p-6 text-center shadow-sm">
+                <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">
                   100+
                 </div>
                 <p className="text-sm text-muted-foreground">Ward Staff</p>
@@ -164,10 +164,10 @@ export default function WardsPage() {
         <section className="py-16 sm:py-20">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="mb-12">
-              <h2 className="text-3xl font-bold text-foreground dark:text-foreground/95 mb-4">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
                 All Wards
               </h2>
-              <p className="text-muted-foreground dark:text-muted-foreground/90">
+              <p className="text-muted-foreground">
                 Browse through all ward offices and contact your local representatives
               </p>
             </div>
@@ -176,33 +176,33 @@ export default function WardsPage() {
               {WARDS.map((ward) => (
                 <article
                   key={ward.number}
-                  className="group bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-2xl p-6 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+                  className="group bg-card border border-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 >
                   {/* Ward Number Badge */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg">
+                    <div className="h-12 w-12 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-black text-lg shadow-lg shadow-primary/20">
                       {ward.number}
                     </div>
                     <div className="flex gap-2">
-                      <span className="px-3 py-1 bg-primary/10 text-primary dark:text-primary/90 border border-primary/20 rounded-full text-xs font-bold">
+                      <span className="px-3 py-1 bg-accent/10 text-accent border border-accent/20 rounded-lg text-xs font-black uppercase tracking-widest">
                         {ward.population}
                       </span>
                     </div>
                   </div>
 
                   {/* Ward Name */}
-                  <h3 className="text-xl font-bold text-foreground dark:text-foreground/95 mb-4">
+                  <h3 className="text-xl font-bold text-foreground mb-4">
                     {ward.name}
                   </h3>
 
                   {/* Chairperson */}
-                  <div className="flex items-start gap-3 mb-4 p-3 bg-muted/50 dark:bg-muted/30 rounded-lg">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0">
-                      <User className="w-5 h-5 text-primary dark:text-primary/90" />
+                  <div className="flex items-start gap-4 mb-4 p-4 bg-muted/50 rounded-2xl border border-border/50">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <User className="w-5 h-5 text-primary" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Ward Chairperson</p>
-                      <p className="text-sm font-semibold text-foreground dark:text-foreground/95">
+                      <p className="text-sm font-semibold text-foreground">
                         {ward.chairperson}
                       </p>
                     </div>
@@ -231,15 +231,15 @@ export default function WardsPage() {
                   </div>
 
                   {/* Landmarks */}
-                  <div className="pt-4 border-t border-border dark:border-border/50">
-                    <p className="text-xs font-semibold text-foreground dark:text-foreground/95 mb-2">
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-xs font-semibold text-foreground mb-2">
                       Key Landmarks:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {ward.landmarks.map((landmark, idx) => (
                         <span
                           key={idx}
-                          className="text-xs px-2 py-1 bg-secondary/10 text-secondary dark:text-secondary/90 rounded-full"
+                          className="text-xs px-2.5 py-1 bg-accent/5 text-accent font-black uppercase tracking-widest rounded-lg border border-accent/10"
                         >
                           {landmark}
                         </span>
@@ -248,7 +248,7 @@ export default function WardsPage() {
                   </div>
 
                   {/* Action Button */}
-                  <button className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary dark:bg-primary/90 text-primary-foreground font-bold rounded-lg hover:bg-primary/90 dark:hover:bg-primary transition-all hover:scale-105">
+                  <button className="mt-4 w-full inline-flex items-center justify-center gap-2 h-12 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs rounded-xl hover:bg-primary/95 transition-all hover:scale-102 shadow-lg shadow-primary/10 active:scale-95">
                     View Details
                     <ArrowRight className="w-4 h-4" />
                   </button>
@@ -258,7 +258,7 @@ export default function WardsPage() {
 
             {/* Load More */}
             <div className="text-center mt-12">
-              <button className="inline-flex items-center gap-2 px-8 py-3 bg-muted dark:bg-muted/80 hover:bg-accent dark:hover:bg-accent/80 text-foreground font-semibold rounded-full transition-all hover:scale-105 shadow-sm">
+              <button className="inline-flex items-center gap-2 px-8 py-3 bg-muted hover:bg-accent text-foreground font-semibold rounded-full transition-all hover:scale-105 shadow-sm">
                 Load More Wards
                 <ArrowRight className="w-5 h-5" />
               </button>
@@ -267,13 +267,13 @@ export default function WardsPage() {
         </section>
 
         {/* Ward Services */}
-        <section className="py-16 bg-muted/30 dark:bg-muted/10">
+        <section className="py-16 bg-muted">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="max-w-3xl mx-auto text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground dark:text-foreground/95 mb-4">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
                 Services Available at Ward Offices
               </h2>
-              <p className="text-muted-foreground dark:text-muted-foreground/90">
+              <p className="text-muted-foreground">
                 Your local ward office provides these essential services
               </p>
             </div>
@@ -282,12 +282,12 @@ export default function WardsPage() {
               {WARD_SERVICES.map((service, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-3 p-4 bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-xl hover:shadow-lg transition-all"
+                  className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:shadow-lg transition-all"
                 >
                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <Users className="w-5 h-5 text-primary" />
                   </div>
-                  <span className="font-semibold text-foreground dark:text-foreground/95">
+                  <span className="font-semibold text-foreground">
                     {service}
                   </span>
                 </div>
@@ -299,24 +299,24 @@ export default function WardsPage() {
         {/* Map Section */}
         <section className="py-16">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <div className="bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-2xl p-8 shadow-lg">
+            <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground dark:text-foreground/95 mb-2">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
                     Interactive Ward Map
                   </h2>
-                  <p className="text-muted-foreground dark:text-muted-foreground/90">
+                  <p className="text-muted-foreground">
                     Explore all 33 wards on the map
                   </p>
                 </div>
-                <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary dark:bg-primary/90 text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-all">
+                <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary transition-all">
                   View Full Map
                   <ExternalLink className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Map Placeholder */}
-              <div className="aspect-video bg-muted dark:bg-muted/50 rounded-xl flex items-center justify-center">
+              <div className="aspect-video bg-muted rounded-xl flex items-center justify-center">
                 <div className="text-center">
                   <MapPin className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Interactive map coming soon</p>

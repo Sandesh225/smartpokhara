@@ -94,13 +94,13 @@ export default function ProfileEditForm({ profile, wards, onCancel, onSave }: an
           {/* Photo Upload */}
           <div className="flex flex-col sm:flex-row gap-6 items-center p-6 bg-muted/50 rounded-lg">
             <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <Avatar className="h-24 w-24 border-4 border-background">
+              <Avatar className="h-24 w-24 border-4 border-border">
                 <AvatarImage src={previewImage || ""} className="object-cover" />
                 <AvatarFallback className="text-2xl font-bold">
                   {profile.full_name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-background/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                 {isUploading ? (
                   <Loader2 className="h-6 w-6 text-white animate-spin" />
                 ) : (

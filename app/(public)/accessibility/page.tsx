@@ -12,7 +12,7 @@ export default function AccessibilityPage() {
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-success-green/10 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center p-3 bg-accent rounded-full mb-4">
             <Accessibility className="w-10 h-10 text-success-green" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight">
@@ -24,7 +24,7 @@ export default function AccessibilityPage() {
         </div>
 
         {/* Content */}
-        <div className="prose prose-lg dark:prose-invert max-w-none space-y-8">
+        <div className="prose prose-lg max-w-none space-y-8">
           <section className="bg-card border border-border rounded-2xl p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-foreground mb-4">Conformance Status</h2>
             <p>

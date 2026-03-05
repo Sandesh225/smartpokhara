@@ -136,7 +136,7 @@ export default function CycleDetailsPage() {
             <div className="space-y-4 max-w-3xl">
               <div className="flex items-center gap-2 flex-wrap">
                 {isFinalized ? (
-                  <Badge variant="outline" className="h-6 px-3 bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs font-black uppercase tracking-widest rounded-full">
+                  <Badge variant="outline" className="h-6 px-3 bg-accent/10 text-accent border-accent/20 text-xs font-black uppercase tracking-widest rounded-full">
                     <Trophy className="w-3 h-3 mr-1.5" /> Final Results
                   </Badge>
                 ) : votingOpen ? (
@@ -194,20 +194,20 @@ export default function CycleDetailsPage() {
         {/* 2. Official Results Dashboard (Celebratory) */}
         {isFinalized && (
           <div className="space-y-6">
-            <div className="relative overflow-hidden rounded-3xl bg-neutral-900 border border-neutral-800 p-8 md:p-12 shadow-2xl">
-              <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl" />
+            <div className="relative overflow-hidden rounded-4xl bg-primary text-primary-foreground p-8 md:p-12 shadow-2xl">
+              <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-background/10 rounded-full blur-3xl" />
               
               <div className="relative z-10 flex flex-col md:flex-row gap-10 items-center">
-                <div className="w-20 h-20 rounded-2xl bg-amber-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
-                  <Trophy className="w-10 h-10 text-neutral-900" />
+                <div className="w-20 h-20 rounded-2xl bg-accent flex items-center justify-center shrink-0 shadow-lg shadow-accent/20">
+                  <Trophy className="w-10 h-10 text-accent-foreground" />
                 </div>
                 <div className="space-y-3 text-center md:text-left">
-                  <Badge className="bg-amber-500 text-neutral-900 text-xs font-black uppercase tracking-wider rounded-full border-none px-4">
+                  <Badge className="bg-accent text-accent-foreground text-xs font-black uppercase tracking-wider rounded-full border-none px-4">
                     Fiscal Conclusion
                   </Badge>
-                  <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">The People's Mandate</h2>
+                  <h2 className="text-3xl md:text-4xl font-black text-primary-foreground uppercase tracking-tight">The People's Mandate</h2>
                   {cycle.concluding_message && (
-                    <p className="text-lg text-neutral-400 font-medium italic leading-relaxed">
+                    <p className="text-lg text-primary-foreground/70 font-medium italic leading-relaxed">
                       "{cycle.concluding_message}"
                     </p>
                   )}
@@ -217,9 +217,9 @@ export default function CycleDetailsPage() {
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { label: "Capital Deployed", value: `NPR ${(totalAllocated / 100000).toFixed(1)}L`, sub: `${utilizationRate.toFixed(1)}% budget utilization`, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/5" },
-                { label: "Initiatives Funded", value: winners.length, sub: `Selected from ${proposals.length} inputs`, icon: Award, color: "text-amber-500", bg: "bg-amber-500/5" },
-                { label: "Surplus Reserve", value: `NPR ${(remainingSurplus / 100000).toFixed(1)}L`, sub: "Reallocated to public pool", icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-500/5" }
+                { label: "Capital Deployed", value: `NPR ${(totalAllocated / 100000).toFixed(1)}L`, sub: `${utilizationRate.toFixed(1)}% budget utilization`, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/5" },
+                { label: "Initiatives Funded", value: winners.length, sub: `Selected from ${proposals.length} inputs`, icon: Award, color: "text-accent", bg: "bg-accent/5" },
+                { label: "Surplus Reserve", value: `NPR ${(remainingSurplus / 100000).toFixed(1)}L`, sub: "Reallocated to public pool", icon: TrendingUp, color: "text-primary", bg: "bg-primary/5" }
               ].map((stat, i) => (
                 <Card key={i} className="bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between h-40">
                   <div className="flex justify-between items-start">
@@ -264,7 +264,7 @@ export default function CycleDetailsPage() {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 border-b border-border/50 pb-8">
             <TabsList className="h-12 p-1.5 bg-muted/40 border border-border rounded-xl">
               <TabsTrigger value="all" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs">Registry</TabsTrigger>
-              <TabsTrigger value="winners" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-amber-500 data-[state=active]:text-white">
+              <TabsTrigger value="winners" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
                 <Trophy className="w-3.5 h-3.5 mr-2" /> 
                 Winners
               </TabsTrigger>
@@ -305,7 +305,7 @@ export default function CycleDetailsPage() {
                 votingId={voteMutation.isPending ? (voteMutation.variables as string) : null}
               />
             ) : (
-              <div className="py-24 text-center bg-muted/5 border border-dashed border-border rounded-3xl">
+              <div className="py-24 text-center bg-muted/5 border border-dashed border-border rounded-4xl">
                 <Trophy className="w-16 h-16 text-muted-foreground/20 mx-auto mb-6" />
                 <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Finalizing Mandate</h3>
                 <p className="text-sm text-muted-foreground font-medium mt-2">The winners list will be populated once the validation process completes.</p>
@@ -364,12 +364,12 @@ function ProposalGrid({
             key={proposal.id} 
             className={cn(
               "group relative flex flex-col h-full bg-card border border-border rounded-2xl overflow-hidden transition-all duration-500",
-              isWinner ? "border-amber-500/50 shadow-lg shadow-amber-500/5 ring-1 ring-amber-500/20" : "hover:shadow-2xl hover:border-primary/20 hover:-translate-y-2",
+              isWinner ? "border-accent/50 shadow-lg shadow-accent/5 ring-1 ring-accent/20" : "hover:shadow-2xl hover:border-primary/20 hover:-translate-y-2",
               isNotSelected && "opacity-50 grayscale-[0.5]"
             )}
           >
             {/* Image & Context Section */}
-            <div className="aspect-[16/10] bg-muted relative overflow-hidden">
+            <div className="aspect-16/10 bg-muted relative overflow-hidden">
                {proposal.cover_image_url ? (
                  <img src={proposal.cover_image_url} alt={proposal.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                ) : (
@@ -421,7 +421,7 @@ function ProposalGrid({
                   </div>
                   <div className="space-y-1 text-right">
                     <p className="text-xs font-black uppercase tracking-tighter text-muted-foreground/40 flex items-center gap-1.5 justify-end">
-                      Estimative Cost <DollarSign className="w-3 h-3 text-emerald-500" strokeWidth={3} /> 
+                      Estimative Cost <DollarSign className="w-3 h-3 text-primary" strokeWidth={3} /> 
                     </p>
                     <p className="text-sm font-black text-foreground tabular-nums">NPR {(proposal.estimated_cost / 100000).toFixed(1)}L</p>
                   </div>
@@ -432,17 +432,17 @@ function ProposalGrid({
                   <div className="flex justify-between items-end">
                     <div className="space-y-0.5">
                       <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Democratic Mandate</p>
-                      <p className={cn("text-xl font-black tracking-tighter tabular-nums leading-none", isWinner ? "text-amber-500" : "text-foreground")}>
+                      <p className={cn("text-xl font-black tracking-tighter tabular-nums leading-none", isWinner ? "text-accent" : "text-foreground")}>
                         {proposal.vote_count} <span className="text-xs font-black text-muted-foreground/40 tracking-widest uppercase ml-1">Supporters</span>
                       </p>
                     </div>
-                    {isWinner && <Badge className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs font-black uppercase tracking-widest h-5">Project Funded</Badge>}
+                    {isWinner && <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-black uppercase tracking-widest h-5">Project Funded</Badge>}
                   </div>
                   <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden border border-border/50">
                     <div 
                       className={cn(
                         "h-full transition-all duration-1000 rounded-full",
-                        isWinner ? "bg-amber-500" : hasVoted ? "bg-emerald-500" : "bg-primary"
+                        isWinner ? "bg-accent" : hasVoted ? "bg-primary" : "bg-primary"
                       )} 
                       style={{ width: `${Math.min((proposal.vote_count / 100) * 100, 100)}%` }} 
                     />
@@ -456,7 +456,7 @@ function ProposalGrid({
                   className={cn(
                     "w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs transition-all relative overflow-hidden shadow-offset-y-4",
                     hasVoted 
-                      ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20" 
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20" 
                       : (votesRemaining <= 0)
                         ? "bg-muted text-muted-foreground cursor-not-allowed grayscale"
                         : "bg-primary hover:bg-primary/95 text-white shadow-primary/20 active:scale-95"

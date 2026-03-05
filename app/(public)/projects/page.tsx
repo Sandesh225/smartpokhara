@@ -21,9 +21,9 @@ import {
 } from "lucide-react";
 
 const PROJECT_STATUS = {
-  completed: { label: "Completed", color: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20", icon: CheckCircle2 },
-  ongoing: { label: "Ongoing", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20", icon: Clock },
-  planned: { label: "Planned", color: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20", icon: AlertCircle },
+  completed: { label: "Completed", color: "bg-green-500/15 text-green-600 border-green-500", icon: CheckCircle2 },
+  ongoing: { label: "Ongoing", color: "bg-blue-500/15 text-blue-600 border-blue-500", icon: Clock },
+  planned: { label: "Planned", color: "bg-orange-500/15 text-orange-600 border-orange-500", icon: AlertCircle },
 };
 
 const PROJECTS = [
@@ -169,9 +169,9 @@ export default function ProjectsPage() {
 
       <main className="flex-1 w-full">
         {/* Hero Section */}
-        <section className="relative py-16 sm:py-20 md:py-24 bg-gradient-to-br from-primary to-secondary text-primary-foreground overflow-hidden">
+        <section className="relative py-16 sm:py-20 md:py-24 bg-linear-to-br from-primary to-secondary text-primary-foreground overflow-hidden">
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_75%,rgba(255,255,255,0.1)_75%,rgba(255,255,255,0.1)),linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_75%,rgba(255,255,255,0.1)_75%,rgba(255,255,255,0.1))] bg-[size:60px_60px] bg-[position:0_0,30px_30px]" />
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_75%,rgba(255,255,255,0.1)_75%,rgba(255,255,255,0.1)),linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_75%,rgba(255,255,255,0.1)_75%,rgba(255,255,255,0.1))] bg-size-[60px_60px] bg-position-[0_0,30px_30px]" />
           </div>
 
           <div className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -190,11 +190,11 @@ export default function ProjectsPage() {
               </p>
 
               <div className="flex flex-wrap gap-4">
-                <button className="inline-flex items-center gap-2 px-6 py-3 bg-background text-primary font-bold rounded-full hover:bg-background/90 transition-all hover:scale-105 shadow-lg">
+                <button className="inline-flex items-center gap-2 px-6 py-3 bg-background text-primary font-bold rounded-full hover:bg-background transition-all hover:scale-105 shadow-lg">
                   View All Projects
                   <ArrowRight className="w-5 h-5" />
                 </button>
-                <button className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 border-2 border-white/30 text-primary-foreground font-bold rounded-full hover:bg-white/20 transition-all backdrop-blur-sm">
+                <button className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white text-primary-foreground font-bold rounded-full hover:bg-white/10 transition-all backdrop-blur-sm">
                   <FileText className="w-5 h-5" />
                   Download Report
                 </button>
@@ -204,15 +204,15 @@ export default function ProjectsPage() {
         </section>
 
         {/* Stats */}
-        <section className="py-12 bg-muted/30 dark:bg-muted/10">
+        <section className="py-12 bg-muted">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {STATS.map((stat, idx) => (
-                <div key={idx} className="bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-xl p-6 text-center shadow-sm hover:shadow-lg transition-all">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
+                <div key={idx} className="bg-card border border-border rounded-xl p-6 text-center shadow-sm hover:shadow-lg transition-all">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent mb-4">
                     <stat.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="text-3xl sm:text-4xl font-bold text-primary dark:text-primary/90 mb-2">
+                  <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">
                     {stat.value}
                   </div>
                   <p className="text-sm text-muted-foreground">{stat.label}</p>
@@ -223,19 +223,19 @@ export default function ProjectsPage() {
         </section>
 
         {/* Filter Tabs */}
-        <section className="py-8 border-b border-border dark:border-border/50">
+        <section className="py-8 border-b border-border">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="flex flex-wrap gap-2">
-              <button className="px-4 py-2 bg-primary dark:bg-primary/90 text-primary-foreground font-semibold rounded-full text-sm">
+              <button className="px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-full text-sm">
                 All Projects
               </button>
-              <button className="px-4 py-2 bg-muted dark:bg-muted/80 hover:bg-accent dark:hover:bg-accent/80 text-foreground font-semibold rounded-full text-sm transition-colors">
+              <button className="px-4 py-2 bg-muted hover:bg-accent text-foreground font-semibold rounded-full text-sm transition-colors">
                 Ongoing
               </button>
-              <button className="px-4 py-2 bg-muted dark:bg-muted/80 hover:bg-accent dark:hover:bg-accent/80 text-foreground font-semibold rounded-full text-sm transition-colors">
+              <button className="px-4 py-2 bg-muted hover:bg-accent text-foreground font-semibold rounded-full text-sm transition-colors">
                 Completed
               </button>
-              <button className="px-4 py-2 bg-muted dark:bg-muted/80 hover:bg-accent dark:hover:bg-accent/80 text-foreground font-semibold rounded-full text-sm transition-colors">
+              <button className="px-4 py-2 bg-muted hover:bg-accent text-foreground font-semibold rounded-full text-sm transition-colors">
                 Planned
               </button>
             </div>
@@ -253,27 +253,27 @@ export default function ProjectsPage() {
                 return (
                   <article
                     key={project.id}
-                    className="group bg-card dark:bg-card/80 border border-border dark:border-border/50 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+                    className="group bg-card border border-border rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                   >
                     {/* Header */}
                     <div className="p-6 pb-4">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                          <div className="h-12 w-12 rounded-xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
                             <project.icon className="w-6 h-6 text-primary-foreground" />
                           </div>
                           <div>
                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                               {project.category}
                             </span>
-                            <h3 className="text-xl font-bold text-foreground dark:text-foreground/95 mt-1">
+                            <h3 className="text-xl font-bold text-foreground mt-1">
                               {project.title}
                             </h3>
                           </div>
                         </div>
                       </div>
 
-                      <p className="text-sm text-muted-foreground dark:text-muted-foreground/90 mb-4 leading-relaxed">
+                      <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                         {project.description}
                       </p>
 
@@ -286,12 +286,12 @@ export default function ProjectsPage() {
                       {/* Progress Bar */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-foreground dark:text-foreground/95">Progress</span>
-                          <span className="text-xs font-bold text-primary dark:text-primary/90">{project.progress}%</span>
+                          <span className="text-xs font-semibold text-foreground">Progress</span>
+                          <span className="text-xs font-bold text-primary">{project.progress}%</span>
                         </div>
-                        <div className="h-2 bg-muted dark:bg-muted/50 rounded-full overflow-hidden">
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
+                            className="h-full bg-linear-to-r from-primary to-secondary rounded-full transition-all duration-500"
                             style={{ width: `${project.progress}%` }}
                           />
                         </div>
@@ -303,14 +303,14 @@ export default function ProjectsPage() {
                           <DollarSign className="w-4 h-4 text-muted-foreground mt-0.5" />
                           <div>
                             <p className="text-xs text-muted-foreground">Budget</p>
-                            <p className="text-sm font-semibold text-foreground dark:text-foreground/95">{project.budget}</p>
+                            <p className="text-sm font-semibold text-foreground">{project.budget}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
                           <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
                           <div>
                             <p className="text-xs text-muted-foreground">Timeline</p>
-                            <p className="text-sm font-semibold text-foreground dark:text-foreground/95">
+                            <p className="text-sm font-semibold text-foreground">
                               {project.startDate} - {project.endDate}
                             </p>
                           </div>
@@ -319,21 +319,21 @@ export default function ProjectsPage() {
                           <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
                           <div>
                             <p className="text-xs text-muted-foreground">Location</p>
-                            <p className="text-sm font-semibold text-foreground dark:text-foreground/95">{project.location}</p>
+                            <p className="text-sm font-semibold text-foreground">{project.location}</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
                           <Users className="w-4 h-4 text-muted-foreground mt-0.5" />
                           <div>
                             <p className="text-xs text-muted-foreground">Beneficiaries</p>
-                            <p className="text-sm font-semibold text-foreground dark:text-foreground/95">{project.beneficiaries}</p>
+                            <p className="text-sm font-semibold text-foreground">{project.beneficiaries}</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Highlights */}
-                      <div className="pt-4 border-t border-border dark:border-border/50">
-                        <p className="text-xs font-semibold text-foreground dark:text-foreground/95 mb-2">Key Highlights:</p>
+                      <div className="pt-4 border-t border-border">
+                        <p className="text-xs font-semibold text-foreground mb-2">Key Highlights:</p>
                         <div className="grid grid-cols-2 gap-2">
                           {project.highlights.map((highlight, idx) => (
                             <div key={idx} className="flex items-start gap-2">
@@ -346,13 +346,13 @@ export default function ProjectsPage() {
                     </div>
 
                     {/* Footer */}
-                    <div className="px-6 py-4 bg-muted/30 dark:bg-muted/10 border-t border-border dark:border-border/50">
+                    <div className="px-6 py-4 bg-muted border-t border-border">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Contractor</p>
-                          <p className="text-sm font-semibold text-foreground dark:text-foreground/95">{project.contractor}</p>
+                          <p className="text-sm font-semibold text-foreground">{project.contractor}</p>
                         </div>
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary dark:bg-primary/90 text-primary-foreground font-bold rounded-lg hover:bg-primary/90 dark:hover:bg-primary transition-all hover:scale-105 text-sm">
+                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary transition-all hover:scale-105 text-sm">
                           View Details
                           <ArrowRight className="w-4 h-4" />
                         </button>
@@ -366,9 +366,9 @@ export default function ProjectsPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-muted/30 dark:bg-muted/10">
+        <section className="py-16 bg-muted">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <div className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-8 sm:p-12 text-center text-primary-foreground relative overflow-hidden">
+            <div className="bg-linear-to-br from-primary to-secondary rounded-2xl p-8 sm:p-12 text-center text-primary-foreground relative overflow-hidden">
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.2),transparent_50%)]" />
               </div>
@@ -381,7 +381,7 @@ export default function ProjectsPage() {
                 <p className="text-primary-foreground/90 mb-8">
                   We value citizen input in our development planning. Share your ideas for projects that can benefit the community.
                 </p>
-                <button className="inline-flex items-center gap-2 px-8 py-4 bg-background text-primary font-bold rounded-full hover:bg-background/90 transition-all hover:scale-105 shadow-lg">
+                <button className="inline-flex items-center gap-2 px-8 py-4 bg-background text-primary font-bold rounded-full hover:bg-background transition-all hover:scale-105 shadow-lg">
                   Submit Suggestion
                   <ArrowRight className="w-5 h-5" />
                 </button>

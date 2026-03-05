@@ -154,7 +154,7 @@ export default function PaymentFilters({
             {activeFilterCount > 0 && (
               <Badge
                 variant="secondary"
-                className="ml-2 bg-blue-100 text-blue-800 hover:bg-blue-100"
+                className="ml-2 bg-accent text-accent-foreground"
               >
                 {activeFilterCount} active
               </Badge>
@@ -178,7 +178,7 @@ export default function PaymentFilters({
         <div className="space-y-2">
           <Label htmlFor="search">Search Payments</Label>
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id="search"
               placeholder="Search by receipt, transaction ID, bill number..."
@@ -269,7 +269,7 @@ export default function PaymentFilters({
                   variant="outline"
                   className={cn(
                     "justify-start text-left font-normal text-sm",
-                    !filters.dateFrom && "text-gray-400"
+                    !filters.dateFrom && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -292,7 +292,7 @@ export default function PaymentFilters({
                   variant="outline"
                   className={cn(
                     "justify-start text-left font-normal text-sm",
-                    !filters.dateTo && "text-gray-400"
+                    !filters.dateTo && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -320,7 +320,7 @@ export default function PaymentFilters({
             variant="ghost"
             size="sm"
             onClick={() => setShowMoreFilters(true)}
-            className="w-full text-sm text-blue-600"
+            className="w-full text-sm text-primary"
           >
             + More filters
           </Button>
@@ -372,14 +372,14 @@ export default function PaymentFilters({
         {/* Active Filters */}
         {hasActiveFilters && (
           <div className="pt-4 border-t">
-            <p className="text-sm font-medium text-gray-700 mb-2">Active Filters</p>
+            <p className="text-sm font-medium text-muted-foreground mb-2">Active Filters</p>
             <div className="flex flex-wrap gap-2">
               {filters.search && (
                 <Badge variant="secondary" className="text-xs">
                   Search: {filters.search}
                   <button
                     onClick={() => setFilters({ ...filters, search: "" })}
-                    className="ml-1 hover:text-red-600"
+                    className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -390,7 +390,7 @@ export default function PaymentFilters({
                   Type: {BILL_TYPES.find((t) => t.value === filters.billType)?.label}
                   <button
                     onClick={() => setFilters({ ...filters, billType: "" })}
-                    className="ml-1 hover:text-red-600"
+                    className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -401,7 +401,7 @@ export default function PaymentFilters({
                   Status: {STATUS_OPTIONS.find((s) => s.value === filters.status)?.label}
                   <button
                     onClick={() => setFilters({ ...filters, status: "" })}
-                    className="ml-1 hover:text-red-600"
+                    className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -423,7 +423,7 @@ export default function PaymentFilters({
                         dateTo: undefined,
                       })
                     }
-                    className="ml-1 hover:text-red-600"
+                    className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />
                   </button>

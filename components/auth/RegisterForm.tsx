@@ -149,21 +149,21 @@ export function RegisterForm() {
   if (success) {
     return (
       <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500 py-10">
-        <div className="h-20 w-20 rounded-full bg-secondary/10 dark:bg-secondary/20 flex items-center justify-center mb-6 shadow-lg ring-4 ring-secondary/20 dark:ring-secondary/30">
-          <PartyPopper className="h-10 w-10 text-secondary dark:text-secondary/90" />
+        <div className="h-20 w-20 rounded-full bg-secondary/10 flex items-center justify-center mb-6 shadow-lg ring-4 ring-secondary/20">
+          <PartyPopper className="h-10 w-10 text-secondary" />
         </div>
-        <h3 className="text-2xl font-bold text-foreground dark:text-foreground/95 mb-2">
+        <h3 className="text-2xl font-bold text-foreground mb-2">
           Verify your email
         </h3>
-        <p className="text-muted-foreground dark:text-muted-foreground/90 mb-8 max-w-xs mx-auto leading-relaxed">
+        <p className="text-muted-foreground mb-8 max-w-xs mx-auto leading-relaxed">
           We've sent a verification link to <br />
-          <span className="font-semibold text-foreground dark:text-foreground/95">
+          <span className="font-semibold text-foreground">
             {formData.email}
           </span>
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-primary dark:text-primary/90 hover:text-secondary dark:hover:text-secondary/90 transition-colors group"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-secondary transition-colors group"
         >
           <ArrowRight className="h-4 w-4 group-hover:-translate-x-1 transition-transform rotate-180" />
           Back to Login
@@ -184,10 +184,10 @@ export function RegisterForm() {
     if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
     const colors = [
-      "bg-red-500 dark:bg-red-400",
-      "bg-amber-500 dark:bg-amber-400",
-      "bg-secondary dark:bg-secondary/80",
-      "bg-green-500 dark:bg-green-400",
+      "bg-destructive",
+      "bg-amber-500", // Hardcoded standard Tailwind color is fine here for unique warnings
+      "bg-secondary",
+      "bg-green-500", // Hardcoded standard Tailwind color is fine here for success states
     ];
     const labels = ["Weak", "Fair", "Good", "Strong"];
 
@@ -219,7 +219,7 @@ export function RegisterForm() {
       <div className="space-y-2">
         <label
           htmlFor="fullName"
-          className="text-sm font-semibold text-foreground dark:text-foreground/95"
+          className="text-sm font-semibold text-foreground"
         >
           Full Name
         </label>
@@ -227,8 +227,8 @@ export function RegisterForm() {
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
               focusedField === "fullName" || formData.fullName
-                ? "text-primary dark:text-primary/90"
-                : "text-muted-foreground dark:text-muted-foreground/80"
+                ? "text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <User className="h-5 w-5" />
@@ -242,25 +242,25 @@ export function RegisterForm() {
             onChange={handleChange}
             onFocus={() => setFocusedField("fullName")}
             onBlur={() => setFocusedField(null)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
+            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
               fieldErrors.fullName && focusedField !== "fullName"
-                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
+                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/20"
                 : formData.fullName.length >= 3
-                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
-                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
+                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/20"
+                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/20"
             }`}
             placeholder="John Doe"
           />
           {formData.fullName.length >= 3 && !fieldErrors.fullName && (
-            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary dark:text-secondary/90" />
+            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
           )}
           {fieldErrors.fullName && focusedField !== "fullName" && (
-            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500 dark:text-red-400" />
+            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-destructive" />
           )}
         </div>
         {fieldErrors.fullName && focusedField !== "fullName" && (
-          <p className="text-xs text-red-500 dark:text-red-400 ml-1 flex items-center gap-1.5">
-            <span className="inline-block w-1 h-1 rounded-full bg-red-500 dark:bg-red-400" />
+          <p className="text-xs text-destructive ml-1 flex items-center gap-1.5">
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
             {fieldErrors.fullName}
           </p>
         )}
@@ -270,7 +270,7 @@ export function RegisterForm() {
       <div className="space-y-2">
         <label
           htmlFor="email"
-          className="text-sm font-semibold text-foreground dark:text-foreground/95"
+          className="text-sm font-semibold text-foreground"
         >
           Email Address
         </label>
@@ -278,8 +278,8 @@ export function RegisterForm() {
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
               focusedField === "email" || formData.email
-                ? "text-primary dark:text-primary/90"
-                : "text-muted-foreground dark:text-muted-foreground/80"
+                ? "text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <Mail className="h-5 w-5" />
@@ -293,25 +293,25 @@ export function RegisterForm() {
             onChange={handleChange}
             onFocus={() => setFocusedField("email")}
             onBlur={() => setFocusedField(null)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
+            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
               fieldErrors.email && focusedField !== "email"
-                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
+                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/20"
                 : formData.email && !fieldErrors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
-                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
+                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/20"
+                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/20"
             }`}
             placeholder="name@example.com"
           />
           {formData.email && !fieldErrors.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary dark:text-secondary/90" />
+            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
           )}
           {fieldErrors.email && focusedField !== "email" && (
-            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500 dark:text-red-400" />
+            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-destructive" />
           )}
         </div>
         {fieldErrors.email && focusedField !== "email" && (
-          <p className="text-xs text-red-500 dark:text-red-400 ml-1 flex items-center gap-1.5">
-            <span className="inline-block w-1 h-1 rounded-full bg-red-500 dark:bg-red-400" />
+          <p className="text-xs text-destructive ml-1 flex items-center gap-1.5">
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
             {fieldErrors.email}
           </p>
         )}
@@ -319,15 +319,15 @@ export function RegisterForm() {
 
       {/* Password */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-foreground dark:text-foreground/95">
+        <label className="text-sm font-semibold text-foreground">
           Password
         </label>
         <div className="relative">
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
               focusedField === "password" || formData.password
-                ? "text-primary dark:text-primary/90"
-                : "text-muted-foreground dark:text-muted-foreground/80"
+                ? "text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <Lock className="h-5 w-5" />
@@ -340,19 +340,19 @@ export function RegisterForm() {
             onChange={handleChange}
             onFocus={() => setFocusedField("password")}
             onBlur={() => setFocusedField(null)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
+            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
               fieldErrors.password && focusedField !== "password"
-                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
+                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/20"
                 : formData.password.length >= 8
-                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
-                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
+                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/20"
+                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/20"
             }`}
             placeholder="Create a strong password"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-3.5 text-muted-foreground dark:text-muted-foreground/80 hover:text-primary dark:hover:text-primary/90 transition-colors rounded-lg p-1 hover:bg-accent dark:hover:bg-accent/80"
+            className="absolute right-3 top-3.5 text-muted-foreground hover:text-primary transition-colors rounded-lg p-1 hover:bg-accent"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -361,7 +361,7 @@ export function RegisterForm() {
         
         {/* Password Strength & Requirements */}
         {formData.password && (
-          <div className="space-y-3 mt-3 p-3 rounded-lg bg-muted/50 dark:bg-muted/30 border border-border dark:border-border/50">
+          <div className="space-y-3 mt-3 p-3 rounded-lg bg-muted/50 border border-border">
             {passwordStrength && (
               <div className="space-y-1.5">
                 <div className="flex gap-1">
@@ -369,12 +369,12 @@ export function RegisterForm() {
                     <div
                       key={i}
                       className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                        i <= passwordStrength.strength ? passwordStrength.color : "bg-border dark:bg-border/50"
+                        i <= passwordStrength.strength ? passwordStrength.color : "bg-border"
                       }`}
                     />
                   ))}
                 </div>
-                <p className="text-xs text-foreground dark:text-foreground/90 font-medium">
+                <p className="text-xs text-foreground font-medium">
                   Strength: <span>{passwordStrength.label}</span>
                 </p>
               </div>
@@ -385,13 +385,13 @@ export function RegisterForm() {
                 <div
                   key={idx}
                   className={`flex items-center gap-2 text-xs transition-colors ${
-                    req.met ? "text-secondary dark:text-secondary/90" : "text-muted-foreground dark:text-muted-foreground/80"
+                    req.met ? "text-secondary" : "text-muted-foreground"
                   }`}
                 >
                   <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
                     req.met
-                      ? "bg-secondary dark:bg-secondary/90 border-secondary dark:border-secondary/90"
-                      : "border-border dark:border-border/50"
+                      ? "bg-secondary border-secondary"
+                      : "border-border"
                   }`}>
                     {req.met && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
                   </div>
@@ -405,15 +405,15 @@ export function RegisterForm() {
 
       {/* Confirm Password */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-foreground dark:text-foreground/95">
+        <label className="text-sm font-semibold text-foreground">
           Confirm Password
         </label>
         <div className="relative">
           <div
             className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all duration-200 ${
               focusedField === "confirmPassword" || formData.confirmPassword
-                ? "text-primary dark:text-primary/90"
-                : "text-muted-foreground dark:text-muted-foreground/80"
+                ? "text-primary"
+                : "text-muted-foreground"
             }`}
           >
             <Lock className="h-5 w-5" />
@@ -426,25 +426,25 @@ export function RegisterForm() {
             onChange={handleChange}
             onFocus={() => setFocusedField("confirmPassword")}
             onBlur={() => setFocusedField(null)}
-            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background dark:bg-card transition-all duration-200 outline-none text-foreground dark:text-foreground/95 placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/70 ${
+            className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-background transition-all duration-200 outline-none text-foreground placeholder:text-muted-foreground ${
               fieldErrors.confirmPassword && focusedField !== "confirmPassword"
-                ? "border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/10 dark:focus:ring-red-400/20"
+                ? "border-destructive focus:border-destructive focus:ring-4 focus:ring-destructive/20"
                 : formData.confirmPassword && formData.password === formData.confirmPassword
-                  ? "border-secondary dark:border-secondary/80 focus:border-secondary dark:focus:border-secondary/90 focus:ring-4 focus:ring-secondary/10 dark:focus:ring-secondary/20"
-                  : "border-border dark:border-border/50 focus:border-primary dark:focus:border-primary/90 focus:ring-4 focus:ring-primary/10 dark:focus:ring-primary/20"
+                  ? "border-secondary focus:border-secondary focus:ring-4 focus:ring-secondary/20"
+                  : "border-border focus:border-primary focus:ring-4 focus:ring-primary/20"
             }`}
             placeholder="Repeat your password"
           />
           {formData.confirmPassword && formData.password === formData.confirmPassword && (
-            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary dark:text-secondary/90" />
+            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
           )}
           {fieldErrors.confirmPassword && focusedField !== "confirmPassword" && (
-            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500 dark:text-red-400" />
+            <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-destructive" />
           )}
         </div>
         {fieldErrors.confirmPassword && focusedField !== "confirmPassword" && (
-          <p className="text-xs text-red-500 dark:text-red-400 ml-1 flex items-center gap-1.5">
-            <span className="inline-block w-1 h-1 rounded-full bg-red-500 dark:bg-red-400" />
+          <p className="text-xs text-destructive ml-1 flex items-center gap-1.5">
+            <span className="inline-block w-1 h-1 rounded-full bg-destructive" />
             {fieldErrors.confirmPassword}
           </p>
         )}
@@ -454,7 +454,7 @@ export function RegisterForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-primary dark:bg-primary/90 hover:bg-primary/90 dark:hover:bg-primary py-3.5 text-primary-foreground font-semibold transition-all active:scale-[0.98] shadow-lg shadow-primary/20 dark:shadow-primary/30 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-lg mt-2"
+        className="w-full rounded-xl bg-primary hover:bg-primary/90 py-3.5 text-primary-foreground font-semibold transition-all active:scale-[0.98] shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-lg mt-2"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -465,11 +465,11 @@ export function RegisterForm() {
         )}
       </button>
 
-      <p className="text-center text-sm text-muted-foreground dark:text-muted-foreground/90 mt-4">
+      <p className="text-center text-sm text-muted-foreground mt-4">
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-semibold text-primary dark:text-primary/90 hover:text-secondary dark:hover:text-secondary/90 hover:underline transition-colors"
+          className="font-semibold text-primary hover:text-secondary hover:underline transition-colors"
         >
           Sign in
         </Link>

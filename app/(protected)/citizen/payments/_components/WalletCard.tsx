@@ -147,14 +147,14 @@ export default function WalletCard({
   };
 
   return (
-    <Card className="border-blue-200 bg-linear-to-r from-blue-50 to-white">
+    <Card className="border-border bg-card">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center">
-            <Wallet className="mr-2 h-5 w-5 text-blue-600" />
+            <Wallet className="mr-2 h-5 w-5 text-primary" />
             Digital Wallet
           </span>
-          <Badge variant="outline" className="bg-white">
+          <Badge variant="outline" className="bg-muted">
             Smart City Wallet
           </Badge>
         </CardTitle>
@@ -163,11 +163,11 @@ export default function WalletCard({
       <CardContent className="space-y-6">
         {/* Balance Display */}
         <div className="text-center">
-          <p className="text-sm text-gray-500">Available Balance</p>
-          <p className="text-4xl font-bold text-gray-900 mt-2">
+          <p className="text-sm text-muted-foreground">Available Balance</p>
+          <p className="text-4xl font-bold text-foreground mt-2">
             NPR {balance.toFixed(2)}
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             Use this balance for quick and easy payments
           </p>
         </div>
@@ -203,7 +203,7 @@ export default function WalletCard({
                         className={cn(
                           "h-10",
                           topUpAmount === amount.toString() &&
-                            "bg-blue-50 border-blue-200"
+                            "bg-accent border-primary"
                         )}
                       >
                         {amount}
@@ -264,7 +264,7 @@ export default function WalletCard({
                 </Button>
 
                 {/* Security Note */}
-                <div className="text-xs text-gray-500 text-center">
+                <div className="text-xs text-muted-foreground text-center">
                   <CheckCircle className="inline h-3 w-3 mr-1" />
                   Secured with 256-bit SSL encryption
                 </div>
@@ -302,7 +302,7 @@ export default function WalletCard({
                     min="100"
                     step="100"
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Maximum: NPR {balance.toFixed(2)}
                   </p>
                 </div>
@@ -329,7 +329,7 @@ export default function WalletCard({
                   {isLoading ? "Processing..." : "Request Withdrawal"}
                 </Button>
 
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   <AlertCircle className="inline h-3 w-3 mr-1" />
                   Withdrawals are processed within 2-3 business days
                 </div>
@@ -353,15 +353,15 @@ export default function WalletCard({
               {transactions.slice(0, 3).map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                  className="flex items-center justify-between p-3 bg-card rounded-lg border"
                 >
                   <div className="flex items-center">
                     <div
                       className={cn(
                         "p-2 rounded-full mr-3",
                         transaction.type === "credit"
-                          ? "bg-green-100 text-green-600"
-                          : "bg-red-100 text-red-600"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-destructive text-destructive-foreground"
                       )}
                     >
                       {transaction.type === "credit" ? (
@@ -374,7 +374,7 @@ export default function WalletCard({
                       <p className="font-medium text-sm">
                         {transaction.description}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {format(transaction.date, "MMM d, yyyy")}
                       </p>
                     </div>
@@ -383,8 +383,8 @@ export default function WalletCard({
                     className={cn(
                       "font-semibold",
                       transaction.type === "credit"
-                        ? "text-green-600"
-                        : "text-red-600"
+                        ? "text-primary"
+                        : "text-destructive"
                     )}
                   >
                     {transaction.type === "credit" ? "+" : "-"}
@@ -397,9 +397,9 @@ export default function WalletCard({
         )}
 
         {/* Wallet Benefits */}
-        <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="font-medium text-blue-800 mb-2">Wallet Benefits</h4>
-          <ul className="text-sm text-blue-700 space-y-1">
+        <div className="bg-muted rounded-lg p-4">
+          <h4 className="font-medium text-foreground mb-2">Wallet Benefits</h4>
+          <ul className="text-sm text-muted-foreground space-y-1">
             <li className="flex items-center">
               <CheckCircle className="h-3 w-3 mr-2" />
               Instant payments without entering card details

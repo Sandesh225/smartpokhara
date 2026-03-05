@@ -34,8 +34,8 @@ export function NotificationPreferences({
   if (!preferences) return null;
 
   return (
-    <Card className="border-0 shadow-2xl rounded-[3rem] bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden">
-      <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 p-10 border-b border-slate-100 dark:border-slate-800">
+    <Card className="border-0 shadow-2xl rounded-4xl bg-card ring-1 ring-border overflow-hidden">
+      <CardHeader className="bg-muted/30 p-10 border-b border-border">
         <CardTitle className="text-3xl font-black">Notification Rules</CardTitle>
         <CardDescription className="text-lg">
           Define how the Smart City Pokhara system should reach you.
@@ -44,7 +44,7 @@ export function NotificationPreferences({
 
       <CardContent className="p-10 space-y-12">
         <section className="space-y-6">
-          <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
+          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
             Delivery Channels
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -72,11 +72,11 @@ export function NotificationPreferences({
             ].map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-6 rounded-[2rem] border-2 border-slate-50 dark:border-slate-800 hover:border-blue-100 dark:hover:border-blue-900/50 transition-all"
+                className="flex items-center justify-between p-6 rounded-4xl border-2 border-border hover:border-primary/20 transition-all"
               >
                 <div className="space-y-1">
                   <Label className="text-lg font-black">{item.label}</Label>
-                  <p className="text-sm text-slate-400 font-medium">{item.desc}</p>
+                  <p className="text-sm text-muted-foreground font-medium">{item.desc}</p>
                 </div>
                 <Switch
                   checked={(preferences as any)?.[item.id]}
@@ -88,7 +88,7 @@ export function NotificationPreferences({
         </section>
 
         <section className="space-y-6">
-          <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
+          <h4 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
             Content Topics
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -99,7 +99,7 @@ export function NotificationPreferences({
             ].map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-6 rounded-[1.5rem] bg-slate-50/50 dark:bg-slate-800/50"
+                className="flex items-center justify-between p-6 rounded-2xl bg-muted/50"
               >
                 <Label className="font-bold">{item.label}</Label>
                 <Switch
@@ -112,15 +112,15 @@ export function NotificationPreferences({
         </section>
       </CardContent>
 
-      <CardFooter className="p-10 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-        <p className="text-sm font-bold text-slate-400 flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-blue-500" /> Advanced data encryption active
+      <CardFooter className="p-10 bg-muted/50 border-t border-border flex justify-between items-center">
+        <p className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-primary" /> Advanced data encryption active
         </p>
         <Button
           size="lg"
           onClick={onSave}
           disabled={isLoading}
-          className="rounded-2xl bg-slate-900 dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 h-14 px-10 font-black shadow-xl shadow-slate-200 dark:shadow-none"
+          className="rounded-2xl bg-primary hover:bg-primary/90 h-14 px-10 font-black shadow-xl shadow-primary/20"
         >
           {isLoading ? "Saving..." : "Save Configuration"}
         </Button>

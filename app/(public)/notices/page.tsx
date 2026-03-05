@@ -18,11 +18,11 @@ import {
 } from "lucide-react";
 
 const NOTICE_TYPES = {
-  alert: { label: "Alert", color: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20", icon: AlertTriangle },
-  announcement: { label: "Announcement", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20", icon: Bell },
-  tender: { label: "Tender", color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20", icon: FileText },
-  event: { label: "Event", color: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20", icon: Calendar },
-  info: { label: "Information", color: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20", icon: Info },
+  alert: { label: "Alert", color: "bg-red-500/15 text-red-600 border-red-500", icon: AlertTriangle },
+  announcement: { label: "Announcement", color: "bg-blue-500/15 text-blue-600 border-blue-500", icon: Bell },
+  tender: { label: "Tender", color: "bg-purple-500/15 text-purple-600 border-purple-500", icon: FileText },
+  event: { label: "Event", color: "bg-green-500/15 text-green-600 border-green-500", icon: Calendar },
+  info: { label: "Information", color: "bg-orange-500/15 text-orange-600 border-orange-500", icon: Info },
 };
 
 const NOTICES = [
@@ -129,7 +129,7 @@ export default function NoticesPage() {
 
       <main className="flex-1 w-full">
         {/* Hero Section */}
-        <section className="relative py-16 sm:py-20 md:py-24 bg-gradient-to-br from-primary to-secondary text-primary-foreground overflow-hidden">
+        <section className="relative py-16 sm:py-20 md:py-24 bg-linear-to-br from-primary to-secondary text-primary-foreground overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,rgba(255,255,255,0.1)_0deg,transparent_60deg,transparent_300deg,rgba(255,255,255,0.1)_360deg)]" />
           </div>
@@ -154,16 +154,16 @@ export default function NoticesPage() {
                 <input
                   type="text"
                   placeholder="Search notices by title or keyword..."
-                  className="w-full px-6 py-4 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-primary-foreground placeholder:text-primary-foreground/60 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  className="w-full px-6 py-4 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-primary-foreground placeholder:text-primary-foreground/60 focus:outline-none focus:ring-2 focus:ring-white"
                 />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-foreground/60" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-foreground" />
               </div>
             </div>
           </div>
         </section>
 
         {/* Quick Stats */}
-        <section className="py-8 bg-muted/30 dark:bg-muted/10">
+        <section className="py-8 bg-muted">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="flex flex-wrap gap-3">
               {CATEGORIES.map((category, idx) => (
@@ -171,12 +171,12 @@ export default function NoticesPage() {
                   key={idx}
                   className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${
                     idx === 0
-                      ? "bg-primary dark:bg-primary/90 text-primary-foreground"
-                      : "bg-card dark:bg-card/80 border border-border dark:border-border/50 text-foreground hover:bg-accent dark:hover:bg-accent/80"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card border border-border text-foreground hover:bg-accent"
                   }`}
                 >
                   {category.name}
-                  <span className="ml-2 px-2 py-0.5 bg-white/20 dark:bg-black/20 rounded-full text-xs">
+                  <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
                     {category.count}
                   </span>
                 </button>
@@ -190,14 +190,14 @@ export default function NoticesPage() {
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-foreground dark:text-foreground/95 mb-2">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
                   All Notices
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   Showing {NOTICES.length} notices
                 </p>
               </div>
-              <button className="inline-flex items-center gap-2 px-4 py-2 bg-muted dark:bg-muted/80 hover:bg-accent dark:hover:bg-accent/80 text-foreground font-semibold rounded-lg transition-all">
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-accent text-foreground font-semibold rounded-lg transition-all">
                 <Filter className="w-4 h-4" />
                 Filter
               </button>
@@ -211,10 +211,10 @@ export default function NoticesPage() {
                 return (
                   <article
                     key={notice.id}
-                    className={`group bg-card dark:bg-card/80 border rounded-2xl overflow-hidden shadow-lg hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 ${
+                    className={`group bg-card border rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ${
                       notice.isPinned 
-                        ? "border-primary dark:border-primary/50 ring-2 ring-primary/20" 
-                        : "border-border dark:border-border/50"
+                        ? "border-primary ring-2 ring-primary/20" 
+                        : "border-border"
                     }`}
                   >
                     <div className="p-6">
@@ -229,7 +229,7 @@ export default function NoticesPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               {notice.isPinned && (
-                                <Pin className="w-4 h-4 text-primary dark:text-primary/90" />
+                                <Pin className="w-4 h-4 text-primary" />
                               )}
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-full text-xs font-bold ${typeConfig.color}`}>
                                 {typeConfig.label}
@@ -240,11 +240,11 @@ export default function NoticesPage() {
                               </span>
                             </div>
 
-                            <h3 className="text-xl font-bold text-foreground dark:text-foreground/95 mb-2 group-hover:text-primary dark:group-hover:text-primary/90 transition-colors">
+                            <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                               {notice.title}
                             </h3>
 
-                            <p className="text-sm text-muted-foreground dark:text-muted-foreground/90 leading-relaxed mb-4">
+                            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                               {notice.description}
                             </p>
 
@@ -272,14 +272,14 @@ export default function NoticesPage() {
                               )}
 
                               {notice.deadline && (
-                                <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-semibold">
+                                <div className="flex items-center gap-1.5 text-red-600 font-semibold">
                                   <AlertTriangle className="w-3.5 h-3.5" />
                                   <span>Deadline: {new Date(notice.deadline).toLocaleDateString()}</span>
                                 </div>
                               )}
 
                               {notice.eventDate && (
-                                <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400 font-semibold">
+                                <div className="flex items-center gap-1.5 text-green-600 font-semibold">
                                   <Calendar className="w-3.5 h-3.5" />
                                   <span>{new Date(notice.eventDate).toLocaleDateString()} at {notice.eventTime}</span>
                                 </div>
@@ -288,8 +288,8 @@ export default function NoticesPage() {
 
                             {/* Attachments */}
                             {notice.attachments && notice.attachments.length > 0 && (
-                              <div className="mt-4 pt-4 border-t border-border dark:border-border/50">
-                                <p className="text-xs font-semibold text-foreground dark:text-foreground/95 mb-2">
+                              <div className="mt-4 pt-4 border-t border-border">
+                                <p className="text-xs font-semibold text-foreground mb-2">
                                   Attachments:
                                 </p>
                                 <div className="flex flex-wrap gap-2">
@@ -297,7 +297,7 @@ export default function NoticesPage() {
                                     <a
                                       key={idx}
                                       href="#"
-                                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 dark:bg-muted/30 hover:bg-muted dark:hover:bg-muted/50 border border-border dark:border-border/50 rounded-lg text-xs font-medium text-foreground transition-all"
+                                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted hover:bg-muted border border-border rounded-lg text-xs font-medium text-foreground transition-all"
                                     >
                                       <Download className="w-3 h-3" />
                                       {file}
@@ -325,7 +325,7 @@ export default function NoticesPage() {
                         </div>
 
                         {/* Action Button */}
-                        <button className="shrink-0 ml-4 inline-flex items-center gap-2 px-4 py-2 bg-primary dark:bg-primary/90 text-primary-foreground font-bold rounded-lg hover:bg-primary/90 dark:hover:bg-primary transition-all hover:scale-105 text-sm">
+                        <button className="shrink-0 ml-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary transition-all hover:scale-105 text-sm">
                           View Details
                           <ArrowRight className="w-4 h-4" />
                         </button>
@@ -338,7 +338,7 @@ export default function NoticesPage() {
 
             {/* Load More */}
             <div className="text-center mt-12">
-              <button className="inline-flex items-center gap-2 px-8 py-3 bg-muted dark:bg-muted/80 hover:bg-accent dark:hover:bg-accent/80 text-foreground font-semibold rounded-full transition-all hover:scale-105 shadow-sm">
+              <button className="inline-flex items-center gap-2 px-8 py-3 bg-muted hover:bg-accent text-foreground font-semibold rounded-full transition-all hover:scale-105 shadow-sm">
                 Load More Notices
                 <ArrowRight className="w-5 h-5" />
               </button>
@@ -347,9 +347,9 @@ export default function NoticesPage() {
         </section>
 
         {/* Subscription CTA */}
-        <section className="py-16 bg-muted/30 dark:bg-muted/10">
+        <section className="py-16 bg-muted">
           <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <div className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-8 sm:p-12 text-center text-primary-foreground relative overflow-hidden">
+            <div className="bg-linear-to-br from-primary to-secondary rounded-2xl p-8 sm:p-12 text-center text-primary-foreground relative overflow-hidden">
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.3),transparent_50%)]" />
               </div>

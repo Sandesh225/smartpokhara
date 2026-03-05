@@ -37,7 +37,7 @@ function StatCard({ icon: Icon, label, value, delay = 0 }: any) {
       className="group"
     >
       <Card className="surface-elevated border-2 border-border hover:border-primary/40 transition-all duration-300 overflow-hidden relative shadow-sm hover:shadow-xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         <CardContent className="p-6 relative z-10">
           <div className="flex items-start justify-between mb-4">
             <motion.div
@@ -143,7 +143,7 @@ export default function NoticesPage() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                  className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-xl"
+                  className="h-14 w-14 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center shadow-xl"
                 >
                   <ShieldCheck className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </motion.div>
@@ -212,7 +212,7 @@ export default function NoticesPage() {
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="ml-2 h-6 min-w-[1.5rem] px-2 flex items-center justify-center rounded-full bg-background text-xs font-black"
+                      className="ml-2 h-6 min-w-6 px-2 flex items-center justify-center rounded-full bg-background text-xs font-black"
                     >
                       {activeFiltersCount}
                     </motion.span>

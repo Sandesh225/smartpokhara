@@ -113,25 +113,25 @@ export default function PaymentHistoryTable({
         variant: "default" as const,
         icon: CheckCircle,
         label: "Completed",
-        className: "bg-green-100 text-green-800 hover:bg-green-100"
+        className: "bg-primary text-primary-foreground border-primary"
       },
       pending: {
         variant: "secondary" as const,
         icon: Clock,
         label: "Pending",
-        className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+        className: "bg-secondary text-secondary-foreground border-secondary"
       },
       failed: {
         variant: "destructive" as const,
         icon: XCircle,
         label: "Failed",
-        className: "bg-red-100 text-red-800 hover:bg-red-100"
+        className: "bg-destructive text-destructive-foreground border-destructive"
       },
       refunded: {
         variant: "outline" as const,
         icon: ArrowLeftRight,
         label: "Refunded",
-        className: "bg-blue-100 text-blue-800 hover:bg-blue-100"
+        className: "bg-accent text-accent-foreground border-accent"
       }
     };
 
@@ -139,7 +139,7 @@ export default function PaymentHistoryTable({
       variant: "outline" as const,
       icon: Clock,
       label: status,
-      className: "bg-gray-100 text-gray-800 hover:bg-gray-100"
+      className: "bg-muted text-muted-foreground border-border"
     };
 
     return (
@@ -228,11 +228,11 @@ export default function PaymentHistoryTable({
         </CardHeader>
         <CardContent>
           <div className="py-12 text-center">
-            <Receipt className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <Receipt className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-medium text-foreground">
               No payment history
             </h3>
-            <p className="mt-2 text-gray-500">
+            <p className="mt-2 text-muted-foreground">
               {searchTerm
                 ? "No payments match your search"
                 : "You haven't made any payments yet"}
@@ -263,7 +263,7 @@ export default function PaymentHistoryTable({
           <div className="flex items-center gap-2">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search payments..."
                 value={searchTerm}
@@ -319,14 +319,14 @@ export default function PaymentHistoryTable({
               {payments.map((payment) => (
                 <TableRow
                   key={payment.id}
-                  className="cursor-pointer hover:bg-gray-50"
+                  className="cursor-pointer hover:bg-muted"
                   onClick={() => router.push(`/citizen/payments/receipt/${payment.id}`)}
                 >
                   <TableCell>
                     <div className="font-medium">
                       {format(new Date(payment.created_at), "MMM d, yyyy")}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-muted-foreground">
                       {format(new Date(payment.created_at), "hh:mm a")}
                     </div>
                   </TableCell>
@@ -334,7 +334,7 @@ export default function PaymentHistoryTable({
                     <div className="font-medium">
                       {getBillTypeLabel(payment.bill?.bill_type || "other")}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-muted-foreground">
                       {payment.bill?.bill_number || "N/A"}
                     </div>
                   </TableCell>
@@ -384,7 +384,7 @@ export default function PaymentHistoryTable({
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               Page {page} of {totalPages}
             </div>
             
@@ -442,11 +442,11 @@ export default function PaymentHistoryTable({
           <div className="mt-6 pt-6 border-t">
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <div className="h-2 w-2 rounded-full bg-primary"></div>
                 <span>Successful Payments: {completedPayments}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <div className="h-2 w-2 rounded-full bg-accent"></div>
                 <span>Total Amount: NPR {totalAmount.toFixed(2)}</span>
               </div>
             </div>

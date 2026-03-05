@@ -85,7 +85,7 @@ export default function ParticipatoryBudgetingPage() {
       <div className="relative overflow-hidden bg-card pt-16 pb-20 px-6 border-b border-border">
         {/* Subtle dynamic background element */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
         
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="max-w-3xl space-y-6">
@@ -132,7 +132,7 @@ export default function ParticipatoryBudgetingPage() {
 
               if (isFinalized) {
                 statusLabel = "Winners Announced";
-                statusClass = "bg-amber-100 text-amber-700 border-amber-200/50";
+                statusClass = "bg-accent/10 text-accent border-accent/20";
                 statusIcon = <Trophy className="w-3 h-3" />;
               } else if (isVotingOpen) {
                 statusLabel = "Voting Active";
@@ -140,11 +140,11 @@ export default function ParticipatoryBudgetingPage() {
                 statusIcon = <Vote className="w-3 h-3" />;
               } else if (isSubmissionOpen) {
                 statusLabel = "Submissions Open";
-                statusClass = "bg-emerald-100 text-emerald-700 border-emerald-200/50";
+                statusClass = "bg-primary/10 text-primary border-primary/20";
                 statusIcon = <Plus className="w-3 h-3" />;
               } else if (isReviewPhase) {
                 statusLabel = "Under Review";
-                statusClass = "bg-purple-100 text-purple-700 border-purple-200/50";
+                statusClass = "bg-accent/10 text-accent border-accent/20";
                 statusIcon = <Clock className="w-3 h-3" />;
               }
 
@@ -157,7 +157,7 @@ export default function ParticipatoryBudgetingPage() {
                           <h2 className="text-xl font-black text-foreground tracking-tight uppercase group-hover:text-primary transition-colors">
                             {cycle.title}
                           </h2>
-                          {isFinalized && <Sparkles className="w-4 h-4 text-amber-500" />}
+                          {isFinalized && <Sparkles className="w-4 h-4 text-accent" />}
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                           {cycle.description || "Participate in this fiscal year's budgeting process."}
@@ -197,7 +197,7 @@ export default function ParticipatoryBudgetingPage() {
                       <div className="space-y-1">
                         <p className={cn(
                           "text-xs font-black uppercase tracking-widest flex items-center gap-1.5",
-                          isSubmissionOpen ? "text-emerald-600" : "text-muted-foreground/60"
+                          isSubmissionOpen ? "text-primary" : "text-muted-foreground/60"
                         )}>
                           Submission
                         </p>
@@ -217,7 +217,7 @@ export default function ParticipatoryBudgetingPage() {
 
                   <div className="mt-auto px-6 md:px-8 pb-6 md:pb-8">
                     {isFinalized ? (
-                      <Button asChild className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-amber-500/10">
+                      <Button asChild className="w-full h-11 bg-accent hover:bg-accent/90 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-accent/10">
                         <Link href={`/citizen/participatory-budgeting/${cycle.id}`}>
                           <Trophy className="mr-2 h-3.5 w-3.5" /> View Results
                         </Link>
@@ -235,7 +235,7 @@ export default function ParticipatoryBudgetingPage() {
                             See Ideas
                           </Link>
                         </Button>
-                        <Button asChild className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-emerald-600/10">
+                        <Button asChild className="flex-1 h-11 bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-primary/10">
                           <Link href={`/citizen/participatory-budgeting/${cycle.id}/new`}>
                             <Plus className="mr-2 h-3.5 w-3.5" /> Submit Idea
                           </Link>

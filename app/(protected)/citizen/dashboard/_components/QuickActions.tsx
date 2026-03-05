@@ -31,7 +31,7 @@ export default function QuickActions({ complaintsCount, pendingBillsCount }: Qui
       description: "Report an issue or request a service",
       icon: FileText,
       path: "/citizen/complaints/new",
-      badge: { label: "New", className: "bg-primary/10 text-primary border-primary/20" },
+      badge: { label: "New", className: "bg-primary text-primary-foreground border-primary" },
       featured: true,
     },
     {
@@ -49,7 +49,7 @@ export default function QuickActions({ complaintsCount, pendingBillsCount }: Qui
       icon: DollarSign,
       path: "/citizen/payments",
       badge: pendingBillsCount > 0
-        ? { label: `${pendingBillsCount} pending`, className: "bg-destructive/10 text-destructive border-destructive/20" }
+        ? { label: `${pendingBillsCount} pending`, className: "bg-destructive text-destructive-foreground border-destructive" }
         : undefined,
     },
     {
@@ -109,10 +109,10 @@ export default function QuickActions({ complaintsCount, pendingBillsCount }: Qui
               onFocus={() => setFocused(action.id)}
               className={cn(
                 "group relative flex flex-col gap-4 p-5 rounded-3xl border transition-all duration-500 outline-none",
-                "bg-card/80 backdrop-blur-md shadow-inner-sm animate-fade-in overflow-hidden",
+                "bg-card backdrop-blur-md shadow-inner-sm animate-fade-in overflow-hidden",
                 isFocused
-                  ? "border-primary/40 shadow-inner-lg -translate-y-1.5"
-                  : "border-border/60 hover:border-primary/30",
+                  ? "border-primary shadow-inner-lg -translate-y-1.5"
+                  : "border-border hover:border-primary",
                 "focus-visible:ring-2 focus-visible:ring-primary/20"
               )}
               aria-label={`${action.title}: ${action.description}`}

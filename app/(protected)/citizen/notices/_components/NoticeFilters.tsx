@@ -102,7 +102,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
           <motion.div
             whileHover={{ rotate: 90 }}
             transition={{ type: "spring", stiffness: 300 }}
-            className="p-2.5 rounded-xl bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary shadow-sm"
+            className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-sm"
           >
             <Filter className="w-5 h-5" />
           </motion.div>
@@ -131,19 +131,19 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
       </div>
 
       {/* Filters Panel */}
-      <div className="glass p-6 rounded-[2rem] border border-border/50 dark:border-border shadow-xl space-y-6">
+      <div className="glass p-6 rounded-4xl border border-border/50 shadow-xl space-y-6">
         {/* Search Input */}
         <div className="space-y-3">
           <Label className="text-xs font-black uppercase text-muted-foreground tracking-wider ml-1">
             Search Query
           </Label>
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary dark:group-focus-within:text-primary transition-colors pointer-events-none" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none" />
             <Input
               placeholder="Title, ID, or keywords..."
               value={filters.search}
               onChange={(e) => handleUpdate({ search: e.target.value })}
-              className="pl-11 pr-4 bg-background dark:bg-background border-border dark:border-border rounded-2xl h-12 text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary/20 dark:focus-visible:ring-primary/30 transition-all placeholder:text-muted-foreground/50"
+              className="pl-11 pr-4 bg-background border-border rounded-2xl h-12 text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
             />
           </div>
         </div>
@@ -159,13 +159,13 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
               value={filters.ward || "all"}
               onValueChange={(v) => handleUpdate({ ward: v === "all" ? "" : v })}
             >
-              <SelectTrigger className="bg-background dark:bg-background border-border dark:border-border rounded-2xl h-12 font-bold hover:border-primary/50 transition-all">
+              <SelectTrigger className="bg-background border-border rounded-2xl h-12 font-bold hover:border-primary/50 transition-all">
                 <div className="flex items-center gap-2.5">
                   <MapPin className="w-4 h-4 text-primary dark:text-primary" />
                   <SelectValue placeholder="Metropolitan Wide" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-border dark:border-border max-h-[300px]">
+              <SelectContent className="rounded-2xl border-border max-h-[300px]">
                 <SelectItem value="all" className="font-bold rounded-xl">
                   🏛️ Metropolitan Wide
                 </SelectItem>
@@ -198,7 +198,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
             >
               <SelectTrigger className="bg-background dark:bg-background border-border dark:border-border rounded-2xl h-12 font-bold hover:border-primary/50 transition-all">
                 <div className="flex items-center gap-2.5">
-                  <Tag className="w-4 h-4 text-secondary dark:text-secondary" />
+                  <Tag className="w-4 h-4 text-secondary" />
                   <SelectValue placeholder="All Categories" />
                 </div>
               </SelectTrigger>
@@ -222,7 +222,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
           <Label className="text-xs font-black uppercase text-muted-foreground tracking-wider ml-1">
             Quick Filters
           </Label>
-          <div className="bg-muted/30 dark:bg-muted/20 rounded-2xl p-2 border border-border/50 dark:border-border space-y-1.5">
+          <div className="bg-muted/30 rounded-2xl p-2 border border-border/50 space-y-1.5">
             <ToggleRow
               icon={EyeOff}
               label="Unread Only"
@@ -230,7 +230,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
               checked={filters.unreadOnly}
               onChange={(v: boolean) => handleUpdate({ unreadOnly: v })}
             />
-            <div className="h-px bg-border/50 dark:bg-border mx-3" />
+            <div className="h-px bg-border/50 mx-3" />
             <ToggleRow
               icon={Zap}
               label="Urgent Priority"
@@ -247,12 +247,12 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="px-5 py-4 rounded-2xl bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30"
+        className="px-5 py-4 rounded-2xl bg-primary/5 border border-primary/20"
       >
         <div className="flex gap-3">
           <div className="mt-0.5">
-            <div className="h-6 w-6 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-              <Zap className="h-3.5 w-3.5 text-primary dark:text-primary" />
+            <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Zap className="h-3.5 w-3.5 text-primary" />
             </div>
           </div>
           <div>
@@ -276,8 +276,8 @@ function ToggleRow({ icon: Icon, label, description, checked, onChange }: any) {
       className={cn(
         "flex items-center justify-between p-3.5 rounded-xl transition-all cursor-pointer group",
         checked
-          ? "bg-background dark:bg-background shadow-sm border border-border/50 dark:border-border"
-          : "hover:bg-background/50 dark:hover:bg-background/50"
+          ? "bg-background shadow-sm border border-border/50"
+          : "hover:bg-background/50 text-muted-foreground"
       )}
       onClick={() => onChange(!checked)}
     >

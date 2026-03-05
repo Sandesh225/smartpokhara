@@ -104,10 +104,10 @@ export function UniversalComplaintsTable({
 
       {/* ── Pagination bar ── */}
       {pagination && total > 0 && (
-        <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-muted/20">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-border bg-muted">
 
           {/* Record range */}
-          <p className="text-sm font-sans text-muted-foreground flex-shrink-0 text-center sm:text-left">
+          <p className="text-sm font-sans text-muted-foreground shrink-0 text-center sm:text-left">
             Showing <span className="font-heading font-bold text-foreground">{from}</span> to <span className="font-heading font-bold text-foreground">{to}</span> of{" "}
             <span className="font-heading font-bold text-foreground">{total.toLocaleString()}</span> records
           </p>
@@ -123,8 +123,8 @@ export function UniversalComplaintsTable({
               className={cn(
                 "w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/20",
                 hasPrev
-                  ? "border-border bg-card text-foreground hover:bg-accent/40 hover:text-accent-foreground hover:border-primary/40 active:scale-95 shadow-sm"
-                  : "border-border/30 bg-transparent text-muted-foreground/40 cursor-not-allowed"
+                  ? "border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground hover:border-primary active:scale-95 shadow-sm"
+                  : "border-border bg-transparent text-muted-foreground cursor-not-allowed opacity-30"
               )}
             >
               <ChevronLeft className="w-4 h-4" />
@@ -149,7 +149,7 @@ export function UniversalComplaintsTable({
                     "w-9 h-9 rounded-xl text-sm font-heading font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/20",
                     pg === pageIndex
                       ? "bg-primary text-primary-foreground border border-primary shadow-md shadow-primary/20 scale-105"
-                      : "border border-border bg-card text-foreground hover:bg-accent/40 hover:text-accent-foreground hover:border-primary/30 active:scale-95 shadow-sm"
+                      : "border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground hover:border-primary active:scale-95 shadow-sm"
                   )}
                 >
                   {pg}
@@ -165,8 +165,8 @@ export function UniversalComplaintsTable({
               className={cn(
                 "w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/20",
                 hasNext
-                  ? "border-border bg-card text-foreground hover:bg-accent/40 hover:text-accent-foreground hover:border-primary/40 active:scale-95 shadow-sm"
-                  : "border-border/30 bg-transparent text-muted-foreground/40 cursor-not-allowed"
+                  ? "border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground hover:border-primary active:scale-95 shadow-sm"
+                  : "border-border bg-transparent text-muted-foreground cursor-not-allowed opacity-30"
               )}
             >
               <ChevronRight className="w-4 h-4" />

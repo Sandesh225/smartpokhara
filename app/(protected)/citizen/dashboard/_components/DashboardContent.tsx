@@ -121,13 +121,13 @@ export function DashboardContent({
         {/* ── Header ── */}
         <motion.div
           variants={fadeUp} initial="hidden" animate="visible" custom={0}
-          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 pb-8 border-b border-border/60"
+          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 pb-8 border-b border-border"
         >
           <div className="space-y-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/40 border border-primary/10 mb-3 shadow-sm">
-                <GreetIcon className="w-4 h-4 text-primary" />
-                <span className="font-heading text-xs font-bold uppercase tracking-wider text-primary">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 mb-3 shadow-sm">
+                <GreetIcon className="w-4 h-4 text-accent" />
+                <span className="font-heading text-xs font-black uppercase tracking-widest text-accent">
                   {greeting.label}
                 </span>
               </div>
@@ -152,7 +152,7 @@ export function DashboardContent({
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center justify-center h-12 px-6 rounded-xl border border-border bg-card text-sm font-heading font-bold text-foreground shadow-sm hover:bg-muted hover:border-primary/30 transition-all duration-300 active:scale-95 disabled:opacity-50"
+            className="inline-flex items-center justify-center h-12 px-6 rounded-xl border border-border bg-card text-sm font-heading font-bold text-foreground shadow-sm hover:bg-muted hover:border-border transition-all duration-300 active:scale-95 disabled:opacity-50"
           >
             <RefreshCw className={cn("w-4 h-4 mr-2.5 text-muted-foreground", isRefreshing && "animate-spin text-primary")} />
             Refresh Data
@@ -168,7 +168,7 @@ export function DashboardContent({
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-2xl border border-primary/20 bg-primary/5 shadow-inner-sm">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-2xl border border-primary/10 bg-primary/5 shadow-inner-sm">
                 <div className="flex items-center gap-4">
                   <div className="relative flex items-center justify-center shrink-0">
                     <div className="absolute inset-0 bg-primary/40 rounded-full animate-ping" />
@@ -181,7 +181,7 @@ export function DashboardContent({
                 </div>
                 <button
                   onClick={() => router.push("/citizen/complaints")}
-                  className="group inline-flex items-center font-heading text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+                  className="group inline-flex items-center font-heading text-sm font-bold text-primary hover:text-primary transition-colors"
                 >
                   Track Progress
                   <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />

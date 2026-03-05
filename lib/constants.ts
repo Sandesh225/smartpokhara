@@ -28,17 +28,17 @@ export const TRUST_INDICATORS = [
   {
     icon: ShieldCheck,
     label: "Gov Verified",
-    color: "text-secondary dark:text-secondary/90",
+    color: "text-secondary",
   },
   {
     icon: Users,
     label: "250k+ Citizens",
-    color: "text-primary dark:text-primary/90",
+    color: "text-primary",
   },
   {
     icon: Activity,
     label: "Real-time Data",
-    color: "text-secondary dark:text-secondary/90",
+    color: "text-secondary",
   },
 ] as const;
 
@@ -103,7 +103,7 @@ export const HOW_IT_WORKS_STEPS = [
     title: "Snap & Report",
     description:
       "Take a photo of the issue and upload it with precise GPS location via our mobile-responsive portal.",
-    color: "bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400",
+    color: "bg-blue-600/10 text-blue-600",
     number: "01",
   },
   {
@@ -111,7 +111,7 @@ export const HOW_IT_WORKS_STEPS = [
     title: "Automatic Routing",
     description:
       "Our system instantly identifies the location and routes your report to the specific Ward Officer.",
-    color: "bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400",
+    color: "bg-purple-600/10 text-purple-600",
     number: "02",
   },
   {
@@ -119,7 +119,7 @@ export const HOW_IT_WORKS_STEPS = [
     title: "Get Resolved",
     description:
       "Receive real-time SMS and email notifications when the municipal work is completed.",
-    color: "bg-green-500/10 dark:bg-green-500/20 text-green-600 dark:text-green-400",
+    color: "bg-green-600/10 text-green-600",
     number: "03",
   },
 ] as const;

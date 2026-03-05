@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center p-3 bg-accent rounded-full mb-4">
             <Shield className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight">
@@ -21,13 +21,13 @@ export default function PrivacyPolicyPage() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Your privacy is our priority. We are committed to protecting your personal information while you use our digital services.
           </p>
-          <p className="text-sm text-muted-foreground/80">
+          <p className="text-sm text-muted-foreground">
             Last Updated: February 20, 2026
           </p>
         </div>
 
         {/* Content */}
-        <div className="prose prose-lg dark:prose-invert max-w-none space-y-8">
+        <div className="prose prose-lg max-w-none space-y-8">
           <section className="bg-card border border-border rounded-2xl p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <Eye className="w-6 h-6 text-primary" />

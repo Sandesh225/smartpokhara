@@ -12,9 +12,9 @@ import type { ProjectNotice } from "@/features/notices/types";
 
 const NOTICE_TYPE_CONFIG: Record<string, { label: string; className: string }> = {
   general: { label: "General", className: "bg-muted text-muted-foreground border-border" },
-  emergency: { label: "Emergency", className: "bg-destructive/10 text-destructive border-destructive/20" },
-  project: { label: "Project", className: "bg-primary/10 text-primary border-primary/20" },
-  public_holiday: { label: "Calendar", className: "bg-secondary/10 text-secondary border-secondary/20" },
+  emergency: { label: "Emergency", className: "bg-destructive text-destructive-foreground border-destructive" },
+  project: { label: "Project", className: "bg-primary text-primary-foreground border-primary" },
+  public_holiday: { label: "Calendar", className: "bg-secondary text-secondary-foreground border-secondary" },
 };
 
 export default memo(function RecentNotices({ notices }: { notices: ProjectNotice[] }) {
@@ -25,11 +25,11 @@ export default memo(function RecentNotices({ notices }: { notices: ProjectNotice
     };
 
   return (
-    <Card className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-3xl overflow-hidden shadow-inner-lg h-full transition-all duration-500 hover:shadow-xl relative group/card">
+    <Card className="bg-card backdrop-blur-sm border border-border rounded-3xl overflow-hidden shadow-inner-lg h-full transition-all duration-500 hover:shadow-xl relative group/card">
       <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
-      <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-border/50 bg-muted/10 relative z-10">
+      <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-border bg-muted/10 relative z-10">
         <CardTitle className="font-heading text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2.5">
-          <div className="p-1.5 bg-primary/10 text-primary rounded-xl border border-primary/20">
+          <div className="p-1.5 bg-primary text-primary-foreground rounded-xl border border-primary">
             <FileText className="w-3.5 h-3.5" aria-hidden="true" />
           </div>
           Public Announcements
@@ -70,7 +70,7 @@ export default memo(function RecentNotices({ notices }: { notices: ProjectNotice
                     href={`/citizen/notices/${item.id}`}
                     className={cn(
                       "flex items-center justify-between gap-6 px-6 py-5 rounded-2xl mx-2 my-1",
-                      "hover:bg-muted/40 transition-all duration-500 group outline-none",
+                      "hover:bg-muted transition-all duration-500 group outline-none",
                       "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/20"
                     )}
                     aria-label={`${item.title}, type: ${config.label}`}

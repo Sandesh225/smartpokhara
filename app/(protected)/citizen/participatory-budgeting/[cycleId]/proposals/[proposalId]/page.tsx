@@ -101,7 +101,7 @@ export default function CitizenProposalDetailsPage() {
                   {proposal.category.replace(/_/g, " ")}
                 </Badge>
                 {isWinner && (
-                  <Badge className="h-6 px-3 bg-amber-500 text-neutral-900 border-none text-xs font-black uppercase tracking-widest rounded-full shadow-lg shadow-amber-500/20">
+                  <Badge className="h-6 px-3 bg-accent text-accent-foreground border-none text-xs font-black uppercase tracking-widest rounded-full shadow-lg shadow-accent/20">
                     <Trophy className="w-3 h-3 mr-1.5" /> Selected Mandate
                   </Badge>
                 )}
@@ -134,7 +134,7 @@ export default function CitizenProposalDetailsPage() {
                   className={cn(
                     "w-full h-16 px-10 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl transition-all active:scale-95 group relative overflow-hidden",
                     hasVoted 
-                      ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20" 
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20" 
                       : (votesRemaining <= 0)
                         ? "bg-muted text-muted-foreground cursor-not-allowed grayscale"
                         : "bg-primary hover:bg-primary/95 text-white shadow-primary/20"
@@ -262,12 +262,12 @@ export default function CitizenProposalDetailsPage() {
                 <p className="text-3xl font-black text-foreground tracking-tighter tabular-nums leading-none">
                   {proposal.vote_count || 0}
                 </p>
-                <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest uppercase">Verified community endorsements</p>
+                <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Verified community endorsements</p>
               </div>
             </div>
 
             {isWinner ? (
-              <div className="p-6 bg-amber-500 rounded-2xl shadow-lg shadow-amber-500/20 text-neutral-900 space-y-2">
+              <div className="p-6 bg-accent rounded-2xl shadow-lg shadow-accent/20 text-accent-foreground space-y-2">
                  <Trophy className="w-6 h-6 mb-2" />
                  <h4 className="font-black uppercase tracking-widest text-xs">Selection Status</h4>
                  <p className="text-xs font-bold uppercase leading-relaxed">This initiative has been selected for municipal funding and implementation.</p>
