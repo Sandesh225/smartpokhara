@@ -96,7 +96,7 @@ export default async function WorkloadPage() {
 
   async function startChat(staffId: string) {
     "use server";
-    redirect(`/supervisor/messages/new?staffId=${staffId}`);
+    console.warn("Message feature is currently disabled.");
   }
   return (
     <div className="space-y-6 p-6 pb-24">

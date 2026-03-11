@@ -31,17 +31,21 @@ export function CurrentAssignments({ assignments }: Props) {
     <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
       <div className="px-6 py-4 border-b border-border bg-muted/20 flex items-center gap-4">
         <h3 className="text-base font-semibold text-foreground">Active Assignments</h3>
-        <div className="flex bg-muted rounded-lg p-1">
-          {['all', 'complaint', 'task'].map((f) => (
+        <div className="flex bg-muted/60 p-1 rounded-lg border border-border/50">
+          {[
+            { id: 'all', label: 'All' },
+            { id: 'complaint', label: 'Complaints' },
+            { id: 'task', label: 'Tasks' }
+          ].map((f) => (
             <button
-              key={f}
-              onClick={() => setFilter(f as any)}
+              key={f.id}
+              onClick={() => setFilter(f.id as any)}
               className={cn(
-                "px-3 py-1 text-xs font-medium rounded-md capitalize transition-all",
-                filter === f ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                "px-3 py-1 text-xs font-bold rounded-md transition-all",
+                filter === f.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
             >
-              {f}s
+              {f.label}
             </button>
           ))}
         </div>
@@ -49,7 +53,15 @@ export function CurrentAssignments({ assignments }: Props) {
 
       <div className="divide-y divide-border/50">
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground text-sm">No active assignments found.</div>
+          <div className="py-12 flex flex-col items-center justify-center text-center px-4 bg-muted/10">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+              <span className="text-muted-foreground text-xl">📋</span>
+            </div>
+            <h4 className="text-sm font-bold text-foreground mb-1">No active assignments</h4>
+            <p className="text-xs text-muted-foreground max-w-[200px]">
+              This staff member currently has no workload in the selected category.
+            </p>
+          </div>
         ) : (
           filtered.map((item) => (
             <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">

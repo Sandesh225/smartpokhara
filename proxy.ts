@@ -66,31 +66,49 @@ export async function proxy(request: NextRequest) {
 
   if (isPublicInvitation && !user) return response;
 
+  // Helper to handle redirects while ensuring cookie propagation
+  const performRedirect = (target: string) => {
+    const redirectResponse = NextResponse.redirect(new URL(target, request.url));
+    // Propagate all cookies from the base 'response' to the 'redirect' response
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value);
+    });
+    return redirectResponse;
+  };
+
   // Redirect unauthenticated users
   if (isProtected && !user) {
     const redirectUrl = url.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(redirectUrl);
+    return performRedirect(redirectUrl.pathname + redirectUrl.search);
   }
 
   // Handle authenticated users
   if (user) {
     try {
       // 2. Check for cached metadata to avoid RPC calls
+      // Bypass cache on setup-profile to ensure we detect completion immediately
       const metadataCookie = request.cookies.get("app-user-metadata")?.value;
       let profileCheck: any = null;
       let config: any = null;
       let metadataCached = false;
 
-      if (metadataCookie) {
+      if (metadataCookie && !isSetupProfile) {
         try {
           const cached = JSON.parse(metadataCookie);
-          // Simple validation: Ensure metadata is recent (e.g., less than 1 hour old) AND belongs to current user
           if (cached && cached.version === "1.0" && cached.userId === user.id && (Date.now() - cached.timestamp < 3600000)) {
             profileCheck = cached.profileCheck;
             config = cached.config;
-            metadataCached = true;
+            
+            // CRITICAL: If cache says incomplete but user IS on a protected route, 
+            // force a fresh check to avoid stale redirect loops
+            if (profileCheck?.is_complete === false) {
+              console.log("[Middleware] Profile marked incomplete in cache, forcing fresh check to verify.");
+              metadataCached = false; 
+            } else {
+              metadataCached = true;
+            }
           }
         } catch (e) {
           console.error("Error parsing metadata cookie:", e);
@@ -99,6 +117,7 @@ export async function proxy(request: NextRequest) {
 
       // 3. Fetch metadata if not cached
       if (!metadataCached) {
+        console.log(`[Middleware] Fetching fresh metadata for user: ${user.id}`);
         const [profileCheckRes, configRes] = await Promise.all([
           supabase.rpc("rpc_is_profile_complete"),
           supabase.rpc("rpc_get_dashboard_config"),
@@ -108,7 +127,6 @@ export async function proxy(request: NextRequest) {
         config = configRes.data;
 
         // 4. Update the response with the new metadata cookie
-        // We'll set it for 1 hour to balance performance and eventual consistency
         if (profileCheck && config) {
           const metadataToCache = JSON.stringify({
             userId: user.id,
@@ -132,49 +150,53 @@ export async function proxy(request: NextRequest) {
       
       // If profile is incomplete and not on setup page, redirect to setup
       if (!profileCheck?.is_complete && !isSetupProfile) {
-        return NextResponse.redirect(new URL("/setup-profile", request.url));
+        console.log(`[Middleware] Profile incomplete, redirecting to /setup-profile`);
+        return performRedirect("/setup-profile");
       }
 
       // If profile is complete and on setup page, redirect to dashboard
       if (profileCheck?.is_complete && isSetupProfile) {
-        const targetRoute =
-          config?.dashboard_config?.default_route || "/citizen/dashboard";
-        return NextResponse.redirect(new URL(targetRoute, request.url));
-      }
-
-      // Handle auth pages for logged-in users
-      if (isAuthPage || isProtected) {
-        if (!config || !config.authenticated) {
-          if (isAuthPage) return response;
-          return NextResponse.redirect(new URL("/login", request.url));
-        }
-
-        const targetDashboard = config.dashboard_config.default_route;
-
-        // Redirect from auth pages to dashboard
-        if (isAuthPage) {
-          if (pathname !== targetDashboard) {
-            return NextResponse.redirect(new URL(targetDashboard, request.url));
-          }
+        const targetRoute = config?.dashboard_config?.default_route || "/citizen/dashboard";
+        
+        if (pathname === targetRoute) {
+          console.log(`[Middleware] Profile complete and already on target route: ${targetRoute}`);
           return response;
         }
 
-        // Check portal access for protected routes
-        if (isProtected) {
-          const currentPortal = pathname.split("/")[1];
-          const allowedPortals = config.dashboard_config.available_portals || [];
-          const isAllowed = allowedPortals.includes(currentPortal);
+        console.log(`[Middleware] Profile complete, redirecting from /setup-profile to: ${targetRoute}`);
+        return performRedirect(targetRoute);
+      }
 
-          if (!isAllowed && pathname !== targetDashboard) {
-            return NextResponse.redirect(new URL(targetDashboard, request.url));
-          }
+      // Handle auth pages (login/register) for already logged-in users
+      if (isAuthPage) {
+        const targetDashboard = config?.dashboard_config?.default_route || "/citizen/dashboard";
+        if (pathname !== targetDashboard) {
+          console.log(`[Middleware] Auth page bypass for logged-in user -> ${targetDashboard}`);
+          return performRedirect(targetDashboard);
+        }
+        return response;
+      }
+
+      // Final check for protected routes
+      if (isProtected) {
+        if (!config || !config.authenticated) {
+          console.log(`[Middleware] Config says not authenticated, forcing login`);
+          return performRedirect("/login");
+        }
+
+        const currentPortal = pathname.split("/")[1];
+        const allowedPortals = config.dashboard_config?.available_portals || [];
+        const isAllowed = allowedPortals.includes(currentPortal);
+        const targetDashboard = config.dashboard_config.default_route;
+
+        if (!isAllowed && pathname !== targetDashboard) {
+          console.warn(`[Middleware] Portal ${currentPortal} restricted. Routing to default: ${targetDashboard}`);
+          return performRedirect(targetDashboard);
         }
       }
     } catch (err) {
       console.error("Middleware Exception:", err);
-      if (isProtected) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
+      if (isProtected) return performRedirect("/login");
     }
   }
 

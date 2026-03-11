@@ -152,7 +152,9 @@ export const supervisorApi = {
       // 2. Query Staff matching wards or depts
       let query = client.from("staff_profiles").select(`
         *,
+        department:departments(name),
         user:users!inner(
+          created_at,
           profile:user_profiles(full_name, profile_photo_url)
         )
       `);
@@ -212,6 +214,7 @@ export const supervisorApi = {
         performance_rating: (s.performance_rating as number) || 4.2,
         staff_code: s.staff_code as string || null,
         department_id: s.department_id as string || null,
+        department_name: s.department?.name || null,
         ward_id: s.ward_id as string || null,
         staff_role: s.staff_role as string,
         is_supervisor: s.is_supervisor || false,
@@ -221,6 +224,7 @@ export const supervisorApi = {
         last_known_location: s.last_known_location,
         last_active_at: s.last_active_at,
         is_active: s.is_active ?? true,
+        created_at: s.user?.created_at || s.created_at || null,
       }));
     } catch (err) {
       console.error("[SupervisorAPI] Error in getSupervisedStaff:", err);

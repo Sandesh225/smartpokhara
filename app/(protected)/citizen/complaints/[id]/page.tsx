@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft, Building2, Calendar, CheckCircle2, Clock, FileText,
@@ -15,8 +16,14 @@ import { useComplaint } from "@/features/complaints/hooks/useComplaint";
 import { useCurrentUser } from "@/features/users/hooks/useCurrentUser";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import CitizenStaffCommunication from "../_components/CitizenStaffCommunication";
-import StaffCommunication from "../_components/StaffCommunication";
+const CitizenStaffCommunication = dynamic(
+  () => import("../_components/CitizenStaffCommunication"),
+  { loading: () => <div className="h-48 animate-pulse rounded-xl bg-muted" /> }
+);
+const StaffCommunication = dynamic(
+  () => import("../_components/StaffCommunication"),
+  { loading: () => <div className="h-48 animate-pulse rounded-xl bg-muted" /> }
+);
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const STATUS = {

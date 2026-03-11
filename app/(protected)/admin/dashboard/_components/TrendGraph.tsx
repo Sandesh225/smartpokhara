@@ -87,17 +87,17 @@ export function TrendGraph({ data, range, onRangeChange }: TrendGraphProps) {
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="rgb(var(--primary-brand))"
+                  stopColor="hsl(var(--primary))"
                   stopOpacity={0.2}
                 />
                 <stop
                   offset="50%"
-                  stopColor="rgb(var(--primary-brand))"
+                  stopColor="hsl(var(--primary))"
                   stopOpacity={0.05}
                 />
                 <stop
                   offset="95%"
-                  stopColor="rgb(var(--primary-brand))"
+                  stopColor="hsl(var(--primary))"
                   stopOpacity={0}
                 />
               </linearGradient>
@@ -105,7 +105,7 @@ export function TrendGraph({ data, range, onRangeChange }: TrendGraphProps) {
             <CartesianGrid
               strokeDasharray="8 8"
               vertical={false}
-              stroke="rgb(var(--neutral-stone-200))"
+              stroke="hsl(var(--border))"
               strokeOpacity={0.5}
             />
             <XAxis
@@ -113,7 +113,7 @@ export function TrendGraph({ data, range, onRangeChange }: TrendGraphProps) {
               axisLine={false}
               tickLine={false}
               tick={{
-                fill: "rgb(var(--neutral-stone-500))",
+                fill: "hsl(var(--muted-foreground))",
                 fontSize: 10,
                 fontWeight: 700,
               }}
@@ -123,7 +123,7 @@ export function TrendGraph({ data, range, onRangeChange }: TrendGraphProps) {
               axisLine={false}
               tickLine={false}
               tick={{
-                fill: "rgb(var(--neutral-stone-500))",
+                fill: "hsl(var(--muted-foreground))",
                 fontSize: 10,
                 fontWeight: 700,
               }}
@@ -133,7 +133,7 @@ export function TrendGraph({ data, range, onRangeChange }: TrendGraphProps) {
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="glass-strong p-4 rounded-2xl border border-white/20 elevation-4 min-w-[140px]">
+                    <div className="glass-strong p-4 rounded-2xl border border-border elevation-4 min-w-[140px]">
                       <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">
                         {payload[0].payload.fullDate}
                       </p>
@@ -154,7 +154,7 @@ export function TrendGraph({ data, range, onRangeChange }: TrendGraphProps) {
             <Area
               type="monotone"
               dataKey="value"
-              stroke="rgb(var(--primary-brand))"
+              stroke="hsl(var(--primary))"
               strokeWidth={4}
               strokeLinecap="round"
               fillOpacity={1}

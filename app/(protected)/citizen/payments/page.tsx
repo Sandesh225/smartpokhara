@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   CreditCard,
   History,
@@ -16,9 +17,19 @@ import { paymentsApi } from "@/features/payments";
 import { subscribeToPayments } from "@/features/payments/realtime/paymentsSubscription";
 import { createClient } from "@/lib/supabase/client";
 import BillsList from "@/app/(protected)/citizen/payments/_components/BillsList";
-import PaymentHistoryTable from "@/app/(protected)/citizen/payments/_components/PaymentHistoryTable";
-import WalletCard from "@/app/(protected)/citizen/payments/_components/WalletCard";
-import PaymentFilters from "@/app/(protected)/citizen/payments/_components/PaymentFilters";
+
+const PaymentHistoryTable = dynamic(
+  () => import("@/app/(protected)/citizen/payments/_components/PaymentHistoryTable"),
+  { loading: () => <div className="h-64 animate-pulse rounded-xl bg-muted" /> }
+);
+const WalletCard = dynamic(
+  () => import("@/app/(protected)/citizen/payments/_components/WalletCard"),
+  { loading: () => <div className="h-32 animate-pulse rounded-xl bg-muted" /> }
+);
+const PaymentFilters = dynamic(
+  () => import("@/app/(protected)/citizen/payments/_components/PaymentFilters"),
+  { loading: () => <div className="h-64 animate-pulse rounded-xl bg-muted" /> }
+);
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

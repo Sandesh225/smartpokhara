@@ -42,12 +42,23 @@ export default async function SetupProfilePage() {
       const { data: config } = await supabase.rpc("rpc_get_dashboard_config");
       targetRoute = config?.dashboard_config?.default_route || "/citizen/dashboard";
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Re-throw Next.js redirect errors — they are NOT real errors
+    if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw error;
+    }
     console.error("Profile check error:", error);
   }
 
   if (targetRoute) {
-    redirect(targetRoute);
+    // Only redirect if targetRoute is NOT the current page to avoid infinite loops
+    // In this specific page, targetRoute should ideally be a dashboard, not /setup-profile
+    if (targetRoute !== "/setup-profile") {
+      console.log(`[SetupProfilePage] Redirecting to ${targetRoute} as profile is complete.`);
+      redirect(targetRoute);
+    } else {
+      console.warn("[SetupProfilePage] targetRoute set to /setup-profile while already on /setup-profile. Loop prevented.");
+    }
   }
 
   return <ProfileSetupClient />;

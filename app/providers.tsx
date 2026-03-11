@@ -7,7 +7,17 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { ThemeProvider as CustomThemeProvider } from "@/components/providers/theme-provider";
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60_000,
+            refetchOnWindowFocus: false,
+          },
+        },
+      })
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -25,34 +35,37 @@ export function Providers({ children }: { children: ReactNode }) {
             richColors
             duration={4000}
             closeButton
+            theme="system"
+            gap={8}
             toastOptions={{
               style: {
-                background: "rgb(var(--card))",
-                border: "1px solid rgb(var(--border))",
-                color: "rgb(var(--foreground))",
-                borderRadius: "0.75rem",
-                boxShadow:
-                  "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                background: "var(--toast-bg)",
+                color: "var(--toast-fg)",
+                border: "1px solid var(--toast-border)",
+                borderRadius: "0.875rem",
+                boxShadow: "var(--toast-shadow)",
+                backdropFilter: "blur(12px)",
+                padding: "14px 18px",
+                fontFamily: "var(--font-sans)",
+                fontSize: "0.875rem",
+                lineHeight: "1.5",
+                gap: "12px",
               },
-              className: "animate-in slide-in-from-top-4 duration-300",
               classNames: {
-                success:
-                  "border-green-500/50 bg-green-50 dark:bg-green-950/30",
-                error: "border-red-500/50 bg-red-50 dark:bg-red-950/30",
-                warning:
-                  "border-amber-500/50 bg-amber-50 dark:bg-amber-950/30",
-                info: "border-blue-500/50 bg-blue-50 dark:bg-blue-950/30",
-                loading: "border-primary/50",
-                icon: "text-green-600 dark:text-green-400",
+                success: "!border-[var(--toast-success-border)] !bg-[var(--toast-success-bg)] !text-[var(--toast-success-text)]",
+                error: "!border-[var(--toast-error-border)] !bg-[var(--toast-error-bg)] !text-[var(--toast-error-text)]",
+                warning: "!border-[var(--toast-warning-border)] !bg-[var(--toast-warning-bg)] !text-[var(--toast-warning-text)]",
+                info: "!border-[var(--toast-info-border)] !bg-[var(--toast-info-bg)] !text-[var(--toast-info-text)]",
+                loading: "!border-[var(--toast-border)]",
                 toast: "group-[.toaster]:shadow-xl",
-                title: "font-semibold text-sm",
-                description: "text-sm opacity-90",
+                title: "font-semibold text-[0.875rem] leading-tight",
+                description: "text-[0.8125rem] opacity-80 mt-0.5",
                 actionButton:
-                  "bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-3 py-1.5 text-sm font-medium transition-all",
+                  "!bg-[var(--primary)] !text-[var(--primary-foreground)] hover:opacity-90 !rounded-lg !px-3 !py-1.5 !text-sm !font-medium transition-all",
                 cancelButton:
-                  "bg-muted text-muted-foreground hover:bg-muted/80 rounded-lg px-3 py-1.5 text-sm font-medium transition-all",
+                  "!bg-[var(--muted)] !text-[var(--muted-foreground)] hover:opacity-80 !rounded-lg !px-3 !py-1.5 !text-sm !font-medium transition-all",
                 closeButton:
-                  "bg-card border border-border hover:bg-muted transition-colors",
+                  "!bg-[var(--toast-bg)] !border !border-[var(--toast-border)] hover:!bg-[var(--muted)] transition-colors !rounded-full",
               },
             }}
           />

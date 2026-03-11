@@ -25,6 +25,7 @@ interface TimelineEvent {
 
 interface StatusTimelineProps {
   history: TimelineEvent[];
+  submittedAt?: string;
 }
 
 const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
@@ -54,8 +55,22 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
   },
 };
 
-export function StatusTimeline({ history }: StatusTimelineProps) {
-  const sortedHistory = [...history].sort(
+export function StatusTimeline({ history, submittedAt }: StatusTimelineProps) {
+  // If no history exists, create a synthetic "complaint submitted" event.
+  const displayHistory = history.length > 0 
+    ? history 
+    : submittedAt 
+      ? [{
+          id: "synthetic-initial",
+          new_status: "new",
+          old_status: null,
+          created_at: submittedAt,
+          note: "Complaint submitted into the system.",
+          changed_by: "System Core"
+        }] 
+      : [];
+
+  const sortedHistory = [...displayHistory].sort(
     (a, b) =>
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );

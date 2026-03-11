@@ -86,7 +86,7 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
               <Info className="w-4 h-4 md:w-5 md:h-5" />
               Resolution Timeline
             </h3>
-            <StatusTimeline history={details.history || []} />
+            <StatusTimeline history={details.history || []} submittedAt={complaint.submitted_at} />
           </section>
         </div>
 
@@ -124,18 +124,19 @@ export default async function AdminComplaintDetail({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Metadata */}
+          {/* System Record */}
           <div className="glass rounded-xl border border-border overflow-hidden">
             <div className="px-4 py-3 bg-muted/30 border-b border-border flex items-center gap-2">
               <Database className="w-4 h-4 text-primary" />
               <span className="text-xs font-black uppercase tracking-widest">
-                Metadata
+                System Record
               </span>
             </div>
 
             <div className="p-4 space-y-3">
-              <code className="block p-2 bg-muted rounded-lg text-xs break-all">
-                {complaint.id}
+              <p className="text-xs font-bold text-muted-foreground uppercase">Tracking Code</p>
+              <code className="block p-2 bg-muted rounded-lg text-xs break-all text-primary font-mono font-bold">
+                {complaint.tracking_code}
               </code>
             </div>
           </div>

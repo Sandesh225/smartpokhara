@@ -48,8 +48,18 @@ export default function StaffDirectoryPage() {
   const { updateStaff } = useStaffMutations();
 
   const handleDeactivate = (id: string) => {
-      if (confirm("Are you sure you want to deactivate?")) {
-          updateStaff.mutate({ id, updates: { is_active: false } });
+      const staffMember = staffList.find((s) => s.user_id === id);
+      if (staffMember && confirm("Are you sure you want to deactivate?")) {
+          updateStaff.mutate({
+            id,
+            updates: {
+              is_active: false,
+              staff_role: staffMember.staff_role,
+              department_id: staffMember.department_id,
+              ward_id: staffMember.ward_id,
+              is_supervisor: staffMember.is_supervisor,
+            },
+          });
       }
   }
 
@@ -104,12 +114,12 @@ export default function StaffDirectoryPage() {
       </div>
 
       {/* TABS - Horizontal scroll on mobile */}
-      <div className="border-b border-border overflow-x-auto scrollbar-hide">
+      <div className="border-b border-border overflow-x-auto scrollbar-hide mb-6">
         <Tabs defaultValue="directory" className="w-full min-w-max md:min-w-0">
-          <TabsList className="bg-transparent p-0 h-auto space-x-4 md:space-x-8">
+          <TabsList className="bg-transparent p-0 h-auto space-x-2 md:space-x-4">
             <TabsTrigger
               value="directory"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none px-1 py-3 bg-transparent text-sm font-bold"
+              className="data-[state=active]:bg-card data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm rounded-t-lg rounded-b-none px-4 py-3 bg-transparent text-sm font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-foreground transition-all"
             >
               <Users className="w-4 h-4 mr-2" />
               <span>Directory</span>
@@ -117,7 +127,7 @@ export default function StaffDirectoryPage() {
             <TabsTrigger
               value="performance"
               onClick={() => router.push("/admin/staff/performance")}
-              className="rounded-none px-1 py-3 bg-transparent text-muted-foreground hover:text-foreground text-sm font-bold"
+              className="rounded-t-lg rounded-b-none px-4 py-3 bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50 text-sm font-black uppercase tracking-widest transition-all"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Performance</span>
@@ -126,7 +136,7 @@ export default function StaffDirectoryPage() {
             <TabsTrigger
               value="roles"
               onClick={() => router.push("/admin/staff/roles")}
-              className="rounded-none px-1 py-3 bg-transparent text-muted-foreground hover:text-foreground text-sm font-bold"
+              className="rounded-t-lg rounded-b-none px-4 py-3 bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50 text-sm font-black uppercase tracking-widest transition-all"
             >
               <Shield className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Permissions</span>
@@ -137,7 +147,7 @@ export default function StaffDirectoryPage() {
       </div>
 
       {/* STATS GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
         <StatusCard
           label="Total Staff"
           value={stats.total}
@@ -267,20 +277,20 @@ export default function StaffDirectoryPage() {
 
 function StatusCard({ label, value, icon: Icon, color, bg }: any) {
   return (
-    <Card className="stone-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-      <CardContent className="p-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider">
+    <Card className="bg-card border-border shadow-xs hover:shadow-md transition-all duration-300 hover:-translate-y-1 group rounded-2xl overflow-hidden">
+      <CardContent className="p-5 flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="text-[10px] md:text-xs font-black text-muted-foreground uppercase tracking-widest">
             {label}
           </p>
-          <p className="text-xl md:text-2xl font-black text-foreground mt-0.5">
+          <p className="text-2xl md:text-3xl font-black text-foreground tracking-tighter">
             {value}
           </p>
         </div>
         <div
-          className={`p-2 md:p-2.5 rounded-lg md:rounded-xl ${bg} group-hover:scale-110 transition-transform`}
+          className={`p-3 rounded-xl ${bg} group-hover:scale-110 transition-transform`}
         >
-          <Icon className={`w-4 h-4 md:w-5 md:h-5 ${color}`} />
+          <Icon className={`w-5 h-5 md:w-6 md:h-6 ${color}`} />
         </div>
       </CardContent>
     </Card>

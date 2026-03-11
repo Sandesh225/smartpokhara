@@ -205,7 +205,6 @@ export function ProfileSetupClient() {
       // Delay to allow animation to show
       setTimeout(() => {
         router.push(targetRoute);
-        router.refresh();
       }, 2000);
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile", { id: toastId });

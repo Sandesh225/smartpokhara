@@ -20,6 +20,15 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
 
   const cards = [
     {
+      label: "Total Complaints",
+      value: metrics?.total_complaints ?? activeCount + resolvedTodayCount, // Fallback if API doesn't return total
+      icon: Users,
+      color: "text-foreground",
+      bg: "bg-muted border-border",
+      href: "/supervisor/complaints",
+      subtitle: "All-time volume",
+    },
+    {
       label: "Active Complaints",
       value: activeCount,
       icon: Briefcase,
@@ -58,7 +67,7 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
       {cards.map((card) => (
         <UniversalStatCard
             key={card.label}

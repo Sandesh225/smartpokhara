@@ -48,6 +48,28 @@
   --sidebar-border: oklch(0.9200 0.0100 260.0);
   --sidebar-ring: oklch(0.4370 0.0580 238.0);
 
+  /* ── Toast System ── */
+  --toast-bg: oklch(0.9900 0.0020 260.0);
+  --toast-fg: oklch(0.2790 0.0330 268.5);
+  --toast-border: oklch(0.9100 0.0120 260.0);
+  --toast-shadow: 0 8px 30px -4px oklch(0 0 0 / 0.12), 0 2px 8px -2px oklch(0 0 0 / 0.06);
+
+  --toast-success-bg: oklch(0.9650 0.0350 152.0);
+  --toast-success-border: oklch(0.7200 0.1600 152.0);
+  --toast-success-text: oklch(0.3600 0.1000 152.0);
+
+  --toast-error-bg: oklch(0.9550 0.0350 25.0);
+  --toast-error-border: oklch(0.6200 0.2000 25.0);
+  --toast-error-text: oklch(0.4000 0.1500 25.0);
+
+  --toast-warning-bg: oklch(0.9650 0.0450 85.0);
+  --toast-warning-border: oklch(0.7500 0.1500 80.0);
+  --toast-warning-text: oklch(0.4200 0.1100 70.0);
+
+  --toast-info-bg: oklch(0.9550 0.0350 238.0);
+  --toast-info-border: oklch(0.6500 0.1000 238.0);
+  --toast-info-text: oklch(0.3800 0.0700 238.0);
+
   /* Typography & Layout (Replaced with Poppins) */
   --font-sans: "Poppins", ui-sans-serif, sans-serif, system-ui;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -109,6 +131,28 @@
   --sidebar-accent-foreground: oklch(0.9200 0.0100 260.0);
   --sidebar-border: oklch(0.3300 0.0250 265.0);
   --sidebar-ring: oklch(0.7900 0.1100 195.0);
+
+  /* ── Toast System (Dark) ── */
+  --toast-bg: oklch(0.2400 0.0250 265.0);
+  --toast-fg: oklch(0.9200 0.0100 260.0);
+  --toast-border: oklch(0.3500 0.0250 265.0);
+  --toast-shadow: 0 8px 30px -4px oklch(0 0 0 / 0.45), 0 2px 8px -2px oklch(0 0 0 / 0.25);
+
+  --toast-success-bg: oklch(0.2500 0.0400 152.0);
+  --toast-success-border: oklch(0.5000 0.1200 152.0);
+  --toast-success-text: oklch(0.8200 0.1200 152.0);
+
+  --toast-error-bg: oklch(0.2500 0.0400 25.0);
+  --toast-error-border: oklch(0.5500 0.1600 25.0);
+  --toast-error-text: oklch(0.8200 0.1200 25.0);
+
+  --toast-warning-bg: oklch(0.2600 0.0400 85.0);
+  --toast-warning-border: oklch(0.5800 0.1200 80.0);
+  --toast-warning-text: oklch(0.8500 0.1000 80.0);
+
+  --toast-info-bg: oklch(0.2400 0.0350 238.0);
+  --toast-info-border: oklch(0.5000 0.0900 238.0);
+  --toast-info-text: oklch(0.8200 0.0800 238.0);
 }
 
 @theme {
@@ -182,4 +226,46 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+}
+
+/* ── Sonner Toast Overrides ── */
+[data-sonner-toaster] {
+  --normal-bg: var(--toast-bg);
+  --normal-border: var(--toast-border);
+  --normal-text: var(--toast-fg);
+  font-family: var(--font-sans) !important;
+}
+
+[data-sonner-toast] {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.3s ease;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] {
+  color: var(--toast-success-text);
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: var(--toast-error-text);
+}
+
+[data-sonner-toast][data-type="warning"] [data-icon] {
+  color: var(--toast-warning-text);
+}
+
+[data-sonner-toast][data-type="info"] [data-icon] {
+  color: var(--toast-info-text);
+}
+
+[data-sonner-toast][data-type="loading"] [data-icon] {
+  color: var(--primary);
+}
+
+[data-sonner-toast] [data-close-button] {
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+[data-sonner-toast]:hover [data-close-button] {
+  opacity: 1;
 }

@@ -38,7 +38,7 @@ export function StaffGridView({ staffList }: StaffGridViewProps) {
                   {staff.full_name}
                 </h3>
                 <p className="text-xs text-muted-foreground capitalize">{(staff.role || "staff").replace(/_/g, " ")}</p>
-                {staff.department_id && <p className="text-xs text-muted-foreground/70 mt-0.5">Dept ID: {staff.department_id.slice(0,8)}</p>}
+                {staff.department_name && <p className="text-xs text-muted-foreground/70 mt-0.5 truncate">{staff.department_name}</p>}
               </div>
 
               <div className="space-y-3">
@@ -64,18 +64,13 @@ export function StaffGridView({ staffList }: StaffGridViewProps) {
               </div>
             </div>
 
-            <div className="px-5 py-3 bg-muted/20 border-t border-border grid grid-cols-2 gap-2">
+            <div className="px-5 py-3 bg-muted/20 border-t border-border flex justify-end">
               <Link
                 href={`/supervisor/staff/${staff.user_id}`}
-                className="flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold text-primary hover:bg-background rounded-md transition-colors"
+                className="flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-primary hover:bg-background rounded-md transition-colors w-full"
               >
                 View Profile
-              </Link>
-              <Link
-                href={`/supervisor/messages/new?staffId=${staff.user_id}`} // Or handle via modal
-                className="flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold text-muted-foreground hover:bg-background rounded-md transition-colors hover:text-foreground"
-              >
-                Message
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           </div>

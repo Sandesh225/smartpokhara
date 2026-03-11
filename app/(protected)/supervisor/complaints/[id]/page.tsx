@@ -83,7 +83,7 @@ export default async function ComplaintDetailPage({ params }: PageProps) {
             />
 
             {/* Audit Trail */}
-            <StatusTimeline history={complaint.history || []} />
+            <StatusTimeline history={complaint.history || []} submittedAt={complaint.submitted_at} />
           </div>
 
           {/* RIGHT COLUMN: Command & Control (Metadata) */}

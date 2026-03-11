@@ -10,7 +10,7 @@ export function StaffProfileCard({ staff }: StaffProfileCardProps) {
   const joinDate = staff.created_at ? format(new Date(staff.created_at), "MMM yyyy") : "N/A";
 
   return (
-    <div className="bg-card rounded-xl border border-border shadow-xs p-6 flex flex-col md:flex-row gap-6 items-start">
+    <div className="stone-card bg-card rounded-xl shadow-xs p-6 flex flex-col md:flex-row gap-6 items-start transition-colors">
       <div className="relative">
         <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-background shadow-xs">
           {staff.avatar_url ? (
@@ -75,7 +75,7 @@ export function StaffProfileCard({ staff }: StaffProfileCardProps) {
             <span>
               {staff.ward_number
                 ? `Ward ${staff.ward_number} - ${staff.ward_name}`
-                : "Municipality HQ"}
+                : staff.department_name || "Municipality HQ"}
             </span>
           </div>
         </div>

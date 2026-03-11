@@ -45,9 +45,6 @@ export const ROLE_NAVIGATION: Record<DashboardType, NavItem[]> = {
     { name: "Staff", href: "/supervisor/staff", icon: Users },
     { name: "Tasks", href: "/supervisor/tasks", icon: CheckSquare },
     { name: "Analytics", href: "/supervisor/analytics", icon: BarChart2 },
-    { name: "Messages", href: "/supervisor/messages", icon: MessageSquare, badgeKey: "messages" },
-    { name: "Reports", href: "/supervisor/reports", icon: PieChart },
-    { name: "Calendar", href: "/supervisor/calendar", icon: Calendar },
     { name: "Settings", href: "/supervisor/settings", icon: Settings },
   ],
   staff: [

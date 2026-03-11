@@ -25,7 +25,7 @@ const supabase = createClient(
   }
 )
 
-const PASSWORD = 'Pokhara@2025'
+const PASSWORD = 'Pokhara@2026'
 
 const users = [
   // ========== ADMINS (2) ==========

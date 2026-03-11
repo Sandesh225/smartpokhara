@@ -115,9 +115,6 @@ export default function AdminComplaintsPage() {
             <div className="p-2 md:p-2.5 bg-primary/10 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
               <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             </div>
-            <div className="text-xs md:text-sm font-bold text-success-green">
-              +12%
-            </div>
           </div>
           <div className="space-y-1">
             <p className="text-xs md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -156,9 +153,6 @@ export default function AdminComplaintsPage() {
             <div className="p-2 md:p-2.5 bg-info-blue/10 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
               <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-info-blue" />
             </div>
-            <div className="text-xs md:text-sm font-bold text-info-blue">
-              Active
-            </div>
           </div>
           <div className="space-y-1">
             <p className="text-xs md:text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -175,9 +169,6 @@ export default function AdminComplaintsPage() {
           <div className="flex items-start justify-between mb-3">
             <div className="p-2 md:p-2.5 bg-success-green/10 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
               <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-success-green" />
-            </div>
-            <div className="text-xs md:text-sm font-bold text-success-green">
-              +24%
             </div>
           </div>
           <div className="space-y-1">

@@ -58,6 +58,8 @@ export interface StaffProfile {
   computedStatus?: string;
   staff_name?: string;
   staff_avatar_url?: string;
+  department_name?: string;
+  created_at?: string;
 }
 
 export interface AssignableStaff extends StaffProfile {

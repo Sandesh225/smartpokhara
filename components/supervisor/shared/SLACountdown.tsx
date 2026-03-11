@@ -114,7 +114,7 @@ export function SLACountdown({
 
   // RENDER: Loading State
   if (!timeLeft)
-    return <span className="text-xs font-mono text-muted-foreground animate-pulse">CALC_SLA...</span>;
+    return <span className="text-xs font-mono text-muted-foreground animate-pulse">Calculating...</span>;
 
   // RENDER: Progress Bar Variant
   if (variant === "progress") {

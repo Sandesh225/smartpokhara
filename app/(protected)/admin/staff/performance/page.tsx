@@ -33,12 +33,12 @@ export default async function PerformancePage() {
   if (error) {
     console.error("Error fetching staff performance:", error);
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-gray-50 rounded-xl border border-dashed">
-        <AlertTriangle className="w-10 h-10 text-red-500 mb-3" />
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-muted/50 rounded-xl border border-dashed border-border">
+        <AlertTriangle className="w-10 h-10 text-destructive mb-3" />
+        <h3 className="text-lg font-semibold text-foreground">
           Unable to load data
         </h3>
-        <p className="text-sm text-gray-500 max-w-md">
+        <p className="text-sm text-muted-foreground max-w-md">
           The performance analytics view might be missing or permission is
           denied. Please contact the administrator to run the database
           migration.
@@ -78,10 +78,10 @@ export default async function PerformancePage() {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 🏆 Top Performers */}
-        <Card className="border-t-4 border-t-yellow-400 shadow-sm">
-          <CardHeader className="bg-yellow-50/50 pb-4 border-b border-yellow-100">
-            <CardTitle className="flex items-center gap-2 text-yellow-800 text-lg">
-              <Trophy className="w-5 h-5 text-yellow-600" />
+        <Card className="stone-card border-none hover:elevation-3 transition-all">
+          <CardHeader className="bg-warning-amber/10 pb-4 border-b border-warning-amber/20">
+            <CardTitle className="flex items-center gap-2 text-warning-amber text-lg">
+              <Trophy className="w-5 h-5" />
               Top Performers
             </CardTitle>
           </CardHeader>
@@ -89,21 +89,21 @@ export default async function PerformancePage() {
             {topPerformers.map((staff, index) => (
               <div
                 key={staff.user_id}
-                className="flex items-center gap-4 p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+                className="flex items-center gap-4 p-3 bg-card rounded-xl border border-border shadow-sm hover:border-warning-amber/40 transition-colors"
               >
-                <div className="font-black text-xl text-yellow-400/50 w-6 text-center">
+                <div className="font-black text-xl text-warning-amber/50 w-6 text-center">
                   #{index + 1}
                 </div>
-                <Avatar className="h-10 w-10 border border-yellow-200">
-                  <AvatarFallback className="bg-yellow-100 text-yellow-700 font-bold">
+                <Avatar className="h-10 w-10 border border-warning-amber/20">
+                  <AvatarFallback className="bg-warning-amber/10 text-warning-amber font-bold">
                     {staff.full_name?.[0]?.toUpperCase() || "S"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-900 truncate">
+                  <div className="font-semibold text-foreground truncate">
                     {staff.full_name}
                   </div>
-                  <div className="text-xs text-gray-500 truncate capitalize">
+                  <div className="text-xs text-muted-foreground truncate capitalize">
                     {staff.department ||
                       (staff.ward_number
                         ? `Ward ${staff.ward_number}`
@@ -111,17 +111,17 @@ export default async function PerformancePage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-lg text-gray-900">
+                  <div className="font-bold text-lg text-foreground">
                     {staff.resolved_complaints}
                   </div>
-                  <div className="text-xs uppercase text-gray-400 font-bold tracking-wider">
+                  <div className="text-xs uppercase text-muted-foreground font-bold tracking-wider">
                     Resolved
                   </div>
                 </div>
               </div>
             ))}
             {topPerformers.length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">
+              <div className="text-center py-8 text-muted-foreground text-sm font-bold">
                 No performance data recorded yet.
               </div>
             )}
@@ -129,10 +129,10 @@ export default async function PerformancePage() {
         </Card>
 
         {/* ⚠️ Needs Attention */}
-        <Card className="border-t-4 border-t-red-400 shadow-sm">
-          <CardHeader className="bg-red-50/50 pb-4 border-b border-red-100">
-            <CardTitle className="flex items-center gap-2 text-red-800 text-lg">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+        <Card className="stone-card border-none hover:elevation-3 transition-all">
+          <CardHeader className="bg-destructive/10 pb-4 border-b border-destructive/20">
+            <CardTitle className="flex items-center gap-2 text-destructive text-lg">
+              <AlertTriangle className="w-5 h-5" />
               Needs Attention
             </CardTitle>
           </CardHeader>
@@ -140,27 +140,27 @@ export default async function PerformancePage() {
             {laggards.map((staff) => (
               <div
                 key={staff.user_id}
-                className="flex items-center gap-4 p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+                className="flex items-center gap-4 p-3 bg-card rounded-xl border border-border shadow-sm hover:border-destructive/40 transition-colors"
               >
-                <Avatar className="h-10 w-10 border border-red-100">
-                  <AvatarFallback className="bg-red-50 text-red-600 font-bold">
+                <Avatar className="h-10 w-10 border border-destructive/20">
+                  <AvatarFallback className="bg-destructive/10 text-destructive font-bold">
                     {staff.full_name?.[0]?.toUpperCase() || "!"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-900 truncate">
+                  <div className="font-semibold text-foreground truncate">
                     {staff.full_name}
                   </div>
                   <div className="flex gap-2 mt-1">
                     <Badge
                       variant="secondary"
-                      className="h-5 text-xs bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                      className="h-5 text-xs bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20 font-bold"
                     >
                       {staff.active_complaints} Active
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="h-5 text-xs bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-200"
+                      className="h-5 text-xs bg-warning-amber/10 text-warning-amber hover:bg-warning-amber/20 border-warning-amber/20 font-bold"
                     >
                       ★ {staff.avg_rating}
                     </Badge>
@@ -169,14 +169,14 @@ export default async function PerformancePage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs font-medium text-gray-500 hover:text-gray-900"
+                  className="text-xs font-bold text-primary hover:text-primary/80"
                 >
                   View
                 </Button>
               </div>
             ))}
             {laggards.length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">
+              <div className="text-center py-8 text-muted-foreground text-sm font-bold">
                 All staff are performing within expected parameters.
               </div>
             )}
@@ -185,16 +185,16 @@ export default async function PerformancePage() {
       </div>
 
       {/* Detailed Metrics Table */}
-      <Card className="shadow-sm">
-        <CardHeader className="border-b bg-gray-50/50">
-          <CardTitle className="text-lg text-gray-900">
+      <Card className="stone-card">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <CardTitle className="text-lg text-foreground font-bold tracking-tight">
             Full Staff Metrics
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 font-medium uppercase text-xs tracking-wider">
+              <thead className="bg-muted text-muted-foreground font-black uppercase text-xs tracking-widest border-b border-border">
                 <tr>
                   <th className="px-6 py-4">Staff Member</th>
                   <th className="px-6 py-4">Role / Unit</th>
@@ -204,7 +204,7 @@ export default async function PerformancePage() {
                   <th className="px-6 py-4 text-center">Rating</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {staffPerformance.map((staff) => {
                   const efficiency =
                     staff.resolved_complaints > 0
@@ -218,46 +218,46 @@ export default async function PerformancePage() {
                   return (
                     <tr
                       key={staff.user_id}
-                      className="group hover:bg-gray-50/80 transition-colors"
+                      className="group hover:bg-muted/30 transition-colors"
                     >
-                      <td className="px-6 py-4 font-medium text-gray-900">
+                      <td className="px-6 py-4 font-bold text-foreground">
                         {staff.full_name}
                       </td>
-                      <td className="px-6 py-4 text-gray-500 capitalize">
+                      <td className="px-6 py-4 text-muted-foreground capitalize">
                         {staff.staff_role.replace("_", " ")}
-                        <span className="block text-xs text-gray-400">
+                        <span className="block text-xs font-mono font-bold">
                           {staff.department ||
                             (staff.ward_number
                               ? `Ward ${staff.ward_number}`
                               : "")}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center text-gray-600">
+                      <td className="px-6 py-4 text-center text-muted-foreground font-mono font-bold">
                         {staff.total_complaints}
                       </td>
-                      <td className="px-6 py-4 text-center font-semibold text-green-600">
+                      <td className="px-6 py-4 text-center font-black text-success-green text-lg">
                         {staff.resolved_complaints}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden border border-border">
                             <div
-                              className={`h-full rounded-full ${
+                              className={`h-full rounded-full transition-all duration-700 ${
                                 efficiency >= 80
-                                  ? "bg-green-500"
+                                  ? "bg-success-green"
                                   : efficiency >= 50
-                                  ? "bg-yellow-500"
-                                  : "bg-red-500"
+                                  ? "bg-warning-amber"
+                                  : "bg-destructive"
                               }`}
                               style={{ width: `${efficiency}%` }}
                             />
                           </div>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs font-bold text-muted-foreground">
                             {efficiency}%
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center font-mono font-medium">
+                      <td className="px-6 py-4 text-center font-mono font-bold text-primary">
                         {staff.avg_rating > 0 ? staff.avg_rating : "-"}
                       </td>
                     </tr>

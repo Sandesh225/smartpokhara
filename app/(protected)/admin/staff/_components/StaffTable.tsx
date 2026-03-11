@@ -36,17 +36,45 @@ interface StaffTableProps {
   onDeactivate: (id: string) => void;
 }
 
+function StaffAssignment({ staff }: { staff: AdminStaffListItem }) {
+  return (
+    <div className="flex flex-col md:flex-row md:items-center gap-2">
+      <Badge variant="secondary" className="font-medium capitalize w-fit text-xs">
+        {staff.staff_role?.replace(/_/g, " ")}
+      </Badge>
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        {staff.department_name ? (
+          <>
+            <Building2 className="w-3 h-3" />
+            <span className="truncate max-w-[150px]">{staff.department_name}</span>
+          </>
+        ) : staff.ward_number ? (
+          <>
+            <MapPin className="w-3 h-3" />
+            Ward {staff.ward_number}
+          </>
+        ) : (
+          <>
+            <User className="w-3 h-3" />
+            Unassigned
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
   if (loading) return <StaffTableSkeleton />;
 
   if (data.length === 0) {
     return (
-      <div className="stone-card border-2 border-dashed py-12 md:py-16 text-center">
-        <User className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-4 opacity-20" />
-        <h3 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider">
+      <div className="bg-card border border-dashed py-12 md:py-16 text-center rounded-2xl">
+        <User className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground/30 mx-auto mb-4" />
+        <h3 className="text-sm md:text-base font-black text-foreground uppercase tracking-widest">
           No Staff Found
         </h3>
-        <p className="text-xs md:text-sm text-muted-foreground mt-2">
+        <p className="text-xs md:text-sm text-muted-foreground mt-2 font-medium">
           Try adjusting filters or add a new staff member
         </p>
       </div>
@@ -56,24 +84,24 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
   return (
     <>
       {/* DESKTOP TABLE */}
-      <div className="hidden lg:block stone-card overflow-hidden">
+      <div className="hidden lg:block bg-card border border-border rounded-xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
+            <thead className="bg-muted/30 border-b border-border">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-5 py-3.5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   Staff Member
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-5 py-3.5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   Assignment
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-5 py-3.5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-black text-muted-foreground uppercase tracking-widest w-[200px]">
+                <th className="px-5 py-3.5 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest w-[200px]">
                   Workload
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-black text-muted-foreground uppercase tracking-widest">
+                <th className="px-5 py-3.5 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   Actions
                 </th>
               </tr>
@@ -85,19 +113,19 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
                   className="group hover:bg-muted/30 transition-colors"
                 >
                   {/* User Info */}
-                  <td className="px-4 py-4">
+                  <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border border-border">
+                      <Avatar className="h-10 w-10 ring-1 ring-border shadow-xs">
                         <AvatarImage src={staff.avatar_url} />
                         <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                           {staff.full_name?.[0]?.toUpperCase() || "S"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col min-w-0">
-                        <span className="font-bold text-foreground truncate">
+                        <span className="font-bold text-foreground text-sm truncate">
                           {staff.full_name}
                         </span>
-                        <span className="text-xs text-muted-foreground font-mono truncate">
+                        <span className="text-[11px] text-muted-foreground truncate">
                           {staff.email}
                         </span>
                       </div>
@@ -105,44 +133,17 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
                   </td>
 
                   {/* Role & Context */}
-                  <td className="px-4 py-4">
-                    <div className="flex flex-col gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="font-medium capitalize w-fit"
-                      >
-                        {staff.staff_role?.replace(/_/g, " ")}
-                      </Badge>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        {staff.department_name ? (
-                          <>
-                            <Building2 className="w-3 h-3" />
-                            <span className="truncate max-w-[120px]">
-                              {staff.department_name}
-                            </span>
-                          </>
-                        ) : staff.ward_number ? (
-                          <>
-                            <MapPin className="w-3 h-3" />
-                            Ward {staff.ward_number}
-                          </>
-                        ) : (
-                          <>
-                            <User className="w-3 h-3" />
-                            Unassigned
-                          </>
-                        )}
-                      </div>
-                    </div>
+                  <td className="px-5 py-4">
+                    <StaffAssignment staff={staff} />
                   </td>
 
                   {/* Status */}
-                  <td className="px-4 py-4">
+                  <td className="px-5 py-4">
                     <StatusBadge status={staff.availability_status} variant="staff" />
                   </td>
 
                   {/* Workload */}
-                  <td className="px-4 py-4">
+                  <td className="px-5 py-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs items-center">
                         <span className="font-semibold text-foreground flex items-center gap-1">
@@ -165,14 +166,14 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
                   </td>
 
                   {/* Actions */}
-                  <td className="px-4 py-4">
+                  <td className="px-5 py-4">
                     <div className="flex items-center justify-end">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            className="h-8 w-8"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -262,31 +263,7 @@ export function StaffTable({ data, loading, onDeactivate }: StaffTableProps) {
             </div>
 
             {/* Role & Assignment */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <Badge variant="secondary" className="text-xs capitalize">
-                {staff.staff_role?.replace(/_/g, " ")}
-              </Badge>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                {staff.department_name ? (
-                  <>
-                    <Building2 className="w-3 h-3" />
-                    <span className="truncate max-w-[150px]">
-                      {staff.department_name}
-                    </span>
-                  </>
-                ) : staff.ward_number ? (
-                  <>
-                    <MapPin className="w-3 h-3" />
-                    Ward {staff.ward_number}
-                  </>
-                ) : (
-                  <>
-                    <User className="w-3 h-3" />
-                    Unassigned
-                  </>
-                )}
-              </div>
-            </div>
+            <StaffAssignment staff={staff} />
 
             {/* Status & Workload */}
             <div className="pt-3 border-t border-border space-y-2">

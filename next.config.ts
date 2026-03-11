@@ -10,7 +10,12 @@ const nextConfig: NextConfig = {
       "recharts",
       "clsx",
       "tailwind-merge",
-      "framer-motion"
+      "sonner",
+      "react-day-picker",
+      "react-hook-form",
+      "@hookform/resolvers",
+      "@tanstack/react-query",
+      "@tanstack/react-table",
     ],
   },
   logging: {

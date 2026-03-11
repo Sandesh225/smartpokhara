@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserWithRoles } from "@/lib/auth/session";
 import { messagesApi } from "@/features/messages";
 
-import { ConversationsList } from "@/app/(protected)/supervisor/messages/_components/ConversationsList";
 import { MessageThread } from "../_components/MessageThread";
 
 export const dynamic = "force-dynamic";
@@ -34,16 +33,6 @@ export default async function ConversationPage({ params }: PageProps) {
 
   return (
     <div className="h-[calc(100vh-8rem)] bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex">
-      {/* Sidebar: Hidden on mobile, visible on desktop */}
-      <div className="hidden md:flex w-80 border-r border-gray-100 flex-col">
-        <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-          <h1 className="text-lg font-bold text-gray-900">Inbox</h1>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <ConversationsList conversations={conversations} selectedId={id} />
-        </div>
-      </div>
-
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         <MessageThread

@@ -13,6 +13,8 @@ export interface AdminStaffListItem {
   staff_code: string;
   staff_role: StaffRole;
   department_name: string | null;
+  department_id: string | null;
+  ward_id: string | null;
   ward_number: number | null;
   is_supervisor: boolean;
   is_active: boolean;

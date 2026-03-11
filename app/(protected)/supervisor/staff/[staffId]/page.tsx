@@ -146,12 +146,7 @@ export default async function StaffDetailPage({ params }: PageProps) {
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="text-sm font-semibold mb-3">Actions</h3>
             <div className="space-y-2">
-              <Link
-                href={`/supervisor/messages/new?staffId=${staffId}`}
-                className="block w-full py-2 px-4 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm text-center font-medium transition-colors"
-              >
-                Send Message
-              </Link>
+
               <Link
                 href={`/supervisor/staff/${staffId}/performance`}
                 className="block w-full py-2 px-4 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-center font-medium transition-colors text-gray-700"

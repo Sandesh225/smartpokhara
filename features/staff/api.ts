@@ -460,6 +460,8 @@ export const staffApi = {
       staff_code: s.staff_code,
       staff_role: s.staff_role as any,
       department_name: s.department?.name || null,
+      department_id: s.department_id || null,
+      ward_id: s.ward_id || null,
       ward_number: s.ward_id ? parseInt(s.ward_id) : null, 
       is_supervisor: false, 
       is_active: s.is_active || false,
