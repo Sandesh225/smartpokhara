@@ -86,7 +86,7 @@ export default function NewComplaintPage() {
             <div className="p-2 bg-primary/10 rounded-lg">
               <FileText className="w-5 h-5 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold">Submit New Complaint</h1>
+            <h1 className="text-2xl font-bold">File a New Complaint</h1>
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="text-xs">
@@ -114,9 +114,9 @@ export default function NewComplaintPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="text-lg">Complaint Details</CardTitle>
+              <CardTitle className="text-lg">What happened?</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Provide detailed information for faster resolution
+                Give us more details so we can help you faster.
               </p>
             </CardHeader>
             <CardContent className="pt-6">
@@ -135,24 +135,24 @@ export default function NewComplaintPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Shield className="w-4 h-4 text-primary" />
-                How It Works
+                How it works
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {[
                 {
-                  title: "Instant Registration",
-                  desc: "Your complaint is logged immediately with a unique tracking ID",
+                  title: "Saved quickly",
+                  desc: "We save your complaint right away and give you a special code to check on it.",
                   icon: Zap,
                 },
                 {
-                  title: "Smart Routing",
-                  desc: "Automatically assigned to the appropriate ward officer",
+                  title: "Sent to the right person",
+                  desc: "We send your message straight to the officer in your area.",
                   icon: MapPin,
                 },
                 {
-                  title: "Real-time Updates",
-                  desc: "Receive notifications as your complaint is processed",
+                  title: "Get updates",
+                  desc: "We&apos;ll let you know as soon as we start working on it.",
                   icon: Clock,
                 },
               ].map((step, i) => (
@@ -175,10 +175,10 @@ export default function NewComplaintPage() {
             <CardContent className="pt-6">
               <p className="text-xs text-muted-foreground leading-relaxed">
                 <span className="font-semibold text-foreground">
-                  💡 Pro Tip:
+                  💡 Tip:
                 </span>{" "}
-                Complaints with clear photos and precise locations are resolved{" "}
-                <span className="font-semibold text-primary">40% faster</span>
+                Adding clear photos and the exact location helps us fix things{" "}
+                <span className="font-semibold text-primary">much faster!</span>
               </p>
             </CardContent>
           </Card>
@@ -195,17 +195,17 @@ export default function NewComplaintPage() {
 
             <DialogHeader className="mb-6">
               <DialogTitle className="text-2xl">
-                Complaint Submitted
+                Complaint Sent!
               </DialogTitle>
               <DialogDescription>
-                Your complaint has been successfully registered
+                We&apos;ve received your complaint and it&apos;s now in our system.
               </DialogDescription>
             </DialogHeader>
 
             {submissionResult && (
               <div className="bg-muted p-4 rounded-lg mb-6">
                 <span className="text-xs font-semibold text-muted-foreground block mb-1">
-                  Tracking Code
+                  Your Tracking Code
                 </span>
                 <div className="text-2xl font-mono font-bold text-primary">
                   {submissionResult.tracking_code}
@@ -222,7 +222,7 @@ export default function NewComplaintPage() {
                 }
                 className="w-full gap-2"
               >
-                Track Status
+                Check Status
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button
@@ -230,7 +230,7 @@ export default function NewComplaintPage() {
                 onClick={() => window.location.reload()}
                 className="w-full"
               >
-                Submit Another
+                Send Another
               </Button>
             </div>
           </div>

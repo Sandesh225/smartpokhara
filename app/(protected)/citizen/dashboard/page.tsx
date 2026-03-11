@@ -9,50 +9,29 @@ export default async function CitizenDashboard() {
 
   const supabase = await createClient();
 
-  // Parallel Data Fetching on Server
-  const [profileRes, statsRes, complaintsRes, billsRes] = await Promise.all([
-    supabase
-      .from("user_profiles")
-      .select("full_name, ward_id, ward:wards(ward_number, name)")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-    supabase.rpc("rpc_get_dashboard_stats"),
-    supabase
-      .from("complaints")
-      .select("*")
-      .eq("citizen_id", user.id)
-      .order("submitted_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("bills")
-      .select("*")
-      .eq("citizen_id", user.id)
-      .eq("status", "pending"),
-  ]);
+  // STEP 1: Fetch Profile first (because notices depend on wardId)
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("full_name, ward_id, ward:wards(ward_number, name)")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-  if (profileRes.error) console.error("Profile fetch error:", profileRes.error);
-  if (statsRes.error) console.error("Stats fetch error:", statsRes.error);
-  if (complaintsRes.error) console.error("Complaints fetch error:", complaintsRes.error);
-  if (billsRes.error) console.error("Bills fetch error:", billsRes.error);
+  if (profileError) console.error("Profile fetch error:", profileError);
 
-  const profile = profileRes.data;
   const wardId = profile?.ward_id ?? null;
   const wardInfo = Array.isArray(profile?.ward) ? profile?.ward[0] : profile?.ward;
 
-  // Fetch notices based on wardId
-  const noticesRes = wardId
-    ? await supabase
-        .from("notices")
-        .select("*")
-        .or(`is_public.eq.true,ward_id.eq.${wardId}`)
-        .order("published_at", { ascending: false })
-        .limit(5)
-    : await supabase
-        .from("notices")
-        .select("*")
-        .eq("is_public", true)
-        .order("published_at", { ascending: false })
-        .limit(5);
+  // STEP 2: 100% Parallelized Fetching for everything else
+  const noticesQuery = wardId
+    ? supabase.from("notices").select("*").or(`is_public.eq.true,ward_id.eq.${wardId}`)
+    : supabase.from("notices").select("*").eq("is_public", true);
+
+  const [statsRes, complaintsRes, billsRes, noticesRes] = await Promise.all([
+    supabase.rpc("rpc_get_dashboard_stats"),
+    supabase.from("complaints").select("*").eq("citizen_id", user.id).order("submitted_at", { ascending: false }).limit(5),
+    supabase.from("bills").select("*").eq("citizen_id", user.id).eq("status", "pending"),
+    noticesQuery.order("published_at", { ascending: false }).limit(5),
+  ]);
 
   const stats = statsRes.data?.complaints || {};
 

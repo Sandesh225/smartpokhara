@@ -11,7 +11,7 @@ function PageSkeleton() {
     return <div className={`animate-pulse rounded-xl bg-muted ${className ?? ""}`} style={style} />;
   }
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
@@ -25,13 +25,13 @@ function PageSkeleton() {
         </div>
       </div>
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[...Array(4)].map((_, i) => <Pulse key={i} className="h-20 rounded-xl" />)}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => <Pulse key={i} className="h-24 rounded-2xl" />)}
       </div>
       {/* Table card */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <Pulse className="h-[57px] rounded-none border-b border-border" />
-        <div className="space-y-2 p-5">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        <Pulse className="h-[60px] rounded-none border-b border-border" />
+        <div className="space-y-2 p-5 sm:p-6">
           {[...Array(6)].map((_, i) => (
             <Pulse key={i} className="h-14 rounded-xl" style={{ opacity: 1 - i * 0.13 }} />
           ))}
@@ -63,16 +63,15 @@ export default async function ComplaintsPage({
   ]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-20">
-        <Suspense fallback={<PageSkeleton />}>
-          <ComplaintsContent
-            initialUserId={user.id}
-            initialStats={initialStats}
-            initialComplaints={initialComplaints}
-          />
-        </Suspense>
-      </div>
-    </div>
+    // ✅ THE FIX: Exact same fluid, flush wrapper used in the Dashboard
+    <main className="w-full flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+      <Suspense fallback={<PageSkeleton />}>
+        <ComplaintsContent
+          initialUserId={user.id}
+          initialStats={initialStats}
+          initialComplaints={initialComplaints}
+        />
+      </Suspense>
+    </main>
   );
 }

@@ -198,18 +198,18 @@ export default function NewProposalPage() {
             className="group inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mx-auto"
           >
             <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-            Discard Thesis
+            Cancel
           </button>
           
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest border border-primary/20">
-              Civic Submission
+              New Proposal
             </div>
             <h1 className="text-4xl md:text-6xl font-black tracking-tight text-foreground uppercase leading-none">
-              Propose <span className="text-primary">Impact</span>
+              Suggest a <span className="text-primary">Project</span>
             </h1>
             <p className="text-sm md:text-base text-muted-foreground font-medium max-w-xl mx-auto leading-relaxed">
-              Formulate your vision for <span className="text-foreground font-bold">{cycle.title}</span>. Your technical concept will be reviewed for municipal feasibility.
+              Tell us your idea for <span className="text-foreground font-bold">{cycle.title}</span>. Your project idea will be reviewed for feasibility.
             </p>
           </div>
         </div>
@@ -219,8 +219,8 @@ export default function NewProposalPage() {
       <div className="max-w-3xl mx-auto py-10">
         <Card className="rounded-3xl border border-border shadow-2xl bg-card overflow-hidden">
           <CardHeader className="p-8 md:p-12 border-b border-border/50 bg-muted/5 space-y-2">
-             <CardTitle className="text-xl font-black uppercase tracking-[0.1em] text-foreground">Technical Specification</CardTitle>
-             <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Architect your proposal with precision and clarity</p>
+             <CardTitle className="text-xl font-black uppercase tracking-widest text-foreground">Project Details</CardTitle>
+             <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Please describe your project clearly</p>
           </CardHeader>
           <CardContent className="p-8 md:p-12">
             <Form {...form}>
@@ -232,10 +232,10 @@ export default function NewProposalPage() {
                     name="title"
                     render={({ field }) => (
                       <FormItem className="space-y-4">
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Initiative Nomenclature</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Project Title</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g. Ward 4 Botanical Infrastructure"
+                            placeholder="e.g. Ward 4 New Park"
                             className="h-16 font-black text-2xl bg-muted/5 border-border focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all rounded-2xl px-6"
                             {...field}
                             required
@@ -253,7 +253,7 @@ export default function NewProposalPage() {
                       name="department_id"
                       render={({ field }) => (
                         <FormItem className="space-y-4">
-                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Domain Specification</FormLabel>
+                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Category</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-14 rounded-2xl bg-muted/5 border-border font-black text-xs uppercase tracking-widest focus:ring-4 focus:ring-primary/5">
@@ -278,7 +278,7 @@ export default function NewProposalPage() {
                       name="ward_id"
                       render={({ field }) => (
                         <FormItem className="space-y-4">
-                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Geospatial Target</FormLabel>
+                          <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Location (Ward)</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-14 rounded-2xl bg-muted/5 border-border font-black text-xs uppercase tracking-widest focus:ring-4 focus:ring-primary/5">
@@ -306,12 +306,12 @@ export default function NewProposalPage() {
                     name="estimated_cost"
                     render={({ field }) => (
                       <FormItem className="space-y-4">
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Fiscal Projection (NPR)</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Estimated Cost (NPR)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <div className="absolute left-6 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
                               <span className="text-xs font-black text-primary uppercase tracking-widest">NPR</span>
-                              <div className="w-[1px] h-4 bg-border" />
+                              <div className="w-px h-4 bg-border" />
                             </div>
                             <Input
                               type="number"
@@ -340,10 +340,10 @@ export default function NewProposalPage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem className="space-y-4">
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Operational Strategy</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Project Description</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Detail the community problem, proposed methodology, and expected societal ROI..."
+                            placeholder="Describe your project, why it is needed, and how it will benefit the community..."
                             className="min-h-[200px] rounded-2xl bg-muted/5 border-border focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all p-8 text-sm font-medium leading-relaxed"
                             {...field}
                             required
@@ -359,13 +359,13 @@ export default function NewProposalPage() {
                     name="address_text"
                     render={({ field }) => (
                       <FormItem className="space-y-4">
-                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Specific Contextual Location</FormLabel>
+                        <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Exact Address</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/40" strokeWidth={3} />
                             <Input
                               className="pl-14 h-14 rounded-2xl bg-muted/5 border-border font-black text-sm focus:ring-4 focus:ring-primary/5"
-                              placeholder="Intersection, landmark, or cadastral reference"
+                              placeholder="Landmark, street name, or house number"
                               {...field}
                             />
                           </div>
@@ -377,7 +377,7 @@ export default function NewProposalPage() {
 
                   {/* Phase 5: Media */}
                   <div className="space-y-4">
-                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Technical Visualization (Optional)</FormLabel>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Add a Photo (Optional)</FormLabel>
                     <div className="group relative border-2 border-dashed border-border rounded-3xl p-12 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all duration-500 overflow-hidden">
                       <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                       <Input
@@ -393,7 +393,7 @@ export default function NewProposalPage() {
                         </div>
                         <div>
                           <p className="text-xs font-black uppercase tracking-widest text-foreground">
-                            {coverImage ? coverImage.name : "Integrate Evidence"}
+                            {coverImage ? coverImage.name : "Upload Photo"}
                           </p>
                           <p className="text-xs text-muted-foreground/40 mt-1.5 font-bold uppercase tracking-widest">
                             Optimized High-Res JPG/PNG (Max 10MB)
@@ -414,7 +414,7 @@ export default function NewProposalPage() {
                     {submitMutation.isPending ? (
                       <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                     ) : null}
-                    Execute Submission
+                    Submit Proposal
                   </Button>
                   <Button
                     type="button"
@@ -422,7 +422,7 @@ export default function NewProposalPage() {
                     className="w-full h-14 text-muted-foreground/40 font-black uppercase tracking-widest text-xs rounded-2xl hover:text-foreground hover:bg-muted/30 transition-all"
                     onClick={() => router.back()}
                   >
-                    Abandon Project Concept
+                    Cancel
                   </Button>
                 </div>
               </form>

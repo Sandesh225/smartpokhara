@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import "tailwindcss";
-
 
 @custom-variant dark (&:is(.dark *));
 
@@ -12,8 +11,16 @@
   --card-foreground: oklch(0.2790 0.0330 268.5);
   --popover: oklch(1.0000 0 0);
   --popover-foreground: oklch(0.2790 0.0330 268.5);
+  
   --primary: oklch(0.4370 0.0580 238.0);
   --primary-foreground: oklch(1.0000 0 0);
+  
+  /* Brand Raw Additions */
+  --primary-brand-raw: 37 99 235;
+  --primary-brand-light-raw: 96 165 250;
+  --primary-brand-dark-raw: 30 58 138;
+  --accent-nature-raw: 34 197 94;
+
   --secondary: oklch(0.6380 0.0630 226.0);
   --secondary-foreground: oklch(1.0000 0 0);
   --muted: oklch(0.9500 0.0100 260.0);
@@ -41,21 +48,13 @@
   --sidebar-border: oklch(0.9200 0.0100 260.0);
   --sidebar-ring: oklch(0.4370 0.0580 238.0);
 
-  /* Typography & Layout from your exact format */
-  --font-sans: Cascadia Code, ui-sans-serif, sans-serif, system-ui;
-  --font-serif: Alyamama, ui-serif, serif;
+  /* Typography & Layout (Replaced with Poppins) */
+  --font-sans: "Poppins", ui-sans-serif, sans-serif, system-ui;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --radius: 0.75rem;
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
 
-  /* Shadows from your exact format */
-  --shadow-x: 0px;
-  --shadow-y: 4px;
-  --shadow-blur: 3px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.1;
-  --shadow-color: #000000;
+  /* Shadows */
   --shadow-2xs: 0px 4px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 4px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-sm: 0px 4px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
@@ -74,8 +73,16 @@
   --card-foreground: oklch(0.9200 0.0100 260.0);
   --popover: oklch(0.2100 0.0250 265.0);
   --popover-foreground: oklch(0.9200 0.0100 260.0);
+  
   --primary: oklch(0.7900 0.1100 195.0);
   --primary-foreground: oklch(0.1800 0.0250 260.0);
+  
+  /* Brand Raw Additions (Dark Mode) */
+  --primary-brand-raw: 96 165 250;
+  --primary-brand-light-raw: 147 197 253;
+  --primary-brand-dark-raw: 37 99 235;
+  --accent-nature-raw: 74 222 128;
+
   --secondary: oklch(0.6380 0.0630 226.0);
   --secondary-foreground: oklch(0.1800 0.0250 260.0);
   --muted: oklch(0.2300 0.0250 265.0);
@@ -104,21 +111,29 @@
   --sidebar-ring: oklch(0.7900 0.1100 195.0);
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-brand: rgb(var(--primary-brand-raw));
+  --color-primary-brand-light: rgb(var(--primary-brand-light-raw));
+  --color-primary-brand-dark: rgb(var(--primary-brand-dark-raw));
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-nature: rgb(var(--accent-nature-raw));
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -140,6 +155,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* New Poppins Typography Mapped Here */
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
@@ -164,6 +180,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
 }

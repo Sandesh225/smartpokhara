@@ -78,9 +78,9 @@ export function ReviewStep({
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-1.5 pb-6 border-b border-border">
-        <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Final Verification</h2>
+        <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Review your complaint</h2>
         <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-          Verify logic vectors and operational data prior to transmission.
+          Please check if everything is correct before sending.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export function ReviewStep({
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-all"
               >
                 <Edit2 className="w-3 h-3" />
-                Refresh
+                Change
               </button>
             </div>
 
@@ -133,7 +133,7 @@ export function ReviewStep({
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
                 <Image className="w-4 h-4 text-primary" />
-                Attached Records ({attachments.length})
+                Photos ({attachments.length})
               </h3>
               <button
                 type="button"
@@ -167,9 +167,9 @@ export function ReviewStep({
             <CheckCircle2 className="w-6 h-6 text-primary" />
           </div>
           <div className="space-y-1.5 pt-0.5">
-            <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Operational Readiness</h4>
+            <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Ready to send?</h4>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed opacity-60 max-w-md">
-              Upon initializing transmission, this report will be encrypted and routed to the corresponding sector officer for immediate resolution protocols.
+              Once you send this, it will go straight to the right officer in your ward to be fixed.
             </p>
           </div>
         </div>
@@ -178,7 +178,7 @@ export function ReviewStep({
       {/* Terms */}
       <div className="px-6 py-4 rounded-xl border border-dashed border-border bg-muted/10">
         <p className="text-xs font-black text-muted-foreground/40 uppercase tracking-widest text-center leading-relaxed">
-          Initialization implies confirmation of data accuracy and adherence to municipal reporting directives.
+          By sending this, you confirm that the information is correct.
         </p>
       </div>
     </div>

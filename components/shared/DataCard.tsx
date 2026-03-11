@@ -1,7 +1,6 @@
 "use client";
 
 import { type LucideIcon } from "lucide-react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface DataCardProps {
@@ -30,14 +29,12 @@ export function DataCard({
   delay = 0,
 }: DataCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay, ease: [0.23, 1, 0.32, 1] }}
-      className={cn("stone-card overflow-hidden", className)}
+    <div
+      className={cn("bg-card border border-border rounded-2xl shadow-sm overflow-hidden animate-fade-in", className)}
+      style={{ animationDelay: `${delay * 1000}ms` }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-6 pb-0">
+      <div className="flex items-center justify-between p-5 sm:p-6 pb-0">
         <div className="flex items-center gap-3">
           {TitleIcon && (
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -45,7 +42,7 @@ export function DataCard({
             </div>
           )}
           <div>
-            <h3 className="heading-3 text-foreground">{title}</h3>
+            <h3 className="text-base font-bold text-foreground">{title}</h3>
             {description && (
               <p className="text-sm text-muted-foreground font-medium mt-0.5">
                 {description}
@@ -59,7 +56,7 @@ export function DataCard({
       </div>
 
       {/* Content */}
-      <div className={cn(noPadding ? "" : "p-6", contentClassName)}>
+      <div className={cn(noPadding ? "" : "p-5 sm:p-6", contentClassName)}>
         {children}
       </div>
 
@@ -69,6 +66,6 @@ export function DataCard({
           {footer}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

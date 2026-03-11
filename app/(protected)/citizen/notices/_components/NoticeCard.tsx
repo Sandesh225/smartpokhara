@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
 import {
   ChevronRight,
   MapPin,
@@ -27,40 +26,13 @@ export default function NoticeCard({
 }: NoticeCardProps) {
   const getTypeConfig = (type: string) => {
     const configs = {
-      announcement: {
-        color: "text-primary",
-        bg: "bg-primary/10",
-        border: "border-primary/30",
-        icon: "📢",
-      },
-      emergency: {
-        color: "text-destructive",
-        bg: "bg-destructive/10",
-        border: "border-destructive/30",
-        icon: "🚨",
-      },
-      tender: {
-        color: "text-foreground",
-        bg: "bg-muted",
-        border: "border-border",
-        icon: "📋",
-      },
-      event: {
-        color: "text-secondary",
-        bg: "bg-secondary/10",
-        border: "border-secondary/30",
-        icon: "🎉",
-      },
-      vacancy: {
-        color: "text-accent",
-        bg: "bg-accent/10",
-        border: "border-accent/30",
-        icon: "💼",
-      },
+      announcement: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/30", icon: "📢" },
+      emergency: { color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/30", icon: "🚨" },
+      tender: { color: "text-foreground", bg: "bg-muted", border: "border-border", icon: "📋" },
+      event: { color: "text-secondary", bg: "bg-secondary/10", border: "border-secondary/30", icon: "🎉" },
+      vacancy: { color: "text-accent", bg: "bg-accent/10", border: "border-accent/30", icon: "💼" },
     };
-    return (
-      configs[type as keyof typeof configs] || configs.announcement
-    );
+    return configs[type as keyof typeof configs] || configs.announcement;
   };
 
   const typeConfig = getTypeConfig(notice.notice_type);
@@ -68,59 +40,37 @@ export default function NoticeCard({
   const isUrgent = notice.is_urgent;
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="group"
-    >
+    <div className="group transition-all duration-200 hover:-translate-y-0.5">
       <Link href={`/citizen/notices/${notice.id}`}>
         <div
           className={cn(
-            "stone-card relative overflow-hidden transition-all duration-300",
-            "hover:shadow-xl hover:border-primary/40",
-            isUnread &&
-              "ring-2 ring-primary/30 bg-primary/5",
-            isUrgent && "ring-2 ring-destructive/40 animate-pulse"
+            "relative overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200",
+            "hover:shadow-md hover:border-primary/30",
+            isUnread && "ring-2 ring-primary/20 bg-primary/5",
+            isUrgent && "ring-2 ring-destructive/30"
           )}
         >
           {/* Status Indicator Bar */}
-          <motion.div
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
+          <div
             className={cn(
               "absolute left-0 top-0 bottom-0 w-1.5 z-10",
-              isUrgent
-                ? "bg-destructive"
-                : "bg-primary"
+              isUrgent ? "bg-destructive" : "bg-primary"
             )}
           />
 
-          {/* Hover Gradient Overlay */}
-          <div className="absolute inset-0 bg-linear-to-br from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-          <div className="p-6 pl-8 flex flex-col h-full gap-4 relative z-10">
+          <div className="p-5 sm:p-6 pl-7 flex flex-col h-full gap-4">
             {/* Header with Badges */}
             <div className="flex flex-wrap items-center gap-2.5">
               {isUrgent && (
-                <motion.div
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <Badge className="bg-destructive text-destructive-foreground border-0 hover:bg-destructive px-3 py-1.5 shadow-lg shadow-destructive/30 font-black text-xs">
-                    <AlertOctagon className="w-3 h-3 mr-1.5" /> URGENT
-                  </Badge>
-                </motion.div>
+                <Badge className="bg-destructive text-destructive-foreground border-0 px-3 py-1 font-bold text-xs animate-pulse">
+                  <AlertOctagon className="w-3 h-3 mr-1.5" /> URGENT
+                </Badge>
               )}
 
               <Badge
                 variant="outline"
                 className={cn(
-                  "capitalize font-bold border-2 px-3 py-1.5 text-xs backdrop-blur-sm",
+                  "capitalize font-medium border px-2.5 py-0.5 text-xs",
                   typeConfig.color,
                   typeConfig.bg,
                   typeConfig.border
@@ -131,23 +81,23 @@ export default function NoticeCard({
               </Badge>
 
               {isUnread && (
-                <Badge className="bg-warning-amber text-white border-0 hover:bg-warning-amber px-3 py-1.5 font-black text-xs shadow-md">
-                  <Sparkles className="w-3 h-3 mr-1.5" /> New
+                <Badge className="bg-secondary text-secondary-foreground border-0 px-2.5 py-0.5 font-medium text-xs">
+                  <Sparkles className="w-3 h-3 mr-1" /> New
                 </Badge>
               )}
 
-              <div className="ml-auto flex items-center gap-1.5 text-sm font-bold text-muted-foreground tabular-nums">
-                <Clock className="w-3.5 h-3.5" />
+              <div className="ml-auto flex items-center gap-1.5 text-xs font-medium text-muted-foreground tabular-nums">
+                <Clock className="w-3 h-3" />
                 {format(new Date(notice.published_at), "MMM d, yyyy")}
               </div>
             </div>
 
             {/* Content */}
-            <div className="space-y-3 flex-1">
-              <h3 className="text-xl font-black text-foreground leading-tight group-hover:text-primary transition-colors line-clamp-2">
+            <div className="space-y-2 flex-1">
+              <h3 className="text-base font-semibold text-foreground leading-tight group-hover:text-primary transition-colors duration-200 line-clamp-2">
                 {notice.title}
               </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
                 {notice.excerpt ||
                   notice.content
                     .substring(0, 150)
@@ -157,70 +107,47 @@ export default function NoticeCard({
             </div>
 
             {/* Footer */}
-            <div className="pt-4 border-t border-border/50 flex items-center justify-between gap-4">
+            <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 text-xs font-medium">
                 {notice.ward_number ? (
-                  <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg">
-                    <MapPin className="w-3.5 h-3.5 text-primary" />
-                    <span className="font-bold">
-                      Ward {notice.ward_number}
-                    </span>
+                  <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg">
+                    <MapPin className="w-3 h-3 text-primary" />
+                    <span className="font-medium">Ward {notice.ward_number}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1.5 rounded-lg">
-                    <MapPin className="w-3.5 h-3.5 text-secondary" />
-                    <span className="font-bold">Metropolitan</span>
+                  <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-lg">
+                    <MapPin className="w-3 h-3 text-secondary" />
+                    <span className="font-medium">Metropolitan</span>
                   </div>
                 )}
-
                 <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground">
-                  <FileBadge className="w-3.5 h-3.5" />
-                  <code className="text-xs font-mono">
-                    {notice.id.substring(0, 8)}
-                  </code>
+                  <FileBadge className="w-3 h-3" />
+                  <code className="text-xs font-mono">{notice.id.substring(0, 8)}</code>
                 </div>
               </div>
 
               <Button
                 size="sm"
                 className={cn(
-                  "rounded-xl font-bold transition-all shadow-sm group/btn",
-                  "bg-background text-foreground border-2 border-border",
+                  "rounded-xl font-medium transition-all duration-200 shadow-xs",
+                  "bg-background text-foreground border border-border",
                   "hover:bg-primary hover:text-primary-foreground hover:border-primary",
-                  "hover:shadow-lg hover:shadow-primary/20",
-                  "active:scale-95"
+                  "active:scale-[0.98]"
                 )}
               >
                 {isUnread ? (
                   <>
-                    <Eye className="w-4 h-4 mr-2" /> Read
+                    <Eye className="w-3.5 h-3.5 mr-1.5" /> Read
                   </>
                 ) : (
-                  <>
-                    View
-                  </>
+                  "View"
                 )}
-                <ChevronRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+                <ChevronRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-0.5 transition-transform duration-200" />
               </Button>
             </div>
           </div>
-
-          {/* Unread Indicator Glow */}
-          {isUnread && (
-            <motion.div
-              animate={{
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none"
-            />
-          )}
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }

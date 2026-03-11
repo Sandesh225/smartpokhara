@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   MapPin,
@@ -294,26 +293,16 @@ export function ProfileSetupClient() {
         {/* Form Card */}
         <div className="bg-card/60 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[2.5rem] overflow-hidden transition-all duration-300 ring-1 ring-white/5 min-h-[500px] flex flex-col justify-center">
           <div className="p-8 sm:p-10">
-            <AnimatePresence mode="wait">
+            <div className="relative min-h-[400px]">
               {isSuccess ? (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.1 }}
-                  className="flex flex-col items-center text-center space-y-6 py-12"
+                <div
+                  className="flex flex-col items-center text-center space-y-6 py-12 animate-in fade-in zoom-in-95 duration-500"
                 >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
-                    transition={{
-                      scale: { type: "spring", stiffness: 260, damping: 20, delay: 0.2 },
-                      rotate: { type: "tween", duration: 0.5, delay: 0.2 },
-                    }}
-                    className="h-24 w-24 bg-primary rounded-full flex items-center justify-center shadow-2xl shadow-primary/40"
+                  <div
+                    className="h-24 w-24 bg-primary rounded-full flex items-center justify-center shadow-2xl shadow-primary/40 animate-bounce"
                   >
                     <Trophy className="h-12 w-12 text-primary-foreground" />
-                  </motion.div>
+                  </div>
                   <div className="space-y-2">
                     <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-primary to-primary/60">
                       Welcome to Digital Pokhara!
@@ -326,15 +315,10 @@ export function ProfileSetupClient() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Redirecting to your dashboard...
                   </div>
-                </motion.div>
+                </div>
               ) : currentStep === 1 ? (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="grid gap-8"
+                <div
+                  className="grid gap-8 animate-in fade-in slide-in-from-right-4 duration-300"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-border/50">
                     <Fingerprint className="h-6 w-6 text-primary" />
@@ -466,15 +450,10 @@ export function ProfileSetupClient() {
                       <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
-                </motion.div>
+                </div>
               ) : (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="grid gap-8"
+                <div
+                  className="grid gap-8 animate-in fade-in slide-in-from-right-4 duration-300"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-border/50">
                     <MapPin className="h-6 w-6 text-primary" />
@@ -573,9 +552,9 @@ export function ProfileSetupClient() {
                       {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Activate Profile"}
                     </button>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </div>
           </div>
 
           {/* Footer Info */}

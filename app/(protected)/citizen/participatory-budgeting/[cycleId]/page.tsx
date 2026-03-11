@@ -129,7 +129,7 @@ export default function CycleDetailsPage() {
             onClick={() => router.back()}
             className="group flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" /> Back to Registry
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" /> Back to Budget Cycles
           </button>
 
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
@@ -145,7 +145,7 @@ export default function CycleDetailsPage() {
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="h-6 px-3 bg-muted text-muted-foreground border-border text-xs font-black uppercase tracking-widest rounded-full">
-                    {cycle.is_active ? "Operational" : "Legacy"}
+                    {cycle.is_active ? "Active" : "Closed"}
                   </Badge>
                 )}
                 <Badge variant="outline" className="h-6 px-3 bg-muted/30 text-muted-foreground border-border text-xs font-black uppercase tracking-widest rounded-full">
@@ -167,14 +167,14 @@ export default function CycleDetailsPage() {
               {submissionOpen && (
                 <Button size="lg" className="w-full lg:w-auto bg-primary h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 active:scale-95 transition-all" asChild>
                   <Link href={`/citizen/participatory-budgeting/${cycle.id}/new`}>
-                    <Plus className="mr-2 h-5 w-5" /> Submit Concept
+                    <Plus className="mr-2 h-5 w-5" /> Suggest a Project
                   </Link>
                 </Button>
               )}
               {votingOpen && (
                 <div className="bg-card border border-border p-5 rounded-2xl shadow-xs flex items-center justify-between gap-6 min-w-[220px]">
                   <div>
-                    <p className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest mb-1.5 leading-none">Voting Power</p>
+                    <p className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest mb-1.5 leading-none">Your Votes</p>
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-3xl font-black text-foreground tabular-nums leading-none tracking-tighter">{votesRemaining}</span>
                       <span className="text-xs font-black text-muted-foreground/40 uppercase tracking-widest leading-none">left</span>
@@ -203,9 +203,9 @@ export default function CycleDetailsPage() {
                 </div>
                 <div className="space-y-3 text-center md:text-left">
                   <Badge className="bg-accent text-accent-foreground text-xs font-black uppercase tracking-wider rounded-full border-none px-4">
-                    Fiscal Conclusion
+                    Final Results
                   </Badge>
-                  <h2 className="text-3xl md:text-4xl font-black text-primary-foreground uppercase tracking-tight">The People's Mandate</h2>
+                  <h2 className="text-3xl md:text-4xl font-black text-primary-foreground uppercase tracking-tight">Selected Projects</h2>
                   {cycle.concluding_message && (
                     <p className="text-lg text-primary-foreground/70 font-medium italic leading-relaxed">
                       "{cycle.concluding_message}"
@@ -217,9 +217,9 @@ export default function CycleDetailsPage() {
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { label: "Capital Deployed", value: `NPR ${(totalAllocated / 100000).toFixed(1)}L`, sub: `${utilizationRate.toFixed(1)}% budget utilization`, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/5" },
-                { label: "Initiatives Funded", value: winners.length, sub: `Selected from ${proposals.length} inputs`, icon: Award, color: "text-accent", bg: "bg-accent/5" },
-                { label: "Surplus Reserve", value: `NPR ${(remainingSurplus / 100000).toFixed(1)}L`, sub: "Reallocated to public pool", icon: TrendingUp, color: "text-primary", bg: "bg-primary/5" }
+                { label: "Total Spent", value: `NPR ${(totalAllocated / 100000).toFixed(1)}L`, sub: `${utilizationRate.toFixed(1)}% budget used`, icon: CheckCircle2, color: "text-primary", bg: "bg-primary/5" },
+                { label: "Projects selected", value: winners.length, sub: `From ${proposals.length} total ideas`, icon: Award, color: "text-accent", bg: "bg-accent/5" },
+                { label: "Remaining Budget", value: `NPR ${(remainingSurplus / 100000).toFixed(1)}L`, sub: "Reallocated to public pool", icon: TrendingUp, color: "text-primary", bg: "bg-primary/5" }
               ].map((stat, i) => (
                 <Card key={i} className="bg-card border border-border rounded-2xl p-6 shadow-xs flex flex-col justify-between h-40">
                   <div className="flex justify-between items-start">
@@ -246,11 +246,11 @@ export default function CycleDetailsPage() {
               <Clock className="w-8 h-8 text-primary/40" />
             </div>
             <div className="space-y-2 relative z-10 flex-1">
-              <h3 className="text-lg font-black text-foreground uppercase tracking-tight">Ecosystem Synchronization</h3>
+              <h3 className="text-lg font-black text-foreground uppercase tracking-tight">Current Status</h3>
               <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-2xl">
                 {isVotingFuture 
-                  ? `Submission window closed. Municipal technical vetting is in progress. Public voting commences on ${format(new Date(cycle.voting_start_at), "MMMM d, yyyy")}.` 
-                  : "Democratic voting period has concluded. Algorithms are currently finalizing the selection based on public mandate."}
+                  ? `Submissions are closed. The city is now checking projects. Voting starts on ${format(new Date(cycle.voting_start_at), "MMMM d, yyyy")}.` 
+                  : "Voting has ended. We are now picking the final projects based on your votes."}
               </p>
             </div>
             <Badge variant="outline" className="relative z-10 h-8 px-4 bg-muted text-muted-foreground text-xs font-black uppercase tracking-widest rounded-full border-border">
@@ -263,12 +263,12 @@ export default function CycleDetailsPage() {
         <Tabs defaultValue={isFinalized ? "winners" : "all"} className="space-y-10">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 border-b border-border/50 pb-8">
             <TabsList className="h-12 p-1.5 bg-muted/40 border border-border rounded-xl">
-              <TabsTrigger value="all" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs">Registry</TabsTrigger>
+              <TabsTrigger value="all" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs">All Ideas</TabsTrigger>
               <TabsTrigger value="winners" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
                 <Trophy className="w-3.5 h-3.5 mr-2" /> 
                 Winners
               </TabsTrigger>
-              <TabsTrigger value="infrastructure" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs">Urban Core</TabsTrigger>
+              <TabsTrigger value="infrastructure" className="h-9 px-6 text-xs font-black uppercase tracking-widest data-[state=active]:bg-card data-[state=active]:shadow-xs">Infrastructure</TabsTrigger>
             </TabsList>
             
             <div className="flex items-center gap-6">
@@ -307,8 +307,8 @@ export default function CycleDetailsPage() {
             ) : (
               <div className="py-24 text-center bg-muted/5 border border-dashed border-border rounded-4xl">
                 <Trophy className="w-16 h-16 text-muted-foreground/20 mx-auto mb-6" />
-                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Finalizing Mandate</h3>
-                <p className="text-sm text-muted-foreground font-medium mt-2">The winners list will be populated once the validation process completes.</p>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Selecting Winners</h3>
+                <p className="text-sm text-muted-foreground font-medium mt-2">The winners list will be shown once the voting results are final.</p>
               </div>
             )}
           </TabsContent>
@@ -339,7 +339,7 @@ function ProposalGrid({
   if (proposals.length === 0) {
     return (
       <div className="py-24 text-center text-muted-foreground/40 text-xs font-black uppercase tracking-widest">
-        Registry empty for this segment.
+        No projects found.
       </div>
     );
   }
@@ -431,9 +431,9 @@ function ProposalGrid({
                <div className="pt-2 space-y-2.5">
                   <div className="flex justify-between items-end">
                     <div className="space-y-0.5">
-                      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Democratic Mandate</p>
+                      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Total Votes</p>
                       <p className={cn("text-xl font-black tracking-tighter tabular-nums leading-none", isWinner ? "text-accent" : "text-foreground")}>
-                        {proposal.vote_count} <span className="text-xs font-black text-muted-foreground/40 tracking-widest uppercase ml-1">Supporters</span>
+                        {proposal.vote_count} <span className="text-xs font-black text-muted-foreground/40 tracking-widest uppercase ml-1">Votes</span>
                       </p>
                     </div>
                     {isWinner && <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-black uppercase tracking-widest h-5">Project Funded</Badge>}
@@ -481,7 +481,7 @@ function ProposalGrid({
               {(isFinalized || !votingOpen) && (
                 <Button variant="outline" className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs border-border hover:bg-muted/50 group/btn shadow-xs active:scale-95 transition-all" asChild>
                    <Link href={`/citizen/participatory-budgeting/${proposal.cycle_id}/proposals/${proposal.id}`}>
-                     View Thesis & Context <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                     View Project Details <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                    </Link>
                 </Button>
               )}

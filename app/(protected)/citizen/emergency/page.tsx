@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   PhoneCall,
   ShieldAlert,
@@ -36,7 +35,6 @@ const PRIMARY_EMERGENCY = [
     number: "100",
     icon: ShieldAlert,
     color: "bg-primary",
-    shadow: "shadow-primary/40",
   },
   {
     id: "fire",
@@ -44,7 +42,6 @@ const PRIMARY_EMERGENCY = [
     number: "101",
     icon: Flame,
     color: "bg-destructive",
-    shadow: "shadow-destructive/40",
   },
   {
     id: "ambulance",
@@ -52,7 +49,6 @@ const PRIMARY_EMERGENCY = [
     number: "102",
     icon: Ambulance,
     color: "bg-primary",
-    shadow: "shadow-primary/40",
   },
 ];
 
@@ -60,71 +56,27 @@ const CONTACT_GROUPS = [
   {
     category: "Major Hospitals",
     contacts: [
-      {
-        name: "Western Regional Hospital",
-        number: "061-520461",
-        location: "Ramghat",
-      },
-      {
-        name: "Manipal Teaching Hospital",
-        number: "061-526416",
-        location: "Phulbari",
-      },
-      {
-        name: "Gandaki Medical College",
-        number: "061-538595",
-        location: "Prithvi Chowk",
-      },
-      {
-        name: "Charak Memorial Hospital",
-        number: "061-533333",
-        location: "Nayasarak",
-      },
+      { name: "Western Regional Hospital", number: "061-520461", location: "Ramghat" },
+      { name: "Manipal Teaching Hospital", number: "061-526416", location: "Phulbari" },
+      { name: "Gandaki Medical College", number: "061-538595", location: "Prithvi Chowk" },
+      { name: "Charak Memorial Hospital", number: "061-533333", location: "Nayasarak" },
     ],
   },
   {
     category: "Security & Disaster",
     contacts: [
-      {
-        name: "District Police (Kaski)",
-        number: "061-524081",
-        location: "Gairapatan",
-      },
-      {
-        name: "Tourist Police Pokhara",
-        number: "061-521087",
-        location: "Lakeside",
-      },
-      {
-        name: "Armed Police Force",
-        number: "061-520485",
-        location: "Kalikasthan",
-      },
-      {
-        name: "District Administration",
-        number: "061-520033",
-        location: "Sahid Chowk",
-      },
+      { name: "District Police (Kaski)", number: "061-524081", location: "Gairapatan" },
+      { name: "Tourist Police Pokhara", number: "061-521087", location: "Lakeside" },
+      { name: "Armed Police Force", number: "061-520485", location: "Kalikasthan" },
+      { name: "District Administration", number: "061-520033", location: "Sahid Chowk" },
     ],
   },
   {
     category: "Utilities & Services",
     contacts: [
-      {
-        name: "NEA (Electricity) Office",
-        number: "061-520144",
-        location: "Kundahar",
-      },
-      {
-        name: "Water Supply (NWSC)",
-        number: "061-520110",
-        location: "Bindhyabasini",
-      },
-      {
-        name: "Pokhara Metro Office",
-        number: "061-521105",
-        location: "New Road",
-      },
+      { name: "NEA (Electricity) Office", number: "061-520144", location: "Kundahar" },
+      { name: "Water Supply (NWSC)", number: "061-520110", location: "Bindhyabasini" },
+      { name: "Pokhara Metro Office", number: "061-521105", location: "New Road" },
     ],
   },
 ];
@@ -152,84 +104,69 @@ export default function EmergencyPage() {
   }, [searchQuery]);
 
   return (
-    <div className="min-h-screen bg-muted/50 pb-20 relative overflow-hidden">
-      <div className="absolute top-[-5%] left-[-10%] w-[600px] h-[600px] bg-destructive/5 rounded-full blur-3xl -z-10 pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
-
-      <div className="container mx-auto px-4 py-10 max-w-6xl relative z-10">
-        <header className="mb-12 text-center space-y-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 border border-destructive/20 text-destructive text-xs font-black uppercase tracking-wider shadow-sm"
-          >
-            <AlertTriangle className="h-4 w-4 animate-pulse" /> 24/7 Response
-            Center
-          </motion.div>
-          <h1 className="text-5xl lg:text-7xl font-black text-foreground tracking-tight leading-none">
+    <main className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+      <div className="space-y-8">
+        {/* Header */}
+        <header className="text-center space-y-4 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold uppercase tracking-widest shadow-xs">
+            <AlertTriangle className="h-4 w-4 animate-pulse" /> 24/7 Response Center
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight">
             Emergency <span className="text-destructive">Contacts</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-medium">
-            Immediate assistance for police, medical, or fire emergencies in
-            Pokhara Metropolitan City.
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+            Immediate assistance for police, medical, or fire emergencies in Pokhara Metropolitan City.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        {/* Primary Emergency Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {PRIMARY_EMERGENCY.map((item, idx) => (
-            <motion.div
+            <div
               key={item.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              whileHover={{ y: -8 }}
+              className="animate-fade-in"
+              style={{ animationDelay: `${idx * 100}ms` }}
             >
-              <Card
-                className={cn(
-                  "relative overflow-hidden border-0 rounded-[2.5rem] text-white shadow-2xl transition-all duration-300",
-                  item.color,
-                  item.shadow
-                )}
-              >
-                <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
-                  <div className="h-20 w-20 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner">
-                    <item.icon
-                      className="h-10 w-10 text-white"
-                      strokeWidth={2.5}
-                    />
+              <Card className={cn(
+                "relative overflow-hidden border-0 rounded-2xl text-primary-foreground shadow-xl transition-all duration-200 hover:shadow-2xl hover:-translate-y-0.5",
+                item.color
+              )}>
+                <CardContent className="p-5 sm:p-6 flex flex-col items-center text-center space-y-4">
+                  <div className="h-16 w-16 rounded-2xl bg-background/20 backdrop-blur-sm flex items-center justify-center">
+                    <item.icon className="h-8 w-8 text-primary-foreground" strokeWidth={2.5} />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-black uppercase tracking-widest opacity-80">
+                    <p className="text-xs font-bold uppercase tracking-widest opacity-80">
                       {item.title}
                     </p>
-                    <p className="text-5xl font-black tracking-tighter">
+                    <p className="text-4xl font-bold tracking-tighter">
                       {item.number}
                     </p>
                   </div>
                   <Button
                     asChild
-                    className="w-full h-14 rounded-2xl bg-background text-foreground hover:bg-muted font-black text-lg transition-transform active:scale-95"
+                    className="w-full h-12 rounded-xl bg-background text-foreground hover:bg-muted font-bold text-base transition-all duration-200 active:scale-[0.98]"
                   >
                     <a href={`tel:${item.number}`}>
-                      <PhoneCall className="mr-3 h-5 w-5 text-destructive" /> CALL
-                      NOW
+                      <PhoneCall className="mr-3 h-5 w-5 text-destructive" /> CALL NOW
                     </a>
                   </Button>
                 </CardContent>
-                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card/50 backdrop-blur-md p-6 rounded-4xl border border-border shadow-sm">
+            {/* Search Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card p-5 sm:p-6 rounded-2xl border border-border shadow-sm">
               <div className="relative flex-1 w-full max-w-md">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search hospital or department..."
-                  className="pl-12 h-12 rounded-xl border-border focus:ring-4 focus:ring-primary/10 bg-background"
+                  className="pl-12 h-11 rounded-xl border-border focus-visible:ring-ring bg-background"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -239,82 +176,77 @@ export default function EmergencyPage() {
               </div>
             </div>
 
-            <AnimatePresence mode="popLayout">
-              {filteredGroups.map((group) => (
-                <motion.section
-                  key={group.category}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-4"
-                >
-                  <h3 className="text-sm font-black text-muted-foreground uppercase tracking-[0.3em] ml-4">
-                    {group.category}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {group.contacts.map((contact) => (
-                      <Card
-                        key={contact.name}
-                        className="group rounded-3xl border-2 border-border bg-background hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
-                      >
-                        <CardContent className="p-6 flex items-center justify-between">
-                          <div className="flex items-center gap-4 min-w-0">
-                            <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                              {group.category.includes("Hospital") ? (
-                                <HeartPulse className="h-6 w-6" />
-                              ) : (
-                                <PhoneForwarded className="h-6 w-6" />
-                              )}
-                            </div>
-                            <div className="truncate">
-                              <p className="font-bold text-foreground truncate">
-                                {contact.name}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-primary font-black text-sm">
-                                  {contact.number}
-                                </span>
-                                <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-                                <span className="text-xs font-bold text-muted-foreground uppercase">
-                                  {contact.location}
-                                </span>
-                              </div>
+            {/* Contact Groups */}
+            {filteredGroups.map((group) => (
+              <section key={group.category} className="space-y-4 animate-fade-in">
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                  {group.category}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {group.contacts.map((contact) => (
+                    <Card
+                      key={contact.name}
+                      className="group rounded-2xl border border-border bg-card hover:border-primary/20 hover:shadow-md transition-all duration-200"
+                    >
+                      <CardContent className="p-5 sm:p-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-200">
+                            {group.category.includes("Hospital") ? (
+                              <HeartPulse className="h-5 w-5" />
+                            ) : (
+                              <PhoneForwarded className="h-5 w-5" />
+                            )}
+                          </div>
+                          <div className="truncate">
+                            <p className="font-medium text-foreground truncate text-sm">
+                              {contact.name}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-primary font-bold text-sm">
+                                {contact.number}
+                              </span>
+                              <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                              <span className="text-xs text-muted-foreground">
+                                {contact.location}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600"
-                              onClick={() => copyToClipboard(contact.number)}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              asChild
-                              size="icon"
-                              className="h-10 w-10 rounded-xl bg-slate-900 hover:bg-black text-white"
-                            >
-                              <a href={`tel:${contact.number}`}>
-                                <PhoneCall className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </motion.section>
-              ))}
-            </AnimatePresence>
+                        </div>
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-9 w-9 rounded-xl hover:bg-accent hover:text-accent-foreground"
+                            onClick={() => copyToClipboard(contact.number)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            asChild
+                            size="icon"
+                            className="h-9 w-9 rounded-xl bg-foreground hover:bg-foreground/90 text-background"
+                          >
+                            <a href={`tel:${contact.number}`}>
+                              <PhoneCall className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
 
+          {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-6">
-            <Card className="rounded-4xl border-0 bg-primary text-primary-foreground shadow-2xl overflow-hidden relative">
+            <Card className="rounded-2xl border-0 bg-primary text-primary-foreground shadow-xl overflow-hidden relative">
               <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Info className="h-24 w-24" />
+                <Info className="h-20 w-20" />
               </div>
               <CardHeader>
-                <CardTitle className="text-xl font-black tracking-tight">
+                <CardTitle className="text-lg font-bold tracking-tight">
                   Reporting Protocol
                 </CardTitle>
                 <CardDescription className="text-primary-foreground/70">
@@ -323,28 +255,16 @@ export default function EmergencyPage() {
               </CardHeader>
               <CardContent className="space-y-6 pt-2">
                 {[
-                  {
-                    step: "01",
-                    title: "Identify Location",
-                    desc: "Know your nearest landmark or ward number.",
-                  },
-                  {
-                    step: "02",
-                    title: "State Clearly",
-                    desc: "Briefly explain the type of emergency.",
-                  },
-                  {
-                    step: "03",
-                    title: "Stay Active",
-                    desc: "Keep your line clear for a callback.",
-                  },
+                  { step: "01", title: "Identify Location", desc: "Know your nearest landmark or ward number." },
+                  { step: "02", title: "State Clearly", desc: "Briefly explain the type of emergency." },
+                  { step: "03", title: "Stay Active", desc: "Keep your line clear for a callback." },
                 ].map((item) => (
                   <div key={item.step} className="flex gap-4 group">
-                    <span className="text-2xl font-black text-primary-foreground/30 group-hover:text-primary-foreground transition-colors">
+                    <span className="text-2xl font-bold text-primary-foreground/30 group-hover:text-primary-foreground transition-colors duration-200">
                       {item.step}
                     </span>
                     <div className="space-y-1">
-                      <p className="font-bold text-sm uppercase tracking-wider">
+                      <p className="font-semibold text-sm uppercase tracking-wider">
                         {item.title}
                       </p>
                       <p className="text-xs text-primary-foreground/70 leading-relaxed">
@@ -356,19 +276,19 @@ export default function EmergencyPage() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-4xl border-2 border-dashed border-border bg-background/50 p-8 text-center space-y-4">
-              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <MapPin className="h-6 w-6 text-primary" />
+            <Card className="rounded-2xl border-2 border-dashed border-border bg-card p-5 sm:p-6 text-center space-y-4">
+              <div className="mx-auto h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <MapPin className="h-5 w-5 text-primary" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-foreground">Ward Directory</h4>
+                <h4 className="font-semibold text-foreground text-sm">Ward Directory</h4>
                 <p className="text-xs text-muted-foreground">
                   Need specific ward officer contact information?
                 </p>
               </div>
               <Button
                 variant="outline"
-                className="w-full rounded-xl border-border font-bold bg-transparent"
+                className="w-full rounded-xl border-border font-medium bg-transparent"
                 asChild
               >
                 <a href="/citizen/wards">
@@ -379,6 +299,6 @@ export default function EmergencyPage() {
           </aside>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

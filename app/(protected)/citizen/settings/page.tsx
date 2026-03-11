@@ -289,7 +289,7 @@ export default function SettingsPage() {
                     
                     <div className="space-y-2">
                       <Label htmlFor="full_name_nepali">Name (Nepali)</Label>
-                      <Input id="full_name_nepali" {...register("full_name_nepali")} placeholder="नेपाली नाम" className="bg-slate-50/50 focus:bg-white transition-colors" />
+                      <Input id="full_name_nepali" {...register("full_name_nepali")} placeholder="नेपाली नाम" className="bg-muted/50 focus:bg-background transition-colors" />
                     </div>
                   </div>
 
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                         <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input id="email" value={userProfile?.email || ""} disabled className="pl-9 bg-muted text-muted-foreground cursor-not-allowed border-border" />
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1.5 px-1">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5 px-1">
                         <Lock className="h-3 w-3" />
                         Email cannot be changed directly
                       </div>
@@ -310,7 +310,7 @@ export default function SettingsPage() {
                       <Label htmlFor="phone">Phone Number</Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input id="phone" className="pl-9 bg-slate-50/50 focus:bg-white transition-colors" {...register("phone")} placeholder="98XXXXXXXX" />
+                        <Input id="phone" className="pl-9 bg-muted/50 focus:bg-background transition-colors" {...register("phone")} placeholder="98XXXXXXXX" />
                       </div>
                       {errors.phone && <p className="text-xs text-destructive font-medium mt-1">{errors.phone.message}</p>}
                     </div>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                            value={watch("gender") || ""} 
                            onValueChange={(val) => setValue("gender", val, { shouldDirty: true })}
                         >
-                           <SelectTrigger className="bg-slate-50/50 focus:bg-white transition-colors">
+                           <SelectTrigger className="bg-muted/50 focus:bg-background transition-colors">
                               <SelectValue placeholder="Select gender" />
                            </SelectTrigger>
                            <SelectContent>
@@ -340,8 +340,8 @@ export default function SettingsPage() {
                            value={watch("ward_id") || ""} 
                            onValueChange={(val) => setValue("ward_id", val, { shouldDirty: true })}
                         >
-                           <SelectTrigger className="pl-9 relative bg-slate-50/50 focus:bg-white transition-colors">
-                              <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                           <SelectTrigger className="pl-9 relative bg-muted/50 focus:bg-background transition-colors">
+                              <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                               {/* Display Name Override */}
                               <SelectValue placeholder="Select your ward">
                                  {currentWard ? `Ward ${currentWard.ward_number} - ${currentWard.name}` : "Select your ward"}
@@ -362,8 +362,8 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="address">Residential Address</Label>
                     <div className="relative">
-                       <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                       <Input id="address" className="pl-9 bg-slate-50/50 focus:bg-white transition-colors" {...register("address_line1")} placeholder="e.g. Khudi, Talchowk, Pokhara-30" />
+                       <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                       <Input id="address" className="pl-9 bg-muted/50 focus:bg-background transition-colors" {...register("address_line1")} placeholder="e.g. Khudi, Talchowk, Pokhara-30" />
                     </div>
                     {errors.address_line1 && <p className="text-xs text-destructive font-medium mt-1">{errors.address_line1.message}</p>}
                   </div>
@@ -420,7 +420,7 @@ export default function SettingsPage() {
         <TabsContent value="preferences" className="space-y-6 mt-6">
           {preferences ? (
              <div className="grid gap-6">
-                <Card className="border-slate-200 shadow-sm">
+                <Card className="border-border shadow-sm">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Bell className="h-5 w-5 text-accent" /> Notifications
@@ -442,7 +442,7 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between py-4">
                             <div className="space-y-0.5">
                                 <Label className="text-base font-medium text-foreground">SMS Notifications</Label>
-                                <p className="text-sm text-slate-500">Receive urgent updates via SMS.</p>
+                                <p className="text-sm text-muted-foreground">Receive urgent updates via SMS.</p>
                             </div>
                             <Switch 
                                 checked={preferences.sms_notifications}
@@ -453,7 +453,7 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between py-4">
                             <div className="space-y-0.5">
                                 <Label className="text-base font-medium text-foreground">Push Notifications</Label>
-                                <p className="text-sm text-slate-500">Receive instant alerts on your device.</p>
+                                <p className="text-sm text-muted-foreground">Receive instant alerts on your device.</p>
                             </div>
                             <Switch 
                                 checked={preferences.push_notifications}
@@ -470,11 +470,11 @@ export default function SettingsPage() {
                         </CardTitle>
                         <CardDescription>Select which events trigger a notification.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-0 divide-y divide-slate-100">
+                    <CardContent className="space-y-0 divide-y divide-border">
                         <div className="flex items-center justify-between py-4">
                             <div className="flex flex-col">
                                 <Label className="font-medium text-foreground">Complaint Updates</Label>
-                                <span className="text-xs text-slate-500">Status changes and new comments</span>
+                                <span className="text-xs text-muted-foreground">Status changes and new comments</span>
                             </div>
                             <Switch 
                                 checked={preferences.complaint_updates}
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between py-4">
                             <div className="flex flex-col">
                                 <Label className="font-medium text-foreground">New Bills</Label>
-                                <span className="text-xs text-slate-500">Tax invoices and utility bills</span>
+                                <span className="text-xs text-muted-foreground">Tax invoices and utility bills</span>
                             </div>
                             <Switch 
                                 checked={preferences.new_bills}
@@ -494,7 +494,7 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between py-4">
                             <div className="flex flex-col">
                                 <Label className="font-medium text-foreground">Public Notices</Label>
-                                <span className="text-xs text-slate-500">General announcements and ward news</span>
+                                <span className="text-xs text-muted-foreground">General announcements and ward news</span>
                             </div>
                             <Switch 
                                 checked={preferences.new_notices}

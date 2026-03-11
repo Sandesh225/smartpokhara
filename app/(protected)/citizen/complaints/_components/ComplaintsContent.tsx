@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, RefreshCw, Search, CheckCircle,
   Clock, FileText, Activity, Inbox, X, Fingerprint
@@ -30,31 +29,26 @@ interface StatProps {
 
 function StatCard({ label, value, icon: Icon, barColor, iconBg, iconColor, delay = 0 }: StatProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="relative bg-card border border-border rounded-2xl px-6 py-5 overflow-hidden
-        hover:-translate-y-1 hover:shadow-lg transition-all duration-400 group"
+    <div
+      className="relative bg-card border border-border rounded-2xl px-5 sm:px-6 py-5 overflow-hidden
+        hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group animate-fade-in"
+      style={{ animationDelay: `${delay * 1000}ms` }}
     >
       {/* Accent Line */}
-      <div className={cn("absolute left-0 inset-y-4 w-1 rounded-r-full transition-all duration-400 group-hover:w-1.5", barColor)} />
-
-      {/* Background Glow */}
-      <div className={cn("absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity", barColor)} />
+      <div className={cn("absolute left-0 inset-y-4 w-1 rounded-r-full transition-all duration-200 group-hover:w-1.5", barColor)} />
 
       <div className="flex items-center justify-between gap-4 pl-2 relative z-10">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">{label}</p>
-          <span className="text-3xl font-heading font-black text-foreground tabular-nums leading-none drop-shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">{label}</p>
+          <span className="text-2xl font-bold text-foreground tabular-nums leading-none">
             {value}
           </span>
         </div>
-        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-400 group-hover:scale-110", iconBg)}>
-          <Icon className={cn("w-6 h-6", iconColor)} />
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110", iconBg)}>
+          <Icon className={cn("w-5 h-5", iconColor)} />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -104,58 +98,58 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
     }, 380);
   };
 
-  // Strictly utilizing theme colors: Primary, Secondary, Accent, and Muted
   const STATS: StatProps[] = [
     { label: "Total Filed",   value: currentStats?.total       || 0, icon: FileText,    barColor: "bg-foreground",  iconBg: "bg-muted",          iconColor: "text-foreground",       delay: 0    },
-    { label: "Pending",       value: currentStats?.open        || 0, icon: Clock,       barColor: "bg-secondary",   iconBg: "bg-secondary",      iconColor: "text-secondary-foreground", delay: 0.1  },
-    { label: "In Progress",   value: currentStats?.in_progress || 0, icon: Activity,    barColor: "bg-accent",      iconBg: "bg-accent",         iconColor: "text-accent-foreground", delay: 0.2  },
-    { label: "Resolved",      value: currentStats?.resolved    || 0, icon: CheckCircle, barColor: "bg-primary",     iconBg: "bg-primary",        iconColor: "text-primary-foreground",  delay: 0.3  },
+    { label: "Pending",       value: currentStats?.open        || 0, icon: Clock,       barColor: "bg-secondary",   iconBg: "bg-secondary/10",   iconColor: "text-secondary",        delay: 0.05  },
+    { label: "In Progress",   value: currentStats?.in_progress || 0, icon: Activity,    barColor: "bg-accent",      iconBg: "bg-accent/10",      iconColor: "text-accent",           delay: 0.1  },
+    { label: "Resolved",      value: currentStats?.resolved    || 0, icon: CheckCircle, barColor: "bg-primary",     iconBg: "bg-primary/10",     iconColor: "text-primary",          delay: 0.15  },
   ];
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    // ✅ THE FIX: Standardized vertical spacing to match Dashboard exactly
+    <div className="space-y-6 sm:space-y-8 animate-fade-in w-full">
 
       {/* ── Page header ── */}
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between border-b border-border pb-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent border border-primary mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-3">
             <Fingerprint className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs font-bold uppercase tracking-wide text-primary">Citizen Portal</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-heading font-black text-foreground tracking-tight mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight mb-2">
             My Complaints
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground font-sans max-w-xl">
+          <p className="text-base text-muted-foreground max-w-xl">
             View, track, and manage all your filed reports in one secure place.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="inline-flex items-center gap-2 h-11 px-4 rounded-xl border border-border
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl border border-border
               bg-card text-sm font-semibold text-foreground shadow-sm
-              hover:bg-muted hover:border-primary transition-all duration-300 active:scale-95 disabled:opacity-50"
+              hover:bg-muted hover:border-primary/50 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
           >
-            <RefreshCw className={cn("w-4 h-4 text-muted-foreground", isRefetching && "animate-spin text-primary")} />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw className={cn("w-4 h-4 transition-transform", isRefetching ? "animate-spin text-primary" : "text-muted-foreground")} />
+            <span className="hidden sm:inline">Refresh Data</span>
           </button>
 
           <button
             onClick={() => router.push("/citizen/complaints/new")}
-            className="inline-flex items-center gap-2 h-11 px-6 rounded-xl
-              bg-primary text-primary-foreground text-sm font-bold shadow-md shadow-primary/20
-              hover:opacity-90 hover:shadow-lg transition-all duration-300 active:scale-95"
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl
+              bg-primary text-primary-foreground text-sm font-semibold shadow-sm
+              hover:opacity-90 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             New Complaint
           </button>
         </div>
-      </div>
+      </header>
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {STATS.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
@@ -163,7 +157,7 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
       <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
 
         {/* Toolbar */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 py-5 border-b border-border bg-muted/10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-5 sm:px-6 py-4 border-b border-border bg-muted/30">
 
           {/* Search */}
           <div className="relative flex-1 sm:max-w-md group">
@@ -174,8 +168,8 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
               placeholder="Search by title or tracking ID…"
               className="w-full h-10 pl-10 pr-10 rounded-xl border border-input bg-background
                 text-sm font-medium text-foreground placeholder:text-muted-foreground
-                focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
-                transition-all shadow-inner-sm"
+                focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary
+                transition-all shadow-sm"
             />
             {search && (
               <button
@@ -189,7 +183,7 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
 
           {/* Right meta */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent border border-primary">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 shadow-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -198,8 +192,8 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
             </div>
 
             {total > 0 && !isLoading && (
-              <div className="flex items-center px-3 py-1.5 rounded-lg bg-muted border border-border">
-                <span className="text-xs font-bold text-muted-foreground">
+              <div className="flex items-center px-3 py-1.5 rounded-lg bg-card border border-border shadow-sm">
+                <span className="text-xs font-semibold text-muted-foreground">
                   {total.toLocaleString()} {total !== 1 ? "Records" : "Record"}
                 </span>
               </div>
@@ -208,69 +202,57 @@ export function ComplaintsContent({ initialUserId, initialStats, initialComplain
         </div>
 
         {/* Table / States */}
-        <AnimatePresence mode="wait">
+        {/* Loading skeleton */}
+        {isLoading && !complaints.length && (
+          <div className="space-y-3 p-5 sm:p-6 animate-fade-in">
+            {[...Array(6)].map((_, i) => (
+              <Pulse key={i} className="h-16 rounded-xl" style={{ opacity: 1 - i * 0.12 }} />
+            ))}
+          </div>
+        )}
 
-          {/* Loading skeleton */}
-          {isLoading && !complaints.length && (
-            <motion.div key="loading"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <div className="space-y-3 p-6">
-                {[...Array(6)].map((_, i) => (
-                  <Pulse key={i} className="h-16 rounded-xl" style={{ opacity: 1 - i * 0.12 }} />
-                ))}
-              </div>
-            </motion.div>
-          )}
+        {/* Empty state */}
+        {!isLoading && complaints.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 px-6 text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center mb-5 shadow-sm">
+              <Inbox className="w-8 h-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground mb-2">
+              {search ? "No results found" : "No complaints yet"}
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
+              {search
+                ? `We couldn't find anything matching "${search}". Try a different keyword.`
+                : "You haven't filed any complaints yet. Submit your first one to help us protect the city together."}
+            </p>
+            {!search && (
+              <button
+                onClick={() => router.push("/citizen/complaints/new")}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl
+                  border border-border bg-card text-sm font-semibold text-foreground
+                  hover:bg-muted hover:border-primary/50 transition-all duration-200 shadow-sm"
+              >
+                <Plus className="w-4 h-4 text-primary" />
+                File First Complaint
+              </button>
+            )}
+          </div>
+        )}
 
-          {/* Empty state */}
-          {!isLoading && complaints.length === 0 && (
-            <motion.div key="empty"
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-col items-center justify-center py-24 px-6 text-center"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-accent border border-primary flex items-center justify-center mb-6 shadow-sm">
-                <Inbox className="w-7 h-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-heading font-bold text-foreground mb-2">
-                {search ? "No results found" : "No complaints yet"}
-              </h3>
-              <p className="text-sm sm:text-base text-muted-foreground max-w-sm mb-8 leading-relaxed">
-                {search
-                  ? `We couldn't find anything matching "${search}". Please try a different keyword or Tracking ID.`
-                  : "You haven't filed any complaints yet. Submit your first one to help us protect the city together."}
-              </p>
-              {!search && (
-                <button
-                  onClick={() => router.push("/citizen/complaints/new")}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl
-                    border-2 border-primary bg-background text-sm font-bold text-primary
-                    hover:bg-primary hover:text-primary-foreground transition-all duration-300 shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  File First Complaint
-                </button>
-              )}
-            </motion.div>
-          )}
-
-          {/* Data table */}
-          {complaints.length > 0 && (
-            <motion.div key="table"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <ComplaintsTable
-                complaints={complaints}
-                total={total}
-                isLoading={isLoading}
-                currentPage={page}
-                pageSize={pageSize}
-                onPageChange={p => { setPage(p); updateParams({ page: p.toString() }); }}
-                onSortChange={(col, ord) => { updateParams({ sortBy: col, sortOrder: ord }); }}
-              />
-            </motion.div>
-          )}
-
-        </AnimatePresence>
+        {/* Data table */}
+        {complaints.length > 0 && (
+          <div className="animate-fade-in">
+            <ComplaintsTable
+              complaints={complaints}
+              total={total}
+              isLoading={isLoading}
+              currentPage={page}
+              pageSize={pageSize}
+              onPageChange={p => { setPage(p); updateParams({ page: p.toString() }); }}
+              onSortChange={(col, ord) => { updateParams({ sortBy: col, sortOrder: ord }); }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

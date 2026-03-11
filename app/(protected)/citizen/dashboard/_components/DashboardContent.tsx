@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, ReactNode } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   RefreshCw,
@@ -8,20 +8,29 @@ import {
   Clock,
   Activity,
   CheckCircle2,
-  ShieldCheck,
   MapPin,
   Sun,
   Moon,
   ArrowRight
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { UniversalStatCard } from "@/components/shared/UniversalStatCard";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import QuickActions from "./QuickActions";
-import RecentComplaints from "./RecentComplaints";
-import RecentNotices from "./RecentNotices";
-import PendingBills from "./PendingBills";
 import { CurrentTime } from "./CurrentTime";
+
+// Dynamic Imports for Performance
+const QuickActions = dynamic(() => import("./QuickActions"), { 
+  loading: () => <div className="h-48 bg-muted/20 animate-pulse rounded-2xl" /> 
+});
+const RecentComplaints = dynamic(() => import("./RecentComplaints"), {
+  loading: () => <div className="h-96 bg-muted/20 animate-pulse rounded-2xl" />
+});
+const RecentNotices = dynamic(() => import("./RecentNotices"), {
+  loading: () => <div className="h-64 bg-muted/20 animate-pulse rounded-2xl" />
+});
+const PendingBills = dynamic(() => import("./PendingBills"), {
+  loading: () => <div className="h-48 bg-muted/20 animate-pulse rounded-2xl" />
+});
 
 interface DashboardContentProps {
   profile: {
@@ -40,19 +49,6 @@ interface DashboardContentProps {
     resolved: number;
   };
 }
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 15 },
-  visible: (i = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { 
-      duration: 0.5, 
-      delay: i * 0.1, 
-      ease: [0.22, 1, 0.36, 1] as any 
-    },
-  }),
-};
 
 export function DashboardContent({ 
   profile, 
@@ -115,149 +111,127 @@ export function DashboardContent({
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    // ✅ Supreme Consistency: Strict max-w-7xl, gap-8 layout
+ <main className="w-full flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6 sm:space-y-8 animate-fade-in">
 
-        {/* ── Header ── */}
-        <motion.div
-          variants={fadeUp} initial="hidden" animate="visible" custom={0}
-          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 pb-8 border-b border-border"
-        >
-          <div className="space-y-4">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 mb-3 shadow-sm">
-                <GreetIcon className="w-4 h-4 text-accent" />
-                <span className="font-heading text-xs font-black uppercase tracking-widest text-accent">
-                  {greeting.label}
-                </span>
-              </div>
-              <h1 className="font-heading text-4xl sm:text-5xl font-black text-foreground tracking-tight">
-                {profile.name}
-              </h1>
-            </div>
-            
-            <div className="font-sans flex flex-wrap items-center gap-4 sm:gap-6 text-sm font-medium text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <div className="p-1.5 bg-card rounded-lg border border-border shadow-sm">
-                  <MapPin className="w-4 h-4 text-secondary" />
-                </div>
-                {profile.wardName
-                  ? `${profile.wardName} · Ward ${profile.wardNumber}`
-                  : "Pokhara Metropolitan"}
+      {/* ── Header ── */}
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 pb-6 border-b border-border">
+        <div className="space-y-3">
+          <div>
+            {/* ✅ Fix: Changed from text-accent to text-primary so it's always visible! */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-3 shadow-sm">
+              <GreetIcon className="w-4 h-4 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">
+                {greeting.label}
               </span>
-              <CurrentTime />
             </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+              {profile.name}
+            </h1>
           </div>
-
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="inline-flex items-center justify-center h-12 px-6 rounded-xl border border-border bg-card text-sm font-heading font-bold text-foreground shadow-sm hover:bg-muted hover:border-border transition-all duration-300 active:scale-95 disabled:opacity-50"
-          >
-            <RefreshCw className={cn("w-4 h-4 mr-2.5 text-muted-foreground", isRefreshing && "animate-spin text-primary")} />
-            Refresh Data
-          </button>
-        </motion.div>
-
-        {/* ── Active Alert Banner ── */}
-        <AnimatePresence>
-          {activeCount > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-2xl border border-primary/10 bg-primary/5 shadow-inner-sm">
-                <div className="flex items-center gap-4">
-                  <div className="relative flex items-center justify-center shrink-0">
-                    <div className="absolute inset-0 bg-primary/40 rounded-full animate-ping" />
-                    <div className="relative w-3 h-3 rounded-full bg-primary shadow-lg shadow-primary/50" />
-                  </div>
-                  <p className="font-sans text-sm text-foreground">
-                    You currently have <span className="font-heading font-black text-primary text-base mx-1">{activeCount}</span>
-                    {activeCount === 1 ? "request" : "requests"} in progress.
-                  </p>
-                </div>
-                <button
-                  onClick={() => router.push("/citizen/complaints")}
-                  className="group inline-flex items-center font-heading text-sm font-bold text-primary hover:text-primary transition-colors"
-                >
-                  Track Progress
-                  <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
-                </button>
+          
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm font-medium text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <div className="p-1.5 bg-muted rounded-lg border border-border shadow-sm">
+                <MapPin className="w-4 h-4 text-secondary" />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Stats Row ── */}
-        <section aria-label="Request statistics">
-          <motion.div
-            variants={fadeUp} initial="hidden" animate="visible" custom={1}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 perf-card"
-          >
-            {statCards.map((stat) => (
-              <UniversalStatCard
-                key={stat.id}
-                icon={stat.icon}
-                label={stat.label}
-                value={stat.value}
-                onClick={() => router.push(`/citizen/complaints?status=${stat.id}`)}
-                iconClassName={stat.iconClassName}
-              />
-            ))}
-          </motion.div>
-        </section>
-
-        {/* ── Quick Actions ── */}
-        <motion.section
-          variants={fadeUp} initial="hidden" animate="visible" custom={2}
-          aria-labelledby="quick-actions-heading"
-        >
-          <div className="mb-6">
-            <h2 id="quick-actions-heading" className="font-heading text-lg font-extrabold text-foreground tracking-tight">
-              Civic Services
-            </h2>
-            <p className="font-sans text-sm text-muted-foreground mt-1">
-              Quick access to essential municipal services and portals.
-            </p>
-          </div>
-          <QuickActions
-            complaintsCount={stats.total}
-            pendingBillsCount={bills.length}
-          />
-        </motion.section>
-
-        {/* ── Main Content Grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <motion.div
-            variants={fadeUp} initial="hidden" animate="visible" custom={3}
-            className="lg:col-span-2"
-          >
-            <section aria-label="Recent complaint activity">
-              <RecentComplaints complaints={complaints} />
-            </section>
-          </motion.div>
-
-          <div className="space-y-6 lg:space-y-8">
-            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} className="perf-offscreen">
-              <section aria-label="Public announcements">
-                <RecentNotices notices={notices} />
-              </section>
-            </motion.div>
-            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5} className="perf-offscreen">
-              <section aria-label="Pending financial obligations">
-                <PendingBills
-                  bills={bills}
-                  totalPendingAmount={totalPendingAmount}
-                />
-              </section>
-            </motion.div>
+              {profile.wardName
+                ? `${profile.wardName} · Ward ${profile.wardNumber}`
+                : "Pokhara Metropolitan"}
+            </span>
+            <CurrentTime />
           </div>
         </div>
 
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="inline-flex items-center justify-center h-11 px-5 rounded-xl border border-border bg-card text-sm font-semibold text-foreground shadow-sm hover:bg-muted hover:border-primary/50 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 shrink-0"
+        >
+          <RefreshCw className={cn("w-4 h-4 mr-2 transition-transform", isRefreshing ? "animate-spin text-primary" : "text-muted-foreground")} />
+          Refresh Data
+        </button>
+      </header>
+
+      {/* ── Active Alert Banner ── */}
+      {activeCount > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl border border-primary/20 bg-card shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="relative flex items-center justify-center shrink-0">
+              <div className="absolute inset-0 bg-primary/40 rounded-full animate-ping" />
+              <div className="relative w-3.5 h-3.5 rounded-full bg-primary shadow-lg shadow-primary/50" />
+            </div>
+            <p className="text-sm text-foreground font-medium">
+              You currently have <span className="font-bold text-primary text-base mx-1">{activeCount}</span>
+              {activeCount === 1 ? "request" : "requests"} in progress.
+            </p>
+          </div>
+          <button
+            onClick={() => router.push("/citizen/complaints")}
+            className="group inline-flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+          >
+            Track Progress
+            <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform duration-200" />
+          </button>
+        </div>
+      )}
+
+      {/* ── Stats Row ── */}
+      <section aria-label="Request statistics">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {statCards.map((stat) => (
+            <UniversalStatCard
+              key={stat.id}
+              icon={stat.icon}
+              label={stat.label}
+              value={stat.value}
+              onClick={() => router.push(`/citizen/complaints?status=${stat.id}`)}
+              iconClassName={stat.iconClassName}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Quick Actions ── */}
+      <section aria-labelledby="quick-actions-heading">
+        <div className="mb-6 space-y-1">
+          <h2 id="quick-actions-heading" className="text-2xl font-bold text-foreground tracking-tight">
+            Civic Services
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Quick access to essential municipal services and portals.
+          </p>
+        </div>
+        <QuickActions
+          complaintsCount={stats.total}
+          pendingBillsCount={bills.length}
+        />
+      </section>
+
+      {/* ── Main Content Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div className="lg:col-span-2">
+          <section aria-label="Recent complaint activity">
+            <RecentComplaints complaints={complaints} />
+          </section>
+        </div>
+
+        <div className="space-y-8">
+          <section aria-label="Public announcements">
+            <RecentNotices notices={notices} />
+          </section>
+          
+          <section aria-label="Pending financial obligations">
+            <PendingBills
+              bills={bills}
+              totalPendingAmount={totalPendingAmount}
+            />
+          </section>
+        </div>
+        
       </div>
-    </div>
+
+    </main>
   );
 }

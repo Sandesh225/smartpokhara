@@ -3,14 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "node scripts/migrate.js migrate",
-    "db:seed": "node --env-file=.env.local scripts/seed.mjs seed",
-    "db:reset": "node scripts/reset.js reset",
-    "db:seed-complaints": "node scripts/seed-sample-complaints.js seed-complaints"
+    "db:seed": "node --env-file=.env.local scripts/seed.mjs seed"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -32,7 +29,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.23.24",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.0.0",
     "lucide-react": "^0.554.0",

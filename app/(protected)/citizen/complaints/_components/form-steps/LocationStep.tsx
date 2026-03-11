@@ -80,9 +80,9 @@ export function LocationStep({ wards }: LocationStepProps) {
       {/* Header with Auto-fill Button */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-border">
         <div className="space-y-1.5">
-          <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Zone Assignment</h2>
+          <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Where is the issue?</h2>
           <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-            Specify the geographic coordinates or sector for resolution.
+            Tell us where exactly this is happening.
           </p>
         </div>
 
@@ -97,14 +97,14 @@ export function LocationStep({ wards }: LocationStepProps) {
           ) : (
             <Home className="w-3.5 h-3.5" />
           )}
-          Import Profile Vectors
+          Use my home address
         </button>
       </div>
 
       {/* Sector Selection */}
       <div className="space-y-3">
         <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
-          Assigned Ward <span className="text-primary ml-1">•</span>
+          Ward Number <span className="text-primary ml-1">•</span>
         </label>
         <Controller
           name="ward_id"
@@ -115,10 +115,10 @@ export function LocationStep({ wards }: LocationStepProps) {
                 {...field}
                 className="w-full h-12 px-5 rounded-xl border border-border bg-background text-sm font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all group-hover:border-primary/20"
               >
-                <option value="">Select Sector Specification...</option>
+                <option value="">Select your ward...</option>
                 {wards.map((ward) => (
                   <option key={ward.id} value={ward.id}>
-                    Sector 0{ward.ward_number} — {ward.name}
+                    Ward {ward.ward_number} — {ward.name}
                   </option>
                 ))}
               </select>
@@ -139,7 +139,7 @@ export function LocationStep({ wards }: LocationStepProps) {
       {/* Address */}
       <div className="space-y-3">
         <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
-          Detailed Location Identity <span className="text-primary ml-1">•</span>
+          Address / Landmark <span className="text-primary ml-1">•</span>
         </label>
         <Controller
           name="address_text"
@@ -149,7 +149,7 @@ export function LocationStep({ wards }: LocationStepProps) {
               <textarea
                 {...field}
                 rows={4}
-                placeholder="Enter street name, landmark markers, or specific operational zone data..."
+                placeholder="Street name, nearby shops, or house number..."
                 className="w-full px-6 py-4 rounded-2xl border border-border bg-background text-sm font-bold uppercase tracking-widest placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all group-hover:border-primary/20"
               />
               {/* Magic Wand Hint */}
@@ -183,10 +183,10 @@ export function LocationStep({ wards }: LocationStepProps) {
           </div>
           <div className="space-y-1.5">
             <h4 className="text-xs font-black uppercase tracking-widest text-foreground">
-              Geospatial Vectoring <span className="text-muted-foreground/40 font-bold ml-1">(Optional)</span>
+              GPS Location <span className="text-muted-foreground/40 font-bold ml-1">(Optional)</span>
             </h4>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed opacity-60 max-w-sm">
-              Attaching precise GPS telemetry facilitates high-accuracy resolution. Coordinates will be requested upon final submission.
+              Sharing your exact location helps us find the problem faster. We&apos;ll ask for your GPS location when you submit.
             </p>
           </div>
         </div>

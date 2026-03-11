@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   Filter,
   Search,
@@ -10,7 +9,6 @@ import {
   Zap,
   EyeOff,
   Tag,
-  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,31 +24,11 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 const NOTICE_CATEGORIES = [
-  {
-    value: "announcement",
-    label: "Public Announcement",
-    icon: "📢",
-  },
-  {
-    value: "emergency",
-    label: "Emergency Alert",
-    icon: "🚨",
-  },
-  {
-    value: "tender",
-    label: "Procurement & Tenders",
-    icon: "📋",
-  },
-  {
-    value: "event",
-    label: "City Events",
-    icon: "🎉",
-  },
-  {
-    value: "vacancy",
-    label: "Job Vacancies",
-    icon: "💼",
-  },
+  { value: "announcement", label: "Public Announcement", icon: "📢" },
+  { value: "emergency", label: "Emergency Alert", icon: "🚨" },
+  { value: "tender", label: "Procurement & Tenders", icon: "📋" },
+  { value: "event", label: "City Events", icon: "🎉" },
+  { value: "vacancy", label: "Job Vacancies", icon: "💼" },
 ];
 
 export default function NoticeFilters({ onFilterChange, initialFilters, wards }: any) {
@@ -70,45 +48,26 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
   };
 
   const resetFilters = () => {
-    const reset = {
-      search: "",
-      ward: "",
-      type: "",
-      unreadOnly: false,
-      urgentOnly: false,
-    };
+    const reset = { search: "", ward: "", type: "", unreadOnly: false, urgentOnly: false };
     setFilters(reset);
     onFilterChange(reset);
   };
 
   const activeFiltersCount = [
-    filters.search,
-    filters.ward,
-    filters.type,
-    filters.unreadOnly,
-    filters.urgentOnly,
+    filters.search, filters.ward, filters.type, filters.unreadOnly, filters.urgentOnly,
   ].filter(Boolean).length;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-3">
-          <motion.div
-            whileHover={{ rotate: 90 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-sm"
-          >
+          <div className="p-2.5 rounded-xl bg-primary/10 text-primary shadow-xs">
             <Filter className="w-5 h-5" />
-          </motion.div>
+          </div>
           <div>
-            <h2 className="font-black text-base uppercase tracking-tight text-foreground">
-              Filter Registry
+            <h2 className="font-bold text-base text-foreground">
+              Filters
             </h2>
             {activeFiltersCount > 0 && (
               <p className="text-xs text-muted-foreground font-medium">
@@ -123,7 +82,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
             variant="ghost"
             size="sm"
             onClick={resetFilters}
-            className="h-9 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors rounded-xl"
+            className="h-9 text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors rounded-xl"
           >
             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Clear
           </Button>
@@ -131,11 +90,11 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
       </div>
 
       {/* Filters Panel */}
-      <div className="glass p-6 rounded-4xl border border-border/50 shadow-xl space-y-6">
+      <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-sm space-y-6">
         {/* Search Input */}
-        <div className="space-y-3">
-          <Label className="text-xs font-black uppercase text-muted-foreground tracking-wider ml-1">
-            Search Query
+        <div className="space-y-2">
+          <Label className="text-xs font-medium uppercase text-muted-foreground tracking-wider ml-1">
+            Search
           </Label>
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none" />
@@ -143,86 +102,74 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
               placeholder="Title, ID, or keywords..."
               value={filters.search}
               onChange={(e) => handleUpdate({ search: e.target.value })}
-              className="pl-11 pr-4 bg-background border-border rounded-2xl h-12 text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary/20 transition-all placeholder:text-muted-foreground/50"
+              className="pl-11 pr-4 bg-background border-border rounded-xl h-11 text-sm font-medium focus-visible:ring-ring transition-all"
             />
           </div>
         </div>
 
-        {/* Categorization Section */}
-        <div className="space-y-5 pt-2">
-          {/* Ward Selection */}
-          <div className="space-y-3">
-            <Label className="text-xs font-black uppercase text-muted-foreground tracking-wider ml-1">
-              Jurisdiction
-            </Label>
-            <Select
-              value={filters.ward || "all"}
-              onValueChange={(v) => handleUpdate({ ward: v === "all" ? "" : v })}
-            >
-              <SelectTrigger className="bg-background border-border rounded-2xl h-12 font-bold hover:border-primary/50 transition-all">
-                <div className="flex items-center gap-2.5">
-                  <MapPin className="w-4 h-4 text-primary dark:text-primary" />
-                  <SelectValue placeholder="Metropolitan Wide" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-border max-h-[300px]">
-                <SelectItem value="all" className="font-bold rounded-xl">
-                  🏛️ Metropolitan Wide
+        {/* Ward Selection */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium uppercase text-muted-foreground tracking-wider ml-1">
+            Ward
+          </Label>
+          <Select
+            value={filters.ward || "all"}
+            onValueChange={(v) => handleUpdate({ ward: v === "all" ? "" : v })}
+          >
+            <SelectTrigger className="bg-background border-border rounded-xl h-11 font-medium hover:border-primary/40 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <MapPin className="w-4 h-4 text-primary" />
+                <SelectValue placeholder="All Wards" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-border max-h-[300px]">
+              <SelectItem value="all" className="font-medium rounded-lg">
+                🏛️ All Wards
+              </SelectItem>
+              {wards?.map((w: any) => (
+                <SelectItem key={w.id} value={w.ward_number.toString()} className="rounded-lg">
+                  Ward {w.ward_number.toString().padStart(2, "0")} — {w.name_en}
                 </SelectItem>
-                {wards?.map((w: any) => (
-                  <SelectItem
-                    key={w.id}
-                    value={w.ward_number.toString()}
-                    className="rounded-xl"
-                  >
-                    <span className="font-medium">
-                      Ward {w.ward_number.toString().padStart(2, "0")}
-                    </span>
-                    <span className="text-muted-foreground ml-2">
-                      — {w.name_en}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          {/* Category Selection */}
-          <div className="space-y-3">
-            <Label className="text-xs font-black uppercase text-muted-foreground tracking-wider ml-1">
-              Bulletin Type
-            </Label>
-            <Select
-              value={filters.type || "all"}
-              onValueChange={(v) => handleUpdate({ type: v === "all" ? "" : v })}
-            >
-              <SelectTrigger className="bg-background dark:bg-background border-border dark:border-border rounded-2xl h-12 font-bold hover:border-primary/50 transition-all">
-                <div className="flex items-center gap-2.5">
-                  <Tag className="w-4 h-4 text-secondary" />
-                  <SelectValue placeholder="All Categories" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-border dark:border-border">
-                <SelectItem value="all" className="font-bold rounded-xl">
-                  📁 All Categories
+        {/* Category Selection */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium uppercase text-muted-foreground tracking-wider ml-1">
+            Category
+          </Label>
+          <Select
+            value={filters.type || "all"}
+            onValueChange={(v) => handleUpdate({ type: v === "all" ? "" : v })}
+          >
+            <SelectTrigger className="bg-background border-border rounded-xl h-11 font-medium hover:border-primary/40 transition-colors">
+              <div className="flex items-center gap-2.5">
+                <Tag className="w-4 h-4 text-secondary" />
+                <SelectValue placeholder="All Categories" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-border">
+              <SelectItem value="all" className="font-medium rounded-lg">
+                📁 All Categories
+              </SelectItem>
+              {NOTICE_CATEGORIES.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value} className="rounded-lg">
+                  <span className="mr-2">{cat.icon}</span>
+                  {cat.label}
                 </SelectItem>
-                {NOTICE_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value} className="rounded-xl">
-                    <span className="mr-2">{cat.icon}</span>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Quick Toggles */}
-        <div className="pt-4 space-y-3">
-          <Label className="text-xs font-black uppercase text-muted-foreground tracking-wider ml-1">
+        <div className="pt-2 space-y-2">
+          <Label className="text-xs font-medium uppercase text-muted-foreground tracking-wider ml-1">
             Quick Filters
           </Label>
-          <div className="bg-muted/30 rounded-2xl p-2 border border-border/50 space-y-1.5">
+          <div className="bg-muted/30 rounded-xl p-2 border border-border/50 space-y-1.5">
             <ToggleRow
               icon={EyeOff}
               label="Unread Only"
@@ -243,12 +190,7 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
       </div>
 
       {/* Info Box */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="px-5 py-4 rounded-2xl bg-primary/5 border border-primary/20"
-      >
+      <div className="px-5 py-4 rounded-xl bg-primary/5 border border-primary/20 animate-fade-in">
         <div className="flex gap-3">
           <div className="mt-0.5">
             <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -256,56 +198,41 @@ export default function NoticeFilters({ onFilterChange, initialFilters, wards }:
             </div>
           </div>
           <div>
-            <p className="text-xs font-bold text-foreground mb-1">Pro Tip</p>
+            <p className="text-xs font-semibold text-foreground mb-1">Pro Tip</p>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Urgent notices are highlighted with a red accent and pulse
-              animation for immediate attention.
+              Urgent notices are highlighted with a red accent for immediate attention.
             </p>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
 function ToggleRow({ icon: Icon, label, description, checked, onChange }: any) {
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <div
       className={cn(
-        "flex items-center justify-between p-3.5 rounded-xl transition-all cursor-pointer group",
+        "flex items-center justify-between p-3 rounded-xl transition-all duration-200 cursor-pointer group",
         checked
-          ? "bg-background shadow-sm border border-border/50"
+          ? "bg-background shadow-xs border border-border/50"
           : "hover:bg-background/50 text-muted-foreground"
       )}
       onClick={() => onChange(!checked)}
     >
       <div className="flex items-center gap-3">
-        <motion.div
-          animate={{
-            scale: checked ? 1 : 0.9,
-            backgroundColor: checked
-              ? "rgb(var(--foreground))"
-              : "rgb(var(--muted))",
-          }}
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        <div
           className={cn(
-            "p-2 rounded-xl transition-colors",
+            "p-2 rounded-xl transition-colors duration-200",
             checked
-              ? "text-background dark:text-background"
-              : "text-muted-foreground"
+              ? "bg-foreground text-background"
+              : "bg-muted text-muted-foreground"
           )}
         >
           <Icon className="w-4 h-4" />
-        </motion.div>
+        </div>
         <div>
-          <p
-            className={cn(
-              "text-sm font-bold transition-colors",
-              checked ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
+          <p className={cn("text-sm font-medium transition-colors", checked ? "text-foreground" : "text-muted-foreground")}>
             {label}
           </p>
           <p className="text-xs text-muted-foreground/70">{description}</p>
@@ -314,8 +241,8 @@ function ToggleRow({ icon: Icon, label, description, checked, onChange }: any) {
       <Switch
         checked={checked}
         onCheckedChange={onChange}
-        className="data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary"
+        className="data-[state=checked]:bg-primary"
       />
-    </motion.div>
+    </div>
   );
 }

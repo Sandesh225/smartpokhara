@@ -1,4 +1,3 @@
-// tailwind.config.ts - Enhanced for Staff Portal Dark Mode
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -11,87 +10,6 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-
-        primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
-          brand: {
-            DEFAULT: "rgb(var(--primary-brand-raw))",
-            light: "rgb(var(--primary-brand-light-raw))",
-            dark: "rgb(var(--primary-brand-dark-raw))",
-          },
-        },
-
-        secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
-        },
-
-        accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
-          nature: "rgb(var(--accent-nature-raw))",
-        },
-
-        muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
-        },
-
-        card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
-        },
-
-        popover: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
-        },
-
-        sidebar: {
-          DEFAULT: "var(--sidebar)",
-          foreground: "var(--sidebar-foreground)",
-          border: "var(--sidebar-border)",
-          accent: "var(--sidebar-accent)",
-        },
-
-        destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
-        },
-
-        border: "var(--border)",
-        input: "var(--input)",
-        ring: "var(--ring)",
-
-      },
-
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-        xl: "0.75rem",
-        "2xl": "1rem",
-        "3xl": "1.5rem",
-      },
-
-      fontFamily: {
-        sans: [
-          "var(--font-sans)",
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
-          "sans-serif",
-        ],
-        heading: ["var(--font-heading)", "sans-serif"],
-      },
-
       keyframes: {
         fadeIn: {
           from: { opacity: "0", transform: "translateY(20px)" },
@@ -126,7 +44,6 @@ const config: Config = {
           "50%": { opacity: "0.7" },
         },
       },
-
       animation: {
         "fade-in": "fadeIn 0.6s ease-out forwards",
         "slide-in-left": "slideInFromLeft 0.5s ease-out forwards",
@@ -137,44 +54,6 @@ const config: Config = {
         in: "fadeIn 0.2s ease-out",
         shimmer: "shimmer 2s linear infinite",
         pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-      },
-
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "linear-to-r": "linear-gradient(to right, var(--tw-gradient-stops))",
-        "linear-to-br":
-          "linear-gradient(to bottom right, var(--tw-gradient-stops))",
-      },
-
-      boxShadow: {
-        "inner-sm": "inset 0 1px 2px 0 var(--border)",
-        "inner-lg": "inset 0 2px 4px 0 var(--border)",
-      },
-
-      container: {
-        center: true,
-        padding: {
-          DEFAULT: "1rem",
-          sm: "1.5rem",
-          lg: "2rem",
-        },
-        screens: {
-          "2xl": "1400px",
-        },
-      },
-
-      backdropBlur: {
-        xs: "2px",
-      },
-
-      transitionDuration: {
-        "400": "400ms",
-      },
-
-      scale: {
-        "102": "1.02",
       },
     },
   },

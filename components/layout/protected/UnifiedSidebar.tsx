@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, X, Shield, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavItem } from "@/lib/config/navigation";
@@ -67,17 +66,28 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
                   </div>
                   <ChevronDown className={cn("h-4 w-4 transition-transform", isDropdownOpen && "rotate-180")} />
                 </button>
-                <AnimatePresence>
-                  {isDropdownOpen && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pl-12 pr-4 space-y-1 overflow-hidden">
-                      {item.children!.map((child) => (
-                        <Link key={child.href} href={child.href} onClick={() => setIsOpen(false)} className={cn("block py-2 text-sm font-medium transition-colors", pathname === child.href ? "text-primary" : "text-muted-foreground hover:text-foreground")}>
-                          {child.name}
-                        </Link>
-                      ))}
-                    </motion.div>
+                <div 
+                  className={cn(
+                    "grid transition-all duration-300 ease-in-out pl-12 pr-4 space-y-1 overflow-hidden",
+                    isDropdownOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0"
                   )}
-                </AnimatePresence>
+                >
+                  <div className="overflow-hidden space-y-1">
+                    {item.children!.map((child) => (
+                      <Link 
+                        key={child.href} 
+                        href={child.href} 
+                        onClick={() => setIsOpen(false)} 
+                        className={cn(
+                          "block py-2 text-sm font-medium transition-colors", 
+                          pathname === child.href ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               </div>
             );
           }
@@ -104,20 +114,23 @@ export function UnifiedSidebar({ user, dashboardType, navItems, isOpen, setIsOpe
   return (
     <>
       {/* Mobile Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsOpen(false)} className="lg:hidden fixed inset-0 z-60 bg-black/60 backdrop-blur-sm" />
-        )}
-      </AnimatePresence>
+      <div 
+        onClick={() => setIsOpen(false)} 
+        className={cn(
+          "lg:hidden fixed inset-0 z-60 bg-black/60 backdrop-blur-sm transition-opacity duration-300",
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )} 
+      />
 
       {/* Mobile Drawer */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }} transition={{ type: "spring", bounce: 0, duration: 0.4 }} className="lg:hidden fixed left-0 top-0 h-screen z-70">
-            <SidebarContent />
-          </motion.div>
+      <div 
+        className={cn(
+          "lg:hidden fixed left-0 top-0 h-screen z-70 transition-transform duration-300 ease-out",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
-      </AnimatePresence>
+      >
+        <SidebarContent />
+      </div>
 
       {/* Desktop Fixed */}
       <aside className="hidden lg:block fixed top-0 left-0 h-screen z-40">

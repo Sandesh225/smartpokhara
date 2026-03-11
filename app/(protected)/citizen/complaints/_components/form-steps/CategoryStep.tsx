@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 import {
@@ -37,9 +37,9 @@ export function CategoryStep({ categories }: CategoryStepProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-1.5 pb-6 border-b border-border">
-        <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Classify Intelligence</h2>
+        <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">What is the issue about?</h2>
         <p className="text-xs font-black text-muted-foreground/40 uppercase tracking-widest text-center leading-relaxed">
-          Identify the specific department or operations sector for this report.
+          Pick a category that best describes the problem.
         </p>
       </div>
 
@@ -52,11 +52,9 @@ export function CategoryStep({ categories }: CategoryStepProps) {
             {categories.map((category) => {
               const isSelected = field.value === category.id;
               return (
-                <motion.button
+                <button
                   key={category.id}
                   type="button"
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     if (field.value !== category.id) {
                       field.onChange(category.id);
@@ -64,9 +62,9 @@ export function CategoryStep({ categories }: CategoryStepProps) {
                     }
                   }}
                   className={cn(
-                    "group relative p-5 rounded-2xl border-2 transition-all text-left",
+                    "group relative p-5 rounded-2xl border-2 transition-all duration-200 text-left hover:-translate-y-0.5 active:scale-[0.98]",
                     isSelected
-                      ? "border-primary bg-primary/5 shadow-lg shadow-primary/5"
+                      ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border bg-card hover:border-primary/20"
                   )}
                 >
@@ -96,7 +94,7 @@ export function CategoryStep({ categories }: CategoryStepProps) {
                       {formatCategoryName(category.name)}
                     </p>
                   </div>
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -111,16 +109,10 @@ export function CategoryStep({ categories }: CategoryStepProps) {
 
         {/* Subcategory & Title Section */}
         <div className="grid gap-8">
-          <AnimatePresence mode="wait">
             {(subcategories.length > 0 || loadingSubs) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-3"
-              >
+              <div className="space-y-3 animate-fade-in">
                 <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
-                  Sub-Operations Logic
+                  More details
                 </label>
                 <Controller
                   name="subcategory_id"
@@ -136,7 +128,7 @@ export function CategoryStep({ categories }: CategoryStepProps) {
                         }}
                       >
                         <option value="">
-                          {loadingSubs ? "Syncing Sub-Protocols..." : "Select Specification"}
+                          {loadingSubs ? "Loading..." : "Choose one"}
                         </option>
                         {subcategories.map((sub) => (
                           <option key={sub.id} value={sub.id}>
@@ -155,23 +147,18 @@ export function CategoryStep({ categories }: CategoryStepProps) {
                   )}
                 />
                 {errors.subcategory_id && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2 px-1 text-xs font-black uppercase tracking-widest text-destructive"
-                  >
+                  <div className="flex items-center gap-2 px-1 text-xs font-medium uppercase tracking-wider text-destructive animate-fade-in">
                     <AlertCircle className="w-3 h-3" />
                     {errors.subcategory_id.message as string}
-                  </motion.div>
+                  </div>
                 )}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
 
           {/* Title Input */}
           <div className="space-y-3">
             <label className="text-xs font-black uppercase tracking-wider text-foreground px-1">
-              Mission Title <span className="text-primary ml-1">•</span>
+              Short summary <span className="text-primary ml-1">•</span>
             </label>
             <Controller
               name="title"
@@ -181,21 +168,17 @@ export function CategoryStep({ categories }: CategoryStepProps) {
                   <input
                     {...field}
                     type="text"
-                    placeholder="Enter operation summary..."
+                    placeholder="What is this about? (e.g. Broken streetlight)"
                     className="w-full h-12 px-5 rounded-xl border border-border bg-background text-sm font-black uppercase tracking-widest placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all group-hover:border-primary/20"
                   />
                 </div>
               )}
             />
             {errors.title && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 px-1 text-xs font-black uppercase tracking-widest text-destructive"
-              >
+              <div className="flex items-center gap-2 px-1 text-xs font-medium uppercase tracking-wider text-destructive animate-fade-in">
                 <AlertCircle className="w-3 h-3" />
                 {errors.title.message as string}
-              </motion.div>
+              </div>
             )}
           </div>
         </div>

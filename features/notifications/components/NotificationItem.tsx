@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { format } from "date-fns";
 import {
   FileText,
@@ -68,14 +67,9 @@ export function NotificationItem({ notification, isSelected, onSelect }: Notific
   const n = notification;
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ scale: 1.01, x: 4 }}
+    <div
       className={cn(
-        "group relative flex items-start gap-5 p-6 rounded-4xl border transition-all duration-300",
+        "group relative flex items-start gap-5 p-6 rounded-4xl border transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 hover:scale-[1.01] hover:translate-x-1",
         !n.is_read
           ? "bg-card border-primary/20 shadow-xl shadow-primary/5 ring-1 ring-primary/10"
           : "bg-muted/50 border-border opacity-75"
@@ -142,6 +136,6 @@ export function NotificationItem({ notification, isSelected, onSelect }: Notific
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

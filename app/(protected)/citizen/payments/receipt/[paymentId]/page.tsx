@@ -140,7 +140,7 @@ export default function ReceiptPage() {
       </div>
 
       {/* Receipt Content */}
-      <div id="receipt-content" className="bg-white dark:bg-gray-900 p-8 rounded-lg border shadow-lg">
+      <div id="receipt-content" className="bg-card p-8 rounded-lg border shadow-lg">
         {/* Receipt Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">

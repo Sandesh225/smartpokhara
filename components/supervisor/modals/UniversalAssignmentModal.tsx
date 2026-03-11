@@ -8,7 +8,6 @@ import {
   Check,
   AlertCircle
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,32 +111,33 @@ export function UniversalAssignmentModal({
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <motion.div
-           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-           onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        />
-        
-        <motion.div
-           initial={{ scale: 0.95, opacity: 0, y: 20 }}
-           animate={{ scale: 1, opacity: 1, y: 0 }}
-           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-           className="relative w-full max-w-lg bg-background rounded-2xl shadow-2xl flex flex-col border border-border overflow-hidden"
-        >
-           {/* Header */}
-           <div className="px-6 py-4 border-b bg-muted/20 flex justify-between items-center">
-              <div>
-                 <h2 className="text-lg font-bold flex items-center gap-2">
-                    {isReassign ? <ArrowRightLeft className="w-5 h-5 text-orange-600" /> : <UserPlus className="w-5 h-5 text-blue-600" />}
-                    {isReassign ? "Redeploy Staff" : "Assign Staff"}
-                 </h2>
-                 <p className="text-xs text-muted-foreground line-clamp-1 mt-1">For: {complaintTitle}</p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
-                <X className="w-4 h-4" />
-              </Button>
-           </div>
+    <div className={cn(
+      "fixed inset-0 z-60 flex items-center justify-center p-4 transition-all duration-300",
+      isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+    )}>
+      <div
+         onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+      />
+      
+      <div
+         className={cn(
+           "relative w-full max-w-lg bg-background rounded-2xl shadow-2xl flex flex-col border border-border overflow-hidden transition-all duration-300 transform",
+           isOpen ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0"
+         )}
+      >
+         {/* Header */}
+         <div className="px-6 py-4 border-b bg-muted/20 flex justify-between items-center">
+            <div>
+               <h2 className="text-lg font-bold flex items-center gap-2">
+                  {isReassign ? <ArrowRightLeft className="w-5 h-5 text-orange-600" /> : <UserPlus className="w-5 h-5 text-blue-600" />}
+                  {isReassign ? "Redeploy Staff" : "Assign Staff"}
+               </h2>
+               <p className="text-xs text-muted-foreground line-clamp-1 mt-1">For: {complaintTitle}</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
+              <X className="w-4 h-4" />
+            </Button>
+         </div>
 
            {/* Body */}
            <div className="p-6 space-y-5">
@@ -184,7 +184,7 @@ export function UniversalAssignmentModal({
                         <SelectTrigger className="w-full">
                            <SelectValue placeholder="Select reason..." />
                         </SelectTrigger>
-                        <SelectContent className="z-[100]">
+                        <SelectContent className="z-100">
                            {reassignmentReasons.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                         </SelectContent>
                      </Select>
@@ -234,8 +234,7 @@ export function UniversalAssignmentModal({
                  {isSubmitting ? "Assigning..." : "Confirm Assignment"}
               </Button>
            </div>
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 }

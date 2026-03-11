@@ -13,7 +13,7 @@ import {
   WifiOff,
   Sparkles,
 } from "lucide-react";
-import { motion } from "framer-motion";
+
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -301,15 +301,13 @@ export default function CitizenStaffCommunication({
               message.author_role !== "citizen";
 
             return (
-              <motion.div
+              <div
                 key={message.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: index * 0.02 }}
                 className={cn(
-                  "flex gap-3",
+                  "flex gap-3 animate-fade-in",
                   isMine && "flex-row-reverse"
                 )}
+                style={{ animationDelay: `${index * 20}ms` }}
               >
                 <div className="flex-shrink-0 mt-1">
                   {message.author_avatar ? (
@@ -369,7 +367,7 @@ export default function CitizenStaffCommunication({
                     <span>{timeAgo(message.created_at)}</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })
         )}

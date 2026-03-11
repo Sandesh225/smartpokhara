@@ -5,7 +5,7 @@ import { X, Upload, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { staffApi } from "@/features/staff";
-import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface MarkCompleteModalProps {
   isOpen: boolean;
@@ -138,26 +138,24 @@ export function MarkCompleteModal({
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={onClose}
-        />
+    <div className={cn(
+      "fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 transition-all duration-300",
+      isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+    )}>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-        {/* Modal Container */}
-        <motion.div
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25, stiffness: 500 }}
-          className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
-          onClick={(e) => e.stopPropagation()}
-        >
+      {/* Modal Container */}
+      <div
+        className={cn(
+          "relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-all duration-300 transform",
+          isOpen ? "translate-y-0 opacity-100 scale-100" : "translate-y-full sm:translate-y-4 opacity-0 sm:scale-95"
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
           {/* Header */}
           <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <div>
@@ -271,8 +269,7 @@ export function MarkCompleteModal({
               )}
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 }
