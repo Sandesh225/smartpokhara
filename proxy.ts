@@ -86,8 +86,8 @@ export async function proxy(request: NextRequest) {
       if (metadataCookie) {
         try {
           const cached = JSON.parse(metadataCookie);
-          // Simple validation: Ensure metadata is recent (e.g., less than 1 hour old)
-          if (cached && cached.version === "1.0" && (Date.now() - cached.timestamp < 3600000)) {
+          // Simple validation: Ensure metadata is recent (e.g., less than 1 hour old) AND belongs to current user
+          if (cached && cached.version === "1.0" && cached.userId === user.id && (Date.now() - cached.timestamp < 3600000)) {
             profileCheck = cached.profileCheck;
             config = cached.config;
             metadataCached = true;
@@ -111,6 +111,7 @@ export async function proxy(request: NextRequest) {
         // We'll set it for 1 hour to balance performance and eventual consistency
         if (profileCheck && config) {
           const metadataToCache = JSON.stringify({
+            userId: user.id,
             profileCheck,
             config,
             timestamp: Date.now(),
