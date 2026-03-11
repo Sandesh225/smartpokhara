@@ -52,6 +52,7 @@ export const FeaturesSection = () => {
               <div className="relative space-y-4 sm:space-y-5">
                 {group.items.map((feature, fIdx) => (
                   <div
+                    key={fIdx}
                     className="flex items-start gap-4 p-4 rounded-2xl hover:bg-muted transition-all duration-300 group/item border border-transparent hover:border-border"
                   >
                     <div className="shrink-0 h-12 w-12 rounded-xl bg-accent text-primary flex items-center justify-center group-hover/item:bg-primary group-hover/item:text-primary-foreground group-hover/item:scale-105 transition-all duration-300 shadow-sm">
