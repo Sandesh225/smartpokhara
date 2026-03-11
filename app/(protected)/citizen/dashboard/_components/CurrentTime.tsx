@@ -6,8 +6,10 @@ import { Calendar } from "lucide-react";
 
 export function CurrentTime() {
   const [time, setTime] = useState(new Date());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -17,7 +19,7 @@ export function CurrentTime() {
       <div className="p-1.5 bg-muted rounded-lg border border-border shadow-sm">
         <Calendar className="w-4 h-4 text-primary" />
       </div>
-      {format(time, "EEEE, MMMM d, yyyy · HH:mm:ss")}
+      {mounted ? format(time, "EEEE, MMMM d, yyyy · HH:mm:ss") : null}
     </span>
   );
 }

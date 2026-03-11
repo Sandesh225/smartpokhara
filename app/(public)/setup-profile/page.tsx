@@ -32,6 +32,7 @@ export default async function SetupProfilePage() {
   } = await supabase.auth.getUser();
   if (userError || !user) redirect("/login");
 
+  let targetRoute: string | null = null;
   // Check if profile is already complete to prevent re-filling
   try {
     const { data: profileCheck } = await supabase.rpc(
@@ -39,10 +40,14 @@ export default async function SetupProfilePage() {
     );
     if (profileCheck?.is_complete) {
       const { data: config } = await supabase.rpc("rpc_get_dashboard_config");
-      redirect(config?.dashboard_config?.default_route || "/citizen/dashboard");
+      targetRoute = config?.dashboard_config?.default_route || "/citizen/dashboard";
     }
   } catch (error) {
     console.error("Profile check error:", error);
+  }
+
+  if (targetRoute) {
+    redirect(targetRoute);
   }
 
   return <ProfileSetupClient />;

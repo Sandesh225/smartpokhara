@@ -48,7 +48,7 @@ export default function RootLayout({
     <html lang="en" className="h-full scroll-smooth" suppressHydrationWarning>
       <head>
       </head>
-      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground antialiased selection:bg-primary/20 selection:text-primary">
+      <body suppressHydrationWarning className="flex min-h-screen flex-col bg-background font-sans text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         <Providers>{children}</Providers>
       </body>
     </html>
