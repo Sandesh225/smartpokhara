@@ -40,10 +40,14 @@ export function UpcomingTasksList({ tasks }: { tasks: TaskItem[] }) {
                   </span>
                   <ArrowRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-transform group-hover:translate-x-0.5" />
                </div>
-               <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-widest">
-                 <Calendar className="w-2.5 h-2.5 text-info-blue" />
-                 <span>Due: {format(new Date(task.due_at), "MMM d, h:mm a")}</span>
-               </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-widest">
+                  <Calendar className="w-2.5 h-2.5 text-info-blue" />
+                  <span>
+                    Due: {task.due_at && !isNaN(new Date(task.due_at).getTime()) 
+                      ? format(new Date(task.due_at), "MMM d, h:mm a") 
+                      : "No deadline"}
+                  </span>
+                </div>
              </Link>
            ))
         )}

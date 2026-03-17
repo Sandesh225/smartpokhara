@@ -1,0 +1,535 @@
+﻿Clone found (typescript):
+ - [1m[32mfeatures\complaints\hooks\useComplaintMutations.ts[39m[22m [112:34 - 117:29] (5 lines, 81 tokens)
+   [1m[32mfeatures\complaints\hooks\useComplaintMutations.ts[39m[22m [58:30 - 63:26]
+
+Clone found (typescript):
+ - [1m[32mfeatures\supervisor\api.ts[39m[22m [315:16 - 332:4] (17 lines, 134 tokens)
+   [1m[32mfeatures\supervisor\api.ts[39m[22m [291:19 - 308:3]
+
+Clone found (typescript):
+ - [1m[32mfeatures\supervisor\api.ts[39m[22m [429:5 - 438:2] (9 lines, 120 tokens)
+   [1m[32mfeatures\supervisor\api.ts[39m[22m [376:9 - 384:4]
+
+Clone found (typescript):
+ - [1m[32mfeatures\supervisor\api.ts[39m[22m [622:13 - 631:6] (9 lines, 127 tokens)
+   [1m[32mfeatures\supervisor\api.ts[39m[22m [376:9 - 439:14]
+
+Clone found (typescript):
+ - [1m[32mfeatures\staff\types.ts[39m[22m [122:1 - 143:11] (21 lines, 146 tokens)
+   [1m[32mfeatures\supervisor\types.ts[39m[22m [4:1 - 25:18]
+
+Clone found (typescript):
+ - [1m[32mfeatures\staff\types.ts[39m[22m [137:2 - 157:7] (20 lines, 124 tokens)
+   [1m[32mfeatures\supervisor\types.ts[39m[22m [25:2 - 45:43]
+
+Clone found (typescript):
+ - [1m[32mfeatures\staff\api.ts[39m[22m [85:22 - 92:11] (7 lines, 120 tokens)
+   [1m[32mfeatures\staff\api.ts[39m[22m [47:7 - 54:6]
+
+Clone found (typescript):
+ - [1m[32mfeatures\staff\api.ts[39m[22m [666:6 - 673:6] (7 lines, 97 tokens)
+   [1m[32mfeatures\staff\api.ts[39m[22m [620:2 - 628:14]
+
+Clone found (typescript):
+ - [1m[32mfeatures\payments\api.ts[39m[22m [85:2 - 93:16] (8 lines, 103 tokens)
+   [1m[32mfeatures\payments\api.ts[39m[22m [36:2 - 45:19]
+
+Clone found (typescript):
+ - [1m[32mfeatures\messages\api.ts[39m[22m [20:8 - 27:16] (7 lines, 86 tokens)
+   [1m[32mfeatures\staff\api.ts[39m[22m [831:8 - 839:8]
+
+Clone found (typescript):
+ - [1m[32mfeatures\messages\api.ts[39m[22m [78:7 - 85:2] (7 lines, 104 tokens)
+   [1m[32mfeatures\staff\api.ts[39m[22m [774:7 - 781:2]
+
+Clone found (typescript):
+ - [1m[32mfeatures\messages\api.ts[39m[22m [132:7 - 138:3] (6 lines, 86 tokens)
+   [1m[32mfeatures\staff\api.ts[39m[22m [814:7 - 820:2]
+
+Clone found (typescript):
+ - [1m[32mlib\types\supervisor.types.ts[39m[22m [155:2 - 169:2] (14 lines, 128 tokens)
+   [1m[32mlib\types\supervisor.types.ts[39m[22m [39:2 - 53:10]
+
+Clone found (tsx):
+ - [1m[32mcomponents\complaints\shared\columns.tsx[39m[22m [25:64 - 47:7] (22 lines, 162 tokens)
+   [1m[32mcomponents\staff\shared\task-columns.tsx[39m[22m [21:53 - 43:2]
+
+Clone found (tsx):
+ - [1m[32mcomponents\shared\UniversalFilterPanel.tsx[39m[22m [143:25 - 153:2] (10 lines, 102 tokens)
+   [1m[32mcomponents\shared\UniversalFilterPanel.tsx[39m[22m [96:11 - 105:2]
+
+Clone found (tsx):
+ - [1m[32mcomponents\shared\PageSkeleton.tsx[39m[22m [149:7 - 156:3] (7 lines, 81 tokens)
+   [1m[32mcomponents\shared\PageSkeleton.tsx[39m[22m [81:7 - 88:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\supervisor\analytics\jurisdiction\_components\_charts\HeatmapChart.tsx[39m[22m [1:1 - 101:2] (100 lines, 959 tokens)
+   [1m[32mcomponents\supervisor\charts\HeatmapChart.tsx[39m[22m [1:1 - 101:2]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\supervisor\analytics\jurisdiction\_components\_charts\BarChart.tsx[39m[22m [75:11 - 100:2] (25 lines, 172 tokens)
+   [1m[32mapp\(protected)\supervisor\analytics\jurisdiction\_components\_charts\LineChart.tsx[39m[22m [76:10 - 94:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\supervisor\analytics\jurisdiction\_components\_charts\BarChart.tsx[39m[22m [28:9 - 39:19] (11 lines, 145 tokens)
+   [1m[32mapp\(protected)\supervisor\analytics\jurisdiction\_components\_charts\LineChart.tsx[39m[22m [29:11 - 40:21]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\supervisor\analytics\jurisdiction\_components\_charts\BarChart.tsx[39m[22m [39:19 - 54:9] (15 lines, 130 tokens)
+   [1m[32mapp\(protected)\supervisor\analytics\jurisdiction\_components\_charts\LineChart.tsx[39m[22m [40:21 - 55:10]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\payments\receipt\[paymentId]\page.tsx[39m[22m [254:10 - 271:5] (17 lines, 213 tokens)
+   [1m[32mapp\(protected)\citizen\payments\[billId]\checkout\page.tsx[39m[22m [237:10 - 254:8]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\citizen\participatory-budgeting\[cycleId]\new\page.tsx[39m[22m [351:12 - 362:14] (11 lines, 75 tokens)
+   [1m[32mapp\(protected)\citizen\participatory-budgeting\[cycleId]\new\page.tsx[39m[22m [331:4 - 343:20]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [230:19 - 239:12] (9 lines, 58 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [210:2 - 219:16]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [238:12 - 249:16] (11 lines, 75 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [219:16 - 230:19]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [253:63 - 268:16] (15 lines, 109 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [234:66 - 230:19]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [268:16 - 303:25] (35 lines, 287 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [249:16 - 248:23]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [308:23 - 359:10] (51 lines, 367 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [279:21 - 311:5]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\analytics\page.tsx[39m[22m [602:9 - 608:9] (6 lines, 84 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\analytics\page.tsx[39m[22m [561:7 - 567:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\analytics\page.tsx[39m[22m [608:9 - 621:78] (13 lines, 117 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\analytics\page.tsx[39m[22m [567:7 - 580:79]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\content\pages\create\page.tsx[39m[22m [19:2 - 28:4] (9 lines, 107 tokens)
+   [1m[32mapp\(protected)\admin\content\pages\[id]\edit\page.tsx[39m[22m [39:2 - 48:5]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\content\pages\create\page.tsx[39m[22m [32:11 - 41:12] (9 lines, 101 tokens)
+   [1m[32mapp\(protected)\admin\content\pages\[id]\edit\page.tsx[39m[22m [52:11 - 61:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\content\pages\create\page.tsx[39m[22m [56:2 - 72:2] (16 lines, 141 tokens)
+   [1m[32mapp\(protected)\admin\content\pages\[id]\edit\page.tsx[39m[22m [87:2 - 103:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\content\notices\create\page.tsx[39m[22m [31:2 - 47:2] (16 lines, 126 tokens)
+   [1m[32mapp\(protected)\admin\content\notices\[id]\edit\page.tsx[39m[22m [56:2 - 72:2]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\supervisor\complaints\_components\ComplaintDetailHeader.tsx[39m[22m [253:7 - 261:10] (8 lines, 65 tokens)
+   [1m[32mapp\(protected)\supervisor\complaints\_components\UnassignedQueue.tsx[39m[22m [209:7 - 219:13]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\_components\QueueCardView.tsx[39m[22m [3:12 - 21:9] (18 lines, 172 tokens)
+   [1m[32mapp\(protected)\staff\queue\_components\QueueListView.tsx[39m[22m [4:11 - 22:9]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\[id]\QueueDetailClient.tsx[39m[22m [22:2 - 29:7] (7 lines, 105 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [22:2 - 29:9]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\[id]\QueueDetailClient.tsx[39m[22m [33:1 - 52:82] (19 lines, 223 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [32:1 - 51:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\[id]\QueueDetailClient.tsx[39m[22m [96:7 - 114:11] (18 lines, 180 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [193:5 - 211:5]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\[id]\QueueDetailClient.tsx[39m[22m [134:11 - 155:2] (21 lines, 213 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [222:11 - 243:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\my-tasks\page.tsx[39m[22m [16:5 - 30:11] (14 lines, 138 tokens)
+   [1m[32mapp\(protected)\staff\queue\teams\page.tsx[39m[22m [19:7 - 33:6]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\my-tasks\page.tsx[39m[22m [78:5 - 84:2] (6 lines, 78 tokens)
+   [1m[32mapp\(protected)\staff\queue\teams\page.tsx[39m[22m [65:5 - 70:3]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [185:2 - 285:10] (100 lines, 981 tokens)
+   [1m[32mapp\(protected)\staff\queue\[id]\QueueDetailClient.tsx[39m[22m [93:15 - 195:11]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [28:7 - 39:12] (11 lines, 146 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [22:2 - 33:5]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [69:1 - 88:82] (19 lines, 223 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [32:1 - 51:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [168:2 - 179:3] (11 lines, 97 tokens)
+   [1m[32mapp\(protected)\staff\queue\[id]\QueueDetailClient.tsx[39m[22m [86:6 - 95:3]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [198:11 - 208:2] (10 lines, 119 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [200:11 - 210:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [232:11 - 251:2] (19 lines, 195 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [224:11 - 242:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [252:9 - 266:2] (14 lines, 128 tokens)
+   [1m[32mapp\(protected)\staff\queue\[id]\QueueDetailClient.tsx[39m[22m [154:9 - 168:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [314:7 - 320:10] (6 lines, 97 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [296:4 - 302:4]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\citizen\payments\_components\BillsList.tsx[39m[22m [260:5 - 408:2] (148 lines, 1311 tokens)
+   [1m[32mapp\(protected)\citizen\payments\_components\PaymentHistoryTable.tsx[39m[22m [323:8 - 431:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\payments\_components\BillsList.tsx[39m[22m [52:2 - 69:2] (17 lines, 160 tokens)
+   [1m[32mapp\(protected)\citizen\payments\_components\PaymentHistoryTable.tsx[39m[22m [93:2 - 110:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\payments\_components\BillsList.tsx[39m[22m [115:3 - 131:3] (16 lines, 168 tokens)
+   [1m[32mapp\(protected)\citizen\payments\_components\PaymentHistoryTable.tsx[39m[22m [163:3 - 179:6]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\payments\_components\BillsList.tsx[39m[22m [377:15 - 397:8] (20 lines, 232 tokens)
+   [1m[32mapp\(protected)\citizen\payments\_components\PaymentHistoryTable.tsx[39m[22m [400:15 - 420:13]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\participatory-budgeting\[cycleId]\page.tsx[39m[22m [123:32 - 132:5] (9 lines, 81 tokens)
+   [1m[32mapp\(protected)\citizen\participatory-budgeting\[cycleId]\proposals\[proposalId]\page.tsx[39m[22m [85:24 - 94:9]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\dashboard\_components\RecentComplaints.tsx[39m[22m [23:7 - 34:7] (11 lines, 95 tokens)
+   [1m[32mapp\(protected)\citizen\dashboard\_components\RecentNotices.tsx[39m[22m [22:5 - 33:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\dashboard\_components\RecentComplaints.tsx[39m[22m [59:7 - 76:159] (17 lines, 121 tokens)
+   [1m[32mapp\(protected)\citizen\dashboard\_components\RecentNotices.tsx[39m[22m [58:12 - 75:178]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\_components\CitizenStaffCommunication.tsx[39m[22m [14:9 - 33:9] (19 lines, 133 tokens)
+   [1m[32mapp\(protected)\citizen\complaints\_components\StaffCommunication.tsx[39m[22m [6:6 - 15:8]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\_components\CitizenStaffCommunication.tsx[39m[22m [54:1 - 61:11] (7 lines, 140 tokens)
+   [1m[32mapp\(protected)\citizen\complaints\_components\StaffCommunication.tsx[39m[22m [25:2 - 32:5]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [159:22 - 215:80] (56 lines, 754 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [142:19 - 199:122]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [292:9 - 336:6] (44 lines, 521 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [285:2 - 331:10]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [26:2 - 82:61] (56 lines, 885 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [18:52 - 37:73]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [82:61 - 97:20] (15 lines, 126 tokens)
+   [1m[32mapp\(protected)\staff\tasks\[id]\page.tsx[39m[22m [37:73 - 89:25]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [97:20 - 106:10] (9 lines, 117 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [89:25 - 98:6]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [113:2 - 121:2] (8 lines, 106 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [96:3 - 104:8]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [121:2 - 152:91] (31 lines, 672 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [104:8 - 135:80]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [162:11 - 173:5] (11 lines, 181 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [145:11 - 155:8]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [171:23 - 187:37] (16 lines, 270 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [155:8 - 171:43]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [236:12 - 241:41] (5 lines, 71 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [220:8 - 225:114]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\[id]\page.tsx[39m[22m [371:2 - 382:12] (11 lines, 197 tokens)
+   [1m[32mapp\(protected)\staff\complaints\[id]\page.tsx[39m[22m [333:2 - 344:8]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\complaints\new\page.tsx[39m[22m [144:16 - 159:11] (15 lines, 120 tokens)
+   [1m[32mapp\(protected)\citizen\complaints\new\_components\NewComplaintForm.tsx[39m[22m [98:16 - 113:11]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\users\[id]\page.tsx[39m[22m [90:3 - 95:13] (5 lines, 68 tokens)
+   [1m[32mapp\(protected)\admin\content\notices\[id]\edit\page.tsx[39m[22m [42:3 - 47:23]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\tasks\_components\TasksTable.tsx[39m[22m [230:22 - 240:4] (10 lines, 105 tokens)
+   [1m[32mapp\(protected)\admin\tasks\_components\TasksTable.tsx[39m[22m [127:22 - 141:3]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\staff\_components\StaffTable.tsx[39m[22m [274:17 - 285:4] (11 lines, 102 tokens)
+   [1m[32mapp\(protected)\admin\staff\_components\StaffTable.tsx[39m[22m [155:25 - 166:3]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\settings\system\page.tsx[39m[22m [24:2 - 31:16] (7 lines, 74 tokens)
+   [1m[32mapp\(protected)\admin\users\[id]\page.tsx[39m[22m [88:6 - 47:23]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\settings\sla\page.tsx[39m[22m [11:3 - 22:6] (11 lines, 124 tokens)
+   [1m[32mapp\(protected)\admin\content\notices\[id]\edit\page.tsx[39m[22m [42:3 - 37:9]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\settings\categories\page.tsx[39m[22m [17:2 - 30:7] (13 lines, 131 tokens)
+   [1m[32mapp\(protected)\admin\settings\system\page.tsx[39m[22m [24:18 - 37:9]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\page.tsx[39m[22m [69:24 - 76:10] (7 lines, 96 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\analytics\page.tsx[39m[22m [76:19 - 83:10]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [88:8 - 127:48] (39 lines, 389 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [125:8 - 164:16]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [127:48 - 143:27] (16 lines, 94 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [164:16 - 180:17]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [151:16 - 203:22] (52 lines, 426 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [187:12 - 219:4]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [203:22 - 269:10] (66 lines, 508 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [219:2 - 304:12]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [269:10 - 281:10] (12 lines, 84 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [303:2 - 315:12]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [281:14 - 299:13] (18 lines, 149 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [269:13 - 281:14]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [299:13 - 311:20] (12 lines, 94 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [269:13 - 281:14]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [7:2 - 16:15] (9 lines, 134 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [11:1 - 21:15]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [39:5 - 44:2] (5 lines, 84 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [81:5 - 86:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [78:3 - 92:5] (14 lines, 115 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [115:3 - 129:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [84:37 - 95:9] (11 lines, 83 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\page.tsx[39m[22m [230:37 - 241:8]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\create\page.tsx[39m[22m [101:11 - 330:12] (229 lines, 1789 tokens)
+   [1m[32mapp\(protected)\admin\participatory-budgeting\[cycleId]\edit\page.tsx[39m[22m [138:2 - 361:12]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\departments\[id]\page.tsx[39m[22m [13:21 - 29:57] (16 lines, 146 tokens)
+   [1m[32mapp\(protected)\admin\departments\[id]\edit\page.tsx[39m[22m [11:19 - 27:6]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\content\_components\NoticeForm.tsx[39m[22m [1:1 - 16:7] (15 lines, 132 tokens)
+   [1m[32mapp\(protected)\admin\tasks\_components\CreateTaskForm.tsx[39m[22m [5:1 - 20:16]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\citizens\[id]\page.tsx[39m[22m [35:2 - 42:16] (7 lines, 75 tokens)
+   [1m[32mapp\(protected)\admin\settings\system\page.tsx[39m[22m [24:18 - 47:23]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\supervisor\participatory-budgeting\page.tsx[39m[22m [72:2 - 81:85] (9 lines, 76 tokens)
+   [1m[32mapp\(protected)\supervisor\participatory-budgeting\[proposalId]\page.tsx[39m[22m [278:2 - 287:83]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [160:23 - 300:2] (140 lines, 1466 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [159:20 - 299:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [1:1 - 28:50] (27 lines, 276 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [1:1 - 30:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [30:18 - 47:41] (17 lines, 160 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [30:23 - 47:6]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [48:5 - 115:10] (67 lines, 720 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [47:5 - 114:11]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [115:6 - 130:21] (15 lines, 175 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [114:11 - 129:21]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [162:19 - 169:11] (7 lines, 81 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [161:19 - 168:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [172:8 - 204:21] (32 lines, 318 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [171:13 - 203:21]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [207:19 - 216:21] (9 lines, 99 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [206:19 - 215:21]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [219:19 - 232:23] (13 lines, 111 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [218:19 - 231:23]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [243:21 - 271:19] (28 lines, 255 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [242:21 - 270:19]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [273:17 - 293:19] (20 lines, 230 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [272:17 - 292:19]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\settings\page.tsx[39m[22m [296:17 - 310:2] (14 lines, 96 tokens)
+   [1m[32mapp\(protected)\supervisor\settings\page.tsx[39m[22m [295:17 - 309:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\page.tsx[39m[22m [22:7 - 30:2] (8 lines, 96 tokens)
+   [1m[32mapp\(protected)\staff\queue\teams\page.tsx[39m[22m [19:7 - 28:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\queue\page.tsx[39m[22m [61:9 - 70:2] (9 lines, 106 tokens)
+   [1m[32mapp\(protected)\staff\queue\teams\page.tsx[39m[22m [71:5 - 80:2]
+
+Clone found (javascript):
+ - [1m[32mapp\(protected)\staff\notifications\page.tsx[39m[22m [132:51 - 214:2] (82 lines, 683 tokens)
+   [1m[32mapp\(protected)\supervisor\notifications\page.tsx[39m[22m [128:37 - 210:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\notifications\page.tsx[39m[22m [1:1 - 20:23] (19 lines, 183 tokens)
+   [1m[32mapp\(protected)\supervisor\notifications\page.tsx[39m[22m [1:1 - 20:28]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\notifications\page.tsx[39m[22m [20:23 - 36:65] (16 lines, 175 tokens)
+   [1m[32mapp\(protected)\supervisor\notifications\page.tsx[39m[22m [20:28 - 36:30]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\notifications\page.tsx[39m[22m [44:2 - 76:2] (32 lines, 337 tokens)
+   [1m[32mapp\(protected)\supervisor\notifications\page.tsx[39m[22m [44:2 - 76:4]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\notifications\page.tsx[39m[22m [81:2 - 93:10] (12 lines, 103 tokens)
+   [1m[32mapp\(protected)\supervisor\notifications\page.tsx[39m[22m [77:2 - 89:10]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\staff\notifications\page.tsx[39m[22m [97:10 - 119:20] (22 lines, 141 tokens)
+   [1m[32mapp\(protected)\supervisor\notifications\page.tsx[39m[22m [93:10 - 115:15]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\payments\page.tsx[39m[22m [250:12 - 261:6] (11 lines, 85 tokens)
+   [1m[32mapp\(protected)\citizen\payments\page.tsx[39m[22m [234:6 - 245:8]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\payments\page.tsx[39m[22m [268:11 - 279:5] (11 lines, 85 tokens)
+   [1m[32mapp\(protected)\citizen\payments\page.tsx[39m[22m [234:6 - 245:8]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\citizen\payments\page.tsx[39m[22m [366:7 - 375:2] (9 lines, 105 tokens)
+   [1m[32mapp\(protected)\citizen\payments\page.tsx[39m[22m [185:7 - 196:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\participatory-budgeting\page.tsx[39m[22m [73:134 - 80:66] (7 lines, 91 tokens)
+   [1m[32mapp\(protected)\supervisor\participatory-budgeting\page.tsx[39m[22m [110:96 - 117:63]
+
+Clone found (typescript):
+ - [1m[32mapp\(protected)\admin\departments\actions.ts[39m[22m [40:2 - 50:10] (10 lines, 169 tokens)
+   [1m[32mapp\(protected)\admin\departments\actions.ts[39m[22m [8:2 - 19:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\complaints\page.tsx[39m[22m [33:2 - 62:11] (29 lines, 354 tokens)
+   [1m[32mapp\(protected)\supervisor\complaints\page.tsx[39m[22m [35:13 - 64:15]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\complaints\page.tsx[39m[22m [81:11 - 95:3] (14 lines, 97 tokens)
+   [1m[32mapp\(protected)\supervisor\complaints\page.tsx[39m[22m [83:11 - 99:5]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\complaints\page.tsx[39m[22m [98:22 - 105:3] (7 lines, 95 tokens)
+   [1m[32mapp\(protected)\supervisor\complaints\page.tsx[39m[22m [102:27 - 109:4]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\complaints\page.tsx[39m[22m [183:7 - 202:17] (19 lines, 139 tokens)
+   [1m[32mapp\(protected)\supervisor\complaints\page.tsx[39m[22m [150:7 - 169:29]
+
+Clone found (tsx):
+ - [1m[32mapp\(protected)\admin\complaints\page.tsx[39m[22m [217:28 - 225:4] (8 lines, 87 tokens)
+   [1m[32mapp\(protected)\supervisor\complaints\page.tsx[39m[22m [185:40 - 194:19]
+
+Clone found (tsx):
+ - [1m[32mapp\(public)\privacy\page.tsx[39m[22m [22:9 - 33:4] (11 lines, 93 tokens)
+   [1m[32mapp\(public)\terms\page.tsx[39m[22m [22:7 - 33:6]
+
+Clone found (tsx):
+ - [1m[32mapp\(public)\notices\page.tsx[39m[22m [125:12 - 134:152] (9 lines, 77 tokens)
+   [1m[32mapp\(public)\wards\page.tsx[39m[22m [97:10 - 106:95]
+
+Clone found (tsx):
+ - [1m[32mapp\(public)\login\page.tsx[39m[22m [7:10 - 28:8] (21 lines, 164 tokens)
+   [1m[32mapp\(public)\register\page.tsx[39m[22m [6:13 - 27:7]
+
+Clone found (tsx):
+ - [1m[32mapp\(public)\login\page.tsx[39m[22m [44:3 - 75:139] (31 lines, 193 tokens)
+   [1m[32mapp\(public)\register\page.tsx[39m[22m [42:12 - 73:144]
+
+Clone found (tsx):
+ - [1m[32mapp\(public)\login\page.tsx[39m[22m [95:9 - 113:8] (18 lines, 151 tokens)
+   [1m[32mapp\(public)\register\page.tsx[39m[22m [93:7 - 111:5]
+
+Clone found (tsx):
+ - [1m[32mapp\(public)\login\page.tsx[39m[22m [113:3 - 132:2] (19 lines, 123 tokens)
+   [1m[32mapp\(public)\register\page.tsx[39m[22m [111:5 - 130:2]
+
+Clone found (tsx):
+ - [1m[32mapp\(public)\forgot-password\page.tsx[39m[22m [11:4 - 19:6] (8 lines, 74 tokens)
+   [1m[32mapp\(public)\reset-password\page.tsx[39m[22m [7:2 - 15:7]
+
+[90mΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ[39m
+[90mΓöé[39m[31m Format     [39m[90mΓöé[39m[31m Files analyzed [39m[90mΓöé[39m[31m Total lines [39m[90mΓöé[39m[31m Total tokens [39m[90mΓöé[39m[31m Clones found [39m[90mΓöé[39m[31m Duplicated lines [39m[90mΓöé[39m[31m Duplicated tokens [39m[90mΓöé[39m
+[90mΓö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ[39m
+[90mΓöé[39m javascript [90mΓöé[39m 328            [90mΓöé[39m 23881       [90mΓöé[39m 211937       [90mΓöé[39m 21           [90mΓöé[39m 950 (3.98%)      [90mΓöé[39m 8668 (4.09%)      [90mΓöé[39m
+[90mΓö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ[39m
+[90mΓöé[39m typescript [90mΓöé[39m 91             [90mΓöé[39m 10747       [90mΓöé[39m 107055       [90mΓöé[39m 14           [90mΓöé[39m 147 (1.37%)      [90mΓöé[39m 1625 (1.52%)      [90mΓöé[39m
+[90mΓö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ[39m
+[90mΓöé[39m tsx        [90mΓöé[39m 372            [90mΓöé[39m 53054       [90mΓöé[39m 480290       [90mΓöé[39m 95           [90mΓöé[39m 1715 (3.23%)     [90mΓöé[39m 17466 (3.64%)     [90mΓöé[39m
+[90mΓö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ[39m
+[90mΓöé[39m css        [90mΓöé[39m 1              [90mΓöé[39m 270         [90mΓöé[39m 3088         [90mΓöé[39m 0            [90mΓöé[39m 0 (0%)           [90mΓöé[39m 0 (0%)            [90mΓöé[39m
+[90mΓö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ[39m
+[90mΓöé[39m [1mTotal:[22m     [90mΓöé[39m 792            [90mΓöé[39m 87952       [90mΓöé[39m 802370       [90mΓöé[39m 130          [90mΓöé[39m 2812 (3.2%)      [90mΓöé[39m 27759 (3.46%)     [90mΓöé[39m
+[90mΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[39m[90mΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ[39m
+[90mFound 130 clones.[39m
+[3m[90mDetection time:[39m[23m: 12.767s

@@ -12,3 +12,5 @@ export { EmptyState } from "./EmptyState";
 export { PriorityIndicator } from "./PriorityIndicator";
 export { NotificationDropdown } from "./NotificationDropdown";
 export type { Notification, NotificationType } from "./NotificationDropdown";
+export { SettingsView } from "./SettingsView";
+export { NotificationsView } from "./NotificationsView";
