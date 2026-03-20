@@ -39,10 +39,10 @@ export function ResetPasswordForm() {
   };
 
   return (
-    <form onSubmit={handleUpdate} className="space-y-6">
+    <form onSubmit={handleUpdate} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">New Password</label>
+          <label className="text-sm font-medium text-foreground">New Password</label>
           <div className="relative">
             <input
               type="password"
@@ -50,14 +50,14 @@ export function ResetPasswordForm() {
               placeholder="Min 8 chars"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 pl-11 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all outline-none"
+              className="w-full rounded-xl bg-muted border border-input px-4 py-3.5 pl-11 focus:ring-2 focus:ring-ring focus:border-transparent transition-all outline-none text-foreground placeholder:text-muted-foreground"
             />
-            <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-slate-400" />
+            <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">Confirm Password</label>
+          <label className="text-sm font-medium text-foreground">Confirm Password</label>
           <div className="relative">
             <input
               type="password"
@@ -65,9 +65,9 @@ export function ResetPasswordForm() {
               placeholder="Repeat password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 pl-11 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all outline-none"
+              className="w-full rounded-xl bg-muted border border-input px-4 py-3.5 pl-11 focus:ring-2 focus:ring-ring focus:border-transparent transition-all outline-none text-foreground placeholder:text-muted-foreground"
             />
-            <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-slate-400" />
+            <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@ export function ResetPasswordForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-green-600 py-3.5 text-white font-semibold hover:bg-green-500 transition-all shadow-lg shadow-green-600/20 disabled:opacity-70"
+        className="w-full rounded-xl bg-primary py-3.5 text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-70"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin mx-auto" />

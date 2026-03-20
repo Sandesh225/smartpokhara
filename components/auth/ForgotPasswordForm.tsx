@@ -33,17 +33,17 @@ export function ForgotPasswordForm() {
 
   if (success) {
     return (
-      <div className="text-center animate-in fade-in zoom-in-95">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
+      <div className="text-center animate-[scaleIn_0.2s_ease-out]">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent text-primary mb-4">
           <CheckCircle2 className="h-8 w-8" />
         </div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">Check your email</h3>
-        <p className="text-slate-600 text-sm mb-6">
+        <h3 className="text-lg font-semibold text-foreground mb-2">Check your email</h3>
+        <p className="text-muted-foreground text-sm mb-6">
           We've sent password reset instructions to <strong>{email}</strong>
         </p>
         <button
           onClick={() => setSuccess(false)}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 underline"
+          className="text-sm font-medium text-primary hover:text-primary/80 underline transition-colors"
         >
           Try a different email
         </button>
@@ -52,9 +52,9 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form onSubmit={handleReset} className="space-y-6">
+    <form onSubmit={handleReset} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-slate-700">
+        <label htmlFor="email" className="text-sm font-medium text-foreground">
           Email Address
         </label>
         <div className="relative">
@@ -65,16 +65,16 @@ export function ForgotPasswordForm() {
             placeholder="name@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 pl-11 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+            className="w-full rounded-xl bg-muted border border-input px-4 py-3.5 pl-11 focus:ring-2 focus:ring-ring focus:border-transparent transition-all outline-none text-foreground placeholder:text-muted-foreground"
           />
-          <Mail className="absolute left-3.5 top-3.5 h-5 w-5 text-slate-400" />
+          <Mail className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
         </div>
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-blue-600 py-3.5 text-white font-semibold hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 disabled:opacity-70"
+        className="w-full rounded-xl bg-primary py-3.5 text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-70"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin mx-auto" />
