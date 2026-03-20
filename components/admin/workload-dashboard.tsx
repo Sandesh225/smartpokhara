@@ -84,18 +84,18 @@ export function WorkloadDashboard() {
 
   const getRoleColor = (roleType: string) => {
     const colors: Record<string, string> = {
-      dept_head: "bg-purple-100 text-purple-800",
-      dept_staff: "bg-blue-100 text-blue-800",
-      ward_staff: "bg-green-100 text-green-800",
-      field_staff: "bg-orange-100 text-orange-800",
+      dept_head: "bg-primary/10 text-primary border-primary/20",
+      dept_staff: "bg-secondary/10 text-secondary-foreground border-secondary/20",
+      ward_staff: "bg-accent-nature/10 text-accent-nature border-accent-nature/20",
+      field_staff: "bg-accent/10 text-accent-foreground border-accent/20",
     };
-    return colors[roleType] || "bg-gray-100 text-gray-800";
+    return colors[roleType] || "bg-muted text-muted-foreground border-border";
   };
 
   const getWorkloadColor = (count: number) => {
-    if (count >= 10) return "text-red-600 font-bold";
-    if (count >= 5) return "text-yellow-600 font-semibold";
-    return "text-green-600";
+    if (count >= 10) return "text-destructive font-bold";
+    if (count >= 5) return "text-secondary-foreground font-semibold";
+    return "text-accent-nature";
   };
 
   if (loading) {
@@ -107,9 +107,9 @@ export function WorkloadDashboard() {
         </div>
         <div className="grid gap-4 md:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse bg-muted/50 border-border">
               <CardContent className="pt-6">
-                <div className="h-16 rounded bg-gray-200" />
+                <div className="h-16 rounded bg-muted" />
               </CardContent>
             </Card>
           ))}
@@ -121,10 +121,10 @@ export function WorkloadDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Staff Workload</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-foreground">Staff Workload</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Monitor team capacity and assignment distribution
           </p>
         </div>
@@ -138,70 +138,70 @@ export function WorkloadDashboard() {
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-5">
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-primary/20 bg-primary/5 shadow-sm transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Staff</CardTitle>
-            <Users className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Active Staff</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">
+            <div className="text-2xl font-bold text-primary">
               {workloads.length}
             </div>
-            <p className="text-xs text-blue-700">Team members</p>
+            <p className="text-xs text-primary/70">Team members</p>
           </CardContent>
         </Card>
 
-        <Card className="border-purple-200 bg-purple-50">
+        <Card className="border-accent/20 bg-accent/5 shadow-sm transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-foreground">
               Total Assigned
             </CardTitle>
-            <ClipboardList className="h-4 w-4 text-purple-600" />
+            <ClipboardList className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">
+            <div className="text-2xl font-bold text-accent">
               {totalStats.total_assigned}
             </div>
-            <p className="text-xs text-purple-700">Active complaints</p>
+            <p className="text-xs text-accent/70">Active complaints</p>
           </CardContent>
         </Card>
 
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card className="border-secondary/20 bg-secondary/5 shadow-sm transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-secondary-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">
+            <div className="text-2xl font-bold text-secondary-foreground">
               {totalStats.pending_acceptance}
             </div>
-            <p className="text-xs text-yellow-700">Awaiting acceptance</p>
+            <p className="text-xs text-secondary-foreground/70">Awaiting acceptance</p>
           </CardContent>
         </Card>
 
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-accent-nature/20 bg-accent-nature/5 shadow-sm transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Completed</CardTitle>
+            <CheckCircle className="h-4 w-4 text-accent-nature" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">
+            <div className="text-2xl font-bold text-accent-nature">
               {totalStats.completed}
             </div>
-            <p className="text-xs text-green-700">This month</p>
+            <p className="text-xs text-accent-nature/70">This month</p>
           </CardContent>
         </Card>
 
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-destructive/20 bg-destructive/5 shadow-sm transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <CardTitle className="text-sm font-medium text-foreground">Overdue</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-900">
+            <div className="text-2xl font-bold text-destructive">
               {totalStats.overdue}
             </div>
-            <p className="text-xs text-red-700">Past SLA deadline</p>
+            <p className="text-xs text-destructive/70">Past SLA deadline</p>
           </CardContent>
         </Card>
       </div>
@@ -228,47 +228,47 @@ export function WorkloadDashboard() {
       </div>
 
       {/* Staff Table */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700 border-border">
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-sm">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted/50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     Staff Member
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     Role
                   </th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     Total
                   </th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     In Progress
                   </th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     Pending
                   </th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     Completed
                   </th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     Overdue
                   </th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">
+                  <th className="px-4 py-3 text-center font-bold uppercase tracking-widest text-muted-foreground text-[10px]">
                     Avg. Days
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {sortedWorkloads.map((staff) => (
-                  <tr key={staff.staff_id} className="hover:bg-gray-50">
+                  <tr key={staff.staff_id} className="hover:bg-muted/30 transition-colors border-b border-border/50">
                     <td className="px-4 py-4">
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-bold text-foreground">
                           {staff.staff_name}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-[10px] font-mono uppercase text-muted-foreground">
                           {staff.staff_email}
                         </div>
                       </div>
@@ -287,36 +287,36 @@ export function WorkloadDashboard() {
                       </span>
                     </td>
                     <td className="px-4 py-4 text-center">
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-secondary-foreground font-bold">
                         {staff.in_progress}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-center">
-                      <span className="text-yellow-600 font-medium">
+                      <span className="text-secondary-foreground font-bold">
                         {staff.pending_acceptance}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <CheckCircle className="h-3 w-3 text-green-600" />
-                        <span className="text-green-600 font-medium">
+                        <CheckCircle className="h-3 w-3 text-accent-nature" />
+                        <span className="text-accent-nature font-bold">
                           {staff.completed_this_month}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-center">
                       {staff.overdue > 0 ? (
-                        <span className="text-red-600 font-bold">
+                        <span className="text-destructive font-black">
                           {staff.overdue}
                         </span>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-muted-foreground/30">—</span>
                       )}
                     </td>
                     <td className="px-4 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <TrendingUp className="h-3 w-3 text-gray-400" />
-                        <span className="text-gray-700">
+                        <TrendingUp className="h-3 w-3 text-muted-foreground/50" />
+                        <span className="text-foreground font-medium">
                           {staff.avg_resolution_days.toFixed(1)}
                         </span>
                       </div>
@@ -337,49 +337,47 @@ export function WorkloadDashboard() {
       </Card>
 
       {/* Insights */}
-      <Card className="border-blue-200 bg-linear-to-br from-blue-50 to-indigo-50">
+      <Card className="border-primary/20 bg-linear-to-br from-primary/5 to-accent/5 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
         <CardHeader>
-          <CardTitle className="text-base">Workload Insights</CardTitle>
+          <CardTitle className="text-base font-black uppercase tracking-widest text-foreground">Workload Insights</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 text-sm">
+          <div className="space-y-4 text-sm font-medium">
             {totalStats.overdue > 0 && (
-              <div className="flex items-start gap-2 text-red-700">
+              <div className="flex items-start gap-3 text-destructive bg-destructive/5 p-3 rounded-xl border border-destructive/10">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  <strong>{totalStats.overdue}</strong> complaints are overdue
-                  across the team. Consider redistributing workload or
-                  escalating.
+                  <strong className="font-black">SLA ALERT:</strong> {totalStats.overdue} complaints are overdue.
+                  Immediate redistribution is strictly advised.
                 </p>
               </div>
             )}
             {totalStats.pending_acceptance > 5 && (
-              <div className="flex items-start gap-2 text-yellow-700">
+              <div className="flex items-start gap-3 text-secondary-foreground bg-secondary/5 p-3 rounded-xl border border-secondary/10">
                 <Clock className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  <strong>{totalStats.pending_acceptance}</strong> complaints
-                  are awaiting staff acceptance. Follow up with assigned
-                  members.
+                  <strong className="font-black">WARNING:</strong> {totalStats.pending_acceptance} complaints are awaiting acceptance.
+                  Protocols require staff to accept within 2 hours.
                 </p>
               </div>
             )}
             {workloads.some((w) => w.total_assigned > 10) && (
-              <div className="flex items-start gap-2 text-orange-700">
+              <div className="flex items-start gap-3 text-accent-foreground bg-accent/5 p-3 rounded-xl border border-accent/10">
                 <Users className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  Some staff members have high workloads (10+ complaints).
-                  Consider redistributing to balance the team.
+                  <strong className="font-black">CAPACITY ALERT:</strong> High individual workloads detected (10+).
+                  Rebalance assignments to optimize resolution speed.
                 </p>
               </div>
             )}
             {totalStats.overdue === 0 &&
               totalStats.pending_acceptance < 5 &&
               !workloads.some((w) => w.total_assigned > 10) && (
-                <div className="flex items-start gap-2 text-green-700">
+                <div className="flex items-start gap-3 text-accent-nature bg-accent-nature/5 p-3 rounded-xl border border-accent-nature/10">
                   <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <p>
-                    Team workload is well balanced with no major issues. Great
-                    work!
+                    <strong className="font-black">STATUS OK:</strong> Team workload is synchronized.
+                    All SLA protocols are being met currently.
                   </p>
                 </div>
               )}

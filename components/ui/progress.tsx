@@ -29,8 +29,8 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
     const clamped = Math.min(Math.max(value, 0), 100);
 
     const indicatorClasses = cn(
-      "h-full transition-all duration-500 flex items-center justify-center text-xs font-semibold text-white",
-      gradient && "bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400",
+      "h-full transition-all duration-500 flex items-center justify-center text-xs font-semibold text-primary-foreground",
+      gradient && "bg-linear-to-r from-primary via-secondary to-accent-nature",
       striped && "bg-stripes animate-stripes",
       !gradient && !striped && color,
       indicatorClassName
@@ -44,7 +44,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         aria-valuemin={0}
         aria-valuemax={100}
         className={cn(
-          "w-full h-3 rounded-full bg-neutral-stone-200 overflow-hidden",
+          "w-full h-3 rounded-full bg-muted overflow-hidden border border-border/10",
           className
         )}
         {...props}
