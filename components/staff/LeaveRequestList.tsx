@@ -51,13 +51,13 @@ export function LeaveRequestList({ initialLeaves, supervisorId }: { initialLeave
            <div className="flex gap-3 mt-4">
              <button 
                 onClick={() => handleAction(leave.id, 'reject')}
-                className="flex-1 py-2 border border-red-200 text-red-600 font-bold text-xs rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-2 border border-destructive/20 text-destructive font-bold text-xs rounded-lg hover:bg-destructive/5 transition-colors flex items-center justify-center gap-2"
              >
                <XCircle className="h-4 w-4" /> Reject
              </button>
              <button 
                 onClick={() => handleAction(leave.id, 'approve')}
-                className="flex-1 py-2 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-2 bg-accent-nature text-primary-foreground font-bold text-xs rounded-lg hover:bg-accent-nature/90 shadow-sm transition-colors flex items-center justify-center gap-2"
              >
                <CheckCircle className="h-4 w-4" /> Approve
              </button>

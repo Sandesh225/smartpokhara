@@ -151,24 +151,24 @@ export function MarkCompleteModal({
       {/* Modal Container */}
       <div
         className={cn(
-          "relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-all duration-300 transform",
+          "relative w-full max-w-lg bg-card rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-all duration-300 transform",
           isOpen ? "translate-y-0 opacity-100 scale-100" : "translate-y-full sm:translate-y-4 opacity-0 sm:scale-95"
         )}
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}
-          <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div className="px-6 py-5 border-b border-border flex justify-between items-center bg-muted/50">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-foreground">
                 Mark as Complete
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Finalize work and notify supervisor
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2.5 bg-white rounded-full text-gray-400 hover:text-gray-600 shadow-sm border border-gray-100 transition-all active:scale-90"
+              className="p-2.5 bg-card rounded-full text-muted-foreground hover:text-foreground shadow-sm border border-border transition-all active:scale-90"
             >
               <X className="w-5 h-5" />
             </button>
@@ -177,22 +177,22 @@ export function MarkCompleteModal({
           <div className="p-6 space-y-6 overflow-y-auto">
             {/* Resolution Notes */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                Resolution Notes <span className="text-red-500">*</span>
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                Resolution Notes <span className="text-destructive">*</span>
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Detail the work completed, parts used, or specific findings..."
-                className="w-full min-h-[140px] p-4 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none outline-none transition-all placeholder:text-gray-400"
+                className="w-full min-h-[140px] p-4 rounded-xl border border-input text-sm focus:ring-2 focus:ring-ring focus:border-transparent resize-none outline-none transition-all placeholder:text-muted-foreground text-foreground bg-muted"
               />
             </div>
 
             {/* Photo Upload Section */}
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-gray-700 flex justify-between items-center">
+              <label className="text-sm font-semibold text-foreground flex justify-between items-center">
                 <span>Evidence Photos</span>
-                <span className="text-xs font-normal px-2 py-0.5 bg-gray-100 rounded-full text-gray-500">
+                <span className="text-xs font-normal px-2 py-0.5 bg-muted rounded-full text-muted-foreground">
                   {photos.length}/5 selected
                 </span>
               </label>
@@ -201,7 +201,7 @@ export function MarkCompleteModal({
                 {previews.map((url, i) => (
                   <div
                     key={i}
-                    className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden border border-gray-200 group"
+                    className="relative aspect-square bg-muted rounded-xl overflow-hidden border border-border group"
                   >
                     <img
                       src={url}
@@ -210,7 +210,7 @@ export function MarkCompleteModal({
                     />
                     <button
                       onClick={() => removePhoto(i)}
-                      className="absolute top-1.5 right-1.5 p-1.5 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
+                      className="absolute top-1.5 right-1.5 p-1.5 bg-destructive text-destructive-foreground rounded-lg shadow-lg hover:bg-destructive/90 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -218,11 +218,11 @@ export function MarkCompleteModal({
                 ))}
 
                 {photos.length < 5 && (
-                  <label className="aspect-square flex flex-col items-center justify-center bg-green-50 border-2 border-dashed border-green-200 rounded-xl cursor-pointer hover:bg-green-100 hover:border-green-300 transition-all group">
-                    <div className="p-2 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                      <Upload className="w-6 h-6 text-green-600" />
+                  <label className="aspect-square flex flex-col items-center justify-center bg-accent-nature/10 border-2 border-dashed border-accent-nature/20 rounded-xl cursor-pointer hover:bg-accent-nature/20 hover:border-accent-nature/30 transition-all group">
+                    <div className="p-2 bg-card rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                      <Upload className="w-6 h-6 text-accent-nature" />
                     </div>
-                    <span className="text-xs text-green-700 font-bold mt-2 uppercase tracking-wider">
+                    <span className="text-xs text-accent-nature font-bold mt-2 uppercase tracking-wider">
                       Add Photo
                     </span>
                     <input
@@ -238,11 +238,11 @@ export function MarkCompleteModal({
             </div>
 
             {/* Info Box */}
-            <div className="p-4 bg-blue-50 rounded-xl flex items-start gap-3 border border-blue-100">
-              <CheckCircle2 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+            <div className="p-4 bg-primary/10 rounded-xl flex items-start gap-3 border border-primary/20">
+              <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
               <div className="text-sm">
-                <p className="font-bold text-blue-900">Task Completion</p>
-                <p className="text-blue-700/80 text-xs mt-0.5 leading-relaxed">
+                <p className="font-bold text-foreground">Task Completion</p>
+                <p className="text-muted-foreground text-xs mt-0.5 leading-relaxed">
                   Once submitted, the complaint status will be set to
                   "Resolved". The citizen will be notified to provide feedback.
                 </p>
@@ -251,11 +251,11 @@ export function MarkCompleteModal({
           </div>
 
           {/* Action Footer */}
-          <div className="p-6 border-t border-gray-100 bg-white">
+          <div className="p-6 border-t border-border bg-card">
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !notes.trim()}
-              className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-base shadow-lg shadow-green-200 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+              className="w-full py-4 bg-accent-nature text-primary-foreground rounded-xl font-bold text-base shadow-lg shadow-accent-nature/20 hover:bg-accent-nature/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
             >
               {isSubmitting ? (
                 <>

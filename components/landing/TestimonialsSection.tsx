@@ -42,7 +42,7 @@ export const TestimonialsSection = () => {
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star
                       key={i}
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 fill-current"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-accent-nature fill-current"
                     />
                   ))}
                 </div>

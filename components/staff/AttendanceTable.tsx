@@ -19,8 +19,8 @@ export function AttendanceTable({ staff }: { staff: any[] }) {
     }
     if (s.computedStatus === 'on_duty') {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-nature/10 text-accent-nature border border-accent-nature/20 animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-nature" /> Active
         </span>
       );
     }
@@ -54,7 +54,7 @@ export function AttendanceTable({ staff }: { staff: any[] }) {
                     <Avatar className="h-9 w-9 border border-gray-200">
                         <AvatarImage src={s.avatar_url} />
                         {/* FIX: Safely fallback if full_name is missing */}
-                        <AvatarFallback className="bg-blue-50 text-blue-600 font-bold">
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
                           {s.full_name?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
                     </Avatar>
@@ -86,7 +86,7 @@ export function AttendanceTable({ staff }: { staff: any[] }) {
                 </td>
                 <td className="px-6 py-4">
                   {s.attendance?.check_in_location ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-xs font-bold border border-primary/20">
                       <MapPin className="h-3 w-3" /> GPS OK
                     </span>
                   ) : <span className="text-gray-300 text-xs">—</span>}
