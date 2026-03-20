@@ -21,7 +21,7 @@ export function DashboardMetrics({ metrics }: { metrics: any }) {
   const cards = [
     {
       label: "Total Complaints",
-      value: metrics?.total_complaints ?? activeCount + resolvedTodayCount, // Fallback if API doesn't return total
+      value: metrics?.totalComplaints ?? activeCount + resolvedTodayCount, // Fallback if API doesn't return total
       icon: Users,
       color: "text-foreground",
       bg: "bg-muted border-border",
@@ -156,7 +156,7 @@ export function QuickActions({ counts }: { counts: any }) {
                 </h4>
               </div>
               {action.badge > 0 && (
-                <span className="h-5 min-w-[1.25rem] px-1 rounded-full bg-destructive text-xs font-bold text-white flex items-center justify-center shadow-lg">
+                <span className="h-5 min-w-5 px-1 rounded-full bg-destructive text-xs font-bold text-white flex items-center justify-center shadow-lg">
                   {action.badge}
                 </span>
               )}

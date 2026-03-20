@@ -143,7 +143,7 @@ export function AssignmentPanel({
 
       await action;
 
-      toast.success(isAssigned ? "Staff Reassigned" : "Deployment Initiated", {
+      toast.success(isAssigned ? "Staff Reassigned" : "Assignment Initiated", {
         id: toastId,
         description: `Task assigned to staff ID: ...${staffId.slice(-4)}`,
       });
@@ -236,7 +236,7 @@ export function AssignmentPanel({
                 {complaint.assigned_at && (
                   <div className="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
                     <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                    Deployed{" "}
+                    Assigned{" "}
                     {formatDistanceToNow(new Date(complaint.assigned_at), {
                       addSuffix: true,
                     })}
@@ -263,7 +263,7 @@ export function AssignmentPanel({
                 {isProcessing || loadingStaff ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Initiate Deployment"
+                  "Assign Staff"
                 )}
               </Button>
             </div>

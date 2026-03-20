@@ -88,7 +88,7 @@ export function SLATracker({ deadline, status, createdAt }: SLATrackerProps) {
                   : "bg-warning-amber/10 border-warning-amber/20 text-warning-amber"
               )}
             >
-              <ShieldAlert className="h-3 w-3 md:h-3.5 md:w-3.5 flex-shrink-0 mt-0.5" />
+              <ShieldAlert className="h-3 w-3 md:h-3.5 md:w-3.5 shrink-0 mt-0.5" />
               <span className="leading-tight">
                 {isCritical
                   ? "SLA Breach Imminent: Escalate Now"
@@ -129,7 +129,7 @@ export function SLATracker({ deadline, status, createdAt }: SLATrackerProps) {
         </div>
 
         {/* ACTION BUTTON */}
-        {!isResolved && (
+        {!isResolved && deadline && (
           <button
             onClick={() => {
               /* Extension Logic */

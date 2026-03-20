@@ -183,7 +183,7 @@ export function ComplaintDetailHeader({
               <UserPlus className="w-4 h-4 sm:mr-2" />
             )}
             <span className="hidden sm:inline">
-              {isAssigned ? "Redeploy" : "Deploy"}
+              {isAssigned ? "Reassign Staff" : "Assign Staff"}
             </span>
           </>
         )}

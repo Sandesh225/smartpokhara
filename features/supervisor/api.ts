@@ -81,6 +81,7 @@ export const supervisorApi = {
     }
 
     const metrics = data as {
+      total_complaints?: number;
       active_complaints?: number;
       unassigned_complaints?: number;
       overdue_complaints?: number;
@@ -101,6 +102,7 @@ export const supervisorApi = {
         : 100;
 
     return {
+      totalComplaints: metrics.total_complaints ?? 0,
       activeCount: metrics.active_complaints ?? 0,
       unassignedCount: metrics.unassigned_complaints ?? 0,
       overdueCount: metrics.overdue_complaints ?? 0,

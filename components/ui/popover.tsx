@@ -19,10 +19,22 @@ function usePopoverContext() {
 
 interface PopoverProps {
   children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function Popover({ children }: PopoverProps) {
-  const [open, setOpen] = React.useState(false);
+export function Popover({ children, open: controlledOpen, onOpenChange }: PopoverProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
+  
+  const setOpen = React.useCallback(
+    (newOpen: boolean) => {
+      if (onOpenChange) onOpenChange(newOpen);
+      if (controlledOpen === undefined) setUncontrolledOpen(newOpen);
+    },
+    [controlledOpen, onOpenChange]
+  );
 
   return (
     <PopoverContext.Provider value={{ open, setOpen }}>
@@ -82,7 +94,7 @@ export const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentPro
       <div
         ref={ref}
         className={cn(
-          "absolute z-50 mt-2 min-w-[8rem] rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+          "absolute z-50 mt-2 min-w-32 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
           "right-0",
           className
         )}

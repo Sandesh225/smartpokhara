@@ -112,6 +112,29 @@ export function SLACountdown({
     );
   }
 
+  // RENDER: Missing Deadline
+  if (!deadline) {
+    if (variant === "progress") {
+      return (
+        <div className="w-full">
+          <div className="flex justify-between items-end mb-1.5">
+            <span className="text-xs font-bold font-mono text-muted-foreground">Deadline N/A</span>
+            <span className="text-[10px] text-muted-foreground/70 font-black uppercase tracking-wider">No Configuration</span>
+          </div>
+          <div className="h-1.5 w-full bg-muted dark:bg-muted/50 rounded-full overflow-hidden">
+             <div className="h-full w-full bg-muted-foreground/20 rounded-full" />
+          </div>
+        </div>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border bg-muted/10 text-muted-foreground border-border">
+        <Timer className="h-3 w-3" />
+        No Deadline
+      </span>
+    );
+  }
+
   // RENDER: Loading State
   if (!timeLeft)
     return <span className="text-xs font-mono text-muted-foreground animate-pulse">Calculating...</span>;

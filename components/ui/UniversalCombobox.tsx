@@ -59,7 +59,7 @@ export function UniversalCombobox({
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -76,7 +76,7 @@ export function UniversalCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 min-w-[200px]" align="start">
+      <PopoverContent className="w-full p-0 min-w-[200px] z-50" align="start">
         <div className="flex items-center border-b px-3">
           <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           <Input
@@ -100,7 +100,7 @@ export function UniversalCombobox({
                         if (!item.disabled) handleSelect(item.value);
                     }}
                     className={cn(
-                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 cursor-pointer",
+                    "relative flex select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 cursor-pointer",
                     item.disabled && "opacity-50 cursor-not-allowed",
                     value === item.value && "bg-accent"
                     )}

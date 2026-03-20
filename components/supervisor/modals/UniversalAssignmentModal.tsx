@@ -112,7 +112,7 @@ export function UniversalAssignmentModal({
 
   return (
     <div className={cn(
-      "fixed inset-0 z-60 flex items-center justify-center p-4 transition-all duration-300",
+      "fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300",
       isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
     )}>
       <div
@@ -130,7 +130,7 @@ export function UniversalAssignmentModal({
             <div>
                <h2 className="text-lg font-bold flex items-center gap-2">
                   {isReassign ? <ArrowRightLeft className="w-5 h-5 text-orange-600" /> : <UserPlus className="w-5 h-5 text-blue-600" />}
-                  {isReassign ? "Redeploy Staff" : "Assign Staff"}
+                  {isReassign ? "Reassign Staff" : "Assign Staff"}
                </h2>
                <p className="text-xs text-muted-foreground line-clamp-1 mt-1">For: {complaintTitle}</p>
             </div>
@@ -184,7 +184,7 @@ export function UniversalAssignmentModal({
                         <SelectTrigger className="w-full">
                            <SelectValue placeholder="Select reason..." />
                         </SelectTrigger>
-                        <SelectContent className="z-100">
+                        <SelectContent className="z-50">
                            {reassignmentReasons.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                         </SelectContent>
                      </Select>
