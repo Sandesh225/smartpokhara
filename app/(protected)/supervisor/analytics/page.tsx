@@ -20,7 +20,7 @@ export default async function AnalyticsPage() {
   // Parallel data fetching
   const [metrics, trendData, categoryData, heatmapData, staffData] =
     await Promise.all([
-      supervisorApi.getAggregatedMetrics(supabase),
+      supervisorApi.getAggregatedMetrics(supabase, user.id),
       supervisorApi.getTrendData(supabase, user.id),
       supervisorApi.getCategoryBreakdown(supabase, user.id), 
       supervisorApi.getWardHeatmapData(supabase),

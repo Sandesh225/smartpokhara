@@ -34,7 +34,11 @@ export default function SupervisorProposalsPage() {
   useEffect(() => {
     pbApi.getActiveCycles(supabase).then(data => {
       setCycles(data);
-      if (data.length > 0) setSelectedCycle(data[0].id);
+      if (data.length > 0) {
+        setSelectedCycle(data[0].id);
+      } else {
+        setLoading(false);
+      }
     });
   }, []);
 

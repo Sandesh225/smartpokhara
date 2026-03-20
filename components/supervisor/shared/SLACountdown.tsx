@@ -117,9 +117,8 @@ export function SLACountdown({
     if (variant === "progress") {
       return (
         <div className="w-full">
-          <div className="flex justify-between items-end mb-1.5">
+          <div className="flex items-center mb-1.5">
             <span className="text-xs font-bold font-mono text-muted-foreground">Deadline N/A</span>
-            <span className="text-[10px] text-muted-foreground/70 font-black uppercase tracking-wider">No Configuration</span>
           </div>
           <div className="h-1.5 w-full bg-muted dark:bg-muted/50 rounded-full overflow-hidden">
              <div className="h-full w-full bg-muted-foreground/20 rounded-full" />

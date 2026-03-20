@@ -62,23 +62,13 @@ export const supervisorApi = {
   // 2. DASHBOARD METRICS
   // ==========================================
   async getComplaintMetrics(client: SupabaseClient<Database>, supervisorId: string) {
+    const scope = await this.getJurisdiction(client, supervisorId);
+    
     const { data, error } = await client.rpc("rpc_get_supervisor_dashboard_v2", {
       p_supervisor_id: supervisorId,
     });
 
-    if (error) {
-      console.error("[RPC] rpc_get_supervisor_dashboard_v2 failed:", error);
-    }
-
-    if (!data) {
-      return {
-        activeCount: 0,
-        unassignedCount: 0,
-        overdueCount: 0,
-        resolvedTodayCount: 0,
-        slaComplianceRate: 100,
-      };
-    }
+    if (error) console.error("[RPC] rpc_get_supervisor_dashboard_v2 failed:", error);
 
     const metrics = data as {
       total_complaints?: number;
@@ -87,40 +77,66 @@ export const supervisorApi = {
       overdue_complaints?: number;
       resolved_today?: number;
       avg_resolution_hours?: number;
-    };
+    } | null;
 
-    const totalForSla =
-      (metrics.active_complaints ?? 0) +
-      (metrics.resolved_today ?? 0) +
-      (metrics.overdue_complaints ?? 0);
+    // Fallback Manual Total Fetch
+    let totalQuery = client.from("complaints").select("*", { count: "exact", head: true });
+    
+    if (!scope.is_senior) {
+      const filters: string[] = [];
+      if (scope.wards.length > 0) filters.push(`ward_id.in.(${scope.wards.join(",")})`);
+      if (scope.depts.length > 0) filters.push(`assigned_department_id.in.(${scope.depts.join(",")})`);
+      if (filters.length > 0) totalQuery = totalQuery.or(filters.join(","));
+    }
+    
+    const [{ count: realTotal }] = await Promise.all([
+      (!scope.is_senior && scope.wards.length === 0 && scope.depts.length === 0) ? Promise.resolve({ count: 0 }) : totalQuery
+    ]);
 
-    const compliance =
-      totalForSla > 0
-        ? Math.round(
-            ((totalForSla - (metrics.overdue_complaints ?? 0)) / totalForSla) * 100
-          )
-        : 100;
+    const activeCount = metrics?.active_complaints ?? 0;
+    const resolvedTodayCount = metrics?.resolved_today ?? 0;
+    const overdueCount = metrics?.overdue_complaints ?? 0;
+
+    const totalForSla = activeCount + resolvedTodayCount + overdueCount;
+    const compliance = totalForSla > 0 ? Math.round(((totalForSla - overdueCount) / totalForSla) * 100) : 100;
 
     return {
-      totalComplaints: metrics.total_complaints ?? 0,
-      activeCount: metrics.active_complaints ?? 0,
-      unassignedCount: metrics.unassigned_complaints ?? 0,
-      overdueCount: metrics.overdue_complaints ?? 0,
-      resolvedTodayCount: metrics.resolved_today ?? 0,
-      avgResolutionTimeHours: metrics.avg_resolution_hours ?? 0,
+      totalComplaints: (metrics?.total_complaints && metrics.total_complaints > 0) ? metrics.total_complaints : (realTotal ?? 0),
+      activeCount,
+      unassignedCount: metrics?.unassigned_complaints ?? 0,
+      overdueCount,
+      resolvedTodayCount,
+      avgResolutionTimeHours: metrics?.avg_resolution_hours ?? 0,
       slaComplianceRate: compliance,
     };
   },
 
-  async getAggregatedMetrics(client: SupabaseClient<Database>) {
-    const { count: total } = await client
-      .from("complaints")
-      .select("*", { count: "exact", head: true });
+  async getAggregatedMetrics(client: SupabaseClient<Database>, supervisorId: string) {
+    const scope = await this.getJurisdiction(client, supervisorId);
 
-    const { count: resolved } = await client
-      .from("complaints")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "resolved");
+    let query = client.from("complaints").select("*", { count: "exact", head: true });
+    let resolvedQuery = client.from("complaints").select("*", { count: "exact", head: true }).eq("status", "resolved");
+
+    if (!scope.is_senior) {
+      const filters: string[] = [];
+      if (scope.wards.length > 0) filters.push(`ward_id.in.(${scope.wards.join(",")})`);
+      if (scope.depts.length > 0) filters.push(`assigned_department_id.in.(${scope.depts.join(",")})`);
+
+      if (filters.length > 0) {
+        query = query.or(filters.join(","));
+        resolvedQuery = resolvedQuery.or(filters.join(","));
+      } else {
+        return {
+          totalComplaints: 0,
+          resolutionRate: 0,
+          avgResolutionTime: 24,
+          slaCompliance: 92,
+          citizenSatisfaction: 4.5,
+        };
+      }
+    }
+
+    const [{ count: total }, { count: resolved }] = await Promise.all([query, resolvedQuery]);
 
     return {
       totalComplaints: total ?? 0,

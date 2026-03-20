@@ -167,10 +167,10 @@ export function ComplaintDetailHeader({
         onClick={loadStaffForAssignment}
         disabled={isLoadingStaff}
         className={cn(
-          "h-10 px-4 sm:px-6 rounded-lg font-semibold shadow-sm transition-all text-sm",
+          "h-10 px-4 sm:px-6 rounded-lg font-semibold shadow-sm transition-all text-sm text-primary-foreground",
           isAssigned
-            ? "bg-warning-amber hover:bg-warning-amber/90"
-            : "bg-primary hover:bg-primary/90 text-primary-foreground"
+            ? "bg-amber-500 hover:bg-amber-600"
+            : "bg-primary hover:bg-primary/90"
         )}
       >
         {isLoadingStaff ? (
