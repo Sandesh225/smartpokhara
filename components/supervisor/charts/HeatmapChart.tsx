@@ -26,12 +26,12 @@ interface HeatmapChartProps {
 // Generate color based on intensity (Blue scale)
 const getIntensityColor = (count: number, max: number) => {
   const intensity = Math.min(Math.max(count / (max || 1), 0), 1);
-  if (intensity === 0) return "bg-gray-100 border-gray-200 text-gray-400";
-  if (intensity < 0.2) return "bg-blue-50 border-blue-100 text-blue-700";
-  if (intensity < 0.4) return "bg-blue-100 border-blue-200 text-blue-800";
-  if (intensity < 0.6) return "bg-blue-300 border-blue-400 text-blue-900";
-  if (intensity < 0.8) return "bg-blue-500 border-blue-600 text-white";
-  return "bg-blue-700 border-blue-800 text-white";
+  if (intensity === 0) return "bg-muted border-border text-muted-foreground";
+  if (intensity < 0.2) return "bg-primary/5 border-primary/10 text-primary";
+  if (intensity < 0.4) return "bg-primary/20 border-primary/30 text-primary";
+  if (intensity < 0.6) return "bg-primary/40 border-primary/50 text-primary-foreground";
+  if (intensity < 0.8) return "bg-primary/70 border-primary/80 text-primary-foreground";
+  return "bg-primary border-primary text-primary-foreground";
 };
 
 export function HeatmapChart({
@@ -76,7 +76,7 @@ export function HeatmapChart({
                   <div className="text-xs">
                     <p className="font-bold">Ward {wardNum}</p>
                     <p>Total: {wardData.total_complaints}</p>
-                    <p className="text-red-500">Overdue: {wardData.overdue_complaints}</p>
+                    <p className="text-destructive font-semibold">Overdue: {wardData.overdue_complaints}</p>
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -86,13 +86,13 @@ export function HeatmapChart({
       </div>
       
       {/* Legend */}
-      <div className="mt-4 flex items-center justify-end gap-2 text-xs text-gray-500">
+      <div className="mt-4 flex items-center justify-end gap-2 text-xs text-muted-foreground">
         <span>Low Activity</span>
         <div className="flex gap-1">
-          <div className="w-3 h-3 rounded-sm bg-blue-50" />
-          <div className="w-3 h-3 rounded-sm bg-blue-300" />
-          <div className="w-3 h-3 rounded-sm bg-blue-500" />
-          <div className="w-3 h-3 rounded-sm bg-blue-700" />
+          <div className="w-3 h-3 rounded-sm bg-primary/5 border border-border" />
+          <div className="w-3 h-3 rounded-sm bg-primary/40 border border-border" />
+          <div className="w-3 h-3 rounded-sm bg-primary/70 border border-border" />
+          <div className="w-3 h-3 rounded-sm bg-primary border border-border" />
         </div>
         <span>High Activity</span>
       </div>

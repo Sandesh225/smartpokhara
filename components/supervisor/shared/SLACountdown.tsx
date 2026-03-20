@@ -95,17 +95,17 @@ export function SLACountdown({
       return (
         <div className="w-full">
           <div className="flex justify-between text-xs mb-1">
-            <span className="font-medium text-emerald-700 dark:text-emerald-400">Completed</span>
-            <span className="text-emerald-600 dark:text-emerald-500">100%</span>
+            <span className="font-bold uppercase tracking-wider text-accent-nature">Completed</span>
+            <span className="text-accent-nature/80 font-mono">100%</span>
           </div>
-          <div className="h-1.5 w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 w-full" />
+          <div className="h-1.5 w-full bg-accent-nature/10 rounded-full overflow-hidden border border-accent-nature/10">
+            <div className="h-full bg-accent-nature w-full transition-all duration-700 ease-out" />
           </div>
         </div>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-500/20 uppercase tracking-wide">
+      <span className="inline-flex items-center gap-1 text-[10px] font-black text-accent-nature bg-accent-nature/10 px-2 py-0.5 rounded-full border border-accent-nature/20 uppercase tracking-widest shadow-sm">
         <CheckCircle2 className="h-3 w-3" />
         SLA Met
       </span>
@@ -125,9 +125,9 @@ export function SLACountdown({
             className={cn(
               "text-xs font-bold font-mono",
               timeLeft.overdue
-                ? "text-red-600 dark:text-red-400"
+                ? "text-destructive"
                 : timeLeft.urgent
-                ? "text-amber-600 dark:text-amber-400"
+                ? "text-secondary-foreground"
                 : "text-foreground"
             )}
           >
@@ -140,10 +140,10 @@ export function SLACountdown({
             className={cn(
               "h-full transition-all duration-500 ease-out rounded-full",
               timeLeft.overdue
-                ? "bg-red-500 animate-pulse"
+                ? "bg-destructive animate-pulse"
                 : timeLeft.urgent
-                ? "bg-amber-500"
-                : "bg-blue-500"
+                ? "bg-secondary"
+                : "bg-primary"
             )}
             style={{ width: `${timeLeft.percentage}%` }}
           />
@@ -156,12 +156,12 @@ export function SLACountdown({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wide transition-all shadow-sm border",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border",
         timeLeft.overdue
-          ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50 animate-pulse"
+          ? "bg-destructive/10 text-destructive border-destructive/30 animate-pulse"
           : timeLeft.urgent
-          ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/50"
-          : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/50"
+          ? "bg-secondary/10 text-secondary-foreground border-secondary/30"
+          : "bg-primary/10 text-primary border-primary/20"
       )}
       title={deadline ? `Deadline: ${new Date(deadline).toLocaleString()}` : "No Deadline"}
     >

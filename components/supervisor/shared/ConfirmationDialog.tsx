@@ -38,27 +38,27 @@ export function ConfirmationDialog({
   const config = {
     danger: {
       icon: ShieldAlert,
-      color: "text-red-500",
-      bg: "bg-red-500/10",
-      border: "border-red-500/20",
-      btn: "bg-red-600 hover:bg-red-700 text-white shadow-glow-sm shadow-red-500/20",
-      accent: "red",
+      color: "text-destructive",
+      bg: "bg-destructive/10",
+      border: "border-destructive/20",
+      btn: "bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg shadow-destructive/20",
+      accent: "destructive",
     },
     warning: {
       icon: AlertTriangle,
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
-      border: "border-amber-500/20",
-      btn: "bg-amber-500 hover:bg-amber-600 text-white shadow-glow-sm shadow-amber-500/20",
-      accent: "amber",
+      color: "text-secondary-foreground",
+      bg: "bg-secondary/10",
+      border: "border-secondary/20",
+      btn: "bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg shadow-secondary/20",
+      accent: "secondary",
     },
     info: {
       icon: Info,
       color: "text-primary",
       bg: "bg-primary/10",
       border: "border-primary/20",
-      btn: "bg-primary hover:bg-primary/90 text-white shadow-glow-sm",
-      accent: "blue",
+      btn: "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20",
+      accent: "primary",
     },
   };
 
@@ -78,8 +78,8 @@ export function ConfirmationDialog({
       {/* Dialog Surface */}
       <div
         className={cn(
-          "relative w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-dark-surface shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/10 dark:border-primary/10",
-          "ring-1 ring-black/5 transition-all duration-300 transform",
+          "relative w-full max-w-md overflow-hidden rounded-2xl bg-card shadow-2xl border border-border",
+          "transition-all duration-300 transform animate-[scaleIn_0.3s_ease-out]",
           isOpen ? "scale-100 translate-y-0 opacity-100" : "scale-95 translate-y-4 opacity-0"
         )}
       >
@@ -96,22 +96,22 @@ export function ConfirmationDialog({
               <Icon className={cn("h-8 w-8", color)} strokeWidth={2.5} />
             </div>
 
-            <h3 className="text-xl font-black uppercase tracking-tighter text-gray-900 dark:text-dark-text-primary">
+            <h3 className="text-xl font-black uppercase tracking-tighter text-foreground">
               {title}
             </h3>
 
-            <p className="mt-3 text-sm font-medium text-gray-500 dark:text-dark-text-secondary leading-relaxed">
+            <p className="mt-3 text-sm font-medium text-muted-foreground leading-relaxed">
               {message}
             </p>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center gap-3 bg-gray-50/50 dark:bg-dark-surface-lighter px-6 py-5 border-t border-gray-100 dark:border-primary/10">
+        <div className="flex items-center gap-3 bg-muted/30 px-6 py-5 border-t border-border">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 rounded-xl border border-gray-300 dark:border-primary/20 bg-white dark:bg-transparent px-4 py-2.5 text-xs font-black uppercase tracking-widest text-gray-700 dark:text-dark-text-tertiary hover:bg-gray-50 dark:hover:bg-primary/5 transition-all disabled:opacity-50"
+            className="flex-1 rounded-xl border border-input bg-card px-4 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all disabled:opacity-50"
           >
             {cancelLabel}
           </button>
